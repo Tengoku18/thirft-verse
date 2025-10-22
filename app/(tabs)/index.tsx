@@ -1,98 +1,252 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
+import { StyleSheet, ScrollView, View, Text } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
 
 export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+    <ScrollView style={styles.container}>
+      <ThemedView style={styles.header}>
+        <ThemedText type="title" style={styles.mainTitle}>ThriftVerse</ThemedText>
+        <ThemedText style={styles.subtitle}>Vintage Finds, Modern Style</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
+      {/* Color Palette Demo */}
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>Color Palette</ThemedText>
+
+        <View style={styles.colorRow}>
+          <View style={[styles.colorBox, { backgroundColor: '#3B2F2F' }]}>
+            <Text style={styles.colorLabel}>Primary</Text>
+            <Text style={styles.colorCode}>#3B2F2F</Text>
+          </View>
+          <View style={[styles.colorBox, { backgroundColor: '#D4A373' }]}>
+            <Text style={styles.colorLabel}>Secondary</Text>
+            <Text style={styles.colorCode}>#D4A373</Text>
+          </View>
+        </View>
+
+        <View style={styles.colorRow}>
+          <View style={[styles.colorBox, { backgroundColor: '#6B705C' }]}>
+            <Text style={styles.colorLabel}>Accent 1</Text>
+            <Text style={styles.colorCode}>#6B705C</Text>
+          </View>
+          <View style={[styles.colorBox, { backgroundColor: '#CB997E' }]}>
+            <Text style={styles.colorLabel}>Accent 2</Text>
+            <Text style={styles.colorCode}>#CB997E</Text>
+          </View>
+        </View>
+
+        <View style={styles.colorRow}>
+          <View style={[styles.colorBox, { backgroundColor: '#FAF7F2' }]}>
+            <Text style={[styles.colorLabel, { color: '#3B2F2F' }]}>Background</Text>
+            <Text style={[styles.colorCode, { color: '#3B2F2F' }]}>#FAF7F2</Text>
+          </View>
+          <View style={[styles.colorBox, { backgroundColor: '#C7BFB3' }]}>
+            <Text style={styles.colorLabel}>Border</Text>
+            <Text style={styles.colorCode}>#C7BFB3</Text>
+          </View>
+        </View>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
+
+      {/* Font Demo */}
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>Typography</ThemedText>
+
+        <View style={styles.fontDemo}>
+          <Text style={styles.playfairTitle}>Playfair Display</Text>
+          <Text style={styles.playfairSubtext}>Elegant serif for headings</Text>
+        </View>
+
+        <View style={styles.fontDemo}>
+          <Text style={styles.nunitoTitle}>Nunito Sans</Text>
+          <Text style={styles.nunitoSubtext}>Clean sans-serif for body text</Text>
+        </View>
       </ThemedView>
-    </ParallaxScrollView>
+
+      {/* Card Example */}
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>Example Card</ThemedText>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Vintage Denim Jacket</Text>
+          <Text style={styles.cardPrice}>$45.00</Text>
+          <Text style={styles.cardDescription}>
+            Classic 90s style denim jacket in excellent condition.
+            Perfect for layering in any season.
+          </Text>
+          <View style={styles.cardButton}>
+            <Text style={styles.cardButtonText}>Add to Cart</Text>
+          </View>
+        </View>
+      </ThemedView>
+
+      {/* Font Weights Demo */}
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>Font Weights</ThemedText>
+
+        <Text style={styles.playfairRegular}>Playfair Regular</Text>
+        <Text style={styles.playfairSemiBold}>Playfair SemiBold</Text>
+        <Text style={styles.playfairBold}>Playfair Bold</Text>
+
+        <View style={styles.spacer} />
+
+        <Text style={styles.nunitoRegular}>Nunito Sans Regular</Text>
+        <Text style={styles.nunitoSemiBold}>Nunito Sans SemiBold</Text>
+        <Text style={styles.nunitoBold}>Nunito Sans Bold</Text>
+      </ThemedView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: '#FAF7F2',
   },
-  stepContainer: {
-    gap: 8,
+  header: {
+    padding: 24,
+    paddingTop: 60,
+    backgroundColor: '#3B2F2F',
+    alignItems: 'center',
+  },
+  mainTitle: {
+    color: '#FAF7F2',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  subtitle: {
+    color: '#D4A373',
+    fontSize: 16,
+  },
+  section: {
+    padding: 20,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    marginBottom: 16,
+  },
+  colorRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  colorBox: {
+    flex: 1,
+    height: 100,
+    borderRadius: 8,
+    padding: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  colorLabel: {
+    color: '#FFFFFF',
+    fontFamily: 'NunitoSans_600SemiBold',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  colorCode: {
+    color: '#FFFFFF',
+    fontFamily: 'NunitoSans_400Regular',
+    fontSize: 11,
+  },
+  fontDemo: {
+    marginBottom: 20,
+  },
+  playfairTitle: {
+    fontFamily: 'PlayfairDisplay_700Bold',
+    fontSize: 32,
+    color: '#3B2F2F',
+    marginBottom: 4,
+  },
+  playfairSubtext: {
+    fontFamily: 'NunitoSans_400Regular',
+    fontSize: 14,
+    color: '#6B705C',
+  },
+  nunitoTitle: {
+    fontFamily: 'NunitoSans_700Bold',
+    fontSize: 28,
+    color: '#3B2F2F',
+    marginBottom: 4,
+  },
+  nunitoSubtext: {
+    fontFamily: 'NunitoSans_400Regular',
+    fontSize: 14,
+    color: '#6B705C',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#C7BFB3',
+  },
+  cardTitle: {
+    fontFamily: 'PlayfairDisplay_600SemiBold',
+    fontSize: 24,
+    color: '#3B2F2F',
+    marginBottom: 8,
+  },
+  cardPrice: {
+    fontFamily: 'NunitoSans_700Bold',
+    fontSize: 20,
+    color: '#D4A373',
+    marginBottom: 12,
+  },
+  cardDescription: {
+    fontFamily: 'NunitoSans_400Regular',
+    fontSize: 15,
+    color: '#3B2F2F',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  cardButton: {
+    backgroundColor: '#D4A373',
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+  },
+  cardButtonText: {
+    fontFamily: 'NunitoSans_600SemiBold',
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  spacer: {
+    height: 16,
+  },
+  playfairRegular: {
+    fontFamily: 'PlayfairDisplay_400Regular',
+    fontSize: 20,
+    color: '#3B2F2F',
+    marginBottom: 8,
+  },
+  playfairSemiBold: {
+    fontFamily: 'PlayfairDisplay_600SemiBold',
+    fontSize: 20,
+    color: '#3B2F2F',
+    marginBottom: 8,
+  },
+  playfairBold: {
+    fontFamily: 'PlayfairDisplay_700Bold',
+    fontSize: 20,
+    color: '#3B2F2F',
+    marginBottom: 8,
+  },
+  nunitoRegular: {
+    fontFamily: 'NunitoSans_400Regular',
+    fontSize: 18,
+    color: '#3B2F2F',
+    marginBottom: 8,
+  },
+  nunitoSemiBold: {
+    fontFamily: 'NunitoSans_600SemiBold',
+    fontSize: 18,
+    color: '#3B2F2F',
+    marginBottom: 8,
+  },
+  nunitoBold: {
+    fontFamily: 'NunitoSans_700Bold',
+    fontSize: 18,
+    color: '#3B2F2F',
+    marginBottom: 8,
   },
 });
