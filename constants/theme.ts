@@ -1,29 +1,38 @@
 /**
  * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Color palette inspired by vintage thrift stores with warm, earthy tones.
  */
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// Thriftverse Color Palette
+const primary = '#3B2F2F'; // Rich espresso brown
+const secondary = '#D4A373'; // Warm tan
+const background = '#FAF7F2'; // Soft off-white
+const surface = '#FFFFFF'; // Clean white
+const border = '#C7BFB3'; // Subtle neutral
+const accent1 = '#6B705C'; // Muted olive
+const accent2 = '#CB997E'; // Clay blush
+
+const tintColorLight = secondary; // Warm tan for light mode
+const tintColorDark = accent2; // Clay blush for dark mode
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: primary, // Rich espresso brown text
+    background: background, // Soft off-white background
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    icon: accent1, // Muted olive icons
+    tabIconDefault: border, // Subtle neutral for inactive tabs
+    tabIconSelected: secondary, // Warm tan for active tabs
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: background, // Light text on dark background
+    background: primary, // Rich espresso brown background
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    icon: accent2, // Clay blush icons
+    tabIconDefault: border, // Subtle neutral for inactive tabs
+    tabIconSelected: accent2, // Clay blush for active tabs
   },
 };
 

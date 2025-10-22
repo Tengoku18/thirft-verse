@@ -3,4 +3,21 @@
 @tailwind components;
 @tailwind utilities;
 
-/* You can add project-wide custom styles below */
+/* Thriftverse Color Palette Variables */
+@layer base {
+  :root {
+    --color-primary: #3B2F2F;
+    --color-secondary: #D4A373;
+    --color-background: #FAF7F2;
+    --color-surface: #FFFFFF;
+    --color-border: #C7BFB3;
+    --color-muted: #C7BFB3;
+    --color-accent1: #6B705C;
+    --color-accent2: #CB997E;
+  }
+
+  /* Default font family */
+  * {
+    font-family: "NunitoSans_400Regular";
+  }
+}
