@@ -1,5 +1,6 @@
 import ProductCard from '@/_components/ProductCard';
 import UserNotFound from '@/_components/UserNotFound';
+import LandingPage from '@/_components/landing/LandingPage';
 import {
   getProductsByCreatorId,
   getUserById,
@@ -18,6 +19,10 @@ export default async function Home() {
   // Parse hostname and subdomain
   const hostname = host.split(':')[0]; // Remove port if present
   const subdomain = getSubDomain(hostname);
+
+  if (subdomain === process.env.NEXT_PUBLIC_DOMAINNAME || subdomain === 'www' || subdomain === '') {
+    return <LandingPage />;
+  }
 
   // Step 1: Get user ID from Instagram handle (subdomain)
   const userId = await getUserIdByInstagramHandle(subdomain);
