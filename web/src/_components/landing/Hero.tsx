@@ -12,7 +12,7 @@ export default function Hero() {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent-1/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-32">
+      <div className="relative mx-auto max-w-7xl px-4 pt-32 pb-20 sm:px-6 lg:px-8 lg:pt-40 lg:pb-32">
         <div className="text-center">
           {/* Badge */}
           <div className="mb-8 inline-flex items-center gap-2 rounded-full bg-surface px-4 py-2 shadow-md border border-border animate-bounce-slow">

@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import Footer from '@/_components/landing/Footer';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -35,7 +35,7 @@ export default function PageLayout({
       </header>
 
       {/* Page Header */}
-      <div className="border-b border-border bg-gradient-to-br from-surface to-secondary/5">
+      <div className="border-b border-border bg-linear-to-br from-surface to-secondary/5">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <h1 className="font-heading mb-4 text-4xl font-bold text-primary sm:text-5xl">
             {title}

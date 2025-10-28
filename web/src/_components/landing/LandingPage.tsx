@@ -1,3 +1,4 @@
+import Header from '@/_components/common/Header';
 import Hero from './Hero';
 import Features from './Features';
 import HowItWorks from './HowItWorks';
@@ -8,6 +9,9 @@ import Section from './Section';
 export default function LandingPage() {
   return (
     <div className="min-h-screen">
+      {/* Header */}
+      <Header />
+
       {/* Hero Section */}
       <Hero />
 
