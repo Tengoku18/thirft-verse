@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { ShippingAddress } from '@/types/database'
 
 export interface EsewaPaymentParams {
   amount: number
@@ -6,6 +7,9 @@ export interface EsewaPaymentParams {
   productName: string
   taxAmount?: number
   deliveryCharge?: number
+  buyer_name: string
+  buyer_email: string
+  shipping_address: ShippingAddress
 }
 
 export interface EsewaConfig {

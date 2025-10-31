@@ -9,6 +9,9 @@ import {
   verifyEsewaSignature,
   type EsewaPaymentParams,
 } from '@/lib/esewa/utils'
+import { createServiceRoleClient } from '@/lib/supabase/server'
+import { createOrder } from './orders'
+import { getProductById } from './products'
 
 interface InitiatePaymentResult {
   success: boolean
@@ -48,6 +51,37 @@ export async function initiateEsewaPayment(
     const taxAmount = params.taxAmount || 0
     const deliveryCharge = params.deliveryCharge || 0
     const totalAmount = params.amount + taxAmount + deliveryCharge
+
+    // Get product details to find seller
+    const product = await getProductById({ id: params.productId })
+    if (!product) {
+      return {
+        success: false,
+        error: 'Product not found',
+      }
+    }
+
+    // Store payment metadata for order creation after payment success
+    const supabase = createServiceRoleClient()
+    const { error: metadataError } = await supabase
+      .from('payment_metadata')
+      .insert({
+        transaction_uuid: transactionUuid,
+        product_id: params.productId,
+        seller_id: product.store_id,
+        buyer_email: params.buyer_email,
+        buyer_name: params.buyer_name,
+        shipping_address: params.shipping_address,
+        amount: totalAmount,
+      })
+
+    if (metadataError) {
+      console.error('Error storing payment metadata:', metadataError)
+      return {
+        success: false,
+        error: 'Failed to initialize payment',
+      }
+    }
 
     // Create signature message
     const signatureMessage = createSignatureMessage({
@@ -185,10 +219,45 @@ export async function verifyEsewaPayment(
       }
     }
 
-    // Here you can:
-    // 1. Update order status in your database
-    // 2. Send confirmation email
-    // 3. Log the transaction
+    // Retrieve payment metadata to create order
+    const supabase = createServiceRoleClient()
+    const { data: metadata, error: metadataFetchError } = await supabase
+      .from('payment_metadata')
+      .select('*')
+      .eq('transaction_uuid', paymentData.transaction_uuid)
+      .single()
+
+    if (metadataFetchError || !metadata) {
+      console.error('Error fetching payment metadata:', metadataFetchError)
+      // Payment is verified, but we couldn't create order
+      // Log this for manual processing
+      console.error('CRITICAL: Payment verified but order creation failed - transaction_uuid:', paymentData.transaction_uuid)
+    } else if (!metadata.is_processed) {
+      // Create order from payment metadata
+      const orderResult = await createOrder({
+        seller_id: metadata.seller_id,
+        product_id: metadata.product_id,
+        buyer_email: metadata.buyer_email,
+        buyer_name: metadata.buyer_name,
+        shipping_address: metadata.shipping_address,
+        transaction_code: paymentData.transaction_code,
+        transaction_uuid: paymentData.transaction_uuid,
+        amount: parseFloat(paymentData.total_amount),
+        payment_method: 'eSewa',
+      })
+
+      if (orderResult.success) {
+        // Mark metadata as processed
+        await supabase
+          .from('payment_metadata')
+          .update({ is_processed: true })
+          .eq('transaction_uuid', paymentData.transaction_uuid)
+
+        console.log('Order created successfully:', orderResult.order?.id)
+      } else {
+        console.error('Failed to create order:', orderResult.error)
+      }
+    }
 
     console.log('Payment verified successfully!')
 

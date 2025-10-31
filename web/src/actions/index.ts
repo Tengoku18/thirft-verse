@@ -23,6 +23,14 @@ export {
   handlePaymentFailure,
 } from './payment'
 
+export {
+  createOrder,
+  getOrders,
+  getOrderById,
+  getOrderByTransactionUuid,
+  updateOrderStatus,
+} from './orders'
+
 // Aliases to match web-ref naming
 export { getProfileById as getUserById } from './profiles'
 export { getProfileIdByStoreUsername as getUserIdByInstagramHandle } from './profiles'
