@@ -6,6 +6,7 @@ import { PaginatedResponse, Profile } from '@/types/database'
 interface GetProfilesParams {
   limit?: number
   offset?: number
+  role?: 'ADMIN' | 'USER'
 }
 
 interface GetProfileByIdParams {
@@ -29,6 +30,10 @@ export async function getProfiles(
       .from('profiles')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
+
+    if (params?.role) {
+      query = query.eq('role', params.role)
+    }
 
     if (params?.limit) {
       query = query.limit(params.limit)

@@ -17,6 +17,12 @@ export {
   getProductsCountByStore,
 } from './products'
 
+export {
+  initiateEsewaPayment,
+  verifyEsewaPayment,
+  handlePaymentFailure,
+} from './payment'
+
 // Aliases to match web-ref naming
 export { getProfileById as getUserById } from './profiles'
 export { getProfileIdByStoreUsername as getUserIdByInstagramHandle } from './profiles'

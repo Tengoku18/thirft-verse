@@ -1,5 +1,16 @@
 // Database types for Supabase tables
 
+export type UserRole = 'ADMIN' | 'USER'
+export type SubscriptionPlan = 'BASIC' | 'SILVER' | 'GOLD'
+
+export interface Review {
+  id: string
+  rating: number
+  comment: string
+  reviewer_name: string
+  created_at: string
+}
+
 export interface Profile {
   id: string
   name: string
@@ -7,6 +18,9 @@ export interface Profile {
   profile_image: string | null
   currency: string
   store_username: string
+  role: UserRole
+  plan: SubscriptionPlan
+  reviews: Review[]
   created_at: string
   updated_at: string
 }

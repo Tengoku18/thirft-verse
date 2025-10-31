@@ -1,7 +1,8 @@
 import { getProductById, getProductsByStoreId } from '@/actions'
+import BuyNowButton from '@/_components/BuyNowButton'
 import ImageGallery from '@/_components/ImageGallery'
 import ProductCard from '@/_components/ProductCard'
-import { ArrowLeft, ShoppingCart, Store } from 'lucide-react'
+import { ArrowLeft, Store } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -116,13 +117,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Action Button */}
             <div className="mt-auto">
-              <button
-                disabled={product.status === 'out_of_stock'}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 font-semibold text-surface shadow-lg transition-all hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {product.status === 'available' ? 'Buy Now' : 'Out of Stock'}
-              </button>
+              <BuyNowButton
+                productId={product.id}
+                productName={product.title}
+                price={product.price}
+                currency={currency}
+                isOutOfStock={product.status === 'out_of_stock'}
+              />
             </div>
           </div>
         </div>

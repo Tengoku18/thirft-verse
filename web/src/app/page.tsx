@@ -7,9 +7,10 @@ import {
 } from '@/actions'
 import { getSubDomain } from '@/utils/domainHelpers'
 import { pluralize } from '@/utils/textHelpers'
-import { Store } from 'lucide-react'
+import { Store, Compass } from 'lucide-react'
 import { headers } from 'next/headers'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default async function Home() {
   const headersList = await headers()
@@ -43,6 +44,24 @@ export default async function Home() {
   // Profile found - Display profile
   return (
     <div className="min-h-screen bg-background">
+      {/* Explore Notification Bar */}
+      <div className="border-b border-border/30 bg-linear-to-r from-secondary/20 via-accent-2/15 to-secondary/20">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <Compass className="h-5 w-5 text-secondary" />
+            <p className="text-sm font-medium text-primary sm:text-base">
+              Discover more amazing thrift stores and unique finds
+            </p>
+          </div>
+          <Link
+            href="/explore"
+            className="shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-surface shadow-md transition-all hover:scale-105 hover:shadow-lg sm:px-6"
+          >
+            Explore
+          </Link>
+        </div>
+      </div>
+
       {/* Profile Header Section with Beautiful Gradient */}
       <div className="relative overflow-hidden border-b border-border/50 bg-linear-to-b from-secondary/10 via-accent-2/5 to-background shadow-sm">
         {/* Decorative gradient orbs */}
