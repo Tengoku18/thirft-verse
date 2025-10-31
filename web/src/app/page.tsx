@@ -42,7 +42,7 @@ export default async function Home() {
 
   // Profile found - Display profile
   return (
-    <div className="min-h-screen bg-linear-to-b from-background via-background to-secondary/5">
+    <div className="min-h-screen bg-background">
       {/* Profile Header Section with Beautiful Gradient */}
       <div className="relative overflow-hidden border-b border-border/50 bg-linear-to-b from-secondary/10 via-accent-2/5 to-background shadow-sm">
         {/* Decorative gradient orbs */}
