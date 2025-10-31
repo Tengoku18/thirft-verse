@@ -7,7 +7,7 @@ import {
 } from '@/actions'
 import { getSubDomain } from '@/utils/domainHelpers'
 import { pluralize } from '@/utils/textHelpers'
-import { Store, Compass } from 'lucide-react'
+import { Compass, Store } from 'lucide-react'
 import { headers } from 'next/headers'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -25,12 +25,8 @@ export default async function Home() {
     return <LandingPage />
   }
 
-  console.log('/sdfds', subdomain)
-
   // Step 1: Get profile by store_username (subdomain)
   const profile = await getProfileByStoreUsername({ storeUsername: subdomain })
-
-  console.log('/sadsada', profile)
 
   if (!profile) {
     return <UserNotFound instagramHandle={subdomain || 'unknown'} />
