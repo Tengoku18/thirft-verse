@@ -1,117 +1,131 @@
-import ProductCard from '@/_components/ProductCard';
-import UserNotFound from '@/_components/UserNotFound';
-import LandingPage from '@/_components/landing/LandingPage';
+import ProductCard from '@/_components/ProductCard'
+import UserNotFound from '@/_components/UserNotFound'
+import LandingPage from '@/_components/landing/LandingPage'
 import {
-  getProductsByCreatorId,
-  getUserById,
-  getUserIdByInstagramHandle,
-} from '@/lib/dummyData';
-import { getSubDomain } from '@/utils/domainHelpers';
-import { pluralize } from '@/utils/textHelpers';
-import { Store } from 'lucide-react';
-import { headers } from 'next/headers';
-import Image from 'next/image';
+  getProductsByStoreId,
+  getProfileByStoreUsername,
+} from '@/actions'
+import { getSubDomain } from '@/utils/domainHelpers'
+import { pluralize } from '@/utils/textHelpers'
+import { Store } from 'lucide-react'
+import { headers } from 'next/headers'
+import Image from 'next/image'
 
 export default async function Home() {
-  const headersList = await headers();
-  const host = headersList.get('host') || '';
+  const headersList = await headers()
+  const host = headersList.get('host') || ''
 
   // Parse hostname and subdomain
-  const hostname = host.split(':')[0]; // Remove port if present
-  const subdomain = getSubDomain(hostname);
+  const hostname = host.split(':')[0] // Remove port if present
+  const subdomain = getSubDomain(hostname)
 
+  // Show landing page for main domain
   if (subdomain === process.env.NEXT_PUBLIC_DOMAINNAME || subdomain === 'www' || subdomain === '') {
-    return <LandingPage />;
+    return <LandingPage />
   }
 
-  // Step 1: Get user ID from Instagram handle (subdomain)
-  const userId = await getUserIdByInstagramHandle(subdomain);
+  console.log('/sdfds', subdomain)
 
-  if (!userId) {
-    return <UserNotFound instagramHandle={subdomain || 'unknown'} />;
+  // Step 1: Get profile by store_username (subdomain)
+  const profile = await getProfileByStoreUsername({ storeUsername: subdomain })
+
+  console.log('/sadsada', profile)
+
+  if (!profile) {
+    return <UserNotFound instagramHandle={subdomain || 'unknown'} />
   }
 
-  // Step 2: Fetch user data and products in parallel
-  const [user, { data: products, count }] = await Promise.all([
-    getUserById(userId),
-    getProductsByCreatorId(userId),
-  ]);
+  // Step 2: Fetch products for this store
+  const { data: products, count } = await getProductsByStoreId(profile.id, {
+    status: 'available',
+  })
 
-  // User found - Display profile
+  // Profile found - Display profile
   return (
-    <div className="min-h-screen bg-background">
-      {/* Profile Header Section */}
-      <div className="border-b border-border bg-surface">
-        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-linear-to-b from-background via-background to-secondary/5">
+      {/* Profile Header Section with Beautiful Gradient */}
+      <div className="relative overflow-hidden border-b border-border/50 bg-linear-to-br from-secondary/10 via-accent-2/5 to-background shadow-sm">
+        {/* Decorative gradient orbs */}
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-linear-to-br from-accent-1/20 to-transparent blur-3xl" />
+        <div className="pointer-events-none absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-linear-to-tr from-secondary/20 to-transparent blur-3xl" />
+
+        <div className="relative mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-8">
-            {/* Profile Photo */}
+            {/* Profile Photo with Enhanced Style */}
             <div className="shrink-0">
-              <div className="relative h-32 w-32 overflow-hidden rounded-full border-2 border-secondary/20 bg-background sm:h-40 sm:w-40">
-                {user?.image_url ? (
+              <div className="relative h-32 w-32 overflow-hidden rounded-full border-4 border-white/50 bg-background shadow-xl ring-4 ring-secondary/10 transition-transform duration-300 hover:scale-105 sm:h-40 sm:w-40">
+                {profile?.profile_image ? (
                   <Image
-                    src={user.image_url}
-                    alt={user.name}
+                    src={profile.profile_image}
+                    alt={profile.name}
                     fill
                     className="object-cover"
                     sizes="(max-width: 640px) 128px, 160px"
+                    priority
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-accent-2 to-secondary">
-                    <span className="font-heading text-4xl font-bold text-surface">
-                      {user?.name.charAt(0)}
+                    <span className="font-heading text-4xl font-bold text-surface sm:text-5xl">
+                      {profile?.name.charAt(0)}
                     </span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* User Info */}
+            {/* Profile Info */}
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="font-heading mb-2 text-2xl font-bold text-primary sm:text-3xl">
-                {user?.name}
+              <h1 className="font-heading mb-3 bg-linear-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
+                {profile?.name}
               </h1>
 
-              <div className="mb-4 flex flex-wrap items-center justify-center gap-4 text-sm text-primary/70 sm:justify-start">
-                <div>
+              <div className="mb-4 flex flex-wrap items-center justify-center gap-4 text-sm text-primary/70 sm:justify-start sm:text-base">
+                <div className="rounded-full bg-background/60 px-4 py-1.5 backdrop-blur-sm">
                   <span className="font-semibold text-primary">
                     {count || 0}
                   </span>{' '}
                   {pluralize(count || 0, 'product')}
                 </div>
-                {user?.instagram_handle && (
-                  <div className="flex items-center gap-1.5">
+                {profile?.store_username && (
+                  <div className="flex items-center gap-1.5 rounded-full bg-background/60 px-4 py-1.5 backdrop-blur-sm">
                     <Store className="h-4 w-4" />
-                    @{user.instagram_handle}
+                    @{profile.store_username}
                   </div>
                 )}
               </div>
+
+              {profile?.bio && (
+                <p className="mx-auto max-w-2xl text-sm leading-relaxed text-primary/80 sm:mx-0 sm:text-base">
+                  {profile.bio}
+                </p>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* Products Grid Section */}
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <h2 className="font-heading mb-6 text-xl font-bold text-primary">
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <h2 className="font-heading mb-8 bg-linear-to-r from-primary to-primary/70 bg-clip-text text-2xl font-bold text-transparent sm:text-3xl">
           Products
         </h2>
 
         {products.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-primary/60">No products available yet.</p>
+          <div className="rounded-2xl bg-linear-to-br from-secondary/5 to-accent-2/5 py-16 text-center">
+            <p className="text-base text-primary/60 sm:text-lg">No products available yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 sm:gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-8">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
-                currency={user?.currency}
+                currency={profile?.currency}
               />
             ))}
           </div>
         )}
       </div>
     </div>
-  );
+  )
 }

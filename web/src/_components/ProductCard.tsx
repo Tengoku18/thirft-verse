@@ -1,53 +1,60 @@
+'use client'
+
+import { Product, ProductWithStore } from '@/types/database';
+import { ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Product } from '@/lib/dummyData';
-import { Store } from 'lucide-react';
 
 interface ProductCardProps {
-  product: Product;
+  product: Product | ProductWithStore;
   currency?: string;
 }
 
 const ProductCard = ({ product, currency = 'USD' }: ProductCardProps) => {
   return (
-    <Link
-      href={`/product/${product.id}`}
-      className="group block cursor-pointer"
-    >
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-gradient-to-br from-secondary/5 to-accent-2/10 shadow-md ring-1 ring-border transition-all duration-500 ease-out group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:ring-2 group-hover:ring-secondary/40">
-        {product.photo_url ? (
-          <Image
-            src={product.photo_url}
-            alt={product.title}
-            fill
-            className="object-cover transition-all duration-500 ease-out group-hover:scale-110 group-hover:brightness-95"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 300px"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-border to-muted">
-            <Store className="h-16 w-16 text-primary/30" strokeWidth={1.5} />
-          </div>
-        )}
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/30 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-      </div>
+    <div className="group relative">
+      <Link
+        href={`/product/${product.id}`}
+        className="block"
+      >
+        {/* Product Image */}
+        <div className="relative aspect-square overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 group-hover:shadow-2xl">
+          {product.cover_image ? (
+            <Image
+              src={product.cover_image}
+              alt={product.title}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
+              <div className="text-center">
+                <div className="mx-auto mb-2 h-20 w-20 rounded-full bg-gray-300/50" />
+                <p className="text-sm text-gray-400">No Image</p>
+              </div>
+            </div>
+          )}
+        </div>
 
-      {/* Product info below card */}
-      <div className="mt-3 space-y-1.5">
-        <h3 className="font-heading text-sm font-semibold text-primary transition-colors duration-300 group-hover:text-secondary sm:text-base">
-          {product.title}
-        </h3>
-        <p className="font-heading text-base font-bold text-accent-1 sm:text-lg">
-          {currency === 'USD' ? '$' : currency}
-          {product.price}
-        </p>
-        {product.description && (
-          <p className="line-clamp-2 text-xs text-primary/70 sm:text-sm">
-            {product.description}
-          </p>
-        )}
-      </div>
-    </Link>
+        {/* Product Info */}
+        <div className="mt-4 flex items-start justify-between gap-3 px-1">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-heading mb-1.5 line-clamp-2 text-lg font-bold text-primary transition-colors group-hover:text-secondary sm:text-xl">
+              {product.title}
+            </h3>
+            <p className="font-heading text-xl font-bold text-[#e8b647] sm:text-2xl">
+              {currency === 'USD' ? '$' : currency}{product.price}
+            </p>
+          </div>
+
+          {/* Arrow Icon */}
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/5 transition-all duration-300 group-hover:bg-primary/10 group-hover:scale-110 sm:h-12 sm:w-12">
+            <ArrowUpRight className="h-5 w-5 text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 sm:h-6 sm:w-6" strokeWidth={2.5} />
+          </div>
+        </div>
+      </Link>
+    </div>
   );
 };
 
