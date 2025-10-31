@@ -44,7 +44,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-linear-to-b from-background via-background to-secondary/5">
       {/* Profile Header Section with Beautiful Gradient */}
-      <div className="relative overflow-hidden border-b border-border/50 bg-linear-to-br from-secondary/10 via-accent-2/5 to-background shadow-sm">
+      <div className="relative overflow-hidden border-b border-border/50 bg-linear-to-b from-secondary/10 via-accent-2/5 to-background shadow-sm">
         {/* Decorative gradient orbs */}
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-linear-to-br from-accent-1/20 to-transparent blur-3xl" />
         <div className="pointer-events-none absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-linear-to-tr from-secondary/20 to-transparent blur-3xl" />
