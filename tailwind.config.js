@@ -1,7 +1,12 @@
 // tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./App.{js,jsx,ts,tsx}", "./app/**/*.{js,jsx,ts,tsx}"], // Adjust paths as needed
+  content: [
+    "./App.{js,jsx,ts,tsx}",
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./components/**/*.{js,jsx,ts,tsx}",
+    "./contexts/**/*.{js,jsx,ts,tsx}",
+  ],
   theme: {
     fontFamily: {
       // Set Nunito Sans as default sans-serif (body text)
