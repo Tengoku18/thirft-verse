@@ -1,8 +1,10 @@
-import { verifyEsewaPayment } from '@/actions/payment'
+import { verifyEsewaPayment, createOrderFromPayment } from '@/actions/payment'
 import DownloadReceipt from '@/_components/DownloadReceipt'
 import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
+import PaymentSuccessToast from './PaymentSuccessToast'
 
 interface PaymentSuccessPageProps {
   searchParams: Promise<{
@@ -44,10 +46,26 @@ export default async function PaymentSuccessPage({
     redirect('/payment/failed?reason=verification_failed')
   }
 
-  const { transactionCode, amount, transactionUuid } = result.data
+  const { transactionCode, amount, transactionUuid, metadata } = result.data
+
+  // Create order and send emails only if payment is verified and not already processed
+  let orderCreationError = false
+  if (metadata && !metadata.is_processed) {
+    const orderResult = await createOrderFromPayment(transactionUuid)
+
+    if (!orderResult.success) {
+      console.error('Failed to create order after payment verification:', orderResult.error)
+      orderCreationError = true
+      // Note: We don't redirect here because payment was successful
+      // The order creation failure should be logged for manual processing
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <Suspense fallback={null}>
+        <PaymentSuccessToast orderError={orderCreationError} />
+      </Suspense>
       <div className="w-full max-w-md text-center">
         <div className="mb-6 inline-flex h-24 w-24 items-center justify-center rounded-full bg-linear-to-br from-green-400/20 to-green-600/20">
           <CheckCircle className="h-12 w-12 text-green-600" strokeWidth={2} />

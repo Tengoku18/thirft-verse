@@ -10,9 +10,10 @@ import {
   type EsewaPaymentParams,
 } from '@/lib/esewa/utils'
 import { createServiceRoleClient } from '@/lib/supabase/server'
-import { createOrder } from './orders'
 import { getProductById } from './products'
+import { createOrder, getOrderByTransactionUuid } from './orders'
 import { sendOrderEmails } from '@/lib/email/send'
+import type { ShippingAddress } from '@/types/database'
 
 interface InitiatePaymentResult {
   success: boolean
@@ -28,7 +29,21 @@ interface VerifyPaymentResult {
     amount: string
     status: string
     transactionUuid: string
+    metadata?: {
+      seller_id: string
+      product_id: string
+      buyer_email: string
+      buyer_name: string
+      shipping_address: ShippingAddress
+      is_processed: boolean
+    }
   }
+  error?: string
+}
+
+interface CreateOrderFromPaymentResult {
+  success: boolean
+  orderId?: string
   error?: string
 }
 
@@ -220,7 +235,7 @@ export async function verifyEsewaPayment(
       }
     }
 
-    // Retrieve payment metadata to create order
+    // Retrieve payment metadata for order creation later
     const supabase = createServiceRoleClient()
     const { data: metadata, error: metadataFetchError } = await supabase
       .from('payment_metadata')
@@ -230,85 +245,17 @@ export async function verifyEsewaPayment(
 
     if (metadataFetchError || !metadata) {
       console.error('Error fetching payment metadata:', metadataFetchError)
-      // Payment is verified, but we couldn't create order
-      // Log this for manual processing
-      console.error('CRITICAL: Payment verified but order creation failed - transaction_uuid:', paymentData.transaction_uuid)
-    } else if (!metadata.is_processed) {
-      // Create order from payment metadata
-      const orderResult = await createOrder({
-        seller_id: metadata.seller_id,
-        product_id: metadata.product_id,
-        buyer_email: metadata.buyer_email,
-        buyer_name: metadata.buyer_name,
-        shipping_address: metadata.shipping_address,
-        transaction_code: paymentData.transaction_code,
-        transaction_uuid: paymentData.transaction_uuid,
-        amount: parseFloat(paymentData.total_amount),
-        payment_method: 'eSewa',
-      })
-
-      if (orderResult.success) {
-        // Mark metadata as processed
-        await supabase
-          .from('payment_metadata')
-          .update({ is_processed: true })
-          .eq('transaction_uuid', paymentData.transaction_uuid)
-
-        console.log('Order created successfully:', orderResult.order?.id)
-
-        // Send confirmation emails to buyer and seller
-        try {
-          // Get product details for email
-          const product = await getProductById({ id: metadata.product_id })
-
-          // Get seller details from profiles
-          const { data: seller } = await supabase
-            .from('profiles')
-            .select('name, store_username')
-            .eq('id', metadata.seller_id)
-            .single()
-
-          // Get seller email from auth.users
-          const { data: authUser } = await supabase.auth.admin.getUserById(
-            metadata.seller_id
-          )
-
-          const sellerEmail = authUser?.user?.email
-
-          if (product && seller && sellerEmail && orderResult.order) {
-            await sendOrderEmails({
-              buyer: {
-                email: metadata.buyer_email,
-                name: metadata.buyer_name,
-              },
-              seller: {
-                email: sellerEmail,
-                name: seller.name || seller.store_username || 'Seller',
-              },
-              order: {
-                id: orderResult.order.order_code || orderResult.order.id,
-                date: new Date().toLocaleDateString(),
-                total: metadata.amount,
-                itemName: product.title,
-                storeName: seller.store_username || seller.name || 'ThriftVerse Store',
-              },
-            })
-            console.log('Order confirmation emails sent successfully')
-          } else {
-            console.error('Could not send emails - missing required data', {
-              hasProduct: !!product,
-              hasSeller: !!seller,
-              hasSellerEmail: !!sellerEmail,
-            })
-          }
-        } catch (emailError) {
-          console.error('Failed to send order confirmation emails:', emailError)
-          // Don't fail the payment verification if email sending fails
-        }
-      } else {
-        console.error('Failed to create order:', orderResult.error)
+      return {
+        success: false,
+        error: 'Payment verified but metadata not found',
       }
     }
+
+    // Store transaction code in metadata for order creation
+    await supabase
+      .from('payment_metadata')
+      .update({ transaction_code: paymentData.transaction_code })
+      .eq('transaction_uuid', paymentData.transaction_uuid)
 
     console.log('Payment verified successfully!')
 
@@ -319,6 +266,14 @@ export async function verifyEsewaPayment(
         amount: paymentData.total_amount,
         status: paymentData.status,
         transactionUuid: paymentData.transaction_uuid,
+        metadata: {
+          seller_id: metadata.seller_id,
+          product_id: metadata.product_id,
+          buyer_email: metadata.buyer_email,
+          buyer_name: metadata.buyer_name,
+          shipping_address: metadata.shipping_address,
+          is_processed: metadata.is_processed,
+        },
       },
     }
   } catch (error) {
@@ -326,6 +281,147 @@ export async function verifyEsewaPayment(
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Payment verification failed',
+    }
+  }
+}
+
+/**
+ * Create order from verified payment
+ * This should be called after payment verification is successful
+ */
+export async function createOrderFromPayment(
+  transactionUuid: string
+): Promise<CreateOrderFromPaymentResult> {
+  try {
+    console.log('Creating order for transaction:', transactionUuid)
+
+    const supabase = createServiceRoleClient()
+
+    // Fetch payment metadata
+    const { data: metadata, error: metadataFetchError } = await supabase
+      .from('payment_metadata')
+      .select('*')
+      .eq('transaction_uuid', transactionUuid)
+      .single()
+
+    if (metadataFetchError || !metadata) {
+      console.error('Error fetching payment metadata:', metadataFetchError)
+      return {
+        success: false,
+        error: 'Payment metadata not found',
+      }
+    }
+
+    // Check if already processed
+    if (metadata.is_processed) {
+      console.log('Payment already processed, returning existing order')
+
+      // Get the existing order
+      const existingOrder = await getOrderByTransactionUuid(transactionUuid)
+      if (existingOrder) {
+        return {
+          success: true,
+          orderId: existingOrder.id,
+        }
+      }
+    }
+
+    // Create order from payment metadata (idempotent - will return existing order if it exists)
+    const orderResult = await createOrder({
+      seller_id: metadata.seller_id,
+      product_id: metadata.product_id,
+      buyer_email: metadata.buyer_email,
+      buyer_name: metadata.buyer_name,
+      shipping_address: metadata.shipping_address,
+      transaction_code: metadata.transaction_code || transactionUuid,
+      transaction_uuid: transactionUuid,
+      amount: parseFloat(metadata.amount),
+      payment_method: 'eSewa',
+    })
+
+    if (!orderResult.success) {
+      console.error('Failed to create order:', orderResult.error)
+      return {
+        success: false,
+        error: orderResult.error || 'Failed to create order',
+      }
+    }
+
+    // Mark metadata as processed
+    await supabase
+      .from('payment_metadata')
+      .update({ is_processed: true })
+      .eq('transaction_uuid', transactionUuid)
+
+    console.log('Order created successfully:', orderResult.order?.id)
+
+    // Determine if this is a newly created order or an existing one
+    // If order was just created, send emails. If it already existed, skip emails.
+    const isNewOrder = !metadata.is_processed
+
+    // Send confirmation emails only for new orders
+    if (isNewOrder) {
+      try {
+        // Get product details for email
+        const product = await getProductById({ id: metadata.product_id })
+
+        // Get seller details from profiles
+        const { data: seller } = await supabase
+          .from('profiles')
+          .select('name, store_username')
+          .eq('id', metadata.seller_id)
+          .single()
+
+        // Get seller email from auth.users
+        const { data: authUser } = await supabase.auth.admin.getUserById(
+          metadata.seller_id
+        )
+
+        const sellerEmail = authUser?.user?.email
+
+        if (product && seller && sellerEmail && orderResult.order) {
+          await sendOrderEmails({
+            buyer: {
+              email: metadata.buyer_email,
+              name: metadata.buyer_name,
+            },
+            seller: {
+              email: sellerEmail,
+              name: seller.name || seller.store_username || 'Seller',
+            },
+            order: {
+              id: orderResult.order.order_code || orderResult.order.id,
+              date: new Date().toLocaleDateString(),
+              total: metadata.amount,
+              itemName: product.title,
+              storeName: seller.store_username || seller.name || 'ThriftVerse Store',
+            },
+          })
+          console.log('Order confirmation emails sent successfully')
+        } else {
+          console.error('Could not send emails - missing required data', {
+            hasProduct: !!product,
+            hasSeller: !!seller,
+            hasSellerEmail: !!sellerEmail,
+          })
+        }
+      } catch (emailError) {
+        console.error('Failed to send order confirmation emails:', emailError)
+        // Don't fail the order creation if email sending fails
+      }
+    } else {
+      console.log('Skipping email sending - order already existed')
+    }
+
+    return {
+      success: true,
+      orderId: orderResult.order?.id,
+    }
+  } catch (error) {
+    console.error('Failed to create order from payment:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create order',
     }
   }
 }

@@ -7,6 +7,7 @@ import { Product } from '@/types/database'
 import { ShippingAddress } from '@/types/database'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 
 function CheckoutContent() {
   const router = useRouter()
@@ -92,12 +93,16 @@ function CheckoutContent() {
           paymentWindow.document.close()
         }
       } else {
-        alert(`Payment initiation failed: ${result.error}`)
+        toast.error(`Payment initiation failed: ${result.error || 'Unknown error'}`, {
+          duration: 5000,
+        })
         setIsProcessing(false)
       }
     } catch (error) {
       console.error('Error initiating payment:', error)
-      alert('Failed to initiate payment. Please try again.')
+      toast.error('Failed to initiate payment. Please try again.', {
+        duration: 5000,
+      })
       setIsProcessing(false)
     }
   }
