@@ -12,6 +12,7 @@ import {
 import { createServiceRoleClient } from '@/lib/supabase/server'
 import { createOrder } from './orders'
 import { getProductById } from './products'
+import { sendOrderEmails } from '@/lib/email/send'
 
 interface InitiatePaymentResult {
   success: boolean
@@ -254,6 +255,56 @@ export async function verifyEsewaPayment(
           .eq('transaction_uuid', paymentData.transaction_uuid)
 
         console.log('Order created successfully:', orderResult.order?.id)
+
+        // Send confirmation emails to buyer and seller
+        try {
+          // Get product details for email
+          const product = await getProductById({ id: metadata.product_id })
+
+          // Get seller details from profiles
+          const { data: seller } = await supabase
+            .from('profiles')
+            .select('name, store_username')
+            .eq('id', metadata.seller_id)
+            .single()
+
+          // Get seller email from auth.users
+          const { data: authUser } = await supabase.auth.admin.getUserById(
+            metadata.seller_id
+          )
+
+          const sellerEmail = authUser?.user?.email
+
+          if (product && seller && sellerEmail && orderResult.order) {
+            await sendOrderEmails({
+              buyer: {
+                email: metadata.buyer_email,
+                name: metadata.buyer_name,
+              },
+              seller: {
+                email: sellerEmail,
+                name: seller.name || seller.store_username || 'Seller',
+              },
+              order: {
+                id: orderResult.order.order_code || orderResult.order.id,
+                date: new Date().toLocaleDateString(),
+                total: metadata.amount,
+                itemName: product.title,
+                storeName: seller.store_username || seller.name || 'ThriftVerse Store',
+              },
+            })
+            console.log('Order confirmation emails sent successfully')
+          } else {
+            console.error('Could not send emails - missing required data', {
+              hasProduct: !!product,
+              hasSeller: !!seller,
+              hasSellerEmail: !!sellerEmail,
+            })
+          }
+        } catch (emailError) {
+          console.error('Failed to send order confirmation emails:', emailError)
+          // Don't fail the payment verification if email sending fails
+        }
       } else {
         console.error('Failed to create order:', orderResult.error)
       }

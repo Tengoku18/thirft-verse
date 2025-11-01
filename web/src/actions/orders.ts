@@ -7,6 +7,7 @@ import {
   PaginatedResponse,
   ShippingAddress,
 } from '@/types/database'
+import { generateOrderCode } from '@/lib/utils/order-code'
 
 interface CreateOrderParams {
   seller_id: string
@@ -36,6 +37,9 @@ export async function createOrder(
   try {
     const supabase = createServiceRoleClient()
 
+    // Generate unique order code from transaction UUID
+    const orderCode = generateOrderCode(params.transaction_uuid)
+
     const { data, error } = await supabase
       .from('orders')
       .insert({
@@ -49,6 +53,7 @@ export async function createOrder(
         amount: params.amount,
         payment_method: params.payment_method || 'eSewa',
         status: 'completed',
+        order_code: orderCode,
       })
       .select()
       .single()

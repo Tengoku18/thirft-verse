@@ -63,6 +63,7 @@ export interface ProductWithStore extends Product {
 
 export interface Order {
   id: string
+  order_code: string | null
   seller_id: string
   product_id: string
   buyer_email: string
