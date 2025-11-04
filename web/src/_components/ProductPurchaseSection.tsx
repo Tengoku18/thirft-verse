@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ShoppingCart, Shield } from 'lucide-react'
 import { QuantitySelector } from './QuantitySelector'
+import { formatCheckoutPrice } from '@/utils/formatPrice'
 
 interface ProductPurchaseSectionProps {
   productId: string
@@ -57,7 +58,7 @@ export default function ProductPurchaseSection({
           <div className="mt-4 flex items-center justify-between rounded-xl bg-background/50 p-4">
             <span className="text-sm font-medium text-primary/70">Total Price:</span>
             <span className="font-heading text-2xl font-bold text-secondary">
-              {currency === 'USD' ? '$' : currency} {totalPrice.toFixed(2)}
+              {formatCheckoutPrice(totalPrice, currency)}
             </span>
           </div>
         </div>

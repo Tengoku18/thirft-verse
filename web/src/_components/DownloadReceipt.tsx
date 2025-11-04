@@ -2,11 +2,13 @@
 
 import { jsPDF } from 'jspdf'
 import { Download } from 'lucide-react'
+import { formatCheckoutPrice } from '@/utils/formatPrice'
 
 interface DownloadReceiptProps {
   transactionCode: string
   amount: string
   transactionUuid: string
+  currency?: string
   quantity?: number
   paymentDate?: string
 }
@@ -15,6 +17,7 @@ export default function DownloadReceipt({
   transactionCode,
   amount,
   transactionUuid,
+  currency = 'NPR',
   quantity = 1,
   paymentDate = new Date().toLocaleString('en-NP', {
     dateStyle: 'medium',
@@ -130,7 +133,7 @@ export default function DownloadReceipt({
 
     doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
     doc.setFontSize(18)
-    doc.text(`NPR ${amount}`, 190, currentY + 7, { align: 'right' })
+    doc.text(formatCheckoutPrice(parseFloat(amount), currency), 190, currentY + 7, { align: 'right' })
 
     // Reset text color
     doc.setTextColor(textColor[0], textColor[1], textColor[2])

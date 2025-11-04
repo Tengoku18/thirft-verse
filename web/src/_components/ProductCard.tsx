@@ -4,6 +4,7 @@ import { Product, ProductWithStore } from '@/types/database';
 import { ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { formatProductPrice } from '@/utils/formatPrice';
 
 interface ProductCardProps {
   product: Product | ProductWithStore;
@@ -52,9 +53,14 @@ const ProductCard = ({ product, currency = 'USD' }: ProductCardProps) => {
             <h3 className="font-heading mb-1.5 line-clamp-2 text-lg font-bold text-primary transition-colors group-hover:text-secondary sm:text-xl">
               {product.title}
             </h3>
-            <p className="font-heading text-xl font-bold text-[#e8b647] sm:text-2xl">
-              {currency === 'USD' ? '$' : currency}{product.price}
-            </p>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-heading text-sm font-semibold text-[#e8b647] sm:text-base">
+                {currency === 'USD' ? '$' : currency}
+              </span>
+              <span className="font-heading text-xl font-bold text-[#e8b647] sm:text-2xl">
+                {formatProductPrice(product.price, currency, false).replace(/^[^\d,]+\s*/, '')}
+              </span>
+            </div>
           </div>
 
           {/* Arrow Icon */}

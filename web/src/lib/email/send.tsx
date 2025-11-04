@@ -10,6 +10,8 @@ export interface OrderConfirmationEmailData {
   orderDate: string;
   storeName: string;
   total: number;
+  currency?: string;
+  orderDetailsUrl: string;
 }
 
 export interface ItemSoldEmailData {
@@ -17,6 +19,7 @@ export interface ItemSoldEmailData {
   sellerName: string;
   itemName: string;
   salePrice: number;
+  currency?: string;
   buyerName: string;
   orderId: string;
   saleDate: string;
@@ -35,6 +38,8 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationEmailDat
         orderDate={data.orderDate}
         storeName={data.storeName}
         total={data.total}
+        currency={data.currency}
+        orderDetailsUrl={data.orderDetailsUrl}
       />
     );
 
@@ -63,6 +68,7 @@ export async function sendItemSoldEmail(data: ItemSoldEmailData) {
         sellerName={data.sellerName}
         itemName={data.itemName}
         salePrice={data.salePrice}
+        currency={data.currency}
         buyerName={data.buyerName}
         orderId={data.orderId}
         saleDate={data.saleDate}
@@ -99,10 +105,13 @@ export async function sendOrderEmails(params: {
   };
   order: {
     id: string;
+    orderCode: string;
     date: string;
     total: number;
     itemName: string;
     storeName: string;
+    currency?: string;
+    orderDetailsUrl: string;
   };
 }) {
   const { buyer, seller, order } = params;
@@ -116,16 +125,19 @@ export async function sendOrderEmails(params: {
     sendOrderConfirmationEmail({
       to: buyer.email,
       customerName: buyer.name,
-      orderId: order.id,
+      orderId: order.orderCode,
       orderDate: order.date,
       storeName: order.storeName,
       total: order.total,
+      currency: order.currency,
+      orderDetailsUrl: order.orderDetailsUrl,
     }),
     sendItemSoldEmail({
       to: seller.email,
       sellerName: seller.name,
       itemName: order.itemName,
       salePrice: order.total,
+      currency: order.currency,
       buyerName: buyer.name,
       orderId: order.id,
       saleDate: order.date,

@@ -5,6 +5,7 @@ import ProductCard from '@/_components/ProductCard'
 import { ArrowLeft, Store } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { formatProductPrice } from '@/utils/formatPrice'
 
 interface ProductPageProps {
   params: Promise<{
@@ -73,10 +74,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Price */}
             <div className="mb-6 flex items-baseline gap-3">
-              <p className="font-heading text-4xl font-bold text-[#e8b647] sm:text-5xl">
-                <span className="text-xl sm:text-2xl">{currency === 'USD' ? '$' : currency}</span>
-                {product.price}
-              </p>
+              <div className="flex items-baseline gap-2">
+                <span className="font-heading text-xl font-semibold text-[#e8b647] sm:text-2xl">
+                  {currency === 'USD' ? '$' : currency}
+                </span>
+                <span className="font-heading text-5xl font-bold text-[#e8b647] sm:text-6xl">
+                  {formatProductPrice(product.price, currency, false).replace(/^[^\d,]+\s*/, '')}
+                </span>
+              </div>
               {product.availability_count === 0 ? (
                 <span className="rounded-full bg-red-500/20 px-4 py-1.5 text-sm font-bold text-red-600 dark:text-red-400">
                   SOLD OUT

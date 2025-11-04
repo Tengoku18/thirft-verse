@@ -7,6 +7,7 @@ import { Product, ShippingAddress } from '@/types/database'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
+import { formatProductPrice, formatCheckoutPrice } from '@/utils/formatPrice'
 
 interface CheckoutFormProps {
   productName: string
@@ -125,7 +126,7 @@ export default function CheckoutForm({
                 <div className="flex items-baseline gap-2 text-sm">
                   <span className="text-primary/60">Unit Price:</span>
                   <span className="font-medium text-primary">
-                    {currency} {product?.price || price}
+                    {formatProductPrice(product?.price || price, currency, false)}
                   </span>
                 </div>
                 <div className="flex items-baseline gap-2">
@@ -133,7 +134,7 @@ export default function CheckoutForm({
                     Total Amount:
                   </span>
                   <span className="font-heading text-2xl font-bold text-secondary">
-                    {currency} {totalAmount.toFixed(2)}
+                    {formatCheckoutPrice(totalAmount, currency)}
                   </span>
                 </div>
               </div>
@@ -253,7 +254,7 @@ export default function CheckoutForm({
             disabled={isSubmitting}
             className="w-full"
           >
-            {isSubmitting ? 'Processing...' : `Pay ${currency} ${totalAmount.toFixed(2)}`}
+            {isSubmitting ? 'Processing...' : `Pay ${formatCheckoutPrice(totalAmount, currency)}`}
           </Button>
         </div>
       </form>
