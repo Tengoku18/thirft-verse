@@ -5,6 +5,7 @@ export interface EsewaPaymentParams {
   amount: number
   productId: string
   productName: string
+  quantity: number
   taxAmount?: number
   deliveryCharge?: number
   buyer_name: string

@@ -313,3 +313,64 @@ export async function getProductsByStoreId(
  * Alias to match web-ref naming convention (getProductsByCreatorId)
  */
 export const getProductsByCreatorId = getProductsByStoreId
+
+/**
+ * Decrement product availability count after successful purchase
+ * Also updates status to 'out_of_stock' if availability reaches 0
+ */
+export async function decrementProductAvailability(
+  productId: string,
+  quantity: number
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createServiceRoleClient()
+
+    // First get the current product to check availability
+    const { data: product, error: fetchError } = await supabase
+      .from('products')
+      .select('availability_count, status')
+      .eq('id', productId)
+      .single()
+
+    if (fetchError || !product) {
+      console.error('Error fetching product for inventory update:', fetchError)
+      return {
+        success: false,
+        error: 'Product not found',
+      }
+    }
+
+    // Calculate new availability
+    const newAvailability = Math.max(0, product.availability_count - quantity)
+
+    // Determine new status
+    const newStatus = newAvailability === 0 ? 'out_of_stock' : product.status
+
+    // Update the product
+    const { error: updateError } = await supabase
+      .from('products')
+      .update({
+        availability_count: newAvailability,
+        status: newStatus,
+      })
+      .eq('id', productId)
+
+    if (updateError) {
+      console.error('Error updating product availability:', updateError)
+      return {
+        success: false,
+        error: updateError.message,
+      }
+    }
+
+    console.log(`Product ${productId} inventory updated: ${product.availability_count} -> ${newAvailability}`)
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to decrement product availability:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to update inventory',
+    }
+  }
+}

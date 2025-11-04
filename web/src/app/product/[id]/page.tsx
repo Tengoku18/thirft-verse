@@ -1,10 +1,11 @@
 import { getProductById, getProductsByStoreId } from '@/actions'
-import BuyNowButton from '@/_components/BuyNowButton'
+import ProductPurchaseSection from '@/_components/ProductPurchaseSection'
 import ImageGallery from '@/_components/ImageGallery'
 import ProductCard from '@/_components/ProductCard'
 import { ArrowLeft, Store } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { formatProductPrice } from '@/utils/formatPrice'
 
 interface ProductPageProps {
   params: Promise<{
@@ -73,16 +74,23 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Price */}
             <div className="mb-6 flex items-baseline gap-3">
-              <p className="font-heading text-4xl font-bold text-[#e8b647] sm:text-5xl">
-                <span className="text-xl sm:text-2xl">{currency === 'USD' ? '$' : currency}</span>
-                {product.price}
-              </p>
-              {product.status === 'available' && (
+              <div className="flex items-baseline gap-2">
+                <span className="font-heading text-xl font-semibold text-[#e8b647] sm:text-2xl">
+                  {currency === 'USD' ? '$' : currency}
+                </span>
+                <span className="font-heading text-5xl font-bold text-[#e8b647] sm:text-6xl">
+                  {formatProductPrice(product.price, currency, false).replace(/^[^\d,]+\s*/, '')}
+                </span>
+              </div>
+              {product.availability_count === 0 ? (
+                <span className="rounded-full bg-red-500/20 px-4 py-1.5 text-sm font-bold text-red-600 dark:text-red-400">
+                  SOLD OUT
+                </span>
+              ) : product.status === 'available' && product.availability_count > 0 ? (
                 <span className="rounded-full bg-secondary/20 px-3 py-1 text-sm font-medium text-primary">
                   In Stock
                 </span>
-              )}
-              {product.status === 'out_of_stock' && (
+              ) : (
                 <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary/70">
                   Out of Stock
                 </span>
@@ -117,12 +125,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Action Button */}
             <div className="mt-auto">
-              <BuyNowButton
+              <ProductPurchaseSection
                 productId={product.id}
                 productName={product.title}
                 price={product.price}
                 currency={currency}
-                isOutOfStock={product.status === 'out_of_stock'}
+                availabilityCount={product.availability_count}
+                isOutOfStock={product.status === 'out_of_stock' || product.availability_count === 0}
               />
             </div>
           </div>

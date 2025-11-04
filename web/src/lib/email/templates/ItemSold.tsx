@@ -13,11 +13,13 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import { formatCheckoutPrice } from '@/utils/formatPrice';
 
 interface ItemSoldEmailProps {
   sellerName?: string;
   itemName?: string;
   salePrice?: number;
+  currency?: string;
   buyerName?: string;
   orderId?: string;
   saleDate?: string;
@@ -28,6 +30,7 @@ export const ItemSoldEmail = ({
   sellerName = 'Seller',
   itemName = 'Vintage Denim Jacket',
   salePrice = 45.00,
+  currency = 'USD',
   buyerName = 'John D.',
   orderId = '#12345',
   saleDate = new Date().toLocaleDateString(),
@@ -53,7 +56,7 @@ export const ItemSoldEmail = ({
 
         <Section style={priceContainer}>
           <Text style={priceLabel}>Sale Amount</Text>
-          <Text style={priceValue}>Rs. {salePrice.toFixed(2)}</Text>
+          <Text style={priceValue}>{formatCheckoutPrice(salePrice, currency)}</Text>
         </Section>
 
         <Section style={infoContainer}>

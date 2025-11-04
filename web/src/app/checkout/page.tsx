@@ -21,6 +21,7 @@ function CheckoutContent() {
   const productName = searchParams.get('productName')
   const price = searchParams.get('price')
   const currency = searchParams.get('currency')
+  const quantity = searchParams.get('quantity')
 
   // Fetch product details independently
   useEffect(() => {
@@ -44,7 +45,7 @@ function CheckoutContent() {
   }, [productId])
 
   // Validate required params
-  if (!productId || !productName || !price || !currency) {
+  if (!productId || !productName || !price || !currency || !quantity) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
@@ -65,6 +66,10 @@ function CheckoutContent() {
     )
   }
 
+  const parsedQuantity = parseInt(quantity, 10)
+  const unitPrice = parseFloat(price)
+  const totalAmount = unitPrice * parsedQuantity
+
   const handleCheckoutSubmit = async (data: {
     buyer_name: string
     buyer_email: string
@@ -75,9 +80,10 @@ function CheckoutContent() {
     try {
       // Initiate eSewa payment with buyer information
       const result = await initiateEsewaPayment({
-        amount: parseFloat(price),
+        amount: totalAmount,
         productId,
         productName,
+        quantity: parsedQuantity,
         taxAmount: 0,
         deliveryCharge: 0,
         buyer_name: data.buyer_name,
@@ -153,8 +159,10 @@ function CheckoutContent() {
           <div className="rounded-2xl bg-background shadow-xl">
             <CheckoutForm
               productName={productName}
-              price={parseFloat(price)}
+              price={unitPrice}
               currency={currency}
+              quantity={parsedQuantity}
+              totalAmount={totalAmount}
               product={product}
               isLoadingProduct={isLoadingProduct}
               onSubmit={handleCheckoutSubmit}

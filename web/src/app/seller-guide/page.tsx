@@ -2,6 +2,7 @@
 
 import PageLayout from '@/_components/common/PageLayout';
 import { CheckCircle, Camera, Tag, Share2, TrendingUp, Heart } from 'lucide-react';
+import Link from 'next/link';
 
 const guideSteps = [
   {
@@ -265,9 +266,11 @@ export default function SellerGuidePage() {
             you'll build a thriving business. We're here to support you every
             step of the way!
           </p>
-          <button className="rounded-lg bg-secondary px-8 py-4 font-semibold text-primary transition-all hover:scale-105 hover:shadow-lg">
-            Create Your Store Now
-          </button>
+          <Link href="/start-selling">
+            <button className="rounded-lg bg-secondary px-8 py-4 font-semibold text-primary transition-all hover:scale-105 hover:shadow-lg">
+              Create Your Store Now
+            </button>
+          </Link>
         </div>
       </div>
     </PageLayout>

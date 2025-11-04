@@ -13,6 +13,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
+import { formatCheckoutPrice } from '@/utils/formatPrice';
 
 interface OrderConfirmationEmailProps {
   customerName?: string;
@@ -20,6 +21,8 @@ interface OrderConfirmationEmailProps {
   orderDate?: string;
   storeName?: string;
   total?: number;
+  currency?: string;
+  orderDetailsUrl?: string;
 }
 
 export const OrderConfirmationEmail = ({
@@ -28,6 +31,8 @@ export const OrderConfirmationEmail = ({
   orderDate = new Date().toLocaleDateString(),
   storeName = 'ThriftVerse Store',
   total = 45.00,
+  currency = 'USD',
+  orderDetailsUrl = 'https://www.thriftverse.shop',
 }: OrderConfirmationEmailProps) => (
   <Html>
     <Head />
@@ -65,7 +70,7 @@ export const OrderConfirmationEmail = ({
             </Column>
             <Column>
               <Text style={orderInfoLabel}>Total Amount</Text>
-              <Text style={orderInfoValue}>Rs. {total.toFixed(2)}</Text>
+              <Text style={orderInfoValue}>{formatCheckoutPrice(total, currency)}</Text>
             </Column>
           </Row>
         </Section>
@@ -75,13 +80,13 @@ export const OrderConfirmationEmail = ({
         </Text>
 
         <Section style={buttonContainer}>
-          <Link style={button} href="https://www.thriftverse.shop/orders">
-            Track Your Order
+          <Link style={button} href={orderDetailsUrl}>
+            View Order Details
           </Link>
         </Section>
 
         <Text style={footer}>
-          You can view your order details and track your shipment anytime by visiting your orders page.
+          You can view your order details and track your shipment anytime by clicking the button above.
           <br />
           <br />
           If you have any questions, please contact the seller directly through ThriftVerse.

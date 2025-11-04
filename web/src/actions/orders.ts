@@ -8,10 +8,12 @@ import {
   ShippingAddress,
 } from '@/types/database'
 import { generateOrderCodeWithDate } from '@/lib/utils/order-code'
+import { decrementProductAvailability } from './products'
 
 interface CreateOrderParams {
   seller_id: string
   product_id: string
+  quantity: number
   buyer_email: string
   buyer_name: string
   shipping_address: ShippingAddress
@@ -45,6 +47,7 @@ export async function createOrder(
       .insert({
         seller_id: params.seller_id,
         product_id: params.product_id,
+        quantity: params.quantity,
         buyer_email: params.buyer_email,
         buyer_name: params.buyer_name,
         shipping_address: params.shipping_address,
@@ -67,6 +70,19 @@ export async function createOrder(
     }
 
     console.log('Order created successfully:', data.id)
+
+    // Decrement product availability after successful order creation
+    const inventoryResult = await decrementProductAvailability(
+      params.product_id,
+      params.quantity
+    )
+
+    if (!inventoryResult.success) {
+      console.error('Failed to update inventory:', inventoryResult.error)
+      // Don't fail the order creation if inventory update fails
+      // The order is already created and payment is done
+      // Log it for manual intervention if needed
+    }
 
     return {
       success: true,

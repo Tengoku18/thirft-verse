@@ -4,6 +4,7 @@ import { Product, ProductWithStore } from '@/types/database';
 import { ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { formatProductPrice } from '@/utils/formatPrice';
 
 interface ProductCardProps {
   product: Product | ProductWithStore;
@@ -35,6 +36,15 @@ const ProductCard = ({ product, currency = 'USD' }: ProductCardProps) => {
               </div>
             </div>
           )}
+
+          {/* Sold Out Badge */}
+          {product.availability_count === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+              <div className="rounded-full bg-red-500 px-6 py-2 font-bold text-white shadow-lg">
+                SOLD OUT
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Product Info */}
@@ -43,9 +53,14 @@ const ProductCard = ({ product, currency = 'USD' }: ProductCardProps) => {
             <h3 className="font-heading mb-1.5 line-clamp-2 text-lg font-bold text-primary transition-colors group-hover:text-secondary sm:text-xl">
               {product.title}
             </h3>
-            <p className="font-heading text-xl font-bold text-[#e8b647] sm:text-2xl">
-              {currency === 'USD' ? '$' : currency}{product.price}
-            </p>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-heading text-sm font-semibold text-[#e8b647] sm:text-base">
+                {currency === 'USD' ? '$' : currency}
+              </span>
+              <span className="font-heading text-xl font-bold text-[#e8b647] sm:text-2xl">
+                {formatProductPrice(product.price, currency, false).replace(/^[^\d,]+\s*/, '')}
+              </span>
+            </div>
           </div>
 
           {/* Arrow Icon */}
