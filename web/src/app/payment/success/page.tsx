@@ -47,6 +47,7 @@ export default async function PaymentSuccessPage({
   }
 
   const { transactionCode, amount, transactionUuid, metadata } = result.data
+  const quantity = metadata?.quantity || 1
 
   // Create order and send emails only if payment is verified and not already processed
   let orderCreationError = false
@@ -87,6 +88,14 @@ export default async function PaymentSuccessPage({
                 {transactionCode}
               </p>
             </div>
+            {quantity > 1 && (
+              <div className="mb-3">
+                <p className="text-sm text-primary/60">Quantity Purchased</p>
+                <p className="text-lg font-semibold text-primary">
+                  {quantity} {quantity === 1 ? 'item' : 'items'}
+                </p>
+              </div>
+            )}
             {amount && (
               <div>
                 <p className="text-sm text-primary/60">Amount Paid</p>
@@ -103,6 +112,7 @@ export default async function PaymentSuccessPage({
             transactionCode={transactionCode}
             amount={amount}
             transactionUuid={transactionUuid}
+            quantity={quantity}
           />
           <Link
             href="/"

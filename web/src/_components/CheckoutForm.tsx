@@ -12,6 +12,8 @@ interface CheckoutFormProps {
   productName: string
   price: number
   currency: string
+  quantity: number
+  totalAmount: number
   product: Product | null
   isLoadingProduct: boolean
   onSubmit: (data: {
@@ -25,6 +27,8 @@ export default function CheckoutForm({
   productName,
   price,
   currency,
+  quantity,
+  totalAmount,
   product,
   isLoadingProduct,
   onSubmit,
@@ -111,16 +115,27 @@ export default function CheckoutForm({
                 <p className="mt-1 font-heading text-lg font-semibold text-primary">
                   {product?.title || productName}
                 </p>
+                <p className="mt-1 text-sm text-primary/60">
+                  Quantity: <span className="font-semibold text-primary">{quantity}</span>
+                </p>
               </div>
 
-              {/* Price */}
-              <div className="flex items-baseline gap-2">
-                <span className="text-sm font-medium text-primary/60">
-                  Total Amount:
-                </span>
-                <span className="font-heading text-2xl font-bold text-secondary">
-                  {currency} {product?.price || price}
-                </span>
+              {/* Price Breakdown */}
+              <div className="space-y-1">
+                <div className="flex items-baseline gap-2 text-sm">
+                  <span className="text-primary/60">Unit Price:</span>
+                  <span className="font-medium text-primary">
+                    {currency} {product?.price || price}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-medium text-primary/60">
+                    Total Amount:
+                  </span>
+                  <span className="font-heading text-2xl font-bold text-secondary">
+                    {currency} {totalAmount.toFixed(2)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -238,7 +253,7 @@ export default function CheckoutForm({
             disabled={isSubmitting}
             className="w-full"
           >
-            {isSubmitting ? 'Processing...' : `Pay ${currency} ${price}`}
+            {isSubmitting ? 'Processing...' : `Pay ${currency} ${totalAmount.toFixed(2)}`}
           </Button>
         </div>
       </form>

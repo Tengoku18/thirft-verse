@@ -66,6 +66,7 @@ export interface Order {
   order_code: string | null
   seller_id: string
   product_id: string
+  quantity: number
   buyer_email: string
   buyer_name: string
   shipping_address: ShippingAddress

@@ -7,6 +7,7 @@ interface DownloadReceiptProps {
   transactionCode: string
   amount: string
   transactionUuid: string
+  quantity?: number
   paymentDate?: string
 }
 
@@ -14,6 +15,7 @@ export default function DownloadReceipt({
   transactionCode,
   amount,
   transactionUuid,
+  quantity = 1,
   paymentDate = new Date().toLocaleString('en-NP', {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -105,6 +107,13 @@ export default function DownloadReceipt({
     doc.text('Payment Method:', 20, currentY)
     doc.setFont('helvetica', 'normal')
     doc.text('eSewa', 75, currentY)
+    currentY += lineHeight
+
+    // Quantity
+    doc.setFont('helvetica', 'bold')
+    doc.text('Quantity:', 20, currentY)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`${quantity} ${quantity === 1 ? 'item' : 'items'}`, 75, currentY)
     currentY += lineHeight + 10
 
     // Add horizontal line

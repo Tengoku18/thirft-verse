@@ -32,6 +32,7 @@ interface VerifyPaymentResult {
     metadata?: {
       seller_id: string
       product_id: string
+      quantity: number
       buyer_email: string
       buyer_name: string
       shipping_address: ShippingAddress
@@ -89,6 +90,7 @@ export async function initiateEsewaPayment(
         buyer_name: params.buyer_name,
         shipping_address: params.shipping_address,
         amount: totalAmount,
+        quantity: params.quantity,
       })
 
     if (metadataError) {
@@ -269,6 +271,7 @@ export async function verifyEsewaPayment(
         metadata: {
           seller_id: metadata.seller_id,
           product_id: metadata.product_id,
+          quantity: metadata.quantity || 1,
           buyer_email: metadata.buyer_email,
           buyer_name: metadata.buyer_name,
           shipping_address: metadata.shipping_address,
@@ -330,6 +333,7 @@ export async function createOrderFromPayment(
     const orderResult = await createOrder({
       seller_id: metadata.seller_id,
       product_id: metadata.product_id,
+      quantity: metadata.quantity || 1,
       buyer_email: metadata.buyer_email,
       buyer_name: metadata.buyer_name,
       shipping_address: metadata.shipping_address,

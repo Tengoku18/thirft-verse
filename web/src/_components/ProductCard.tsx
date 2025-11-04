@@ -35,6 +35,15 @@ const ProductCard = ({ product, currency = 'USD' }: ProductCardProps) => {
               </div>
             </div>
           )}
+
+          {/* Sold Out Badge */}
+          {product.availability_count === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+              <div className="rounded-full bg-red-500 px-6 py-2 font-bold text-white shadow-lg">
+                SOLD OUT
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Product Info */}

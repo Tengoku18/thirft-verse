@@ -1,5 +1,5 @@
 import { getProductById, getProductsByStoreId } from '@/actions'
-import BuyNowButton from '@/_components/BuyNowButton'
+import ProductPurchaseSection from '@/_components/ProductPurchaseSection'
 import ImageGallery from '@/_components/ImageGallery'
 import ProductCard from '@/_components/ProductCard'
 import { ArrowLeft, Store } from 'lucide-react'
@@ -77,12 +77,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <span className="text-xl sm:text-2xl">{currency === 'USD' ? '$' : currency}</span>
                 {product.price}
               </p>
-              {product.status === 'available' && (
+              {product.availability_count === 0 ? (
+                <span className="rounded-full bg-red-500/20 px-4 py-1.5 text-sm font-bold text-red-600 dark:text-red-400">
+                  SOLD OUT
+                </span>
+              ) : product.status === 'available' && product.availability_count > 0 ? (
                 <span className="rounded-full bg-secondary/20 px-3 py-1 text-sm font-medium text-primary">
                   In Stock
                 </span>
-              )}
-              {product.status === 'out_of_stock' && (
+              ) : (
                 <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary/70">
                   Out of Stock
                 </span>
@@ -117,12 +120,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Action Button */}
             <div className="mt-auto">
-              <BuyNowButton
+              <ProductPurchaseSection
                 productId={product.id}
                 productName={product.title}
                 price={product.price}
                 currency={currency}
-                isOutOfStock={product.status === 'out_of_stock'}
+                availabilityCount={product.availability_count}
+                isOutOfStock={product.status === 'out_of_stock' || product.availability_count === 0}
               />
             </div>
           </div>
