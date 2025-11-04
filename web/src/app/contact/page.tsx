@@ -1,8 +1,8 @@
 'use client';
 
-import PageLayout from '@/_components/common/PageLayout';
 import Button from '@/_components/common/Button';
-import { Mail, MessageCircle, Phone, MapPin } from 'lucide-react';
+import PageLayout from '@/_components/common/PageLayout';
+import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 
 export default function ContactPage() {
   return (
@@ -15,7 +15,7 @@ export default function ContactPage() {
           {/* Contact Form */}
           <div>
             <h2 className="font-heading mb-6 text-2xl font-bold text-primary">
-              Send us a message
+              Send us a messages
             </h2>
             <form className="space-y-6">
               <div>
