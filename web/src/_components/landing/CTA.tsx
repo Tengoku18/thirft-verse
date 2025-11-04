@@ -2,6 +2,7 @@
 
 import Button from '@/_components/common/Button';
 import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function CTA() {
   return (
@@ -26,14 +27,16 @@ export default function CTA() {
 
         {/* CTA Button */}
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button
-            variant="secondary"
-            size="lg"
-            className="group shadow-2xl hover:shadow-secondary/50"
-          >
-            Create Your Store - It's Free
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
+          <Link href="/start-selling">
+            <Button
+              variant="secondary"
+              size="lg"
+              className="group shadow-2xl hover:shadow-secondary/50"
+            >
+              Create Your Store - It's Free
+              <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </Link>
         </div>
 
         {/* Trust indicators */}

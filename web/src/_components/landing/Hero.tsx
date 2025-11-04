@@ -2,6 +2,7 @@
 
 import Button from '@/_components/common/Button';
 import { Sparkles } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Hero() {
   return (
@@ -40,25 +41,29 @@ export default function Hero() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row animate-fade-in-delay-2">
-            <Button size="lg" className="group">
-              Start Your Store
-              <svg
-                className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                />
-              </svg>
-            </Button>
-            <Button variant="outline" size="lg">
-              Explore Stores
-            </Button>
+            <Link href="/start-selling">
+              <Button size="lg" className="group">
+                Start Your Store
+                <svg
+                  className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
+              </Button>
+            </Link>
+            <Link href="/explore">
+              <Button variant="outline" size="lg">
+                Explore Stores
+              </Button>
+            </Link>
           </div>
 
           {/* Stats */}

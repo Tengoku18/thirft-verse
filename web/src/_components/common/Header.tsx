@@ -11,8 +11,8 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  { label: 'Features', href: '#features' },
-  { label: 'How It Works', href: '#how-it-works' },
+  { label: 'Features', href: '/#features' },
+  { label: 'How It Works', href: '/#how-it-works' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Success Stories', href: '/success-stories' },
 ];
@@ -86,12 +86,7 @@ export default function Header() {
 
           {/* Desktop CTA Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="outline" size="sm">
-                Log In
-              </Button>
-            </Link>
-            <Link href="/signup">
+            <Link href="/start-selling">
               <Button size="sm">Get Started</Button>
             </Link>
           </div>
@@ -147,16 +142,7 @@ export default function Header() {
             {/* Mobile CTA Buttons */}
             <div className="pt-4 space-y-3 border-t border-border">
               <Link
-                href="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block"
-              >
-                <Button variant="outline" size="md" className="w-full">
-                  Log In
-                </Button>
-              </Link>
-              <Link
-                href="/signup"
+                href="/start-selling"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block"
               >
