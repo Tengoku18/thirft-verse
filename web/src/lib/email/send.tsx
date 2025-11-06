@@ -2,6 +2,7 @@ import { render } from '@react-email/render';
 import { resend, FROM_EMAIL } from './client';
 import { OrderConfirmationEmail } from './templates/OrderConfirmation';
 import { ItemSoldEmail } from './templates/ItemSold';
+import { ProductNotReceivedEmail } from './templates/ProductNotReceived';
 
 export interface OrderConfirmationEmailData {
   to: string;
@@ -149,4 +150,55 @@ export async function sendOrderEmails(params: {
     buyerEmail: buyerEmailResult.status === 'fulfilled' ? buyerEmailResult.value : { success: false },
     sellerEmail: sellerEmailResult.status === 'fulfilled' ? sellerEmailResult.value : { success: false },
   };
+}
+
+export interface ProductNotReceivedEmailData {
+  to: string;
+  sellerName: string;
+  itemName: string;
+  orderCode: string;
+  orderDate: string;
+  buyerName: string;
+  buyerEmail: string;
+  shippingAddress: string;
+  orderAmount: number;
+  currency?: string;
+  reportDate: string;
+  orderDetailsUrl: string;
+}
+
+/**
+ * Send product not received alert email to the seller
+ */
+export async function sendProductNotReceivedEmail(data: ProductNotReceivedEmailData) {
+  try {
+    const emailHtml = await render(
+      <ProductNotReceivedEmail
+        sellerName={data.sellerName}
+        itemName={data.itemName}
+        orderCode={data.orderCode}
+        orderDate={data.orderDate}
+        buyerName={data.buyerName}
+        buyerEmail={data.buyerEmail}
+        shippingAddress={data.shippingAddress}
+        orderAmount={data.orderAmount}
+        currency={data.currency}
+        reportDate={data.reportDate}
+        orderDetailsUrl={data.orderDetailsUrl}
+      />
+    );
+
+    const result = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: data.to,
+      subject: `⚠️ URGENT: Product Not Received Report - ${data.orderCode} | ThriftVerse`,
+      html: emailHtml,
+    });
+
+    console.log('Product not received alert email sent:', result);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error sending product not received alert email:', error);
+    return { success: false, error };
+  }
 }

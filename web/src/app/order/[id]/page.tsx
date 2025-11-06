@@ -21,6 +21,7 @@ import {
 import { notFound } from 'next/navigation'
 import DownloadReceipt from '@/_components/DownloadReceipt'
 import CopyButton from '@/_components/CopyButton'
+import ReportProductButton from '@/_components/ReportProductButton'
 import { getStorefrontUrl } from '@/utils/domainHelpers'
 import { formatProductPrice, formatCheckoutPrice } from '@/utils/formatPrice'
 
@@ -123,14 +124,13 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
           <div className="space-y-6 lg:col-span-2">
             {/* Product Card */}
             <div className="overflow-hidden rounded-xl border border-border/50 bg-background">
-              <div className="border-b border-border/30 bg-surface/30 px-6 py-4">
-                <h2 className="flex items-center gap-2 font-heading text-xl font-bold text-primary">
-                  <Package className="h-5 w-5" />
-                  Product Information
-                </h2>
-              </div>
-
               <div className="p-4 sm:p-6">
+                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border/30">
+                  <Package className="h-5 w-5 text-primary/70" />
+                  <h2 className="font-heading text-xl font-bold text-primary">
+                    Product Information
+                  </h2>
+                </div>
                 <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
                   {/* Product Image */}
                   <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-lg border border-border/30 bg-background sm:h-40 sm:w-40">
@@ -183,39 +183,40 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
             {/* Seller Information */}
             {seller && (
               <div className="overflow-hidden rounded-xl border border-border/50 bg-background">
-                <div className="border-b border-border/30 bg-surface/30 px-6 py-4">
-                  <h2 className="flex items-center gap-2 font-heading text-xl font-bold text-primary">
-                    <Store className="h-5 w-5" />
-                    Seller Information
-                  </h2>
-                </div>
-
                 <div className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border/30">
+                    <Store className="h-5 w-5 text-primary/70" />
+                    <h2 className="font-heading text-xl font-bold text-primary">
+                      Seller Information
+                    </h2>
+                  </div>
+
+                  <div className="space-y-4">
+                  <div className="flex items-center gap-3">
                     {seller.profile_image ? (
-                      <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-secondary/20">
+                      <div className="relative h-12 w-12 overflow-hidden rounded-full border border-border/30">
                         <Image
                           src={seller.profile_image}
                           alt={seller.name}
                           fill
                           className="object-cover"
-                          sizes="64px"
+                          sizes="48px"
                         />
                       </div>
                     ) : (
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary/20">
-                        <span className="font-heading text-2xl font-bold text-primary">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface/50 border border-border/30">
+                        <span className="font-heading text-lg font-bold text-primary">
                           {seller.name.charAt(0)}
                         </span>
                       </div>
                     )}
 
-                    <div className="flex-1">
-                      <h3 className="font-heading text-lg font-bold text-primary">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-primary truncate">
                         {seller.name}
                       </h3>
                       {seller.store_username && (
-                        <p className="text-sm text-primary/60">@{seller.store_username}</p>
+                        <p className="text-sm text-primary/60 truncate">@{seller.store_username}</p>
                       )}
                     </div>
                   </div>
@@ -231,53 +232,47 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                       Visit Storefront
                     </Link>
                   )}
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Buyer & Shipping Information */}
             <div className="overflow-hidden rounded-xl border border-border/50 bg-background">
-              <div className="border-b border-border/30 bg-surface/30 px-6 py-4">
-                <h2 className="flex items-center gap-2 font-heading text-xl font-bold text-primary">
-                  <MapPin className="h-5 w-5" />
-                  Delivery Information
-                </h2>
-              </div>
-
               <div className="p-6">
-                <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border/30">
+                  <MapPin className="h-5 w-5 text-primary/70" />
+                  <h2 className="font-heading text-xl font-bold text-primary">
+                    Delivery Information
+                  </h2>
+                </div>
+                <div className="space-y-3.5">
                   {/* Buyer Name */}
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/5">
-                      <User className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-primary/60">Recipient Name</p>
-                      <p className="font-heading text-lg font-bold text-primary">
+                  <div className="flex items-center gap-3">
+                    <User className="h-4 w-4 shrink-0 text-primary/50" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-primary/50">Recipient Name</p>
+                      <p className="font-semibold text-primary truncate">
                         {order.buyer_name}
                       </p>
                     </div>
                   </div>
 
                   {/* Email */}
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/5">
-                      <Mail className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-primary/60">Email Address</p>
-                      <p className="text-base text-primary">{order.buyer_email}</p>
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-4 w-4 shrink-0 text-primary/50" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-primary/50">Email Address</p>
+                      <p className="text-sm text-primary truncate">{order.buyer_email}</p>
                     </div>
                   </div>
 
                   {/* Phone */}
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/5">
-                      <Phone className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-primary/60">Phone Number</p>
-                      <p className="text-base text-primary">
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 shrink-0 text-primary/50" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-primary/50">Phone Number</p>
+                      <p className="text-sm text-primary">
                         {order.shipping_address.phone}
                       </p>
                     </div>
@@ -285,12 +280,10 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
 
                   {/* Address */}
                   <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/5">
-                      <MapPin className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-primary/60">Shipping Address</p>
-                      <p className="text-base leading-relaxed text-primary">
+                    <MapPin className="h-4 w-4 shrink-0 text-primary/50 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-primary/50">Shipping Address</p>
+                      <p className="text-sm leading-relaxed text-primary">
                         {formatAddress(order.shipping_address)}
                       </p>
                     </div>
@@ -304,14 +297,13 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
           <div className="space-y-6">
             {/* Payment Details */}
             <div className="overflow-hidden rounded-xl border border-border/50 bg-background">
-              <div className="border-b border-border/30 bg-surface/30 px-6 py-4">
-                <h2 className="flex items-center gap-2 font-heading text-xl font-bold text-primary">
-                  <CreditCard className="h-5 w-5" />
-                  Payment Details
-                </h2>
-              </div>
-
               <div className="p-6">
+                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border/30">
+                  <CreditCard className="h-5 w-5 text-primary/70" />
+                  <h2 className="font-heading text-xl font-bold text-primary">
+                    Payment Details
+                  </h2>
+                </div>
                 <div className="space-y-4">
                   {/* Transaction Code */}
                   <div>
@@ -375,31 +367,26 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
 
             {/* Order Timeline */}
             <div className="overflow-hidden rounded-xl border border-border/50 bg-background">
-              <div className="border-b border-border/30 bg-surface/30 px-6 py-4">
-                <h2 className="flex items-center gap-2 font-heading text-xl font-bold text-primary">
-                  <Clock className="h-5 w-5" />
-                  Order Timeline
-                </h2>
-              </div>
-
               <div className="p-6">
+                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border/30">
+                  <Clock className="h-5 w-5 text-primary/70" />
+                  <h2 className="font-heading text-xl font-bold text-primary">
+                    Order Timeline
+                  </h2>
+                </div>
                 <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
-                      <div className="h-3 w-3 rounded-full bg-green-600"></div>
-                    </div>
-                    <div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-2 shrink-0 rounded-full bg-green-600"></div>
+                    <div className="flex-1">
                       <p className="text-sm font-semibold text-primary">Order Placed</p>
                       <p className="text-xs text-primary/60">{formatDate(order.created_at)}</p>
                     </div>
                   </div>
 
                   {order.status === 'completed' && (
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
-                        <div className="h-3 w-3 rounded-full bg-green-600"></div>
-                      </div>
-                      <div>
+                    <div className="flex items-center gap-3">
+                      <div className="h-2 w-2 shrink-0 rounded-full bg-green-600"></div>
+                      <div className="flex-1">
                         <p className="text-sm font-semibold text-primary">Payment Confirmed</p>
                         <p className="text-xs text-primary/60">{formatDate(order.updated_at)}</p>
                       </div>
@@ -408,6 +395,9 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                 </div>
               </div>
             </div>
+
+            {/* Report Product Not Received Button */}
+            <ReportProductButton orderId={order.id} orderDate={order.created_at} />
           </div>
         </div>
       </div>
