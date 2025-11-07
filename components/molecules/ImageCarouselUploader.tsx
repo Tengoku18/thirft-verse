@@ -6,10 +6,12 @@ import {
   ScrollView,
   Dimensions,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { uploadMultipleImages } from '@/lib/upload-helpers';
 
 interface ProductImage {
   uri: string;
@@ -33,6 +35,7 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
   error,
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [uploading, setUploading] = useState(false);
 
   const pickImages = async () => {
     try {
@@ -53,12 +56,45 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
         selectionLimit: maxImages - images.length,
       });
 
-      if (!result.canceled) {
-        const newImages = result.assets.map((asset) => ({
-          uri: asset.uri,
-          id: Math.random().toString(36).substr(2, 9),
-        }));
-        onImagesChange([...images, ...newImages]);
+      if (!result.canceled && result.assets.length > 0) {
+        setUploading(true);
+
+        try {
+          // Get local URIs from selected images
+          const localUris = result.assets.map((asset) => asset.uri);
+
+          // Upload all images to Supabase Storage
+          console.log(`📤 Uploading ${localUris.length} images to Supabase Storage...`);
+          const uploadResults = await uploadMultipleImages(localUris);
+
+          // Check for upload failures
+          const failedUploads = uploadResults.filter((r) => !r.success);
+          if (failedUploads.length > 0) {
+            const errorMsg = failedUploads[0].error || 'Unknown error';
+            Alert.alert('Upload Error', errorMsg);
+            setUploading(false);
+            return;
+          }
+
+          // Create ProductImage objects with uploaded URLs
+          const newImages = uploadResults
+            .filter((r) => r.success && r.url)
+            .map((r) => ({
+              uri: r.url!,
+              id: Math.random().toString(36).substr(2, 9),
+            }));
+
+          console.log(`✅ Successfully uploaded ${newImages.length} images`);
+          onImagesChange([...images, ...newImages]);
+        } catch (uploadError) {
+          console.error('Error uploading images:', uploadError);
+          Alert.alert(
+            'Upload Failed',
+            'Failed to upload images to storage. Please try again.'
+          );
+        } finally {
+          setUploading(false);
+        }
       }
     } catch (error) {
       console.error('Error picking images:', error);
@@ -111,6 +147,7 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
           // Empty State - Large Upload Button
           <TouchableOpacity
             onPress={pickImages}
+            disabled={uploading}
             style={{
               flex: 1,
               backgroundColor: '#FAFAFA',
@@ -120,42 +157,61 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
               borderRadius: 24,
               justifyContent: 'center',
               alignItems: 'center',
+              opacity: uploading ? 0.6 : 1,
             }}
             activeOpacity={0.7}
           >
-            <View className="items-center">
-              <View
-                style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 40,
-                  backgroundColor: '#FFFFFF',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: 16,
-                }}
-              >
-                <IconSymbol name="photo.on.rectangle" size={40} color="#3B2F2F" />
+            {uploading ? (
+              <View className="items-center">
+                <ActivityIndicator size="large" color="#3B2F2F" />
+                <ThemedText
+                  className="text-[16px] font-[NunitoSans_600SemiBold] mt-4"
+                  style={{ color: '#3B2F2F' }}
+                >
+                  Uploading images...
+                </ThemedText>
+                <ThemedText
+                  className="text-[13px] font-[NunitoSans_400Regular] mt-2"
+                  style={{ color: '#6B7280' }}
+                >
+                  Please wait
+                </ThemedText>
               </View>
-              <ThemedText
-                className="text-[18px] font-[PlayfairDisplay_700Bold] mb-2"
-                style={{ color: '#3B2F2F' }}
-              >
-                Add Product Photos
-              </ThemedText>
-              <ThemedText
-                className="text-[14px] font-[NunitoSans_400Regular] text-center px-8"
-                style={{ color: '#6B7280' }}
-              >
-                Upload up to {maxImages} high-quality images
-              </ThemedText>
-              <ThemedText
-                className="text-[12px] font-[NunitoSans_400Regular] mt-2"
-                style={{ color: '#9CA3AF' }}
-              >
-                First image will be the cover photo
-              </ThemedText>
-            </View>
+            ) : (
+              <View className="items-center">
+                <View
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 40,
+                    backgroundColor: '#FFFFFF',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginBottom: 16,
+                  }}
+                >
+                  <IconSymbol name="photo.on.rectangle" size={40} color="#3B2F2F" />
+                </View>
+                <ThemedText
+                  className="text-[18px] font-[PlayfairDisplay_700Bold] mb-2"
+                  style={{ color: '#3B2F2F' }}
+                >
+                  Add Product Photos
+                </ThemedText>
+                <ThemedText
+                  className="text-[14px] font-[NunitoSans_400Regular] text-center px-8"
+                  style={{ color: '#6B7280' }}
+                >
+                  Upload up to {maxImages} high-quality images
+                </ThemedText>
+                <ThemedText
+                  className="text-[12px] font-[NunitoSans_400Regular] mt-2"
+                  style={{ color: '#9CA3AF' }}
+                >
+                  First image will be the cover photo
+                </ThemedText>
+              </View>
+            )}
           </TouchableOpacity>
         ) : (
           // Carousel Display
@@ -293,6 +349,7 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
           {images.length < maxImages && (
             <TouchableOpacity
               onPress={pickImages}
+              disabled={uploading}
               style={{
                 width: 72,
                 height: 72,
@@ -303,16 +360,23 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
                 borderColor: '#E5E1DB',
                 justifyContent: 'center',
                 alignItems: 'center',
+                opacity: uploading ? 0.6 : 1,
               }}
               activeOpacity={0.7}
             >
-              <IconSymbol name="plus" size={20} color="#3B2F2F" />
-              <ThemedText
-                className="text-[9px] font-[NunitoSans_600SemiBold] mt-1"
-                style={{ color: '#6B7280' }}
-              >
-                Add More
-              </ThemedText>
+              {uploading ? (
+                <ActivityIndicator size="small" color="#3B2F2F" />
+              ) : (
+                <>
+                  <IconSymbol name="plus" size={20} color="#3B2F2F" />
+                  <ThemedText
+                    className="text-[9px] font-[NunitoSans_600SemiBold] mt-1"
+                    style={{ color: '#6B7280' }}
+                  >
+                    Add More
+                  </ThemedText>
+                </>
+              )}
             </TouchableOpacity>
           )}
         </ScrollView>

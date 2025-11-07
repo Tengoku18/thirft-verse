@@ -5,8 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getProductsByStoreId } from "@/lib/database-helpers";
 import { supabase } from "@/lib/supabase";
 import { Product } from "@/lib/types/database";
-import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useRouter, useFocusEffect } from "expo-router";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -14,6 +14,7 @@ import {
   ScrollView,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from "react-native";
 
 interface UserProfile {
@@ -34,6 +35,7 @@ export default function ProfileScreen() {
   const [productsCount, setProductsCount] = useState({ listings: 0, sold: 0 });
   const [loading, setLoading] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("listings");
 
   useEffect(() => {
@@ -41,6 +43,22 @@ export default function ProfileScreen() {
     if (user) {
       loadProducts();
     }
+  }, [user]);
+
+  // Reload products when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        console.log('🔄 Profile screen focused, reloading products...');
+        loadProducts();
+      }
+    }, [user])
+  );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([loadProfile(), loadProducts()]);
+    setRefreshing(false);
   }, [user]);
 
   const loadProfile = async () => {
@@ -179,6 +197,15 @@ export default function ProfileScreen() {
     <ScrollView
       className="flex-1 bg-white"
       showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 100 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor="#3B2F2F"
+          colors={['#3B2F2F']}
+        />
+      }
     >
       {/* Header - Clean Design */}
       <View className="px-6 pt-14 pb-6">
@@ -191,7 +218,7 @@ export default function ProfileScreen() {
             {profile.store_username}
           </ThemedText>
           <TouchableOpacity
-            onPress={() => router.push("/(tabs)/settings")}
+            onPress={() => router.push("/settings")}
             className="w-10 h-10 justify-center items-center"
             activeOpacity={0.7}
           >

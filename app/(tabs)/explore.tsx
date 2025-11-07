@@ -14,27 +14,30 @@ import { ThemedText } from '@/components/themed-text';
 import { FormButton } from '@/components/atoms/FormButton';
 import { ImageCarouselUploader } from '@/components/molecules/ImageCarouselUploader';
 import { useAuth } from '@/contexts/AuthContext';
-import { productSchema, ProductFormData } from '@/lib/validations/product';
+import { productSchema, ProductFormData, PRODUCT_CATEGORIES } from '@/lib/validations/product';
+import { CustomHeader } from '@/components/navigation/CustomHeader';
+import { createProduct } from '@/lib/database-helpers';
+import { useRouter } from 'expo-router';
+import { debugAuthStatus } from '@/lib/debug-auth';
 
 interface ProductImage {
   uri: string;
   id: string;
 }
 
-const CATEGORIES = [
-  'Clothing',
-  'Shoes',
-  'Accessories',
-  'Bags',
-  'Jewelry',
-  'Home & Decor',
-  'Electronics',
-  'Books',
-  'Other',
-];
+// Internal type for the form (uses images array for UI)
+interface InternalFormData {
+  title: string;
+  description: string;
+  price?: number;
+  category: string;
+  availability_count: number;
+  images: ProductImage[];
+}
 
 export default function ListProductScreen() {
   const { user } = useAuth();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -44,8 +47,8 @@ export default function ListProductScreen() {
     reset,
     setValue,
     watch,
-  } = useForm<ProductFormData>({
-    resolver: yupResolver(productSchema),
+  } = useForm<InternalFormData>({
+    // Don't use yupResolver here - we'll validate after converting
     defaultValues: {
       title: '',
       description: '',
@@ -59,24 +62,126 @@ export default function ListProductScreen() {
   const selectedCategory = watch('category');
   const images = watch('images');
 
-  const onSubmit = async (data: ProductFormData) => {
+  const onSubmit = async (data: InternalFormData) => {
+    if (!user) {
+      Alert.alert('Error', 'You must be logged in to list a product.');
+      return;
+    }
+
+    if (data.images.length === 0) {
+      Alert.alert('Error', 'Please add at least one image for your product.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // TODO: Upload images to Supabase Storage
-      // TODO: Create product record in database
+      // DEBUG: Check auth status before creating product
+      console.log('🔍 Running auth debug check...');
+      await debugAuthStatus();
+
+      // Convert images array to cover_image + other_images format (matching admin)
+      const cover_image = data.images[0].uri;
+      const other_images = data.images.slice(1).map(img => img.uri);
+
+      // Create ProductFormData matching validation schema
+      const productData: ProductFormData = {
+        title: data.title,
+        description: data.description,
+        price: data.price!,
+        category: data.category,
+        availability_count: data.availability_count,
+        cover_image,
+        other_images,
+      };
+
+      // Validate against schema
+      try {
+        await productSchema.validate(productData, { abortEarly: false });
+      } catch (validationError: any) {
+        Alert.alert('Validation Error', validationError.message);
+        setLoading(false);
+        return;
+      }
 
       console.log('Creating product:', {
-        ...data,
-        userId: user?.id,
+        ...productData,
+        userId: user.id,
       });
+
+      // Create product record in database with Supabase Storage URLs
+      await createProductWithImages(productData);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      Alert.alert('Error', 'Failed to create product. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const createProductWithImages = async (data: ProductFormData) => {
+    if (!user) return;
+
+    try {
+      // Prepare images array for database (cover + others)
+      const allImages = [data.cover_image, ...data.other_images];
+
+      const result = await createProduct({
+        title: data.title,
+        description: data.description,
+        price: data.price,
+        category: data.category,
+        availability_count: data.availability_count,
+        images: allImages,
+        store_id: user.id,
+      });
+
+      if (!result.success) {
+        if ((result as any).tableNotFound) {
+          Alert.alert(
+            'Database Not Setup',
+            'The products table does not exist in your Supabase database.\n\nPlease run the SQL migration to create the required tables.\n\nCheck the project README for migration instructions.',
+            [{ text: 'OK' }]
+          );
+        } else if ((result as any).rlsError) {
+          // RLS Policy Error - needs special handling
+          Alert.alert(
+            'Permission Error',
+            'Row Level Security is blocking this action.\n\nPlease:\n1. Log out and log back in\n2. Make sure you ran the products table migration in Supabase\n3. Check that RLS policies are set up correctly\n\nError: ' + (result.error?.message || 'Unknown error'),
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Log Out & Try Again',
+                onPress: async () => {
+                  setLoading(false);
+                  router.push('/(tabs)/profile');
+                  Alert.alert('Please log out from Settings, then log back in and try again.');
+                }
+              }
+            ]
+          );
+        } else {
+          const errorMsg = result.error?.message || 'Failed to create product. Please try again.';
+          Alert.alert('Error', errorMsg + '\n\nError code: ' + (result.error?.code || 'Unknown'));
+        }
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ Product created successfully!');
 
       Alert.alert(
         'Success!',
         'Your product has been listed successfully.',
         [
           {
-            text: 'OK',
+            text: 'View Profile',
+            onPress: () => {
+              reset();
+              router.push('/(tabs)/profile');
+            },
+          },
+          {
+            text: 'Add Another',
             onPress: () => {
               reset();
             },
@@ -84,7 +189,7 @@ export default function ListProductScreen() {
         ]
       );
     } catch (error) {
-      console.error('Error creating product:', error);
+      console.error('Error creating product record:', error);
       Alert.alert('Error', 'Failed to create product. Please try again.');
     } finally {
       setLoading(false);
@@ -96,22 +201,14 @@ export default function ListProductScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1 bg-white"
     >
-      {/* Header Nav Bar */}
-      <View className="px-6 pt-16 pb-6 border-b border-[#F3F4F6]">
-        <View className="items-center">
-          <ThemedText
-            className="text-[24px] font-[PlayfairDisplay_700Bold]"
-            style={{ color: '#3B2F2F' }}
-          >
-            New Listing
-          </ThemedText>
-        </View>
-      </View>
+      {/* Custom Header */}
+      <CustomHeader title="New Listing" />
 
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
         <View className="px-6 pt-6 pb-8">
 
@@ -338,7 +435,7 @@ export default function ListProductScreen() {
               name="category"
               render={({ field: { onChange, value } }) => (
                 <View className="flex-row flex-wrap gap-2">
-                  {CATEGORIES.map((cat) => (
+                  {PRODUCT_CATEGORIES.map((cat) => (
                     <TouchableOpacity
                       key={cat}
                       onPress={() => onChange(cat)}

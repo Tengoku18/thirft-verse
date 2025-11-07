@@ -232,3 +232,109 @@ export const updateUserProfile = async (data: UpdateProfileData) => {
     return { success: false, error };
   }
 };
+
+/**
+ * Create a new product
+ */
+interface CreateProductData {
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  availability_count: number;
+  images: string[];
+  store_id: string;
+}
+
+export const createProduct = async (data: CreateProductData) => {
+  try {
+    console.log('📝 Creating product in database:', data);
+
+    // IMPORTANT: Verify the user session before creating product
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+      console.error('❌ No active session found:', sessionError);
+      return {
+        success: false,
+        error: { message: 'You must be logged in to create a product. Please sign in again.' }
+      };
+    }
+
+    console.log('✅ Active session verified:', {
+      userId: session.user.id,
+      email: session.user.email,
+    });
+
+    // Verify that the store_id matches the authenticated user
+    if (session.user.id !== data.store_id) {
+      console.error('❌ User ID mismatch:', {
+        sessionUserId: session.user.id,
+        requestedStoreId: data.store_id,
+      });
+      return {
+        success: false,
+        error: { message: 'Cannot create product for another user.' }
+      };
+    }
+
+    // Split images into cover_image (first) and other_images (rest)
+    const cover_image = data.images[0] || '';
+    const other_images = data.images.slice(1);
+
+    if (!cover_image) {
+      console.error('❌ No cover image provided');
+      return { success: false, error: { message: 'At least one image is required' } };
+    }
+
+    const { data: product, error } = await supabase
+      .from('products')
+      .insert({
+        title: data.title,
+        description: data.description,
+        price: data.price,
+        category: data.category,
+        availability_count: data.availability_count,
+        cover_image: cover_image,
+        other_images: other_images,
+        store_id: data.store_id,
+        status: 'available',
+      })
+      .select()
+      .single();
+
+    if (error) {
+      // Table doesn't exist
+      if (error.code === 'PGRST205') {
+        console.warn('⚠️  products table not found. Please run SQL migration.');
+        return { success: false, error, tableNotFound: true };
+      }
+
+      // RLS policy violation
+      if (error.code === '42501') {
+        console.error('❌ RLS Policy Error:', error);
+        console.error('This usually means:');
+        console.error('1. The products table RLS policies are not set up correctly');
+        console.error('2. Your session token is not being sent with the request');
+        console.error('3. The auth.uid() does not match the store_id');
+        return {
+          success: false,
+          error: {
+            ...error,
+            message: 'Permission denied. Please check Supabase RLS policies and try logging out and back in.'
+          },
+          rlsError: true
+        };
+      }
+
+      console.error('❌ Error creating product:', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ Product created successfully!', product);
+    return { success: true, data: product };
+  } catch (error) {
+    console.error('💥 Error in createProduct:', error);
+    return { success: false, error };
+  }
+};

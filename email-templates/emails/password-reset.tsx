@@ -5,7 +5,6 @@ import {
   Heading,
   Html,
   Img,
-  Link,
   Preview,
   Section,
   Text,
@@ -14,18 +13,18 @@ import * as React from 'react';
 
 interface PasswordResetEmailProps {
   username?: string;
-  resetLink?: string;
+  verificationCode?: string;
   expiryTime?: string;
 }
 
 export const PasswordResetEmail = ({
   username = 'there',
-  resetLink = 'https://thriftverse.com/reset-password?token=example',
-  expiryTime = '1 hour',
+  verificationCode = '123456',
+  expiryTime = '10 minutes',
 }: PasswordResetEmailProps) => (
   <Html>
     <Head />
-    <Preview>Reset your ThriftVerse password</Preview>
+    <Preview>Your ThriftVerse password reset code</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={logoContainer}>
@@ -43,27 +42,20 @@ export const PasswordResetEmail = ({
           email.
         </Text>
         <Text style={text}>
-          To reset your password, click the button below:
+          To reset your password, enter this verification code in the app:
         </Text>
-        <Section style={buttonContainer}>
-          <Link style={button} href={resetLink}>
-            Reset Password
-          </Link>
+        <Section style={codeContainer}>
+          <Text style={codeText}>{verificationCode}</Text>
         </Section>
         <Text style={text}>
-          This link will expire in {expiryTime}. After that, you'll need to
+          This code will expire in {expiryTime}. After that, you'll need to
           request a new password reset.
         </Text>
-        <Text style={text}>
-          If the button doesn't work, you can copy and paste this link into
-          your browser:
-        </Text>
-        <Text style={link}>{resetLink}</Text>
         <Section style={warningContainer}>
           <Text style={warningText}>
-            <strong>Security tip:</strong> Never share your password or reset
-            link with anyone. ThriftVerse will never ask you for your password
-            via email.
+            <strong>Security tip:</strong> Never share your verification code
+            with anyone. ThriftVerse will never ask you for your code via email
+            or phone.
           </Text>
         </Section>
         <Text style={footer}>
@@ -121,27 +113,22 @@ const text = {
   marginBottom: '16px',
 };
 
-const buttonContainer = {
-  padding: '27px 48px',
-};
-
-const button = {
-  backgroundColor: '#4F46E5',
-  borderRadius: '8px',
-  color: '#fff',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
+const codeContainer = {
+  backgroundColor: '#F3F4F6',
+  borderRadius: '12px',
+  padding: '24px',
+  margin: '24px 48px',
   textAlign: 'center' as const,
-  display: 'block',
-  padding: '12px 20px',
+  border: '2px dashed #D1D5DB',
 };
 
-const link = {
-  color: '#4F46E5',
-  fontSize: '14px',
-  padding: '0 48px',
-  wordBreak: 'break-all' as const,
+const codeText = {
+  color: '#3B2F2F',
+  fontSize: '36px',
+  fontWeight: 'bold',
+  letterSpacing: '8px',
+  margin: '0',
+  fontFamily: 'monospace',
 };
 
 const warningContainer = {

@@ -4,7 +4,7 @@ import { ThemedView } from '@/components/themed-view';
 
 export default function HomeScreen() {
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
       <ThemedView style={styles.header}>
         <ThemedText type="title" style={styles.mainTitle}>ThriftVerse</ThemedText>
         <ThemedText style={styles.subtitle}>Vintage Finds, Modern Style</ThemedText>
