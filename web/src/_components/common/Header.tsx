@@ -1,6 +1,7 @@
 'use client';
 
-import { Menu, ShoppingBag, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Button from './Button';
@@ -52,22 +53,25 @@ export default function Header() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 group transition-transform hover:scale-105"
+            className="flex items-start gap-2 group transition-transform hover:scale-105"
           >
-            <div className="relative w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-secondary to-accent-2 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+            {/* <div className="relative w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-secondary to-accent-2 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow"> */}
               {/* Logo placeholder - Replace with actual logo */}
-              <ShoppingBag className="w-6 h-6 md:w-7 md:h-7 text-surface" />
+              {/* <ShoppingBag className="w-6 h-6 md:w-7 md:h-7 text-surface" /> */}
               {/* Uncomment and use this when you have your logo */}
-              {/* <Image
-                src="/images/logo-circle.png"
-                alt="ThriftVerse Logo"
-                fill
-                className="object-contain p-1"
-              /> */}
-            </div>
-            <span className="font-heading text-xl md:text-2xl font-bold text-primary">
+         
+            {/* </div> */}
+            {/* <span className="font-heading text-xl md:text-2xl font-bold text-primary">
               ThriftVerse
-            </span>
+            </span> */}
+
+                  <Image
+                src="/images/logo-horizontal.png"
+                alt="ThriftVerse Logo"
+                height={50}
+                width={150}
+                className="object-contain p-1"
+              /> 
           </Link>
 
           {/* Desktop Navigation */}
