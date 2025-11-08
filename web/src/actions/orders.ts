@@ -10,6 +10,7 @@ import {
 import { generateOrderCodeWithDate } from '@/lib/utils/order-code'
 import { decrementProductAvailability } from './products'
 import { sendProductNotReceivedEmail } from '@/lib/email/send'
+import { getSellerOrderUrl } from '@/utils/orderHelpers'
 
 interface CreateOrderParams {
   seller_id: string
@@ -288,25 +289,13 @@ export async function reportProductNotReceived(
 
     const sellerEmail = authUser.user.email
 
-    // Format shipping address
-    const shippingAddress = order.shipping_address
-      ? `${order.shipping_address.address}, ${order.shipping_address.city}, ${order.shipping_address.state} ${order.shipping_address.zipCode}, ${order.shipping_address.country}`
-      : 'Address not provided'
-
     // Send the emergency alert email to the seller
     const emailResult = await sendProductNotReceivedEmail({
       to: sellerEmail,
-      sellerName: order.seller?.name || 'Seller',
-      itemName: order.product?.title || 'Product',
+      sellerName: order.seller?.name || order.seller?.store_username || 'Seller',
       orderCode: order.order_code || order.id,
       orderDate: new Date(order.created_at).toLocaleDateString(),
-      buyerName: order.buyer_name,
-      buyerEmail: order.buyer_email,
-      shippingAddress,
-      orderAmount: order.amount,
-      currency: order.seller?.currency || 'USD',
-      reportDate: new Date().toLocaleDateString(),
-      orderDetailsUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.thriftverse.shop'}/order/${order.id}`,
+      orderDetailsUrl: getSellerOrderUrl(order.id),
     })
 
     if (!emailResult.success) {

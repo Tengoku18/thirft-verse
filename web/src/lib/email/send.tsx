@@ -162,15 +162,8 @@ export async function sendOrderEmails(params: {
 export interface ProductNotReceivedEmailData {
   to: string;
   sellerName: string;
-  itemName: string;
   orderCode: string;
   orderDate: string;
-  buyerName: string;
-  buyerEmail: string;
-  shippingAddress: string;
-  orderAmount: number;
-  currency?: string;
-  reportDate: string;
   orderDetailsUrl: string;
 }
 
@@ -182,15 +175,8 @@ export async function sendProductNotReceivedEmail(data: ProductNotReceivedEmailD
     const emailHtml = await render(
       <ProductNotReceivedEmail
         sellerName={data.sellerName}
-        itemName={data.itemName}
         orderCode={data.orderCode}
         orderDate={data.orderDate}
-        buyerName={data.buyerName}
-        buyerEmail={data.buyerEmail}
-        shippingAddress={data.shippingAddress}
-        orderAmount={data.orderAmount}
-        currency={data.currency}
-        reportDate={data.reportDate}
         orderDetailsUrl={data.orderDetailsUrl}
       />
     );
