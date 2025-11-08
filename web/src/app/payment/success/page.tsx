@@ -1,7 +1,6 @@
 import { verifyEsewaPayment, createOrderFromPayment } from '@/actions/payment'
-import { getOrderByTransactionUuid } from '@/actions/orders'
 import DownloadReceipt from '@/_components/DownloadReceipt'
-import { CheckCircle, Eye } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
@@ -64,9 +63,6 @@ export default async function PaymentSuccessPage({
     }
   }
 
-  // Get order details to link to order page
-  const order = await getOrderByTransactionUuid(transactionUuid)
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Suspense fallback={null}>
@@ -120,15 +116,6 @@ export default async function PaymentSuccessPage({
             currency="NPR"
             quantity={quantity}
           />
-          {order && (
-            <Link
-              href={`/order/${order.id}`}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 font-semibold text-surface shadow-lg transition-all hover:scale-105 hover:shadow-xl"
-            >
-              <Eye className="h-5 w-5" />
-              View Order Details
-            </Link>
-          )}
           <Link
             href="/"
             className="block w-full rounded-2xl border-2 border-primary/20 bg-white px-6 py-3 font-semibold text-primary shadow-md transition-all hover:border-primary/40 hover:bg-primary/5"

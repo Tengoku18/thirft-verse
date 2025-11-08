@@ -1,7 +1,7 @@
 import {
   Body,
-  Container,
   Column,
+  Container,
   Head,
   Heading,
   Html,
@@ -12,6 +12,7 @@ import {
   Section,
   Text,
 } from '@react-email/components';
+import * as React from 'react';
 
 interface ProductNotReceivedEmailProps {
   sellerName?: string;

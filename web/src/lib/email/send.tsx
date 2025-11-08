@@ -3,6 +3,7 @@ import { resend, FROM_EMAIL } from './client';
 import { OrderConfirmationEmail } from './templates/OrderConfirmation';
 import { ItemSoldEmail } from './templates/ItemSold';
 import { ProductNotReceivedEmail } from './templates/ProductNotReceived';
+import { getBuyerOrderUrl, getSellerOrderUrl } from '@/utils/orderHelpers';
 
 export interface OrderConfirmationEmailData {
   to: string;
@@ -25,6 +26,7 @@ export interface ItemSoldEmailData {
   orderId: string;
   saleDate: string;
   shippingDeadline: string;
+  orderDetailsUrl: string;
 }
 
 /**
@@ -74,6 +76,7 @@ export async function sendItemSoldEmail(data: ItemSoldEmailData) {
         orderId={data.orderId}
         saleDate={data.saleDate}
         shippingDeadline={data.shippingDeadline}
+        orderDetailsUrl={data.orderDetailsUrl}
       />
     );
 
@@ -112,10 +115,13 @@ export async function sendOrderEmails(params: {
     itemName: string;
     storeName: string;
     currency?: string;
-    orderDetailsUrl: string;
   };
 }) {
   const { buyer, seller, order } = params;
+
+  // Generate order detail URLs with appropriate view params
+  const buyerOrderUrl = getBuyerOrderUrl(order.id);
+  const sellerOrderUrl = getSellerOrderUrl(order.id);
 
   // Calculate shipping deadline (e.g., 3 days from now)
   const shippingDeadline = new Date();
@@ -131,7 +137,7 @@ export async function sendOrderEmails(params: {
       storeName: order.storeName,
       total: order.total,
       currency: order.currency,
-      orderDetailsUrl: order.orderDetailsUrl,
+      orderDetailsUrl: buyerOrderUrl,
     }),
     sendItemSoldEmail({
       to: seller.email,
@@ -140,9 +146,10 @@ export async function sendOrderEmails(params: {
       salePrice: order.total,
       currency: order.currency,
       buyerName: buyer.name,
-      orderId: order.id,
+      orderId: order.orderCode,
       saleDate: order.date,
       shippingDeadline: shippingDeadline.toLocaleDateString(),
+      orderDetailsUrl: sellerOrderUrl,
     }),
   ]);
 

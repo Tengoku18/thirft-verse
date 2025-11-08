@@ -29,6 +29,9 @@ interface OrderDetailsPageProps {
   params: Promise<{
     id: string
   }>
+  searchParams: Promise<{
+    view?: 'buyer' | 'seller'
+  }>
 }
 
 const statusConfig = {
@@ -62,8 +65,9 @@ const statusConfig = {
   }
 }
 
-export default async function OrderDetailsPage({ params }: OrderDetailsPageProps) {
+export default async function OrderDetailsPage({ params, searchParams }: OrderDetailsPageProps) {
   const { id } = await params
+  const { view } = await searchParams
 
   // Fetch order details
   const order = await getOrderById(id)
@@ -71,6 +75,9 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
   if (!order) {
     notFound()
   }
+
+  // Determine if viewer is the buyer based on searchParams
+  const isBuyer = view === 'buyer'
 
   // Fetch full product and seller details
   const product = order.product_id ? await getProductById({ id: order.product_id }) : null
@@ -354,17 +361,19 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                     </p>
                   </div>
 
-                  {/* Download Receipt Button */}
-                  <div className="mt-4">
-                    <DownloadReceipt
-                      transactionCode={order.transaction_code}
-                      amount={order.amount.toString()}
-                      transactionUuid={order.transaction_uuid}
-                      currency={seller?.currency || 'NPR'}
-                      quantity={order.quantity}
-                      paymentDate={formatDate(order.created_at)}
-                    />
-                  </div>
+                  {/* Download Receipt Button - Only for buyers */}
+                  {isBuyer && (
+                    <div className="mt-4">
+                      <DownloadReceipt
+                        transactionCode={order.transaction_code}
+                        amount={order.amount.toString()}
+                        transactionUuid={order.transaction_uuid}
+                        currency={seller?.currency || 'NPR'}
+                        quantity={order.quantity}
+                        paymentDate={formatDate(order.created_at)}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -409,10 +418,12 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
           </div>
         </div>
 
-        {/* Report Product Not Received Button - Full Width */}
-        <div className="mt-6">
-          <ReportProductButton orderId={order.id} orderDate={order.created_at} />
-        </div>
+        {/* Report Product Not Received Button - Full Width, Only for buyers */}
+        {isBuyer && (
+          <div className="mt-6">
+            <ReportProductButton orderId={order.id} orderDate={order.created_at} />
+          </div>
+        )}
       </div>
     </div>
   )
