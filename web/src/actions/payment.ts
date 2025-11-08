@@ -384,16 +384,6 @@ export async function createOrderFromPayment(
         const sellerEmail = authUser?.user?.email
 
         if (product && seller && sellerEmail && orderResult.order) {
-          // Construct order details URL based on environment
-          const isProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'
-          const baseUrl = isProduction
-            ? 'https://www.thriftverse.shop'
-            : process.env.NODE_ENV === 'development'
-            ? 'http://localhost:3000'
-            : 'https://thriftverse.vercel.app'
-
-          const orderDetailsUrl = `${baseUrl}/order/${orderResult.order.id}`
-
           await sendOrderEmails({
             buyer: {
               email: metadata.buyer_email,
@@ -411,7 +401,6 @@ export async function createOrderFromPayment(
               itemName: product.title,
               storeName: seller.store_username || seller.name || 'ThriftVerse Store',
               currency: seller.currency || 'NPR',
-              orderDetailsUrl: orderDetailsUrl,
             },
           })
           console.log('Order confirmation emails sent successfully')

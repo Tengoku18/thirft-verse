@@ -3,6 +3,7 @@
 import { jsPDF } from 'jspdf'
 import { Download } from 'lucide-react'
 import { formatCheckoutPrice } from '@/utils/formatPrice'
+import Button from '@/_components/common/Button'
 
 interface DownloadReceiptProps {
   transactionCode: string
@@ -163,12 +164,14 @@ export default function DownloadReceipt({
   }
 
   return (
-    <button
+    <Button
       onClick={handleDownload}
-      className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-primary/20 bg-white px-6 py-3 font-semibold text-primary shadow-md transition-all hover:border-primary/40 hover:bg-primary/5"
+      variant="ghost"
+      size="md"
+      fullWidth
     >
-      <Download className="h-5 w-5" />
+      <Download className="h-4 w-4" strokeWidth={2} />
       Download Receipt
-    </button>
+    </Button>
   )
 }
