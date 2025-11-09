@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Image, TouchableOpacity, Dimensions, FlatList } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Product } from '@/lib/types/database';
+import { getProductImageUrl } from '@/lib/storage-helpers';
 
 interface ProductGridProps {
   products: Product[];
@@ -31,7 +32,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
       activeOpacity={0.8}
     >
       <Image
-        source={{ uri: item.cover_image }}
+        source={{ uri: getProductImageUrl(item.cover_image) }}
         style={{
           width: '100%',
           height: '100%',

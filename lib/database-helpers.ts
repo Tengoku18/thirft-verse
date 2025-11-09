@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
-import { Product, ProductStatus, PaginatedResponse } from './types/database';
+import { supabase } from "./supabase";
+import { PaginatedResponse, Product, ProductStatus } from "./types/database";
 
 /**
  * Check if email already exists in auth.users
@@ -17,34 +17,43 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
 /**
  * Check if store username already exists in the database
  */
-export const checkUsernameExists = async (username: string): Promise<boolean> => {
+export const checkUsernameExists = async (
+  username: string
+): Promise<boolean> => {
   try {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('store_username', username.toLowerCase())
+      .from("profiles")
+      .select("id")
+      .eq("store_username", username.toLowerCase())
       .maybeSingle();
 
     // If API key is invalid, skip check and allow signup
     if (error) {
       // Table doesn't exist yet - skip check
-      if (error.code === 'PGRST205') {
-        console.warn('⚠️  profiles table not found - skipping username check. Please run SQL migration.');
+      if (error.code === "PGRST205") {
+        console.warn(
+          "⚠️  profiles table not found - skipping username check. Please run SQL migration."
+        );
         return false; // Allow signup to continue
       }
-      if (error.message?.includes('Invalid API key')) {
-        console.warn('⚠️  Supabase API key invalid - skipping username check. Please update credentials in .env');
+      if (error.message?.includes("Invalid API key")) {
+        console.warn(
+          "⚠️  Supabase API key invalid - skipping username check. Please update credentials in .env"
+        );
         return false; // Allow signup to continue
       }
-      if (error.code !== 'PGRST116') {
-        console.warn('⚠️  Error checking username - skipping check:', error.message);
+      if (error.code !== "PGRST116") {
+        console.warn(
+          "⚠️  Error checking username - skipping check:",
+          error.message
+        );
         return false;
       }
     }
 
     return !!data;
   } catch (error) {
-    console.error('Error in checkUsernameExists:', error);
+    console.error("Error in checkUsernameExists:", error);
     return false;
   }
 };
@@ -63,33 +72,22 @@ export interface CreateProfileData {
 
 export const createUserProfile = async (data: CreateProfileData) => {
   try {
-    console.log('📝 Creating profile in database:', data);
-
-    const { error } = await supabase.from('profiles').insert({
+    const { error } = await supabase.from("profiles").insert({
       id: data.userId,
       name: data.name,
       store_username: data.store_username.toLowerCase(),
       bio: data.bio || null,
       profile_image: data.profile_image || null,
-      currency: data.currency || 'NPR',
+      currency: data.currency || "NPR",
     });
 
     if (error) {
-      // Table doesn't exist - warn but don't fail signup
-      if (error.code === 'PGRST205') {
-        console.warn('⚠️  profiles table not found - profile NOT created. Please run SQL migration.');
-        console.warn('⚠️  User can still sign in, but profile data will only be in auth metadata.');
-        return { success: false, error, tableNotFound: true };
-      }
-
-      console.error('❌ Error creating profile:', error);
       return { success: false, error };
     }
 
-    console.log('✅ Profile created successfully!');
     return { success: true };
   } catch (error) {
-    console.error('💥 Error in createUserProfile:', error);
+    console.error("💥 Error in createUserProfile:", error);
     return { success: false, error };
   }
 };
@@ -111,14 +109,14 @@ export const getProductsByStoreId = async (
     const { storeId, limit = 12, offset = 0, status } = params;
 
     let query = supabase
-      .from('products')
-      .select('*', { count: 'exact' })
-      .eq('store_id', storeId)
-      .order('created_at', { ascending: false });
+      .from("products")
+      .select("*", { count: "exact" })
+      .eq("store_id", storeId)
+      .order("created_at", { ascending: false });
 
     // Filter by status if provided
     if (status) {
-      query = query.eq('status', status);
+      query = query.eq("status", status);
     }
 
     // Apply pagination
@@ -135,18 +133,18 @@ export const getProductsByStoreId = async (
 
     if (error) {
       // Table doesn't exist yet
-      if (error.code === 'PGRST205') {
-        console.warn('⚠️  products table not found. Please run SQL migration.');
+      if (error.code === "PGRST205") {
+        console.warn("⚠️  products table not found. Please run SQL migration.");
         return { data: [], count: 0 };
       }
 
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
       throw new Error(error.message);
     }
 
     return { data: data || [], count };
   } catch (error) {
-    console.error('Failed to fetch products:', error);
+    console.error("Failed to fetch products:", error);
     return { data: [], count: 0 };
   }
 };
@@ -159,7 +157,7 @@ export const getAvailableProductsByStoreId = async (
   limit?: number,
   offset?: number
 ): Promise<PaginatedResponse<Product>> => {
-  return getProductsByStoreId({ storeId, limit, offset, status: 'available' });
+  return getProductsByStoreId({ storeId, limit, offset, status: "available" });
 };
 
 /**
@@ -170,22 +168,22 @@ export const getProductsCountByStore = async (
 ): Promise<number> => {
   try {
     const { count, error } = await supabase
-      .from('products')
-      .select('*', { count: 'exact', head: true })
-      .eq('store_id', storeId);
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("store_id", storeId);
 
     if (error) {
-      if (error.code === 'PGRST205') {
-        console.warn('⚠️  products table not found. Please run SQL migration.');
+      if (error.code === "PGRST205") {
+        console.warn("⚠️  products table not found. Please run SQL migration.");
         return 0;
       }
-      console.error('Error fetching products count:', error);
+      console.error("Error fetching products count:", error);
       return 0;
     }
 
     return count || 0;
   } catch (error) {
-    console.error('Failed to fetch products count:', error);
+    console.error("Failed to fetch products count:", error);
     return 0;
   }
 };
@@ -202,33 +200,33 @@ interface UpdateProfileData {
 
 export const updateUserProfile = async (data: UpdateProfileData) => {
   try {
-    console.log('📝 Updating profile in database:', data);
-
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.bio !== undefined) updateData.bio = data.bio;
-    if (data.profile_image !== undefined) updateData.profile_image = data.profile_image;
+    if (data.profile_image !== undefined)
+      updateData.profile_image = data.profile_image;
 
     const { error } = await supabase
-      .from('profiles')
+      .from("profiles")
       .update(updateData)
-      .eq('id', data.userId);
+      .eq("id", data.userId);
 
     if (error) {
       // Table doesn't exist - warn but don't fail
-      if (error.code === 'PGRST205') {
-        console.warn('⚠️  profiles table not found - profile NOT updated. Please run SQL migration.');
+      if (error.code === "PGRST205") {
+        console.warn(
+          "⚠️  profiles table not found - profile NOT updated. Please run SQL migration."
+        );
         return { success: false, error, tableNotFound: true };
       }
 
-      console.error('❌ Error updating profile:', error);
+      console.error("❌ Error updating profile:", error);
       return { success: false, error };
     }
 
-    console.log('✅ Profile updated successfully!');
     return { success: true };
   } catch (error) {
-    console.error('💥 Error in updateUserProfile:', error);
+    console.error("💥 Error in updateUserProfile:", error);
     return { success: false, error };
   }
 };
@@ -242,99 +240,200 @@ interface CreateProductData {
   price: number;
   category: string;
   availability_count: number;
-  images: string[];
+  cover_image: string;
+  other_images: string[];
   store_id: string;
 }
 
+/**
+ * Get user profile by user ID
+ */
+export const getUserProfile = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      // Table doesn't exist
+      if (error.code === "PGRST205") {
+        console.warn("⚠️  profiles table not found. Please run SQL migration.");
+        return { success: false, error, tableNotFound: true };
+      }
+
+      // No profile found
+      if (error.code === "PGRST116") {
+        console.warn("⚠️  No profile found for user:", userId);
+        return { success: false, error, notFound: true };
+      }
+
+      console.error("❌ Error fetching profile:", error);
+      return { success: false, error };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("💥 Error in getUserProfile:", error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * Get current user auth data from Supabase Auth
+ */
+export const getCurrentUser = async () => {
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error) {
+      console.error("❌ Error fetching current user:", error);
+      return { success: false, error };
+    }
+
+    if (!user) {
+      console.warn("⚠️  No authenticated user found");
+      return { success: false, error: { message: "No authenticated user" } };
+    }
+
+    return { success: true, data: user };
+  } catch (error) {
+    console.error("💥 Error in getCurrentUser:", error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * Get current session from Supabase Auth
+ */
+export const getCurrentSession = async () => {
+  try {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("❌ Error fetching current session:", error);
+      return { success: false, error };
+    }
+
+    if (!session) {
+      console.warn("⚠️  No active session found");
+      return { success: false, error: { message: "No active session" } };
+    }
+
+    return { success: true, data: session };
+  } catch (error) {
+    console.error("💥 Error in getCurrentSession:", error);
+    return { success: false, error };
+  }
+};
+
 export const createProduct = async (data: CreateProductData) => {
   try {
-    console.log('📝 Creating product in database:', data);
-
     // IMPORTANT: Verify the user session before creating product
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
     if (sessionError || !session) {
-      console.error('❌ No active session found:', sessionError);
+      console.error("❌ No active session found:", sessionError);
       return {
         success: false,
-        error: { message: 'You must be logged in to create a product. Please sign in again.' }
+        error: {
+          message:
+            "You must be logged in to create a product. Please sign in again.",
+        },
       };
     }
 
-    console.log('✅ Active session verified:', {
-      userId: session.user.id,
-      email: session.user.email,
-    });
-
     // Verify that the store_id matches the authenticated user
     if (session.user.id !== data.store_id) {
-      console.error('❌ User ID mismatch:', {
+      console.error("❌ User ID mismatch:", {
         sessionUserId: session.user.id,
         requestedStoreId: data.store_id,
       });
       return {
         success: false,
-        error: { message: 'Cannot create product for another user.' }
+        error: { message: "Cannot create product for another user." },
       };
     }
 
-    // Split images into cover_image (first) and other_images (rest)
-    const cover_image = data.images[0] || '';
-    const other_images = data.images.slice(1);
+    // Validate required images
+    if (!data.cover_image) {
+      console.error("❌ No cover image provided");
+      return {
+        success: false,
+        error: { message: "Cover image is required" },
+      };
+    }
 
-    if (!cover_image) {
-      console.error('❌ No cover image provided');
-      return { success: false, error: { message: 'At least one image is required' } };
+    if (!data.other_images || data.other_images.length === 0) {
+      console.error("❌ No additional images provided");
+      return {
+        success: false,
+        error: { message: "At least one additional image is required" },
+      };
     }
 
     const { data: product, error } = await supabase
-      .from('products')
+      .from("products")
       .insert({
         title: data.title,
         description: data.description,
         price: data.price,
         category: data.category,
         availability_count: data.availability_count,
-        cover_image: cover_image,
-        other_images: other_images,
+        cover_image: data.cover_image,
+        other_images: data.other_images,
         store_id: data.store_id,
-        status: 'available',
+        status: "available",
       })
       .select()
       .single();
 
     if (error) {
       // Table doesn't exist
-      if (error.code === 'PGRST205') {
-        console.warn('⚠️  products table not found. Please run SQL migration.');
+      if (error.code === "PGRST205") {
+        console.warn("⚠️  products table not found. Please run SQL migration.");
         return { success: false, error, tableNotFound: true };
       }
 
       // RLS policy violation
-      if (error.code === '42501') {
-        console.error('❌ RLS Policy Error:', error);
-        console.error('This usually means:');
-        console.error('1. The products table RLS policies are not set up correctly');
-        console.error('2. Your session token is not being sent with the request');
-        console.error('3. The auth.uid() does not match the store_id');
+      if (error.code === "42501") {
+        console.error("❌ RLS Policy Error:", error);
+        console.error("This usually means:");
+        console.error(
+          "1. The products table RLS policies are not set up correctly"
+        );
+        console.error(
+          "2. Your session token is not being sent with the request"
+        );
+        console.error("3. The auth.uid() does not match the store_id");
         return {
           success: false,
           error: {
             ...error,
-            message: 'Permission denied. Please check Supabase RLS policies and try logging out and back in.'
+            message:
+              "Permission denied. Please check Supabase RLS policies and try logging out and back in.",
           },
-          rlsError: true
+          rlsError: true,
         };
       }
 
-      console.error('❌ Error creating product:', error);
+      console.error("❌ Error creating product:", error);
       return { success: false, error };
     }
 
-    console.log('✅ Product created successfully!', product);
     return { success: true, data: product };
   } catch (error) {
-    console.error('💥 Error in createProduct:', error);
+    console.error("💥 Error in createProduct:", error);
     return { success: false, error };
   }
 };

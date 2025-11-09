@@ -3,18 +3,19 @@ import { ThemedText } from "@/components/themed-text";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { getProductsByStoreId } from "@/lib/database-helpers";
+import { getProfileImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import { Product } from "@/lib/types/database";
-import { useRouter, useFocusEffect } from "expo-router";
-import React, { useEffect, useState, useCallback } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
+  RefreshControl,
   ScrollView,
   TouchableOpacity,
   View,
-  RefreshControl,
 } from "react-native";
 
 interface UserProfile {
@@ -49,7 +50,6 @@ export default function ProfileScreen() {
   useFocusEffect(
     useCallback(() => {
       if (user) {
-        console.log('🔄 Profile screen focused, reloading products...');
         loadProducts();
       }
     }, [user])
@@ -98,7 +98,6 @@ export default function ProfileScreen() {
       }
     } catch (error) {
       console.error("Error loading profile:", error);
-      // Set default profile data
       setProfile({
         name: user?.user_metadata?.name || "User",
         email: user?.email || "",
@@ -144,25 +143,6 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleLogout = async () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await signOut();
-            router.replace("/(auth)/signin");
-          } catch (error) {
-            console.error("Logout error:", error);
-            Alert.alert("Error", "Failed to logout. Please try again.");
-          }
-        },
-      },
-    ]);
-  };
-
   if (loading) {
     return (
       <View className="flex-1 bg-white justify-center items-center">
@@ -203,7 +183,7 @@ export default function ProfileScreen() {
           refreshing={refreshing}
           onRefresh={onRefresh}
           tintColor="#3B2F2F"
-          colors={['#3B2F2F']}
+          colors={["#3B2F2F"]}
         />
       }
     >
@@ -241,7 +221,7 @@ export default function ProfileScreen() {
             >
               {profile.profile_image ? (
                 <Image
-                  source={{ uri: profile.profile_image }}
+                  source={{ uri: getProfileImageUrl(profile.profile_image) }}
                   style={{
                     width: 84,
                     height: 84,

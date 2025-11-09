@@ -1,20 +1,20 @@
-'use server'
+'use server';
 
-import { createServiceRoleClient } from '@/lib/supabase/server'
-import { PaginatedResponse, Profile } from '@/types/database'
+import { createServiceRoleClient } from '@/lib/supabase/server';
+import { PaginatedResponse, Profile } from '@/types/database';
 
 interface GetProfilesParams {
-  limit?: number
-  offset?: number
-  role?: 'ADMIN' | 'USER'
+  limit?: number;
+  offset?: number;
+  role?: 'ADMIN' | 'USER';
 }
 
 interface GetProfileByIdParams {
-  id: string
+  id: string;
 }
 
 interface GetProfileByStoreUsernameParams {
-  storeUsername: string
+  storeUsername: string;
 }
 
 /**
@@ -24,37 +24,37 @@ export async function getProfiles(
   params?: GetProfilesParams
 ): Promise<PaginatedResponse<Profile>> {
   try {
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
 
     let query = supabase
       .from('profiles')
       .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (params?.role) {
-      query = query.eq('role', params.role)
+      query = query.eq('role', params.role);
     }
 
     if (params?.limit) {
-      query = query.limit(params.limit)
+      query = query.limit(params.limit);
     }
 
     if (params?.offset) {
-      const rangeEnd = params.offset + (params.limit || 10) - 1
-      query = query.range(params.offset, rangeEnd)
+      const rangeEnd = params.offset + (params.limit || 10) - 1;
+      query = query.range(params.offset, rangeEnd);
     }
 
-    const { data, error, count } = await query
+    const { data, error, count } = await query;
 
     if (error) {
-      console.error('Error fetching profiles:', error)
-      throw new Error(error.message)
+      console.error('Error fetching profiles:', error);
+      throw new Error(error.message);
     }
 
-    return { data: data || [], count }
+    return { data: data || [], count };
   } catch (error) {
-    console.error('Failed to fetch profiles:', error)
-    throw error
+    console.error('Failed to fetch profiles:', error);
+    throw error;
   }
 }
 
@@ -65,23 +65,23 @@ export async function getProfileById({
   id,
 }: GetProfileByIdParams): Promise<Profile | null> {
   try {
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
 
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', id)
-      .maybeSingle()
+      .maybeSingle();
 
     if (error) {
-      console.error('Error fetching profile by ID:', error)
-      return null
+      console.error('Error fetching profile by ID:', error);
+      return null;
     }
 
-    return data
+    return data;
   } catch (error) {
-    console.error('Failed to fetch profile by ID:', error)
-    return null
+    console.error('Failed to fetch profile by ID:', error);
+    return null;
   }
 }
 
@@ -93,15 +93,13 @@ export async function getProfileByStoreUsername({
   storeUsername,
 }: GetProfileByStoreUsernameParams): Promise<Profile | null> {
   try {
-    const supabase = createServiceRoleClient()
-
-    console.log('[DEBUG] Attempting to fetch profile for store_username:', storeUsername)
+    const supabase = createServiceRoleClient();
 
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('store_username', storeUsername)
-      .maybeSingle()
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching profile by store_username:', {
@@ -110,20 +108,18 @@ export async function getProfileByStoreUsername({
         hint: error.hint,
         code: error.code,
         storeUsername,
-      })
-      return null
+      });
+      return null;
     }
 
     if (!data) {
-      console.log('[DEBUG] No profile found for store_username:', storeUsername)
-      return null
+      return null;
     }
 
-    console.log('[DEBUG] Successfully fetched profile:', data?.id)
-    return data
+    return data;
   } catch (error) {
-    console.error('Failed to fetch profile by store_username:', error)
-    return null
+    console.error('Failed to fetch profile by store_username:', error);
+    return null;
   }
 }
 
@@ -136,29 +132,31 @@ export async function getProfileIdByStoreUsername(
   storeUsername: string
 ): Promise<string | null> {
   try {
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
 
     const { data, error } = await supabase
       .from('profiles')
       .select('id')
       .eq('store_username', storeUsername)
-      .maybeSingle()
+      .maybeSingle();
 
     if (error) {
-      console.error('Error fetching profile ID by store_username:', error)
-      return null
+      console.error('Error fetching profile ID by store_username:', error);
+      return null;
     }
 
-    return data?.id || null
+    return data?.id || null;
   } catch (error) {
-    console.error('Failed to fetch profile ID by store_username:', error)
-    return null
+    console.error('Failed to fetch profile ID by store_username:', error);
+    return null;
   }
 }
 
 /**
  * Get profile by ID (convenience function matching web-ref pattern)
  */
-export async function getProfile(params: { id: string }): Promise<Profile | null> {
-  return getProfileById(params)
+export async function getProfile(params: {
+  id: string;
+}): Promise<Profile | null> {
+  return getProfileById(params);
 }

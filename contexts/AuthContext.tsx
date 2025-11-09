@@ -1,6 +1,15 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
+import {
+  clearAuth,
+  clearProfile,
+  fetchCurrentSession,
+  fetchUserProfile,
+  setSession,
+  setUser,
+} from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { Session, User } from "@supabase/supabase-js";
+import React, { createContext, useContext, useEffect } from "react";
 
 interface AuthContextType {
   user: User | null;
@@ -10,70 +19,37 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<{ error: any }>;
-  verifyOtpAndResetPassword: (email: string, token: string, newPassword: string) => Promise<{ error: any }>;
+  verifyOtpAndResetPassword: (
+    email: string,
+    token: string,
+    newPassword: string
+  ) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+  const session = useAppSelector((state) => state.auth.session);
+  const loading = useAppSelector((state) => state.auth.loading);
 
   useEffect(() => {
     // Check active session on mount
-    console.log('🔄 AuthContext: Checking for existing session...');
 
     const initializeAuth = async () => {
       try {
-        // IMPORTANT: Use getSession() to check if we have a valid session
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Fetch session from Supabase and update Redux
+        const result = await dispatch(fetchCurrentSession()).unwrap();
 
-        if (error) {
-          console.error('❌ AuthContext: Error getting session:', error);
-          setSession(null);
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        if (session) {
-          console.log('✅ AuthContext: Session found!', {
-            userId: session.user.id,
-            email: session.user.email,
-            expiresAt: new Date(session.expires_at! * 1000).toLocaleString(),
-          });
-
-          // Check if session is expired
-          const now = Math.floor(Date.now() / 1000);
-          if (session.expires_at && session.expires_at < now) {
-            console.log('⚠️ AuthContext: Session expired, refreshing...');
-            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-
-            if (refreshError || !refreshData.session) {
-              console.error('❌ AuthContext: Failed to refresh session:', refreshError);
-              setSession(null);
-              setUser(null);
-            } else {
-              console.log('✅ AuthContext: Session refreshed successfully!');
-              setSession(refreshData.session);
-              setUser(refreshData.session.user);
-            }
-          } else {
-            setSession(session);
-            setUser(session.user);
-          }
+        if (result) {
+          // Fetch user profile data
+          await dispatch(fetchUserProfile(result.user.id));
         } else {
-          console.log('❌ AuthContext: No session found');
-          setSession(null);
-          setUser(null);
         }
       } catch (err) {
-        console.error('💥 AuthContext: Unexpected error:', err);
-        setSession(null);
-        setUser(null);
-      } finally {
-        setLoading(false);
+        console.error("💥 AuthContext: Error initializing auth:", err);
+        dispatch(clearAuth());
       }
     };
 
@@ -83,38 +59,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔔 AuthContext: Auth state changed:', event, {
-        userId: session?.user?.id,
-        email: session?.user?.email,
-      });
+      // Update Redux store with new session
+      dispatch(setSession(session));
+      dispatch(setUser(session?.user ?? null));
 
-      // On SIGNED_IN, make sure the session is valid
-      if (event === 'SIGNED_IN' && session) {
-        console.log('✅ AuthContext: User signed in, setting session');
+      // On SIGNED_IN, fetch user profile
+      if (event === "SIGNED_IN" && session) {
+        await dispatch(fetchUserProfile(session.user.id));
       }
 
-      // On TOKEN_REFRESHED, update the session
-      if (event === 'TOKEN_REFRESHED' && session) {
-        console.log('✅ AuthContext: Token refreshed');
+      // On SIGNED_OUT, clear auth and profile
+      if (event === "SIGNED_OUT") {
+        dispatch(clearAuth());
+        dispatch(clearProfile());
       }
-
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [dispatch]);
 
   const signIn = async (email: string, password: string) => {
-    console.log('🔐 AuthContext: Attempting signInWithPassword for:', email);
-
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    console.log('📧 AuthContext: signInWithPassword response:', { data, error });
+    if (!error && data.session) {
+      dispatch(setSession(data.session));
+      dispatch(setUser(data.user));
+
+      if (data.user) {
+        await dispatch(fetchUserProfile(data.user.id));
+      }
+    }
 
     return { error };
   };
@@ -129,47 +106,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    // Clear Redux store
+    dispatch(clearAuth());
+    dispatch(clearProfile());
   };
 
   const resetPasswordForEmail = async (email: string) => {
-    console.log('🔐 AuthContext: Requesting password reset for:', email);
-
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'thriftverse://reset-password',
+      redirectTo: "thriftverse://reset-password",
     });
 
-    console.log('📧 AuthContext: resetPasswordForEmail response:', { error });
     return { error };
   };
 
-  const verifyOtpAndResetPassword = async (email: string, token: string, newPassword: string) => {
-    console.log('🔐 AuthContext: Verifying OTP and resetting password for:', email);
-
+  const verifyOtpAndResetPassword = async (
+    email: string,
+    token: string,
+    newPassword: string
+  ) => {
     // First verify the OTP
     const { error: verifyError } = await supabase.auth.verifyOtp({
       email,
       token,
-      type: 'recovery',
+      type: "recovery",
     });
 
     if (verifyError) {
-      console.error('❌ AuthContext: OTP verification failed:', verifyError);
+      console.error("❌ AuthContext: OTP verification failed:", verifyError);
       return { error: verifyError };
     }
-
-    console.log('✅ AuthContext: OTP verified, updating password...');
 
     // Then update the password
     const { error: updateError } = await supabase.auth.updateUser({
       password: newPassword,
     });
 
-    console.log('📧 AuthContext: Password update response:', { error: updateError });
     return { error: updateError };
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut, resetPasswordForEmail, verifyOtpAndResetPassword }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        signIn,
+        signUp,
+        signOut,
+        resetPasswordForEmail,
+        verifyOtpAndResetPassword,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -178,7 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

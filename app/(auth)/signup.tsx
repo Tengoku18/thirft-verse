@@ -26,8 +26,6 @@ export default function SignupScreen() {
     setCreatingAccount(true);
 
     try {
-      console.log("🚀 Attempting to create account for:", data.email);
-
       // Use signInWithOtp instead of signUp to avoid email confirmation issues
       // This sends an OTP email directly without requiring email confirmation setup
       const { data: otpData, error } = await supabase.auth.signInWithOtp({
@@ -42,11 +40,7 @@ export default function SignupScreen() {
         },
       });
 
-      console.log("📧 Supabase OTP response:", { otpData, error });
-
       if (error) {
-        console.error("❌ OTP send error:", error);
-
         // Check if it's any email sending error - allow testing OTP UI anyway
         const isEmailError =
           error.message?.includes("Invalid API key") ||
@@ -67,9 +61,6 @@ export default function SignupScreen() {
               {
                 text: "Test UI",
                 onPress: () => {
-                  console.log(
-                    "📱 Demo mode: Proceeding to OTP screen without email"
-                  );
                   setCurrentStep(2);
                 },
               },
@@ -86,9 +77,6 @@ export default function SignupScreen() {
         setCreatingAccount(false);
         return;
       }
-
-      console.log("✅ OTP sent successfully to:", data.email);
-      // OTP sent, move to step 2
       setCurrentStep(2);
     } catch (error) {
       console.error("💥 Unexpected signup error:", error);
@@ -140,13 +128,22 @@ export default function SignupScreen() {
         return (
           <View className="flex-1 justify-center items-center px-4">
             <View className="w-24 h-24 bg-[#3B2F2F] rounded-3xl justify-center items-center mb-8">
-              <ThemedText className="text-5xl" style={{ color: '#FFFFFF' }}>✓</ThemedText>
+              <ThemedText className="text-5xl" style={{ color: "#FFFFFF" }}>
+                ✓
+              </ThemedText>
             </View>
-            <ThemedText className="text-[36px] font-[PlayfairDisplay_700Bold] mb-4 text-center leading-tight" style={{ color: '#3B2F2F' }}>
-              Welcome to{'\n'}ThriftVerse!
+            <ThemedText
+              className="text-[36px] font-[PlayfairDisplay_700Bold] mb-4 text-center leading-tight"
+              style={{ color: "#3B2F2F" }}
+            >
+              Welcome to{"\n"}ThriftVerse!
             </ThemedText>
-            <ThemedText className="text-[15px] text-center mb-12 font-[NunitoSans_400Regular] px-4 leading-relaxed" style={{ color: '#6B7280' }}>
-              Your account has been created successfully.{'\n'}Let&apos;s start your thrifting journey!
+            <ThemedText
+              className="text-[15px] text-center mb-12 font-[NunitoSans_400Regular] px-4 leading-relaxed"
+              style={{ color: "#6B7280" }}
+            >
+              Your account has been created successfully.{"\n"}Let&apos;s start
+              your thrifting journey!
             </ThemedText>
             <TouchableOpacity
               onPress={() => router.replace("/(tabs)")}
@@ -187,13 +184,22 @@ export default function SignupScreen() {
         {/* Step Header - Step 2 */}
         {currentStep === 2 && (
           <View className="mb-8">
-            <ThemedText className="text-[11px] font-[NunitoSans_600SemiBold] mb-2 tracking-widest uppercase" style={{ color: '#6B7280' }}>
+            <ThemedText
+              className="text-[11px] font-[NunitoSans_600SemiBold] mb-2 tracking-widest uppercase"
+              style={{ color: "#6B7280" }}
+            >
               Step {currentStep} of 3
             </ThemedText>
-            <ThemedText className="text-[32px] font-[PlayfairDisplay_700Bold] leading-tight mb-2" style={{ color: '#3B2F2F' }}>
+            <ThemedText
+              className="text-[32px] font-[PlayfairDisplay_700Bold] leading-tight mb-2"
+              style={{ color: "#3B2F2F" }}
+            >
               Email Verification
             </ThemedText>
-            <ThemedText className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed" style={{ color: '#6B7280' }}>
+            <ThemedText
+              className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed"
+              style={{ color: "#6B7280" }}
+            >
               We&apos;ve sent a code to verify your email
             </ThemedText>
           </View>
@@ -206,11 +212,17 @@ export default function SignupScreen() {
         {currentStep === 1 && (
           <View className="mt-6 pb-4">
             <View className="flex-row justify-center items-center">
-              <ThemedText className="text-[14px] font-[NunitoSans_400Regular]" style={{ color: '#6B7280' }}>
+              <ThemedText
+                className="text-[14px] font-[NunitoSans_400Regular]"
+                style={{ color: "#6B7280" }}
+              >
                 Already have an account?{" "}
               </ThemedText>
               <TouchableOpacity onPress={() => router.back()}>
-                <ThemedText className="text-[14px] font-[NunitoSans_700Bold]" style={{ color: '#3B2F2F' }}>
+                <ThemedText
+                  className="text-[14px] font-[NunitoSans_700Bold]"
+                  style={{ color: "#3B2F2F" }}
+                >
                   Sign In
                 </ThemedText>
               </TouchableOpacity>

@@ -1,6 +1,5 @@
 import { render } from '@react-email/render';
-import { resend, FROM_EMAIL } from './client';
-import { OrderConfirmationEmail } from './templates/OrderConfirmation';
+import { FROM_EMAIL, resend } from './client';
 import { ItemSoldEmail } from './templates/ItemSold';
 import { ProductNotReceivedEmail } from './templates/ProductNotReceived';
 import { getBuyerOrderUrl, getSellerOrderUrl } from '@/utils/orderHelpers';
@@ -32,7 +31,9 @@ export interface ItemSoldEmailData {
 /**
  * Send order confirmation email to the buyer
  */
-export async function sendOrderConfirmationEmail(data: OrderConfirmationEmailData) {
+export async function sendOrderConfirmationEmail(
+  data: OrderConfirmationEmailData
+) {
   try {
     const emailHtml = await render(
       <OrderConfirmationEmail
@@ -53,7 +54,6 @@ export async function sendOrderConfirmationEmail(data: OrderConfirmationEmailDat
       html: emailHtml,
     });
 
-    console.log('Order confirmation email sent:', result);
     return { success: true, data: result };
   } catch (error) {
     console.error('Error sending order confirmation email:', error);
@@ -87,7 +87,6 @@ export async function sendItemSoldEmail(data: ItemSoldEmailData) {
       html: emailHtml,
     });
 
-    console.log('Item sold email sent:', result);
     return { success: true, data: result };
   } catch (error) {
     console.error('Error sending item sold email:', error);
@@ -154,8 +153,14 @@ export async function sendOrderEmails(params: {
   ]);
 
   return {
-    buyerEmail: buyerEmailResult.status === 'fulfilled' ? buyerEmailResult.value : { success: false },
-    sellerEmail: sellerEmailResult.status === 'fulfilled' ? sellerEmailResult.value : { success: false },
+    buyerEmail:
+      buyerEmailResult.status === 'fulfilled'
+        ? buyerEmailResult.value
+        : { success: false },
+    sellerEmail:
+      sellerEmailResult.status === 'fulfilled'
+        ? sellerEmailResult.value
+        : { success: false },
   };
 }
 
