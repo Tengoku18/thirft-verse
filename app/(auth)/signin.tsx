@@ -52,14 +52,9 @@ export default function SignInScreen() {
     setLoading(true);
 
     try {
-      console.log("🔐 Attempting sign in for:", data.email);
-
       const { error } = await signIn(data.email, data.password);
 
-      console.log("📧 Sign in response:", { error });
-
       if (error) {
-        console.error("❌ Sign in error:", error);
         Alert.alert(
           "Sign In Failed",
           error.message || "Invalid email or password"
@@ -67,8 +62,6 @@ export default function SignInScreen() {
         setLoading(false);
         return;
       }
-
-      console.log("✅ Sign in successful! Redirecting to home...");
 
       // Reset loading and navigate manually
       setLoading(false);

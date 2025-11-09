@@ -1,33 +1,33 @@
-'use server'
+'use server';
 
-import { createServiceRoleClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server';
+import { generateOrderCodeWithDate } from '@/lib/utils/order-code';
 import {
   Order,
   OrderWithDetails,
   PaginatedResponse,
   ShippingAddress,
-} from '@/types/database'
-import { generateOrderCodeWithDate } from '@/lib/utils/order-code'
-import { decrementProductAvailability } from './products'
+} from '@/types/database';
+import { decrementProductAvailability } from './products';
 
 interface CreateOrderParams {
-  seller_id: string
-  product_id: string
-  quantity: number
-  buyer_email: string
-  buyer_name: string
-  shipping_address: ShippingAddress
-  transaction_code: string
-  transaction_uuid: string
-  amount: number
-  payment_method?: string
+  seller_id: string;
+  product_id: string;
+  quantity: number;
+  buyer_email: string;
+  buyer_name: string;
+  shipping_address: ShippingAddress;
+  transaction_code: string;
+  transaction_uuid: string;
+  amount: number;
+  payment_method?: string;
 }
 
 interface GetOrdersParams {
-  seller_id?: string
-  status?: 'pending' | 'completed' | 'cancelled' | 'refunded'
-  limit?: number
-  offset?: number
+  seller_id?: string;
+  status?: 'pending' | 'completed' | 'cancelled' | 'refunded';
+  limit?: number;
+  offset?: number;
 }
 
 /**
@@ -37,10 +37,10 @@ export async function createOrder(
   params: CreateOrderParams
 ): Promise<{ success: boolean; order?: Order; error?: string }> {
   try {
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
 
     // Generate unique order code from transaction UUID with date component
-    const orderCode = generateOrderCodeWithDate(params.transaction_uuid)
+    const orderCode = generateOrderCodeWithDate(params.transaction_uuid);
 
     const { data, error } = await supabase
       .from('orders')
@@ -59,26 +59,24 @@ export async function createOrder(
         order_code: orderCode,
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error creating order:', error)
+      console.error('Error creating order:', error);
       return {
         success: false,
         error: error.message,
-      }
+      };
     }
-
-    console.log('Order created successfully:', data.id)
 
     // Decrement product availability after successful order creation
     const inventoryResult = await decrementProductAvailability(
       params.product_id,
       params.quantity
-    )
+    );
 
     if (!inventoryResult.success) {
-      console.error('Failed to update inventory:', inventoryResult.error)
+      console.error('Failed to update inventory:', inventoryResult.error);
       // Don't fail the order creation if inventory update fails
       // The order is already created and payment is done
       // Log it for manual intervention if needed
@@ -87,13 +85,13 @@ export async function createOrder(
     return {
       success: true,
       order: data,
-    }
+    };
   } catch (error) {
-    console.error('Failed to create order:', error)
+    console.error('Failed to create order:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create order',
-    }
+    };
   }
 }
 
@@ -104,7 +102,7 @@ export async function getOrders(
   params?: GetOrdersParams
 ): Promise<PaginatedResponse<OrderWithDetails>> {
   try {
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
 
     let query = supabase
       .from('orders')
@@ -116,36 +114,36 @@ export async function getOrders(
       `,
         { count: 'exact' }
       )
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (params?.seller_id) {
-      query = query.eq('seller_id', params.seller_id)
+      query = query.eq('seller_id', params.seller_id);
     }
 
     if (params?.status) {
-      query = query.eq('status', params.status)
+      query = query.eq('status', params.status);
     }
 
     if (params?.limit) {
-      query = query.limit(params.limit)
+      query = query.limit(params.limit);
     }
 
     if (params?.offset) {
-      const rangeEnd = params.offset + (params.limit || 10) - 1
-      query = query.range(params.offset, rangeEnd)
+      const rangeEnd = params.offset + (params.limit || 10) - 1;
+      query = query.range(params.offset, rangeEnd);
     }
 
-    const { data, error, count } = await query
+    const { data, error, count } = await query;
 
     if (error) {
-      console.error('Error fetching orders:', error)
-      throw new Error(error.message)
+      console.error('Error fetching orders:', error);
+      throw new Error(error.message);
     }
 
-    return { data: data || [], count }
+    return { data: data || [], count };
   } catch (error) {
-    console.error('Failed to fetch orders:', error)
-    throw error
+    console.error('Failed to fetch orders:', error);
+    throw error;
   }
 }
 
@@ -156,7 +154,7 @@ export async function getOrderById(
   orderId: string
 ): Promise<OrderWithDetails | null> {
   try {
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
 
     const { data, error } = await supabase
       .from('orders')
@@ -168,17 +166,17 @@ export async function getOrderById(
       `
       )
       .eq('id', orderId)
-      .maybeSingle()
+      .maybeSingle();
 
     if (error) {
-      console.error('Error fetching order by ID:', error)
-      return null
+      console.error('Error fetching order by ID:', error);
+      return null;
     }
 
-    return data
+    return data;
   } catch (error) {
-    console.error('Failed to fetch order by ID:', error)
-    return null
+    console.error('Failed to fetch order by ID:', error);
+    return null;
   }
 }
 
@@ -189,23 +187,23 @@ export async function getOrderByTransactionUuid(
   transactionUuid: string
 ): Promise<Order | null> {
   try {
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
 
     const { data, error } = await supabase
       .from('orders')
       .select('*')
       .eq('transaction_uuid', transactionUuid)
-      .maybeSingle()
+      .maybeSingle();
 
     if (error) {
-      console.error('Error fetching order by transaction UUID:', error)
-      return null
+      console.error('Error fetching order by transaction UUID:', error);
+      return null;
     }
 
-    return data
+    return data;
   } catch (error) {
-    console.error('Failed to fetch order by transaction UUID:', error)
-    return null
+    console.error('Failed to fetch order by transaction UUID:', error);
+    return null;
   }
 }
 
@@ -217,27 +215,27 @@ export async function updateOrderStatus(
   status: 'pending' | 'completed' | 'cancelled' | 'refunded'
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
 
     const { error } = await supabase
       .from('orders')
       .update({ status })
-      .eq('id', orderId)
+      .eq('id', orderId);
 
     if (error) {
-      console.error('Error updating order status:', error)
+      console.error('Error updating order status:', error);
       return {
         success: false,
         error: error.message,
-      }
+      };
     }
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error('Failed to update order status:', error)
+    console.error('Failed to update order status:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to update order',
-    }
+    };
   }
 }

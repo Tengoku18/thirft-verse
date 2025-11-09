@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-n
 import * as ImagePicker from 'expo-image-picker';
 import { ThemedText } from '@/components/themed-text';
 import { UserIcon, CameraIcon } from '@/components/icons';
+import { getProfileImageUrl } from '@/lib/storage-helpers';
 
 interface ProfileImagePickerProps {
   value?: string | null;
@@ -95,7 +96,7 @@ export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
         disabled={uploading}>
         {value ? (
           <Image
-            source={{ uri: value }}
+            source={{ uri: getProfileImageUrl(value) }}
             className="w-24 h-24 rounded-full border-[3px] border-[#D4A373]"
           />
         ) : (

@@ -56,12 +56,13 @@ export const productSchema = yup.object().shape({
     .required('Cover image is required')
     .url('Cover image must be a valid URL'),
 
-  // Other images (optional array) - matches admin
+  // Other images (required array with at least 1 image)
   other_images: yup
     .array()
-    .of(yup.string().url('Each image must be a valid URL'))
-    .max(4, 'Maximum 4 additional images allowed')
-    .default([]),
+    .of(yup.string().required().url('Each image must be a valid URL'))
+    .required('At least one additional product image is required')
+    .min(1, 'At least one additional product image is required')
+    .max(4, 'Maximum 4 additional images allowed'),
 });
 
 export type ProductFormData = yup.InferType<typeof productSchema>;

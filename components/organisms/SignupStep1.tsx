@@ -46,8 +46,6 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
     setLoading(true);
 
     try {
-      console.log("🔍 Checking email and username uniqueness...");
-
       // Check email uniqueness
       const emailExists = await checkEmailExists(data.email);
       if (emailExists) {
@@ -69,8 +67,6 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
         setLoading(false);
         return;
       }
-
-      console.log("✅ Email and username are unique");
 
       // All validations passed, proceed to next step with profile image
       onNext({ ...data, profileImage } as any);
@@ -94,14 +90,23 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
         {/* Header */}
         <View className="mb-8">
           <View className="w-16 h-16 bg-[#3B2F2F] rounded-2xl justify-center items-center mb-6">
-            <ThemedText className="text-[28px] font-[PlayfairDisplay_700Bold]" style={{ color: '#FFFFFF' }}>
+            <ThemedText
+              className="text-[28px] font-[PlayfairDisplay_700Bold]"
+              style={{ color: "#FFFFFF" }}
+            >
               T
             </ThemedText>
           </View>
-          <ThemedText className="text-[40px] font-[PlayfairDisplay_700Bold] leading-tight mb-3" style={{ color: '#3B2F2F' }}>
-            Create{'\n'}Account
+          <ThemedText
+            className="text-[40px] font-[PlayfairDisplay_700Bold] leading-tight mb-3"
+            style={{ color: "#3B2F2F" }}
+          >
+            Create{"\n"}Account
           </ThemedText>
-          <ThemedText className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed" style={{ color: '#6B7280' }}>
+          <ThemedText
+            className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed"
+            style={{ color: "#6B7280" }}
+          >
             Join ThriftVerse and start your sustainable fashion journey
           </ThemedText>
         </View>
@@ -204,15 +209,20 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
           {/* Password Requirements - Show when typing */}
           {showRequirements && passwordValue.length > 0 && (
             <View className="mb-6 p-5 bg-[#FAFAFA] rounded-2xl border-[2px] border-[#E5E1DB]">
-              <ThemedText className="text-[13px] font-semibold mb-3 font-[NunitoSans_600SemiBold] tracking-wide uppercase" style={{ color: '#3B2F2F' }}>
+              <ThemedText
+                className="text-[13px] font-semibold mb-3 font-[NunitoSans_600SemiBold] tracking-wide uppercase"
+                style={{ color: "#3B2F2F" }}
+              >
                 Password Requirements
               </ThemedText>
               <View className="space-y-2">
                 <ThemedText
                   className="text-[14px]"
                   style={{
-                    color: hasMinLength ? '#3B2F2F' : '#9CA3AF',
-                    fontFamily: hasMinLength ? 'NunitoSans_600SemiBold' : 'NunitoSans_400Regular',
+                    color: hasMinLength ? "#3B2F2F" : "#9CA3AF",
+                    fontFamily: hasMinLength
+                      ? "NunitoSans_600SemiBold"
+                      : "NunitoSans_400Regular",
                   }}
                 >
                   {hasMinLength ? "✓" : "•"} At least 8 characters
@@ -220,8 +230,10 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                 <ThemedText
                   className="text-[14px]"
                   style={{
-                    color: hasUppercase ? '#3B2F2F' : '#9CA3AF',
-                    fontFamily: hasUppercase ? 'NunitoSans_600SemiBold' : 'NunitoSans_400Regular',
+                    color: hasUppercase ? "#3B2F2F" : "#9CA3AF",
+                    fontFamily: hasUppercase
+                      ? "NunitoSans_600SemiBold"
+                      : "NunitoSans_400Regular",
                   }}
                 >
                   {hasUppercase ? "✓" : "•"} One uppercase letter
@@ -229,8 +241,10 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                 <ThemedText
                   className="text-[14px]"
                   style={{
-                    color: hasLowercase ? '#3B2F2F' : '#9CA3AF',
-                    fontFamily: hasLowercase ? 'NunitoSans_600SemiBold' : 'NunitoSans_400Regular',
+                    color: hasLowercase ? "#3B2F2F" : "#9CA3AF",
+                    fontFamily: hasLowercase
+                      ? "NunitoSans_600SemiBold"
+                      : "NunitoSans_400Regular",
                   }}
                 >
                   {hasLowercase ? "✓" : "•"} One lowercase letter
@@ -238,8 +252,10 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                 <ThemedText
                   className="text-[14px]"
                   style={{
-                    color: hasNumber ? '#3B2F2F' : '#9CA3AF',
-                    fontFamily: hasNumber ? 'NunitoSans_600SemiBold' : 'NunitoSans_400Regular',
+                    color: hasNumber ? "#3B2F2F" : "#9CA3AF",
+                    fontFamily: hasNumber
+                      ? "NunitoSans_600SemiBold"
+                      : "NunitoSans_400Regular",
                   }}
                 >
                   {hasNumber ? "✓" : "•"} One number

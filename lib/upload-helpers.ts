@@ -1,61 +1,59 @@
-import { supabase } from './supabase';
+import { decode } from "base64-arraybuffer";
+import { File } from "expo-file-system";
+import { supabase } from "./supabase";
 
 export interface UploadResult {
   success: boolean;
   url?: string;
+  publicUrl?: string;
+  path?: string;
+  key?: string;
   error?: string;
 }
 
-/**
- * Uploads an image to Supabase Storage bucket
- * Supports React Native URIs (file://, content://, etc.)
- */
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+
 export async function uploadImageToStorage(
   imageUri: string,
-  bucket: string = 'products',
-  folder: string = 'products'
+  bucket: string = "products",
+  folder: string = "products"
 ): Promise<UploadResult> {
   try {
-    // Generate unique filename
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2);
-
-    // Extract file extension from URI
-    let fileExt = 'jpg'; // default
-    const uriParts = imageUri.split('.');
-    if (uriParts.length > 1) {
-      fileExt = uriParts[uriParts.length - 1].split('?')[0]; // Remove query params
+    const file = new File(imageUri);
+    if (!file.exists || !file.size) {
+      const exists = await file.exists;
+      if (!exists) {
+        return { success: false, error: "File does not exist at URI" };
+      }
     }
-
-    const fileName = `${random}-${timestamp}.${fileExt}`;
-    const filePath = `${folder}/${fileName}`;
-
-    // For React Native, we need to convert the URI to a Blob
-    // Fetch the image as a blob from the local URI
-    const response = await fetch(imageUri);
-    const blob = await response.blob();
-
-    // Check file size (max 5MB)
-    if (blob.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE_BYTES) {
       return {
         success: false,
-        error: 'File size must be less than 5MB',
+        error: "File size must be less than 5MB",
       };
     }
-
-    // Upload to Supabase Storage
+    const base64Data = await file.base64();
+    const arrayBuffer = decode(base64Data);
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2);
+    let fileExt = "jpg";
+    const uriParts = imageUri.split(".");
+    if (uriParts.length > 1) {
+      fileExt = uriParts[uriParts.length - 1].split("?")[0].toLowerCase();
+    }
+    const mimeType = `image/${fileExt}`;
+    const fileName = `${random}-${timestamp}.${fileExt}`;
+    const filePath = `${folder}/${fileName}`;
     const { error: uploadError, data } = await supabase.storage
       .from(bucket)
-      .upload(filePath, blob, {
-        cacheControl: '3600',
+      .upload(filePath, arrayBuffer, {
+        cacheControl: "3600",
         upsert: false,
-        contentType: `image/${fileExt}`,
+        contentType: mimeType,
       });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
-
-      if (uploadError.message?.includes('Bucket not found')) {
+      if (uploadError.message?.includes("Bucket not found")) {
         return {
           success: false,
           error: `Storage bucket "${bucket}" not configured. Please check Supabase Dashboard.`,
@@ -64,11 +62,9 @@ export async function uploadImageToStorage(
 
       return {
         success: false,
-        error: uploadError.message || 'Failed to upload image',
+        error: uploadError.message || "Failed to upload image",
       };
     }
-
-    // Get public URL
     const {
       data: { publicUrl },
     } = supabase.storage.from(bucket).getPublicUrl(filePath);
@@ -76,12 +72,15 @@ export async function uploadImageToStorage(
     return {
       success: true,
       url: publicUrl,
+      publicUrl: publicUrl,
+      path: data?.path || filePath,
+      key: data?.path || filePath,
     };
   } catch (error) {
-    console.error('Upload exception:', error);
+    console.error("Upload exception:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to upload image',
+      error: error instanceof Error ? error.message : "Failed to upload image",
     };
   }
 }
@@ -92,14 +91,22 @@ export async function uploadImageToStorage(
  */
 export async function uploadMultipleImages(
   imageUris: string[],
-  bucket: string = 'products',
-  folder: string = 'products'
+  bucket: string = "products",
+  folder: string = "products"
 ): Promise<UploadResult[]> {
+  if (!imageUris || imageUris.length === 0) {
+    return [];
+  }
+
   const results: UploadResult[] = [];
 
-  for (const uri of imageUris) {
-    const result = await uploadImageToStorage(uri, bucket, folder);
+  for (const imageUri of imageUris) {
+    const result = await uploadImageToStorage(imageUri, bucket, folder);
     results.push(result);
+
+    if (!result.success) {
+      console.error("Upload failed:", result.error);
+    }
   }
 
   return results;
@@ -110,6 +117,6 @@ export async function uploadMultipleImages(
  */
 export function getSuccessfulUrls(results: UploadResult[]): string[] {
   return results
-    .filter(result => result.success && result.url)
-    .map(result => result.url!);
+    .filter((result) => result.success && result.url)
+    .map((result) => result.url!);
 }

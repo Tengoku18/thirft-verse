@@ -1,6 +1,6 @@
-'use server'
+'use server';
 
-import { headers } from 'next/headers'
+import { sendOrderEmails } from '@/lib/email/send';
 import {
   createSignatureMessage,
   generateEsewaSignature,
@@ -8,44 +8,44 @@ import {
   getEsewaConfig,
   verifyEsewaSignature,
   type EsewaPaymentParams,
-} from '@/lib/esewa/utils'
-import { createServiceRoleClient } from '@/lib/supabase/server'
-import { getProductById } from './products'
-import { createOrder, getOrderByTransactionUuid } from './orders'
-import { sendOrderEmails } from '@/lib/email/send'
-import type { ShippingAddress } from '@/types/database'
+} from '@/lib/esewa/utils';
+import { createServiceRoleClient } from '@/lib/supabase/server';
+import type { ShippingAddress } from '@/types/database';
+import { headers } from 'next/headers';
+import { createOrder, getOrderByTransactionUuid } from './orders';
+import { getProductById } from './products';
 
 interface InitiatePaymentResult {
-  success: boolean
-  formHtml?: string
-  error?: string
-  transactionUuid?: string
+  success: boolean;
+  formHtml?: string;
+  error?: string;
+  transactionUuid?: string;
 }
 
 interface VerifyPaymentResult {
-  success: boolean
+  success: boolean;
   data?: {
-    transactionCode: string
-    amount: string
-    status: string
-    transactionUuid: string
+    transactionCode: string;
+    amount: string;
+    status: string;
+    transactionUuid: string;
     metadata?: {
-      seller_id: string
-      product_id: string
-      quantity: number
-      buyer_email: string
-      buyer_name: string
-      shipping_address: ShippingAddress
-      is_processed: boolean
-    }
-  }
-  error?: string
+      seller_id: string;
+      product_id: string;
+      quantity: number;
+      buyer_email: string;
+      buyer_name: string;
+      shipping_address: ShippingAddress;
+      is_processed: boolean;
+    };
+  };
+  error?: string;
 }
 
 interface CreateOrderFromPaymentResult {
-  success: boolean
-  orderId?: string
-  error?: string
+  success: boolean;
+  orderId?: string;
+  error?: string;
 }
 
 /**
@@ -55,31 +55,31 @@ export async function initiateEsewaPayment(
   params: EsewaPaymentParams
 ): Promise<InitiatePaymentResult> {
   try {
-    const config = getEsewaConfig()
-    const transactionUuid = generateTransactionUuid()
+    const config = getEsewaConfig();
+    const transactionUuid = generateTransactionUuid();
 
     // Get current host from headers to preserve subdomain
-    const headersList = await headers()
-    const host = headersList.get('host') || 'localhost:3000'
-    const protocol = host.includes('localhost') ? 'http' : 'https'
-    const baseUrl = `${protocol}://${host}`
+    const headersList = await headers();
+    const host = headersList.get('host') || 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
 
     // Calculate total amount
-    const taxAmount = params.taxAmount || 0
-    const deliveryCharge = params.deliveryCharge || 0
-    const totalAmount = params.amount + taxAmount + deliveryCharge
+    const taxAmount = params.taxAmount || 0;
+    const deliveryCharge = params.deliveryCharge || 0;
+    const totalAmount = params.amount + taxAmount + deliveryCharge;
 
     // Get product details to find seller
-    const product = await getProductById({ id: params.productId })
+    const product = await getProductById({ id: params.productId });
     if (!product) {
       return {
         success: false,
         error: 'Product not found',
-      }
+      };
     }
 
     // Store payment metadata for order creation after payment success
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
     const { error: metadataError } = await supabase
       .from('payment_metadata')
       .insert({
@@ -91,14 +91,14 @@ export async function initiateEsewaPayment(
         shipping_address: params.shipping_address,
         amount: totalAmount,
         quantity: params.quantity,
-      })
+      });
 
     if (metadataError) {
-      console.error('Error storing payment metadata:', metadataError)
+      console.error('Error storing payment metadata:', metadataError);
       return {
         success: false,
         error: 'Failed to initialize payment',
-      }
+      };
     }
 
     // Create signature message
@@ -106,13 +106,13 @@ export async function initiateEsewaPayment(
       totalAmount: totalAmount.toString(),
       transactionUuid,
       productCode: config.merchantCode,
-    })
+    });
 
     // Generate signature
     const signature = generateEsewaSignature(
       signatureMessage,
       config.secretKey
-    )
+    );
 
     // Create HTML form that will auto-submit to eSewa
     const formHtml = `
@@ -188,78 +188,66 @@ export async function initiateEsewaPayment(
           </script>
         </body>
       </html>
-    `
+    `;
 
     return {
       success: true,
       formHtml,
       transactionUuid,
-    }
+    };
   } catch (error) {
-    console.error('Failed to initiate eSewa payment:', error)
+    console.error('Failed to initiate eSewa payment:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to initiate payment',
-    }
+      error:
+        error instanceof Error ? error.message : 'Failed to initiate payment',
+    };
   }
 }
 
-/**
- * Verify eSewa payment after callback
- */
 export async function verifyEsewaPayment(
   data: string,
   signature: string
 ): Promise<VerifyPaymentResult> {
   try {
-    console.log('Starting payment verification...')
-    const config = getEsewaConfig()
+    const config = getEsewaConfig();
 
-    // Decode payment data first for logging
-    const decodedData = Buffer.from(data, 'base64').toString('utf-8')
-    const paymentData = JSON.parse(decodedData)
+    const decodedData = Buffer.from(data, 'base64').toString('utf-8');
+    const paymentData = JSON.parse(decodedData);
 
-    console.log('Decoded payment data:', {
-      transaction_code: paymentData.transaction_code,
-      status: paymentData.status,
-      total_amount: paymentData.total_amount,
-      transaction_uuid: paymentData.transaction_uuid,
-    })
-
-    // Verify signature
-    const isValid = verifyEsewaSignature(data, signature, config.secretKey)
+    const isValid = verifyEsewaSignature(data, signature, config.secretKey);
 
     if (!isValid) {
-      console.error('Payment signature verification failed')
+      console.error('Payment signature verification failed');
       return {
         success: false,
         error: 'Invalid payment signature',
-      }
+      };
     }
 
     // Retrieve payment metadata for order creation later
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
     const { data: metadata, error: metadataFetchError } = await supabase
       .from('payment_metadata')
       .select('*')
       .eq('transaction_uuid', paymentData.transaction_uuid)
-      .single()
+      .single();
 
     if (metadataFetchError || !metadata) {
-      console.error('Error fetching payment metadata:', metadataFetchError)
+      console.error('Error fetching payment metadata:', metadataFetchError);
       return {
         success: false,
         error: 'Payment verified but metadata not found',
-      }
+      };
     }
 
     // Store transaction code in metadata for order creation
     await supabase
       .from('payment_metadata')
       .update({ transaction_code: paymentData.transaction_code })
-      .eq('transaction_uuid', paymentData.transaction_uuid)
+      .eq('transaction_uuid', paymentData.transaction_uuid);
 
-    console.log('Payment verified successfully!')
+    console.log('Payment verified successfully!');
 
     return {
       success: true,
@@ -278,13 +266,14 @@ export async function verifyEsewaPayment(
           is_processed: metadata.is_processed,
         },
       },
-    }
+    };
   } catch (error) {
-    console.error('Failed to verify payment:', error)
+    console.error('Failed to verify payment:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Payment verification failed',
-    }
+      error:
+        error instanceof Error ? error.message : 'Payment verification failed',
+    };
   }
 }
 
@@ -296,36 +285,36 @@ export async function createOrderFromPayment(
   transactionUuid: string
 ): Promise<CreateOrderFromPaymentResult> {
   try {
-    console.log('Creating order for transaction:', transactionUuid)
+    console.log('Creating order for transaction:', transactionUuid);
 
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
 
     // Fetch payment metadata
     const { data: metadata, error: metadataFetchError } = await supabase
       .from('payment_metadata')
       .select('*')
       .eq('transaction_uuid', transactionUuid)
-      .single()
+      .single();
 
     if (metadataFetchError || !metadata) {
-      console.error('Error fetching payment metadata:', metadataFetchError)
+      console.error('Error fetching payment metadata:', metadataFetchError);
       return {
         success: false,
         error: 'Payment metadata not found',
-      }
+      };
     }
 
     // Check if already processed
     if (metadata.is_processed) {
-      console.log('Payment already processed, returning existing order')
+      console.log('Payment already processed, returning existing order');
 
       // Get the existing order
-      const existingOrder = await getOrderByTransactionUuid(transactionUuid)
+      const existingOrder = await getOrderByTransactionUuid(transactionUuid);
       if (existingOrder) {
         return {
           success: true,
           orderId: existingOrder.id,
-        }
+        };
       }
     }
 
@@ -341,58 +330,59 @@ export async function createOrderFromPayment(
       transaction_uuid: transactionUuid,
       amount: parseFloat(metadata.amount),
       payment_method: 'eSewa',
-    })
+    });
 
     if (!orderResult.success) {
-      console.error('Failed to create order:', orderResult.error)
+      console.error('Failed to create order:', orderResult.error);
       return {
         success: false,
         error: orderResult.error || 'Failed to create order',
-      }
+      };
     }
 
     // Mark metadata as processed
     await supabase
       .from('payment_metadata')
       .update({ is_processed: true })
-      .eq('transaction_uuid', transactionUuid)
+      .eq('transaction_uuid', transactionUuid);
 
-    console.log('Order created successfully:', orderResult.order?.id)
+    console.log('Order created successfully:', orderResult.order?.id);
 
     // Determine if this is a newly created order or an existing one
     // If order was just created, send emails. If it already existed, skip emails.
-    const isNewOrder = !metadata.is_processed
+    const isNewOrder = !metadata.is_processed;
 
     // Send confirmation emails only for new orders
     if (isNewOrder) {
       try {
         // Get product details for email
-        const product = await getProductById({ id: metadata.product_id })
+        const product = await getProductById({ id: metadata.product_id });
 
         // Get seller details from profiles
         const { data: seller } = await supabase
           .from('profiles')
           .select('name, store_username, currency')
           .eq('id', metadata.seller_id)
-          .single()
+          .single();
 
         // Get seller email from auth.users
         const { data: authUser } = await supabase.auth.admin.getUserById(
           metadata.seller_id
-        )
+        );
 
-        const sellerEmail = authUser?.user?.email
+        const sellerEmail = authUser?.user?.email;
 
         if (product && seller && sellerEmail && orderResult.order) {
           // Construct order details URL based on environment
-          const isProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'
+          const isProduction =
+            process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
           const baseUrl = isProduction
             ? 'https://www.thriftverse.shop'
             : process.env.NODE_ENV === 'development'
-            ? 'http://localhost:3000'
-            : 'https://thriftverse.vercel.app'
+              ? 'http://localhost:3000'
+              : 'https://thriftverse.vercel.app';
 
-          const orderDetailsUrl = `${baseUrl}/order/${orderResult.order.id}`
+          const orderDetailsUrl = `${baseUrl}/order/${orderResult.order.id}`;
 
           await sendOrderEmails({
             buyer: {
@@ -409,37 +399,38 @@ export async function createOrderFromPayment(
               date: new Date().toLocaleDateString(),
               total: metadata.amount,
               itemName: product.title,
-              storeName: seller.store_username || seller.name || 'ThriftVerse Store',
+              storeName:
+                seller.store_username || seller.name || 'ThriftVerse Store',
               currency: seller.currency || 'NPR',
               orderDetailsUrl: orderDetailsUrl,
             },
-          })
-          console.log('Order confirmation emails sent successfully')
+          });
+          console.log('Order confirmation emails sent successfully');
         } else {
           console.error('Could not send emails - missing required data', {
             hasProduct: !!product,
             hasSeller: !!seller,
             hasSellerEmail: !!sellerEmail,
-          })
+          });
         }
       } catch (emailError) {
-        console.error('Failed to send order confirmation emails:', emailError)
+        console.error('Failed to send order confirmation emails:', emailError);
         // Don't fail the order creation if email sending fails
       }
     } else {
-      console.log('Skipping email sending - order already existed')
+      console.log('Skipping email sending - order already existed');
     }
 
     return {
       success: true,
       orderId: orderResult.order?.id,
-    }
+    };
   } catch (error) {
-    console.error('Failed to create order from payment:', error)
+    console.error('Failed to create order from payment:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create order',
-    }
+    };
   }
 }
 
@@ -450,13 +441,13 @@ export async function handlePaymentFailure(
   transactionUuid?: string
 ): Promise<void> {
   try {
-    console.log('Payment failed for transaction:', transactionUuid)
+    console.log('Payment failed for transaction:', transactionUuid);
 
     // Here you can:
     // 1. Update order status to failed in your database
     // 2. Log the failed transaction
     // 3. Send notification
   } catch (error) {
-    console.error('Error handling payment failure:', error)
+    console.error('Error handling payment failure:', error);
   }
 }
