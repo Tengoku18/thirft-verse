@@ -66,10 +66,10 @@ export default function Header() {
             </span> */}
 
                   <Image
-                src="/images/logo-horizontal.png"
+                src="/images/horizontal-logo.png"
                 alt="ThriftVerse Logo"
                 height={50}
-                width={150}
+                width={180}
                 className="object-contain p-1"
               /> 
           </Link>

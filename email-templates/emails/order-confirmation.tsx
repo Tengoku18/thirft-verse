@@ -36,7 +36,7 @@ export const OrderConfirmationEmail = ({
       <Container style={container}>
         <Section style={logoContainer}>
           <Img
-            src="https://www.thriftverse.shop/images/logo-circle.png"
+            src="https://www.thriftverse.shop/images/vertical-logo.png"
             alt="ThriftVerse Logo"
             style={logo}
           />
