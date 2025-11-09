@@ -7,8 +7,11 @@ import {
   OrderWithDetails,
   PaginatedResponse,
   ShippingAddress,
-} from '@/types/database';
-import { decrementProductAvailability } from './products';
+} from '@/types/database'
+import { generateOrderCodeWithDate } from '@/lib/utils/order-code'
+import { decrementProductAvailability } from './products'
+import { sendProductNotReceivedEmail } from '@/lib/email/send'
+import { getSellerOrderUrl } from '@/utils/orderHelpers'
 
 interface CreateOrderParams {
   seller_id: string;
@@ -237,5 +240,79 @@ export async function updateOrderStatus(
       success: false,
       error: error instanceof Error ? error.message : 'Failed to update order',
     };
+  }
+}
+
+/**
+ * Report product not received - sends emergency alert email to seller
+ */
+export async function reportProductNotReceived(
+  orderId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createServiceRoleClient()
+
+    // Get order details with seller and product information
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select(
+        `
+        *,
+        seller:profiles!seller_id(id, name, store_username, currency),
+        product:products(id, title, cover_image, price)
+      `
+      )
+      .eq('id', orderId)
+      .single()
+
+    if (orderError || !order) {
+      console.error('Error fetching order:', orderError)
+      return {
+        success: false,
+        error: 'Order not found',
+      }
+    }
+
+    // Get seller email from auth.users
+    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(
+      order.seller_id
+    )
+
+    if (authError || !authUser?.user?.email) {
+      console.error('Error fetching seller email:', authError)
+      return {
+        success: false,
+        error: 'Seller email not found',
+      }
+    }
+
+    const sellerEmail = authUser.user.email
+
+    // Send the emergency alert email to the seller
+    const emailResult = await sendProductNotReceivedEmail({
+      to: sellerEmail,
+      sellerName: order.seller?.name || order.seller?.store_username || 'Seller',
+      orderCode: order.order_code || order.id,
+      orderDate: new Date(order.created_at).toLocaleDateString(),
+      orderDetailsUrl: getSellerOrderUrl(order.id),
+    })
+
+    if (!emailResult.success) {
+      console.error('Error sending product not received email:', emailResult.error)
+      return {
+        success: false,
+        error: 'Failed to send alert email',
+      }
+    }
+
+    console.log('Product not received alert sent successfully for order:', orderId)
+
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to report product not received:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send alert',
+    }
   }
 }

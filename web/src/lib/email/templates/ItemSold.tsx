@@ -1,7 +1,8 @@
+import { formatCheckoutPrice } from '@/utils/formatPrice';
 import {
   Body,
-  Container,
   Column,
+  Container,
   Head,
   Heading,
   Html,
@@ -12,8 +13,6 @@ import {
   Section,
   Text,
 } from '@react-email/components';
-import * as React from 'react';
-import { formatCheckoutPrice } from '@/utils/formatPrice';
 
 interface ItemSoldEmailProps {
   sellerName?: string;
@@ -24,6 +23,7 @@ interface ItemSoldEmailProps {
   orderId?: string;
   saleDate?: string;
   shippingDeadline?: string;
+  orderDetailsUrl?: string;
 }
 
 export const ItemSoldEmail = ({
@@ -35,6 +35,7 @@ export const ItemSoldEmail = ({
   orderId = '#12345',
   saleDate = new Date().toLocaleDateString(),
   shippingDeadline = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+  orderDetailsUrl = 'https://www.thriftverse.shop/seller/orders',
 }: ItemSoldEmailProps) => (
   <Html>
     <Head />
@@ -43,7 +44,7 @@ export const ItemSoldEmail = ({
       <Container style={container}>
         <Section style={logoContainer}>
           <Img
-            src="https://www.thriftverse.shop/images/logo-circle.png"
+            src="https://www.thriftverse.shop/images/vertical-logo.png"
             alt="ThriftVerse Logo"
             style={logo}
           />
@@ -99,7 +100,7 @@ export const ItemSoldEmail = ({
         </Section>
 
         <Section style={buttonContainer}>
-          <Link style={button} href="https://www.thriftverse.shop/seller/orders">
+          <Link style={button} href={orderDetailsUrl}>
             View Order Details
           </Link>
         </Section>
@@ -274,9 +275,10 @@ const button = {
 const tipContainer = {
   backgroundColor: '#ecfdf5',
   borderLeft: '4px solid #10b981',
-  padding: '20px',
-  margin: '24px 48px',
+  padding: '24px 32px',
+  margin: '24px auto',
   borderRadius: '8px',
+  maxWidth: '500px',
 };
 
 const tipTitle = {
@@ -284,6 +286,7 @@ const tipTitle = {
   fontSize: '16px',
   fontWeight: '600' as const,
   margin: '0 0 12px',
+  textAlign: 'center' as const,
 };
 
 const tipText = {

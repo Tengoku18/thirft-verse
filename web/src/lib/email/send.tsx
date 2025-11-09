@@ -1,7 +1,8 @@
 import { render } from '@react-email/render';
 import { FROM_EMAIL, resend } from './client';
 import { ItemSoldEmail } from './templates/ItemSold';
-import { OrderConfirmationEmail } from './templates/OrderConfirmation';
+import { ProductNotReceivedEmail } from './templates/ProductNotReceived';
+import { getBuyerOrderUrl, getSellerOrderUrl } from '@/utils/orderHelpers';
 
 export interface OrderConfirmationEmailData {
   to: string;
@@ -24,6 +25,7 @@ export interface ItemSoldEmailData {
   orderId: string;
   saleDate: string;
   shippingDeadline: string;
+  orderDetailsUrl: string;
 }
 
 /**
@@ -74,6 +76,7 @@ export async function sendItemSoldEmail(data: ItemSoldEmailData) {
         orderId={data.orderId}
         saleDate={data.saleDate}
         shippingDeadline={data.shippingDeadline}
+        orderDetailsUrl={data.orderDetailsUrl}
       />
     );
 
@@ -111,10 +114,13 @@ export async function sendOrderEmails(params: {
     itemName: string;
     storeName: string;
     currency?: string;
-    orderDetailsUrl: string;
   };
 }) {
   const { buyer, seller, order } = params;
+
+  // Generate order detail URLs with appropriate view params
+  const buyerOrderUrl = getBuyerOrderUrl(order.id);
+  const sellerOrderUrl = getSellerOrderUrl(order.id);
 
   // Calculate shipping deadline (e.g., 3 days from now)
   const shippingDeadline = new Date();
@@ -130,7 +136,7 @@ export async function sendOrderEmails(params: {
       storeName: order.storeName,
       total: order.total,
       currency: order.currency,
-      orderDetailsUrl: order.orderDetailsUrl,
+      orderDetailsUrl: buyerOrderUrl,
     }),
     sendItemSoldEmail({
       to: seller.email,
@@ -139,9 +145,10 @@ export async function sendOrderEmails(params: {
       salePrice: order.total,
       currency: order.currency,
       buyerName: buyer.name,
-      orderId: order.id,
+      orderId: order.orderCode,
       saleDate: order.date,
       shippingDeadline: shippingDeadline.toLocaleDateString(),
+      orderDetailsUrl: sellerOrderUrl,
     }),
   ]);
 
@@ -155,4 +162,41 @@ export async function sendOrderEmails(params: {
         ? sellerEmailResult.value
         : { success: false },
   };
+}
+
+export interface ProductNotReceivedEmailData {
+  to: string;
+  sellerName: string;
+  orderCode: string;
+  orderDate: string;
+  orderDetailsUrl: string;
+}
+
+/**
+ * Send product not received alert email to the seller
+ */
+export async function sendProductNotReceivedEmail(data: ProductNotReceivedEmailData) {
+  try {
+    const emailHtml = await render(
+      <ProductNotReceivedEmail
+        sellerName={data.sellerName}
+        orderCode={data.orderCode}
+        orderDate={data.orderDate}
+        orderDetailsUrl={data.orderDetailsUrl}
+      />
+    );
+
+    const result = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: data.to,
+      subject: `⚠️ URGENT: Product Not Received Report - ${data.orderCode} | ThriftVerse`,
+      html: emailHtml,
+    });
+
+    console.log('Product not received alert email sent:', result);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error sending product not received alert email:', error);
+    return { success: false, error };
+  }
 }
