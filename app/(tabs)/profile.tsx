@@ -577,8 +577,7 @@ export default function ProfileScreen() {
           <ProductGrid
             products={filteredProducts}
             onProductPress={(product) => {
-              // TODO: Navigate to product details screen
-              Alert.alert("Product", `Viewing ${product.title}`);
+              router.push(`/product/${product.id}`);
             }}
           />
         )}

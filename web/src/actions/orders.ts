@@ -1,5 +1,6 @@
 'use server';
 
+import { sendProductNotReceivedEmail } from '@/lib/email/send';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { generateOrderCodeWithDate } from '@/lib/utils/order-code';
 import {
@@ -7,11 +8,9 @@ import {
   OrderWithDetails,
   PaginatedResponse,
   ShippingAddress,
-} from '@/types/database'
-import { generateOrderCodeWithDate } from '@/lib/utils/order-code'
-import { decrementProductAvailability } from './products'
-import { sendProductNotReceivedEmail } from '@/lib/email/send'
-import { getSellerOrderUrl } from '@/utils/orderHelpers'
+} from '@/types/database';
+import { getSellerOrderUrl } from '@/utils/orderHelpers';
+import { decrementProductAvailability } from './products';
 
 interface CreateOrderParams {
   seller_id: string;
@@ -250,7 +249,7 @@ export async function reportProductNotReceived(
   orderId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
 
     // Get order details with seller and product information
     const { data: order, error: orderError } = await supabase
@@ -263,56 +262,62 @@ export async function reportProductNotReceived(
       `
       )
       .eq('id', orderId)
-      .single()
+      .single();
 
     if (orderError || !order) {
-      console.error('Error fetching order:', orderError)
+      console.error('Error fetching order:', orderError);
       return {
         success: false,
         error: 'Order not found',
-      }
+      };
     }
 
     // Get seller email from auth.users
-    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(
-      order.seller_id
-    )
+    const { data: authUser, error: authError } =
+      await supabase.auth.admin.getUserById(order.seller_id);
 
     if (authError || !authUser?.user?.email) {
-      console.error('Error fetching seller email:', authError)
+      console.error('Error fetching seller email:', authError);
       return {
         success: false,
         error: 'Seller email not found',
-      }
+      };
     }
 
-    const sellerEmail = authUser.user.email
+    const sellerEmail = authUser.user.email;
 
     // Send the emergency alert email to the seller
     const emailResult = await sendProductNotReceivedEmail({
       to: sellerEmail,
-      sellerName: order.seller?.name || order.seller?.store_username || 'Seller',
+      sellerName:
+        order.seller?.name || order.seller?.store_username || 'Seller',
       orderCode: order.order_code || order.id,
       orderDate: new Date(order.created_at).toLocaleDateString(),
       orderDetailsUrl: getSellerOrderUrl(order.id),
-    })
+    });
 
     if (!emailResult.success) {
-      console.error('Error sending product not received email:', emailResult.error)
+      console.error(
+        'Error sending product not received email:',
+        emailResult.error
+      );
       return {
         success: false,
         error: 'Failed to send alert email',
-      }
+      };
     }
 
-    console.log('Product not received alert sent successfully for order:', orderId)
+    console.log(
+      'Product not received alert sent successfully for order:',
+      orderId
+    );
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error('Failed to report product not received:', error)
+    console.error('Failed to report product not received:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to send alert',
-    }
+    };
   }
 }
