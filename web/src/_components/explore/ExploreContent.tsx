@@ -1,29 +1,25 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { ProductWithStore, Profile } from '@/types/database'
-import { ProductSortOption, StoreSortOption } from '@/utils/exploreHelpers'
-import {
-  sortProducts,
-  sortStores,
-  filterProductsBySearch,
-  filterStoresBySearch,
-  filterProductsByCategory,
-  filterProductsByAvailability,
-} from '@/utils/exploreHelpers'
-import {
-  SearchBar,
-  SortSelect,
-  ExploreTabs,
-  ExploreNavbar,
-  PRODUCT_SORT_OPTIONS,
-  STORE_SORT_OPTIONS,
-} from './index'
-import type { ExploreTab } from './index'
 import { PRODUCT_CATEGORIES } from '@/lib/constants/categories'
+import { ProductWithStore, Profile } from '@/types/database'
+import {
+  filterProductsByAvailability, filterProductsByCategory, filterProductsBySearch,
+  filterStoresBySearch, ProductSortOption, sortProducts,
+  sortStores, StoreSortOption
+} from '@/utils/exploreHelpers'
+import { Package, Store } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import ProductCard from '../ProductCard'
 import StoreCard from '../StoreCard'
-import { Package, Store } from 'lucide-react'
+import type { ExploreTab } from './index'
+import {
+  ExploreNavbar,
+  ExploreTabs,
+  PRODUCT_SORT_OPTIONS,
+  SearchBar,
+  SortSelect,
+  STORE_SORT_OPTIONS,
+} from './index'
 
 interface ExploreContentProps {
   initialProducts: ProductWithStore[]
