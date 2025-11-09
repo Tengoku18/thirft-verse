@@ -1,10 +1,10 @@
 'use client'
 
 import { Product, ProductWithStore } from '@/types/database';
-import { ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatProductPrice } from '@/utils/formatPrice';
+import { ArrowUpRight } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product | ProductWithStore;
@@ -12,63 +12,59 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, currency = 'USD' }: ProductCardProps) => {
+  const store = 'store' in product ? product.store : null;
+
   return (
-    <div className="group relative">
-      <Link
-        href={`/product/${product.id}`}
-        className="block"
-      >
-        {/* Product Image */}
-        <div className="relative aspect-square overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 group-hover:shadow-2xl">
+    <div className="group">
+      <div className="relative overflow-hidden rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300">
+        {/* Image */}
+        <Link href={`/product/${product.id}`} className="block relative aspect-[5/4] overflow-hidden bg-neutral-100">
           {product.cover_image ? (
             <Image
               src={product.cover_image}
               alt={product.title}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
-              <div className="text-center">
-                <div className="mx-auto mb-2 h-20 w-20 rounded-full bg-gray-300/50" />
-                <p className="text-sm text-gray-400">No Image</p>
-              </div>
+            <div className="flex h-full items-center justify-center">
+              <span className="text-sm text-neutral-400">No image</span>
             </div>
           )}
 
-          {/* Sold Out Badge */}
+          {/* Sold Badge */}
           {product.availability_count === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-              <div className="rounded-full bg-red-500 px-6 py-2 font-bold text-white shadow-lg">
-                SOLD OUT
-              </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm">
+              <span className="rounded-full bg-neutral-900 px-4 py-1.5 text-xs font-semibold text-white">
+                Sold Out
+              </span>
             </div>
           )}
-        </div>
+        </Link>
 
-        {/* Product Info */}
-        <div className="mt-4 flex items-start justify-between gap-3 px-1">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-heading mb-1.5 line-clamp-2 text-lg font-bold text-primary transition-colors group-hover:text-secondary sm:text-xl">
+        {/* Info */}
+        <div className="p-4 space-y-2">
+          <Link href={`/product/${product.id}`}>
+            <h3 className="line-clamp-2 text-base font-semibold text-neutral-900 group-hover:text-[#D4A373] transition-colors">
               {product.title}
             </h3>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-heading text-sm font-semibold text-[#e8b647] sm:text-base">
-                {currency === 'USD' ? '$' : currency}
-              </span>
-              <span className="font-heading text-xl font-bold text-[#e8b647] sm:text-2xl">
-                {formatProductPrice(product.price, currency, false).replace(/^[^\d,]+\s*/, '')}
-              </span>
-            </div>
-          </div>
+          </Link>
 
-          {/* Arrow Icon */}
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/5 transition-all duration-300 group-hover:bg-primary/10 group-hover:scale-110 sm:h-12 sm:w-12">
-            <ArrowUpRight className="h-5 w-5 text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 sm:h-6 sm:w-6" strokeWidth={2.5} />
+          <div className="flex items-center justify-between">
+            <p className="text-lg font-bold text-[#D4A373]">
+              {formatProductPrice(product.price, currency)}
+            </p>
+
+            {/* Quick View Button */}
+            <Link href={`/product/${product.id}`}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-100 transition-all duration-300 group-hover:-translate-y-1 group-hover:bg-neutral-900">
+                <ArrowUpRight className="h-5 w-5 text-neutral-900 group-hover:text-white transition-colors" />
+              </div>
+            </Link>
           </div>
         </div>
-      </Link>
+      </div>
     </div>
   );
 };
