@@ -1,8 +1,9 @@
+import { getBuyerOrderUrl, getSellerOrderUrl } from '@/utils/orderHelpers';
 import { render } from '@react-email/render';
 import { FROM_EMAIL, resend } from './client';
 import { ItemSoldEmail } from './templates/ItemSold';
+import OrderConfirmationEmail from './templates/OrderConfirmation';
 import { ProductNotReceivedEmail } from './templates/ProductNotReceived';
-import { getBuyerOrderUrl, getSellerOrderUrl } from '@/utils/orderHelpers';
 
 export interface OrderConfirmationEmailData {
   to: string;
@@ -175,7 +176,9 @@ export interface ProductNotReceivedEmailData {
 /**
  * Send product not received alert email to the seller
  */
-export async function sendProductNotReceivedEmail(data: ProductNotReceivedEmailData) {
+export async function sendProductNotReceivedEmail(
+  data: ProductNotReceivedEmailData
+) {
   try {
     const emailHtml = await render(
       <ProductNotReceivedEmail
