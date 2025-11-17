@@ -30,7 +30,7 @@ export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
 
       // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -65,9 +65,19 @@ export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
       if (!result.canceled && result.assets[0]) {
         onChange(result.assets[0].uri);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo. Please try again.');
+
+      // Handle camera not available on simulator gracefully
+      if (error?.message?.includes('Camera not available')) {
+        Alert.alert(
+          'Camera Not Available',
+          'The camera is not available on simulator. Please use "Choose from Library" or test on a physical device.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('Error', 'Failed to take photo. Please try again.');
+      }
     }
   };
 

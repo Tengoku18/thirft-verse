@@ -2,7 +2,7 @@ import * as yup from 'yup';
 
 /**
  * Validation schema for Step 1: User Details
- * Fields: name, email, username, password, confirmPassword
+ * Fields: name, email, username, address, password, confirmPassword
  */
 export const userDetailsSchema = yup.object({
   name: yup
@@ -35,21 +35,16 @@ export const userDetailsSchema = yup.object({
     )
     .required('Username is required'),
 
+  address: yup
+    .string()
+    .trim()
+    .min(5, 'Address must be at least 5 characters')
+    .max(200, 'Address must be less than 200 characters')
+    .required('Address is required'),
+
   password: yup
     .string()
-    .min(8, 'Password must be at least 8 characters')
-    .matches(
-      /^(?=.*[a-z])/,
-      'Password must contain at least one lowercase letter'
-    )
-    .matches(
-      /^(?=.*[A-Z])/,
-      'Password must contain at least one uppercase letter'
-    )
-    .matches(
-      /^(?=.*\d)/,
-      'Password must contain at least one number'
-    )
+    .min(6, 'Password must be at least 6 characters')
     .required('Password is required'),
 
   confirmPassword: yup

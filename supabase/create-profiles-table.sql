@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   profile_image TEXT,
   currency TEXT DEFAULT 'NPR' NOT NULL,
   store_username TEXT UNIQUE NOT NULL,
+  address TEXT DEFAULT '',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -88,7 +89,8 @@ BEGIN
       store_username,
       bio,
       profile_image,
-      currency
+      currency,
+      address
     )
     VALUES (
       NEW.id,
@@ -96,12 +98,14 @@ BEGIN
       NEW.raw_user_meta_data->>'username',
       COALESCE(NEW.raw_user_meta_data->>'bio', ''),
       NEW.raw_user_meta_data->>'profile_image',
-      COALESCE(NEW.raw_user_meta_data->>'currency', 'NPR')
+      COALESCE(NEW.raw_user_meta_data->>'currency', 'NPR'),
+      COALESCE(NEW.raw_user_meta_data->>'address', '')
     )
     ON CONFLICT (id) DO UPDATE SET
       name = EXCLUDED.name,
       store_username = EXCLUDED.store_username,
       profile_image = EXCLUDED.profile_image,
+      address = EXCLUDED.address,
       updated_at = NOW();
 
   END IF;

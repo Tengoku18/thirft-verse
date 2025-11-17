@@ -1,22 +1,18 @@
 import { ThemedText } from "@/components/themed-text";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import React, { useState } from "react";
 import {
   TextInput,
   TextInputProps,
-  TouchableOpacity,
   View,
 } from "react-native";
 
 export interface FormInputProps extends TextInputProps {
   label?: string;
   error?: string;
-  isPassword?: boolean;
 }
 
 export const FormInput = React.forwardRef<TextInput, FormInputProps>(
-  ({ label, error, isPassword, className, ...props }, ref) => {
-    const [showPassword, setShowPassword] = useState(false);
+  ({ label, error, className, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const textColor = "#3B2F2F";
 
@@ -39,38 +35,22 @@ export const FormInput = React.forwardRef<TextInput, FormInputProps>(
               setIsFocused(false);
               props.onBlur?.(e);
             }}
-            className={`h-[58px] ${
-              isPassword ? "pr-12 pl-4" : "px-4"
-            } rounded-2xl border-[2px] text-[15px] font-[NunitoSans_400Regular] ${
+            className={`${
+              props.multiline ? "min-h-[58px] py-4" : "h-[58px]"
+            } px-4 rounded-2xl border-[2px] text-[15px] font-[NunitoSans_400Regular] ${
               error
                 ? "border-red-500 bg-red-50"
                 : isFocused
                   ? "border-[#3B2F2F] bg-white"
-                  : "border-transparent bg-[#FAFAFA]"
+                  : "border-[#E5E7EB] bg-white"
             } ${className || ""}`}
-            style={{ color: textColor }}
+            style={{
+              color: textColor,
+              textAlignVertical: props.multiline ? 'top' : 'center',
+            }}
             placeholderTextColor="#9CA3AF"
-            secureTextEntry={isPassword && !showPassword}
-            autoComplete={isPassword ? 'password-new' : props.autoComplete}
-            textContentType={isPassword ? 'newPassword' : props.textContentType}
-            autoCorrect={false}
-            autoCapitalize={isPassword ? 'none' : props.autoCapitalize}
             {...props}
           />
-
-          {isPassword && (
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              className="absolute right-0 top-0 h-[58px] w-12 justify-center items-center"
-              activeOpacity={0.7}
-            >
-              <IconSymbol
-                name={showPassword ? "eye.slash" : "eye"}
-                size={22}
-                color="#6B705C"
-              />
-            </TouchableOpacity>
-          )}
         </View>
 
         {error && (

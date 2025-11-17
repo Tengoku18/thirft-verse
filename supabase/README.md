@@ -4,9 +4,14 @@ This directory contains SQL migrations and setup instructions for your ThriftVer
 
 ## Required Migrations
 
-You need to run these migrations in order:
-1. **create-profiles-table.sql** - User profiles and authentication
+### For New Database Setup:
+Run these migrations in order:
+1. **create-profiles-table.sql** - User profiles and authentication (includes address column)
 2. **create-products-table.sql** - Product listings and marketplace
+
+### For Existing Database (Migration):
+If your database already exists but is missing the address column:
+- **add-address-to-profiles.sql** - Adds address column to existing profiles table
 
 ## Setup Instructions
 
@@ -32,7 +37,17 @@ You need to run these migrations in order:
 4. Click "Run" (or press Cmd/Ctrl + Enter)
 5. You should see a success message
 
-### Step 4: Verify the Tables
+### Step 4: Run Address Migration (If Needed)
+
+**Only run this if you have an existing database and getting "address column missing" errors:**
+
+1. In the SQL Editor, click "New Query"
+2. Copy the entire contents of `add-address-to-profiles.sql`
+3. Paste it into the SQL Editor
+4. Click "Run" (or press Cmd/Ctrl + Enter)
+5. You should see a success message
+
+### Step 5: Verify the Tables
 
 1. Click on "Table Editor" in the left sidebar
 2. You should see two tables: `profiles` and `products`
@@ -43,8 +58,7 @@ You need to run these migrations in order:
    - `bio` (text, nullable)
    - `profile_image` (text, nullable)
    - `currency` (text)
-   - `role` (user_role enum)
-   - `plan` (subscription_plan enum)
+   - `address` (text) ← **NEW: Added for user address**
    - `created_at` (timestamp)
    - `updated_at` (timestamp)
 4. **Products table** columns:
@@ -127,7 +141,60 @@ After running both migrations, test them by:
 4. Check the Supabase Table Editor to see the product in the `products` table
 5. The "Listings" count should update automatically
 
+## How Profile Creation Works
+
+The app uses a **triple-safety approach** to ensure profiles are always created:
+
+### 1. Automatic Creation (via Database Trigger)
+When a user signs up with `supabase.auth.signUp()`, user metadata is stored:
+- name
+- username
+- address
+- profile_image
+
+After OTP verification, the database trigger `handle_new_user_profile` automatically creates the profile.
+
+### 2. Manual Fallback (SignupStep2)
+If the trigger doesn't fire or fails, `SignupStep2.tsx` manually creates the profile after OTP verification using `createUserProfile()`.
+
+### 3. Automatic Recovery (createMissingProfile)
+If a user somehow ends up without a profile, the system automatically recovers it when they try to create their first product.
+
 ## Troubleshooting
+
+### Error: "Could not find the 'address' column"
+**Solution:** Run the migration `add-address-to-profiles.sql` in Supabase SQL Editor.
+
+This error means your database was created before the address field was added. The migration will:
+- Add the `address` column to existing profiles table
+- Update the trigger to handle address field
+
+### Error: "Profile not being created during signup"
+
+**Check 1: Email Confirmation is Enabled**
+- Go to Supabase Dashboard → Authentication → Providers → Email
+- Ensure "Confirm email" is enabled
+
+**Check 2: Trigger Exists**
+Run this SQL to verify:
+```sql
+SELECT * FROM pg_trigger WHERE tgname = 'on_auth_user_created';
+```
+
+**Check 3: User Metadata**
+After signup, verify metadata is stored:
+```sql
+SELECT id, email, raw_user_meta_data FROM auth.users WHERE email = 'user@example.com';
+```
+
+The metadata should contain: `name`, `username`, `address`, `profile_image`
+
+### Error: "Your profile is missing"
+The app will automatically recover the profile. Just try creating a product again and the system will:
+1. Detect the missing profile
+2. Create it from your auth metadata
+3. Retry the product creation
+4. Show success message
 
 ### Error: "relation already exists"
 - The table already exists. You can either:
@@ -137,10 +204,6 @@ After running both migrations, test them by:
 ### Error: "permission denied"
 - Make sure you're using the SQL Editor as the project owner
 - Check that your Supabase project is active
-
-### Error: "function handle_new_user() does not exist"
-- This is okay - the migration creates it
-- Make sure you run the entire SQL script, not just parts of it
 
 ## Next Steps
 

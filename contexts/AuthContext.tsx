@@ -46,9 +46,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Fetch user profile data
           await dispatch(fetchUserProfile(result.user.id));
         } else {
+          console.log("ℹ️  No active session found - user is not logged in");
         }
       } catch (err) {
-        console.error("💥 AuthContext: Error initializing auth:", err);
+        // Check if it's just "no session" which is normal, not an error
+        const errorMessage = (err as any)?.message || String(err);
+        if (errorMessage.toLowerCase().includes("no active session") ||
+            errorMessage.toLowerCase().includes("not logged in")) {
+          console.log("ℹ️  No active session - user is not logged in");
+        } else {
+          // This is an actual error, log it
+          console.error("💥 AuthContext: Error initializing auth:", err);
+        }
         dispatch(clearAuth());
       }
     };

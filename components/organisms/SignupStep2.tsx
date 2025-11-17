@@ -7,9 +7,9 @@ import { Alert, TextInput, TouchableOpacity, View } from "react-native";
 
 interface SignupStep2Props {
   email: string;
-  password: string;
   name: string;
   username: string;
+  address: string;
   profileImage: string | null;
   onNext: () => void;
   onBack: () => void;
@@ -17,9 +17,9 @@ interface SignupStep2Props {
 
 export const SignupStep2: React.FC<SignupStep2Props> = ({
   email,
-  password,
   name,
   username,
+  address,
   profileImage,
   onNext,
   onBack,
@@ -76,11 +76,11 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
     setLoading(true);
 
     try {
-      // Use 'magiclink' type since we used signInWithOtp (not signup)
+      // Use 'signup' type for email confirmation OTP
       const { data, error } = await supabase.auth.verifyOtp({
         email,
         token: otpCode,
-        type: "magiclink", // Changed from 'email' to 'magiclink'
+        type: "signup",
       });
 
       if (error) {
@@ -96,22 +96,7 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
       if (data.user) {
         const profile_image = profileImage || null;
 
-        const { error: updateError } = await supabase.auth.updateUser({
-          password: password,
-          data: {
-            name,
-            username,
-            profile_image,
-          },
-        });
-
-        if (updateError) {
-          Alert.alert(
-            "Setup Error",
-            "Account created but failed to set password. Please contact support."
-          );
-          setLoading(false);
-        }
+        // Create user profile in database
         const profileResult = await createUserProfile({
           userId: data.user.id,
           name,
@@ -119,6 +104,7 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
           bio: "",
           profile_image: profile_image,
           currency: "NPR",
+          address: address,
         });
 
         if (!profileResult.success) {
@@ -132,6 +118,7 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
             errorMessage.toLowerCase().includes("unique constraint")
           ) {
             // Profile already exists from trigger, that's perfect - proceed
+            console.log("✅ Profile already exists (created by trigger), continuing...");
           }
           // Check if table doesn't exist
           else if (
@@ -144,25 +131,41 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
               "📝 ACTION REQUIRED: Run the SQL migration in Supabase Dashboard → SQL Editor"
             );
             Alert.alert(
-              "Setup Required",
-              "Profile table not found. Please run the SQL migration in Supabase.\n\nYour account is created, but you may need to complete your profile later.",
-              [{ text: "OK" }]
+              "Database Setup Required",
+              "Profile table not found. Please run the SQL migration in Supabase Dashboard.\n\nCannot complete signup without database setup.",
+              [
+                {
+                  text: "OK",
+                  onPress: () => {
+                    setLoading(false);
+                  },
+                },
+              ]
             );
-            // Still allow signup to complete
+            return; // STOP - Don't proceed without profile
           }
-          // Other unexpected errors
+          // Other unexpected errors - CRITICAL
           else {
             console.error(
-              "❌ Unexpected error creating profile:",
+              "❌ CRITICAL: Failed to create profile:",
               profileResult.error
             );
             Alert.alert(
-              "Profile Error",
-              "Account created successfully, but there was an issue creating your profile. You may need to update it later.",
-              [{ text: "OK" }]
+              "Profile Creation Failed",
+              `Failed to create your profile. This is required to use the app.\n\nError: ${errorMessage}\n\nPlease try again or contact support.`,
+              [
+                {
+                  text: "OK",
+                  onPress: () => {
+                    setLoading(false);
+                  },
+                },
+              ]
             );
-            // Still allow signup to complete
+            return; // STOP - Don't proceed without profile
           }
+        } else {
+          console.log("✅ Profile created successfully for user:", data.user.id);
         }
 
         // All done! Proceed to next step
@@ -184,15 +187,10 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
     setResendLoading(true);
 
     try {
-      // Send a new OTP using signInWithOtp (same as initial signup)
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          data: {
-            name,
-            username,
-          },
-        },
+      // Resend OTP by calling resend API
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
       });
 
       if (error) {

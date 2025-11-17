@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -17,6 +18,7 @@ import {
   View,
 } from "react-native";
 import * as yup from "yup";
+import { LOGO_USAGE } from "@/constants/logos";
 
 // Step 1: Enter Email
 interface EmailFormData {
@@ -172,7 +174,8 @@ export default function ForgotPasswordScreen() {
     }
   };
 
-  const handleVerifyOtp = async () => {
+  // Combined step 2: Enter OTP and new password together
+  const handleResetPassword = async (data: PasswordFormData) => {
     const otpCode = otp.join("");
 
     if (otpCode.length !== 6) {
@@ -183,13 +186,35 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
 
     try {
-      // Just verify the code exists for now - we'll reset password in step 3
-      // Store the OTP code for the next step
-      setCurrentStep(3);
-      setLoading(false);
+      const { error } = await verifyOtpAndResetPassword(
+        email,
+        otpCode,
+        data.password
+      );
+
+      if (error) {
+        Alert.alert(
+          "Error",
+          error.message || "Failed to reset password. Please check your code and try again."
+        );
+        setLoading(false);
+        return;
+      }
+
+      Alert.alert(
+        "Success",
+        "Your password has been reset successfully. You can now sign in with your new password.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/(auth)/signin"),
+          },
+        ]
+      );
     } catch (error) {
-      console.error("💥 Unexpected verification error:", error);
+      console.error("💥 Unexpected password reset error:", error);
       Alert.alert("Error", "An unexpected error occurred. Please try again.");
+    } finally {
       setLoading(false);
     }
   };
@@ -226,44 +251,6 @@ export default function ForgotPasswordScreen() {
     }
   };
 
-  // Step 3: Reset password
-  const onResetPassword = async (data: PasswordFormData) => {
-    const otpCode = otp.join("");
-    setLoading(true);
-
-    try {
-      const { error } = await verifyOtpAndResetPassword(
-        email,
-        otpCode,
-        data.password
-      );
-
-      if (error) {
-        Alert.alert(
-          "Error",
-          error.message || "Failed to reset password. Please try again."
-        );
-        setLoading(false);
-        return;
-      }
-
-      Alert.alert(
-        "Success",
-        "Your password has been reset successfully. You can now sign in with your new password.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.replace("/(auth)/signin"),
-          },
-        ]
-      );
-    } catch (error) {
-      console.error("💥 Unexpected password reset error:", error);
-      Alert.alert("Error", "An unexpected error occurred. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const renderStep = () => {
     switch (currentStep) {
@@ -271,6 +258,13 @@ export default function ForgotPasswordScreen() {
         return (
           <View className="flex-1">
             <View className="mb-12">
+              <View className="items-center mb-6">
+                <Image
+                  source={LOGO_USAGE.splash}
+                  className="w-40 h-40"
+                  resizeMode="contain"
+                />
+              </View>
               <View className="w-16 h-16 bg-[#3B2F2F] rounded-2xl justify-center items-center mb-6">
                 <IconSymbol name="lock.fill" size={28} color="#FFFFFF" />
               </View>
@@ -333,7 +327,7 @@ export default function ForgotPasswordScreen() {
       case 2:
         return (
           <View className="flex-1">
-            <View className="mb-10">
+            <View className="mb-8">
               <ThemedText
                 className="text-[15px] leading-6 font-[NunitoSans_400Regular] mb-2"
                 style={{ color: "#6B7280" }}
@@ -348,7 +342,7 @@ export default function ForgotPasswordScreen() {
               </ThemedText>
             </View>
 
-            <View className="mb-10">
+            <View className="mb-6">
               <ThemedText
                 className="text-[13px] font-semibold mb-4 font-[NunitoSans_600SemiBold] tracking-wide uppercase"
                 style={{ color: "#3B2F2F" }}
@@ -356,7 +350,7 @@ export default function ForgotPasswordScreen() {
                 Enter Verification Code
               </ThemedText>
 
-              <View className="flex-row justify-between mb-6">
+              <View className="flex-row justify-between mb-4">
                 {otp.map((digit, index) => (
                   <TextInput
                     key={index}
@@ -404,56 +398,14 @@ export default function ForgotPasswordScreen() {
               </View>
             </View>
 
-            <View className="mb-8 p-5 bg-[#FAFAFA] rounded-2xl border-[2px] border-[#E5E1DB]">
+            <View className="mb-6">
               <ThemedText
-                className="text-[14px] font-[NunitoSans_400Regular] leading-6"
-                style={{ color: "#6B7280" }}
-              >
-                Check your spam folder if you don't see the email. The code will
-                expire in 60 minutes.
-              </ThemedText>
-            </View>
-
-            <View className="mt-auto">
-              <FormButton
-                title="Verify Code"
-                onPress={handleVerifyOtp}
-                loading={loading}
-                variant="primary"
-                className="mb-4"
-              />
-
-              <FormButton
-                title="Back"
-                onPress={() => setCurrentStep(1)}
-                variant="outline"
-              />
-            </View>
-          </View>
-        );
-
-      case 3:
-        return (
-          <View className="flex-1">
-            <View className="mb-12">
-              <View className="w-16 h-16 bg-[#3B2F2F] rounded-2xl justify-center items-center mb-6">
-                <IconSymbol name="key.fill" size={28} color="#FFFFFF" />
-              </View>
-              <ThemedText
-                className="text-[40px] font-[PlayfairDisplay_700Bold] leading-tight mb-3"
+                className="text-[13px] font-semibold mb-4 font-[NunitoSans_600SemiBold] tracking-wide uppercase"
                 style={{ color: "#3B2F2F" }}
               >
-                Set New{"\n"}Password
+                Set New Password
               </ThemedText>
-              <ThemedText
-                className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed"
-                style={{ color: "#6B7280" }}
-              >
-                Create a strong password for your account.
-              </ThemedText>
-            </View>
 
-            <View className="flex-1">
               <Controller
                 control={passwordControl}
                 name="password"
@@ -485,41 +437,38 @@ export default function ForgotPasswordScreen() {
                   />
                 )}
               />
+            </View>
 
-              <View className="mb-8 p-5 bg-[#FAFAFA] rounded-2xl border-[2px] border-[#E5E1DB]">
-                <ThemedText
-                  className="text-[13px] font-[NunitoSans_600SemiBold] mb-2"
-                  style={{ color: "#3B2F2F" }}
-                >
-                  Password Requirements:
-                </ThemedText>
-                <ThemedText
-                  className="text-[13px] font-[NunitoSans_400Regular] leading-5"
-                  style={{ color: "#6B7280" }}
-                >
-                  • At least 8 characters long{"\n"}• Contains uppercase and
-                  lowercase letters{"\n"}• Contains at least one number
-                </ThemedText>
-              </View>
+            <View className="mb-6 p-5 bg-[#FAFAFA] rounded-2xl border-[2px] border-[#E5E1DB]">
+              <ThemedText
+                className="text-[13px] font-[NunitoSans_600SemiBold] mb-2"
+                style={{ color: "#3B2F2F" }}
+              >
+                Password Requirements:
+              </ThemedText>
+              <ThemedText
+                className="text-[13px] font-[NunitoSans_400Regular] leading-5"
+                style={{ color: "#6B7280" }}
+              >
+                • At least 8 characters long{"\n"}• Contains uppercase and
+                lowercase letters{"\n"}• Contains at least one number
+              </ThemedText>
+            </View>
 
+            <View className="mt-auto">
               <FormButton
                 title="Reset Password"
-                onPress={handlePasswordSubmit(onResetPassword)}
+                onPress={handlePasswordSubmit(handleResetPassword)}
                 loading={loading}
                 variant="primary"
-                className="mt-4"
+                className="mb-4"
               />
 
-              <View className="mt-6">
-                <TouchableOpacity onPress={() => setCurrentStep(2)}>
-                  <ThemedText
-                    className="text-center text-[14px] font-[NunitoSans_600SemiBold]"
-                    style={{ color: "#3B2F2F" }}
-                  >
-                    Back
-                  </ThemedText>
-                </TouchableOpacity>
-              </View>
+              <FormButton
+                title="Back"
+                onPress={() => setCurrentStep(1)}
+                variant="outline"
+              />
             </View>
           </View>
         );
@@ -560,7 +509,7 @@ export default function ForgotPasswordScreen() {
                 className="text-[11px] font-[NunitoSans_600SemiBold] mb-2 tracking-widest uppercase"
                 style={{ color: "#6B7280" }}
               >
-                Step {currentStep} of 3
+                Step {currentStep} of 2
               </ThemedText>
             </View>
           )}

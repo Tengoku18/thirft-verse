@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     siteName: "ThriftVerse",
     images: [
       {
-        url: "https://www.thriftverse.shop/images/vertical-logo.png",
+        url: "https://www.thriftverse.shop/images/og.png",
         width: 1200,
         height: 630,
         alt: "ThriftVerse — Reuse. Resell. Renew."
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     description: "Create your own thrift store and give every item a second life.",
     images: [
       {
-        url: "https://www.thriftverse.shop/images/vertical-logo.png",
+        url: "https://www.thriftverse.shop/images/og.png",
         alt: "ThriftVerse — Reuse. Resell. Renew."
       }
     ]
@@ -86,13 +86,13 @@ export default function RootLayout({
         {/* Explicit OG meta tags for scrapers */}
         <meta property="og:title" content="ThriftVerse — Your Finds. Your Store. Your Story." />
         <meta property="og:description" content="Create your own thrift store and give every item a second life." />
-        <meta property="og:image" content="https://www.thriftverse.shop/images/vertical-logo.png" />
+        <meta property="og:image" content="https://www.thriftverse.shop/images/og.png" />
         <meta property="og:url" content="https://www.thriftverse.shop" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="ThriftVerse — Your Finds. Your Store. Your Story." />
         <meta name="twitter:description" content="Create your own thrift store and give every item a second life." />
-        <meta name="twitter:image" content="https://www.thriftverse.shop/images/vertical-logo.png" />
+        <meta name="twitter:image" content="https://www.thriftverse.shop/images/og.png" />
       </Head>
       <body
         className={`${nunitoSans.variable} ${folito.variable} antialiased`}

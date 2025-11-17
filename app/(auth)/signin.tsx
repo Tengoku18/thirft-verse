@@ -1,6 +1,7 @@
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { ThemedText } from "@/components/themed-text";
+import { LOGO_USAGE } from "@/constants/logos";
 import { useAuth } from "@/contexts/AuthContext";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Link, useRouter } from "expo-router";
@@ -8,6 +9,7 @@ import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -89,20 +91,11 @@ export default function SignInScreen() {
           <View className="mb-12">
             {/* Logo/Brand - Subtle & Modern */}
             <View className="mb-8 items-center">
-              <View className="w-16 h-16 bg-[#3B2F2F] rounded-2xl justify-center items-center mb-6">
-                <ThemedText
-                  className="text-[28px] font-[PlayfairDisplay_700Bold]"
-                  style={{ color: "#FFFFFF" }}
-                >
-                  T
-                </ThemedText>
-              </View>
-              <ThemedText
-                className="font-[PlayfairDisplay_700Bold] leading-tight mb-3 text-center"
-                style={{ color: "#3B2F2F" }}
-              >
-                Thrift Verse
-              </ThemedText>
+              <Image
+                source={LOGO_USAGE.splash}
+                className="w-48 h-48 mb-4"
+                resizeMode="contain"
+              />
               <ThemedText
                 className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed"
                 style={{ color: "#6B7280" }}
@@ -141,7 +134,9 @@ export default function SignInScreen() {
                 <FormInput
                   label="Password"
                   placeholder="Enter your password"
-                  isPassword
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
@@ -193,8 +188,50 @@ export default function SignInScreen() {
             </View>
           </View>
 
+          {/* Policy Links */}
+          <View className="mt-auto pt-8 pb-2">
+            <View className="flex-row justify-center items-center flex-wrap gap-2">
+              <Link href="https://www.thriftverse.shop/privacy" asChild>
+                <TouchableOpacity>
+                  <ThemedText
+                    className="text-[12px] font-[NunitoSans_400Regular]"
+                    style={{ color: "#6B7280" }}
+                  >
+                    Privacy Policy
+                  </ThemedText>
+                </TouchableOpacity>
+              </Link>
+              <ThemedText className="text-[12px]" style={{ color: "#9CA3AF" }}>
+                •
+              </ThemedText>
+              <Link href="https://www.thriftverse.shop/terms" asChild>
+                <TouchableOpacity>
+                  <ThemedText
+                    className="text-[12px] font-[NunitoSans_400Regular]"
+                    style={{ color: "#6B7280" }}
+                  >
+                    Terms & Conditions
+                  </ThemedText>
+                </TouchableOpacity>
+              </Link>
+              <ThemedText className="text-[12px]" style={{ color: "#9CA3AF" }}>
+                •
+              </ThemedText>
+              <Link href="https://www.thriftverse.shop/cookies" asChild>
+                <TouchableOpacity>
+                  <ThemedText
+                    className="text-[12px] font-[NunitoSans_400Regular]"
+                    style={{ color: "#6B7280" }}
+                  >
+                    Cookie Policy
+                  </ThemedText>
+                </TouchableOpacity>
+              </Link>
+            </View>
+          </View>
+
           {/* Bottom Branding - Subtle */}
-          <View className="mt-auto pt-8 pb-4">
+          <View className="pt-4 pb-4">
             <ThemedText
               className="text-center text-xs font-[NunitoSans_400Regular]"
               style={{ color: "#9CA3AF" }}

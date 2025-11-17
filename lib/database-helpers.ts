@@ -2,15 +2,14 @@ import { supabase } from "./supabase";
 import { PaginatedResponse, Product, ProductStatus } from "./types/database";
 
 /**
- * Check if email already exists in auth.users
- * Note: Email uniqueness is handled by Supabase auth automatically
- * We return false here to skip client-side check and let Supabase handle it
- * If email exists, signInWithOtp will handle the user appropriately
+ * Check if email already exists
+ * Note: Client-side email checking is not possible with Supabase auth.
+ * Supabase auth handles email uniqueness automatically during signUp.
+ * We return false here and let Supabase handle duplicate email errors.
  */
 export const checkEmailExists = async (email: string): Promise<boolean> => {
-  // Supabase auth handles email uniqueness automatically
-  // When using signInWithOtp, if email exists, it sends OTP to existing user
-  // We'll handle duplicate email errors when they occur during signup
+  // Email uniqueness is enforced by Supabase auth during signUp
+  // If a duplicate email is used, signUp will return an error
   return false;
 };
 
@@ -68,6 +67,7 @@ export interface CreateProfileData {
   bio?: string;
   profile_image?: string | null;
   currency?: string;
+  address?: string;
 }
 
 export const createUserProfile = async (data: CreateProfileData) => {
@@ -76,9 +76,10 @@ export const createUserProfile = async (data: CreateProfileData) => {
       id: data.userId,
       name: data.name,
       store_username: data.store_username.toLowerCase(),
-      bio: data.bio || null,
+      bio: data.bio || "",
       profile_image: data.profile_image || null,
       currency: data.currency || "NPR",
+      address: data.address || "",
     });
 
     if (error) {
@@ -89,6 +90,102 @@ export const createUserProfile = async (data: CreateProfileData) => {
   } catch (error) {
     console.error("💥 Error in createUserProfile:", error);
     return { success: false, error };
+  }
+};
+
+/**
+ * Verify if user profile exists in database
+ * Call this before operations that require profile (like creating products)
+ */
+export const verifyProfileExists = async (userId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error checking profile:", error);
+      return false;
+    }
+
+    return !!data;
+  } catch (error) {
+    console.error("Error in verifyProfileExists:", error);
+    return false;
+  }
+};
+
+/**
+ * Automatically create missing profile for users who signed up before profile creation was fixed
+ * Uses auth metadata to populate profile data
+ */
+export const createMissingProfile = async () => {
+  try {
+    // Get current authenticated user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.error("❌ No authenticated user found:", userError);
+      return {
+        success: false,
+        error: {
+          message: "You must be logged in. Please sign in again.",
+        },
+      };
+    }
+
+    // Check if profile already exists
+    const profileExists = await verifyProfileExists(user.id);
+    if (profileExists) {
+      console.log("✅ Profile already exists for user:", user.id);
+      return { success: true, alreadyExists: true };
+    }
+
+    // Extract data from user metadata
+    const metadata = user.user_metadata || {};
+    const name = metadata.name || user.email?.split("@")[0] || "User";
+    const username = metadata.username || user.email?.split("@")[0] || `user_${user.id.slice(0, 8)}`;
+    const profileImage = metadata.profile_image || null;
+    const address = metadata.address || "";
+
+    console.log("🔄 Creating missing profile for user:", user.id);
+
+    // Create the profile
+    const result = await createUserProfile({
+      userId: user.id,
+      name,
+      store_username: username,
+      bio: "",
+      profile_image: profileImage,
+      currency: "NPR",
+      address,
+    });
+
+    if (!result.success) {
+      console.error("❌ Failed to create missing profile:", result.error);
+      return {
+        success: false,
+        error: {
+          message: "Failed to create your profile. Please contact support.",
+        },
+      };
+    }
+
+    console.log("✅ Successfully created missing profile for user:", user.id);
+    return { success: true, created: true };
+  } catch (error) {
+    console.error("💥 Error in createMissingProfile:", error);
+    return {
+      success: false,
+      error: {
+        message: "An unexpected error occurred while creating your profile.",
+      },
+    };
   }
 };
 
@@ -425,6 +522,61 @@ export const createProduct = async (data: CreateProductData) => {
           },
           rlsError: true,
         };
+      }
+
+      // Foreign key constraint violation (profile doesn't exist)
+      if (error.code === "23503" && error.message?.includes("products_store_id_fkey")) {
+        console.error("❌ Foreign Key Error: Profile doesn't exist");
+        console.error("This means the user's profile was not created during signup");
+        console.error("store_id:", data.store_id);
+        console.log("🔄 Attempting automatic profile recovery...");
+
+        // Try to automatically create the missing profile
+        const recoveryResult = await createMissingProfile();
+
+        if (recoveryResult.success) {
+          console.log("✅ Profile recovered successfully! Retrying product creation...");
+
+          // Retry the product creation now that profile exists
+          const { data: retryProduct, error: retryError } = await supabase
+            .from("products")
+            .insert({
+              title: data.title,
+              description: data.description,
+              price: data.price,
+              category: data.category,
+              availability_count: data.availability_count,
+              cover_image: data.cover_image,
+              other_images: data.other_images,
+              store_id: data.store_id,
+              status: "available",
+            })
+            .select()
+            .single();
+
+          if (retryError) {
+            console.error("❌ Retry failed after profile recovery:", retryError);
+            return {
+              success: false,
+              error: {
+                message: "Profile was recovered but product creation still failed. Please try again.",
+              },
+            };
+          }
+
+          return { success: true, data: retryProduct, profileRecovered: true };
+        } else {
+          // Profile recovery failed
+          return {
+            success: false,
+            error: {
+              ...error,
+              message:
+                "Your profile is missing and could not be automatically recovered. Please sign out and sign up again, or contact support.",
+            },
+            profileMissing: true,
+          };
+        }
       }
 
       console.error("❌ Error creating product:", error);

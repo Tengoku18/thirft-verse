@@ -83,7 +83,12 @@ export const ProductCreationForm: React.FC = () => {
       const result = await createProduct(productData);
 
       if (result.success) {
-        Alert.alert("Success!", "Your product has been listed successfully.", [
+        // Check if profile was automatically recovered
+        const message = (result as any).profileRecovered
+          ? "Your profile was automatically recovered and your product has been listed successfully!"
+          : "Your product has been listed successfully.";
+
+        Alert.alert("Success!", message, [
           {
             text: "OK",
             onPress: () => {

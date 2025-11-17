@@ -8,6 +8,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   FlatList,
+  RefreshControl,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllAvailableProducts, getAllStores } from '@/lib/api-helpers';
@@ -25,7 +27,10 @@ import {
 import { PRODUCT_CATEGORIES } from '@/constants/categories';
 import ProductCard from '@/components/molecules/ProductCard';
 import StoreCard from '@/components/molecules/StoreCard';
+import { ProductCardSkeleton } from '@/components/molecules/ProductCardSkeleton';
+import { StoreCardSkeleton } from '@/components/molecules/StoreCardSkeleton';
 import { Ionicons } from '@expo/vector-icons';
+import { LOGO_USAGE } from '@/constants/logos';
 
 type ExploreTab = 'products' | 'stores';
 
@@ -37,6 +42,7 @@ export default function ExploreScreen() {
   const [products, setProducts] = useState<ProductWithStore[]>([]);
   const [stores, setStores] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,8 +63,13 @@ export default function ExploreScreen() {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (isRefreshing = false) => {
+    if (isRefreshing) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
       const [productsResult, storesResult] = await Promise.all([
         getAllAvailableProducts(),
@@ -69,8 +80,16 @@ export default function ExploreScreen() {
     } catch (error) {
       console.error('Error fetching explore data:', error);
     } finally {
-      setLoading(false);
+      if (isRefreshing) {
+        setRefreshing(false);
+      } else {
+        setLoading(false);
+      }
     }
+  };
+
+  const onRefresh = () => {
+    fetchData(true);
   };
 
   // Filter and sort products
@@ -144,25 +163,51 @@ export default function ExploreScreen() {
     { value: 'name-za', label: 'Name: Z to A' },
   ];
 
-  if (loading) {
+  const renderSkeletonLoading = () => {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#1A1A1A" />
+      <View style={styles.skeletonContainer}>
+        {activeTab === 'products' ? (
+          <View style={styles.productSkeletonGrid}>
+            {[1, 2, 3, 4, 5, 6].map((key) => (
+              <View key={key} style={styles.productSkeletonItem}>
+                <ProductCardSkeleton />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <>
+            {[1, 2, 3, 4, 5].map((key) => (
+              <StoreCardSkeleton key={key} />
+            ))}
+          </>
+        )}
       </View>
     );
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Explore</Text>
+        <Image
+          source={LOGO_USAGE.header}
+          style={styles.headerLogo}
+          resizeMode="contain"
+        />
       </View>
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#1A1A1A"
+            colors={['#1A1A1A']}
+          />
+        }
       >
         {/* Search Bar */}
         <View style={styles.searchContainer}>
@@ -333,7 +378,9 @@ export default function ExploreScreen() {
 
         {/* Results */}
         <View style={styles.resultsContainer}>
-          {activeTab === 'products' ? (
+          {loading ? (
+            renderSkeletonLoading()
+          ) : activeTab === 'products' ? (
             filteredProducts.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="cube-outline" size={64} color="#CCCCCC" />
@@ -370,23 +417,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FAF7F2',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FAF7F2',
-  },
   header: {
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
     backgroundColor: '#FFFFFF',
+    alignItems: 'center',
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1A1A1A',
+  headerLogo: {
+    width: 200,
+    height: 50,
+  },
+  skeletonContainer: {
+    paddingTop: 8,
+  },
+  productSkeletonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  productSkeletonItem: {
+    width: '48%',
+    marginBottom: 12,
   },
   scrollView: {
     flex: 1,

@@ -26,68 +26,76 @@ export default function SignupScreen() {
     setCreatingAccount(true);
 
     try {
-      // Use signInWithOtp instead of signUp to avoid email confirmation issues
-      // This sends an OTP email directly without requiring email confirmation setup
-      const { data: otpData, error } = await supabase.auth.signInWithOtp({
+      const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
+        password: data.password,
         options: {
-          // Store user metadata for later profile creation
           data: {
             name: data.name,
             username: data.username,
-            password: data.password, // We'll set this after OTP verification
+            address: data.address,
+            profile_image: (data as any).profileImage || null,
           },
+          emailRedirectTo: undefined,
         },
       });
 
       if (error) {
-        // Check if it's any email sending error - allow testing OTP UI anyway
-        const isEmailError =
-          error.message?.includes("Invalid API key") ||
-          error.message?.includes("sending confirmation email") ||
-          error.message?.includes("sending magic link email") ||
-          error.message?.includes("Error sending email");
-
-        if (isEmailError) {
+        if (error.message?.includes("User already registered")) {
           Alert.alert(
-            "Email Service Not Configured",
-            'Supabase email service is not set up. This is normal for new projects.\n\nOptions:\n1. Test the OTP UI (demo mode)\n2. Configure email in Supabase Dashboard later\n\nClick "Test UI" to see the complete signup flow!',
-            [
-              {
-                text: "Cancel",
-                style: "cancel",
-                onPress: () => setCreatingAccount(false),
-              },
-              {
-                text: "Test UI",
-                onPress: () => {
-                  setCurrentStep(2);
-                },
-              },
-            ]
+            "Account Exists",
+            "An account with this email already exists. Please sign in instead."
           );
           setCreatingAccount(false);
           return;
         }
 
+        // Check if it's an email service error
+        const isEmailError =
+          error.message?.includes("Invalid API key") ||
+          error.message?.includes("sending confirmation email") ||
+          error.message?.includes("Error sending email") ||
+          error.status === 429;
+
+        if (isEmailError) {
+          Alert.alert(
+            "Email Configuration Required",
+            'Email verification is required for signup.\n\n⚠️ Email service is not configured in Supabase.\n\nPlease enable email confirmation:\n1. Go to Supabase Dashboard\n2. Authentication → Providers → Email\n3. Enable "Confirm email"\n4. Configure email settings',
+            [{ text: "OK", onPress: () => setCreatingAccount(false) }]
+          );
+          return;
+        }
+
         Alert.alert(
           "Signup Failed",
-          error.message || "Failed to send OTP. Please try again."
+          error.message || "Failed to create account. Please try again."
         );
         setCreatingAccount(false);
         return;
       }
-      setCurrentStep(2);
+
+      if (authData.user) {
+        if (authData.session && authData.user.email_confirmed_at) {
+          Alert.alert(
+            "Email Verification Required",
+            'For security, email verification must be enabled.\n\n⚠️ Email confirmation is currently DISABLED in Supabase.\n\nPlease enable it:\n1. Go to Supabase Dashboard\n2. Authentication → Providers → Email\n3. Enable "Confirm email"',
+            [{ text: "OK", onPress: () => setCreatingAccount(false) }]
+          );
+          return;
+        }
+
+        setCurrentStep(2);
+      }
     } catch (error) {
       console.error("💥 Unexpected signup error:", error);
       Alert.alert("Error", "An unexpected error occurred. Please try again.");
+      setCreatingAccount(false);
     } finally {
       setCreatingAccount(false);
     }
   };
 
   const handleStep2Complete = () => {
-    // OTP verified, move to step 3 (completion)
     setCurrentStep(3);
   };
 
@@ -116,9 +124,9 @@ export default function SignupScreen() {
         return (
           <SignupStep2
             email={formData.email || ""}
-            password={formData.password || ""}
             name={formData.name || ""}
             username={formData.username || ""}
+            address={formData.address || ""}
             profileImage={(formData as any).profileImage || null}
             onNext={handleStep2Complete}
             onBack={handleBackToStep1}
@@ -169,7 +177,6 @@ export default function SignupScreen() {
       className="flex-1 bg-white"
     >
       <View className="flex-1 px-6 pt-12 pb-8">
-        {/* Back Button */}
         {currentStep <= 2 && (
           <TouchableOpacity
             onPress={() =>
@@ -181,7 +188,6 @@ export default function SignupScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Step Header - Step 2 */}
         {currentStep === 2 && (
           <View className="mb-8">
             <ThemedText
@@ -205,10 +211,8 @@ export default function SignupScreen() {
           </View>
         )}
 
-        {/* Current Step Content */}
         <View className="flex-1">{renderCurrentStep()}</View>
 
-        {/* Footer - Only on first step */}
         {currentStep === 1 && (
           <View className="mt-6 pb-4">
             <View className="flex-row justify-center items-center">
