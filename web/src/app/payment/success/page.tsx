@@ -1,4 +1,4 @@
-import { verifyEsewaPayment, createOrderFromPayment } from '@/actions/payment'
+import { verifyEsewaPayment, verifyFonepayPayment, createOrderFromPayment } from '@/actions/payment'
 import DownloadReceipt from '@/_components/DownloadReceipt'
 import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
@@ -10,6 +10,14 @@ import { formatCheckoutPrice } from '@/utils/formatPrice'
 interface PaymentSuccessPageProps {
   searchParams: Promise<{
     data?: string
+    // FonePay parameters
+    PRN?: string
+    UID?: string
+    BC?: string
+    INI?: string
+    P_AMT?: string
+    R_AMT?: string
+    DV?: string
   }>
 }
 
@@ -18,33 +26,56 @@ export default async function PaymentSuccessPage({
 }: PaymentSuccessPageProps) {
   const params = await searchParams
   const data = params.data
+  const fonepayPRN = params.PRN // Payment Reference Number
+  const fonepaySignature = params.DV // Digital Signature
 
-  // If no data, redirect to failed page
-  if (!data) {
-    redirect('/payment/failed?reason=missing_data')
-  }
+  // Check if this is a FonePay payment
+  const isFonepayPayment = fonepayPRN && fonepaySignature
 
-  // Decode the data to extract signature
-  let signature: string
-  try {
-    const decodedData = Buffer.from(data, 'base64').toString('utf-8')
-    const paymentData = JSON.parse(decodedData)
-    signature = paymentData.signature
+  let result
 
-    if (!signature) {
-      redirect('/payment/failed?reason=missing_signature')
+  if (isFonepayPayment) {
+    // FonePay payment verification
+    const amount = params.P_AMT || params.R_AMT || '0'
+    const uid = params.UID || ''
+
+    if (!fonepayPRN || !amount || !fonepaySignature) {
+      redirect('/payment/failed?reason=missing_data')
     }
-  } catch (error) {
-    console.error('Error decoding payment data:', error)
-    redirect('/payment/failed?reason=invalid_data')
-  }
 
-  // Verify the payment using server action
-  const result = await verifyEsewaPayment(data, signature)
+    result = await verifyFonepayPayment(fonepayPRN, amount, fonepaySignature, uid)
 
-  // If verification failed, redirect to failed page
-  if (!result.success || !result.data) {
-    redirect('/payment/failed?reason=verification_failed')
+    if (!result.success || !result.data) {
+      redirect('/payment/failed?reason=verification_failed')
+    }
+  } else {
+    // eSewa payment verification
+    if (!data) {
+      redirect('/payment/failed?reason=missing_data')
+    }
+
+    // Decode the data to extract signature
+    let signature: string
+    try {
+      const decodedData = Buffer.from(data, 'base64').toString('utf-8')
+      const paymentData = JSON.parse(decodedData)
+      signature = paymentData.signature
+
+      if (!signature) {
+        redirect('/payment/failed?reason=missing_signature')
+      }
+    } catch (error) {
+      console.error('Error decoding payment data:', error)
+      redirect('/payment/failed?reason=invalid_data')
+    }
+
+    // Verify the payment using server action
+    result = await verifyEsewaPayment(data, signature)
+
+    // If verification failed, redirect to failed page
+    if (!result.success || !result.data) {
+      redirect('/payment/failed?reason=verification_failed')
+    }
   }
 
   const { transactionCode, amount, transactionUuid, metadata } = result.data

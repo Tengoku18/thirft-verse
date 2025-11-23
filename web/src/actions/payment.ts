@@ -9,6 +9,15 @@ import {
   verifyEsewaSignature,
   type EsewaPaymentParams,
 } from '@/lib/esewa/utils';
+import {
+  generateFonepayPaymentUrl,
+  generateFonepaySignature,
+  generatePaymentReferenceNumber,
+  getFonepayConfig,
+  getFonepayDate,
+  verifyFonepayResponse,
+  type FonepayPaymentParams,
+} from '@/lib/fonepay/utils';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import type { ShippingAddress } from '@/types/database';
 import { headers } from 'next/headers';
@@ -329,7 +338,7 @@ export async function createOrderFromPayment(
       transaction_code: metadata.transaction_code || transactionUuid,
       transaction_uuid: transactionUuid,
       amount: parseFloat(metadata.amount),
-      payment_method: 'eSewa',
+      payment_method: metadata.payment_method || 'eSewa',
     });
 
     if (!orderResult.success) {
@@ -437,5 +446,250 @@ export async function handlePaymentFailure(
     // 3. Send notification
   } catch (error) {
     console.error('Error handling payment failure:', error);
+  }
+}
+
+/**
+ * Initiate FonePay payment - generates HTML form that auto-submits to FonePay
+ */
+export async function initiateFonepayPayment(
+  params: FonepayPaymentParams
+): Promise<InitiatePaymentResult> {
+  try {
+    const config = getFonepayConfig();
+    const paymentReferenceNumber = generatePaymentReferenceNumber();
+
+    // Get current host from headers to preserve subdomain
+    const headersList = await headers();
+    const host = headersList.get('host') || 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+
+    // Get product details to find seller
+    const product = await getProductById({ id: params.productId });
+    if (!product) {
+      return {
+        success: false,
+        error: 'Product not found',
+      };
+    }
+
+    // Store payment metadata for order creation after payment success
+    const supabase = createServiceRoleClient();
+    const { error: metadataError } = await supabase
+      .from('payment_metadata')
+      .insert({
+        transaction_uuid: paymentReferenceNumber,
+        product_id: params.productId,
+        seller_id: product.store_id,
+        buyer_email: params.buyer_email,
+        buyer_name: params.buyer_name,
+        shipping_address: params.shipping_address,
+        amount: params.amount,
+        quantity: params.quantity,
+        payment_method: 'FonePay',
+      });
+
+    if (metadataError) {
+      console.error('Error storing payment metadata:', metadataError);
+      return {
+        success: false,
+        error: 'Failed to initialize payment',
+      };
+    }
+
+    // FonePay parameters
+    const amount = params.amount.toFixed(2);
+    const currency = 'NPR';
+    const paymentMode = 'P'; // P = Payment
+    const date = getFonepayDate(); // MM/DD/YYYY format
+    const returnUrl = `${baseUrl}/payment/success`;
+    const r1 = params.productName; // Product/Payment description
+    const r2 = params.buyer_email; // Additional info
+
+    // Generate HMAC-SHA512 signature
+    const signature = generateFonepaySignature({
+      merchantCode: config.merchantCode,
+      paymentMode,
+      amount,
+      currency,
+      date,
+      paymentReferenceNumber,
+      r1,
+      r2,
+      returnUrl,
+      secretKey: config.secretKey,
+    });
+
+    // Generate payment URL with query parameters (FonePay uses GET, not POST)
+    const paymentUrl = generateFonepayPaymentUrl({
+      gatewayUrl: config.gatewayUrl,
+      merchantCode: config.merchantCode,
+      prn: paymentReferenceNumber,
+      amount,
+      r1,
+      r2,
+      returnUrl,
+      signature,
+    });
+
+
+    // Create HTML page that redirects to FonePay (using GET request via URL)
+    const formHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Redirecting to FonePay...</title>
+          <meta http-equiv="refresh" content="0;url=${paymentUrl}">
+          <style>
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              margin: 0;
+              background: linear-gradient(135deg, #3B2F2F 0%, #D4A373 100%);
+            }
+            .loader {
+              text-align: center;
+              color: white;
+              background: rgba(255, 255, 255, 0.1);
+              padding: 3rem 4rem;
+              border-radius: 1rem;
+              backdrop-filter: blur(10px);
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+            .spinner {
+              border: 4px solid rgba(238, 49, 36, 0.3);
+              border-radius: 50%;
+              border-top: 4px solid #ee3124;
+              width: 50px;
+              height: 50px;
+              animation: spin 1s linear infinite;
+              margin: 0 auto 24px;
+            }
+            h2 {
+              font-size: 1.5rem;
+              margin-bottom: 0.5rem;
+              font-weight: 600;
+            }
+            p {
+              font-size: 1rem;
+              opacity: 0.9;
+              margin: 0;
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="loader">
+            <div class="spinner"></div>
+            <h2>Redirecting to FonePay Payment Gateway...</h2>
+            <p>Please wait while we redirect you to complete your payment</p>
+          </div>
+          <script>
+            window.location.href = "${paymentUrl}";
+          </script>
+        </body>
+      </html>
+    `;
+
+    return {
+      success: true,
+      formHtml,
+      transactionUuid: paymentReferenceNumber,
+    };
+  } catch (error) {
+    console.error('Failed to initiate FonePay payment:', error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : 'Failed to initiate payment',
+    };
+  }
+}
+
+/**
+ * Verify FonePay payment response
+ */
+export async function verifyFonepayPayment(
+  paymentReferenceNumber: string,
+  amount: string,
+  receivedSignature: string,
+  uid: string = ''
+): Promise<VerifyPaymentResult> {
+  try {
+    const config = getFonepayConfig();
+
+    // Verify signature
+    const isValid = verifyFonepayResponse(receivedSignature, {
+      merchantCode: config.merchantCode,
+      paymentReferenceNumber,
+      amount,
+      uid,
+      secretKey: config.secretKey,
+    });
+
+    if (!isValid) {
+      console.error('FonePay payment signature verification failed');
+      return {
+        success: false,
+        error: 'Invalid payment signature',
+      };
+    }
+
+    // Retrieve payment metadata for order creation later
+    const supabase = createServiceRoleClient();
+    const { data: metadata, error: metadataFetchError } = await supabase
+      .from('payment_metadata')
+      .select('*')
+      .eq('transaction_uuid', paymentReferenceNumber)
+      .single();
+
+    if (metadataFetchError || !metadata) {
+      console.error('Error fetching payment metadata:', metadataFetchError);
+      return {
+        success: false,
+        error: 'Payment verified but metadata not found',
+      };
+    }
+
+    // Store transaction code in metadata for order creation
+    await supabase
+      .from('payment_metadata')
+      .update({ transaction_code: paymentReferenceNumber })
+      .eq('transaction_uuid', paymentReferenceNumber);
+
+    console.log('FonePay payment verified successfully!');
+
+    return {
+      success: true,
+      data: {
+        transactionCode: paymentReferenceNumber,
+        amount: amount,
+        status: 'COMPLETE',
+        transactionUuid: paymentReferenceNumber,
+        metadata: {
+          seller_id: metadata.seller_id,
+          product_id: metadata.product_id,
+          quantity: metadata.quantity || 1,
+          buyer_email: metadata.buyer_email,
+          buyer_name: metadata.buyer_name,
+          shipping_address: metadata.shipping_address,
+          is_processed: metadata.is_processed,
+        },
+      },
+    };
+  } catch (error) {
+    console.error('Failed to verify FonePay payment:', error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : 'Payment verification failed',
+    };
   }
 }
