@@ -24,7 +24,7 @@ export const Colors = {
     tint: tintColorLight,
     icon: accent1, // Muted olive icons
     tabIconDefault: border, // Subtle neutral for inactive tabs
-    tabIconSelected: secondary, // Warm tan for active tabs
+    tabIconSelected: accent1, // Muted olive for active tabs
   },
   dark: {
     text: background, // Light text on dark background
