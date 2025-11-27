@@ -1,21 +1,21 @@
 'use client';
 
+import { Facebook, Heart, Instagram, Twitter } from 'lucide-react';
 import Link from 'next/link';
-import { Instagram, Facebook, Twitter, Heart } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border bg-surface">
+    <footer className="border-border bg-surface border-t">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <h3 className="font-heading mb-4 text-2xl font-bold text-primary">
+            <h3 className="font-heading text-primary mb-4 text-2xl font-bold">
               ThriftVerse
             </h3>
-            <p className="mb-6 text-sm text-primary/70 leading-relaxed">
+            <p className="text-primary/70 mb-6 text-sm leading-relaxed">
               Empowering thrift entrepreneurs to build sustainable businesses,
               one vintage treasure at a time.
             </p>
@@ -25,7 +25,7 @@ export default function Footer() {
                 href="https://instagram.com/thriftverse"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/5 text-primary transition-all duration-300 hover:bg-secondary hover:text-surface hover:scale-110"
+                className="bg-primary/5 text-primary hover:bg-secondary hover:text-surface flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:scale-110"
                 aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5" />
@@ -34,7 +34,7 @@ export default function Footer() {
                 href="https://facebook.com/thriftverse"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/5 text-primary transition-all duration-300 hover:bg-secondary hover:text-surface hover:scale-110"
+                className="bg-primary/5 text-primary hover:bg-secondary hover:text-surface flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:scale-110"
                 aria-label="Facebook"
               >
                 <Facebook className="h-5 w-5" />
@@ -43,7 +43,7 @@ export default function Footer() {
                 href="https://twitter.com/thriftverse"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/5 text-primary transition-all duration-300 hover:bg-secondary hover:text-surface hover:scale-110"
+                className="bg-primary/5 text-primary hover:bg-secondary hover:text-surface flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:scale-110"
                 aria-label="Twitter"
               >
                 <Twitter className="h-5 w-5" />
@@ -53,14 +53,14 @@ export default function Footer() {
 
           {/* Platform */}
           <div>
-            <h4 className="font-heading mb-4 text-sm font-bold uppercase tracking-wider text-primary">
+            <h4 className="font-heading text-primary mb-4 text-sm font-bold tracking-wider uppercase">
               Platform
             </h4>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/#features"
-                  className="text-sm text-primary/70 transition-colors duration-200 hover:text-secondary"
+                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
                 >
                   Features
                 </Link>
@@ -68,7 +68,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/pricing"
-                  className="text-sm text-primary/70 transition-colors duration-200 hover:text-secondary"
+                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
                 >
                   Pricing
                 </Link>
@@ -76,7 +76,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#how-it-works"
-                  className="text-sm text-primary/70 transition-colors duration-200 hover:text-secondary"
+                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
                 >
                   How It Works
                 </Link>
@@ -84,7 +84,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/success-stories"
-                  className="text-sm text-primary/70 transition-colors duration-200 hover:text-secondary"
+                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
                 >
                   Success Stories
                 </Link>
@@ -94,14 +94,14 @@ export default function Footer() {
 
           {/* Support */}
           <div>
-            <h4 className="font-heading mb-4 text-sm font-bold uppercase tracking-wider text-primary">
+            <h4 className="font-heading text-primary mb-4 text-sm font-bold tracking-wider uppercase">
               Support
             </h4>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/help"
-                  className="text-sm text-primary/70 transition-colors duration-200 hover:text-secondary"
+                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
                 >
                   Help Center
                 </Link>
@@ -109,7 +109,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/contact"
-                  className="text-sm text-primary/70 transition-colors duration-200 hover:text-secondary"
+                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
                 >
                   Contact Us
                 </Link>
@@ -117,7 +117,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/faqs"
-                  className="text-sm text-primary/70 transition-colors duration-200 hover:text-secondary"
+                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
                 >
                   FAQs
                 </Link>
@@ -125,7 +125,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/seller-guide"
-                  className="text-sm text-primary/70 transition-colors duration-200 hover:text-secondary"
+                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
                 >
                   Seller Guide
                 </Link>
@@ -135,14 +135,14 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="font-heading mb-4 text-sm font-bold uppercase tracking-wider text-primary">
+            <h4 className="font-heading text-primary mb-4 text-sm font-bold tracking-wider uppercase">
               Legal
             </h4>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/privacy"
-                  className="text-sm text-primary/70 transition-colors duration-200 hover:text-secondary"
+                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
                 >
                   Privacy Policy
                 </Link>
@@ -150,7 +150,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/terms"
-                  className="text-sm text-primary/70 transition-colors duration-200 hover:text-secondary"
+                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
                 >
                   Terms of Service
                 </Link>
@@ -158,7 +158,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/cookies"
-                  className="text-sm text-primary/70 transition-colors duration-200 hover:text-secondary"
+                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
                 >
                   Cookie Policy
                 </Link>
@@ -168,14 +168,14 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 border-t border-border pt-8">
+        <div className="border-border mt-12 border-t pt-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <p className="text-sm text-primary/60">
+            <p className="text-primary/60 text-sm">
               © {currentYear} ThriftVerse. All rights reserved.
             </p>
-            <p className="flex items-center gap-1 text-sm text-primary/60">
+            <p className="text-primary/60 flex items-center gap-1 text-sm">
               Made with{' '}
-              <Heart className="h-4 w-4 text-accent-2 fill-accent-2 animate-pulse" />{' '}
+              <Heart className="text-accent-2 fill-accent-2 h-4 w-4 animate-pulse" />{' '}
               for sustainable fashion
             </p>
           </div>

@@ -2,16 +2,23 @@ import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { ProfileImagePicker } from "@/components/atoms/ProfileImagePicker";
 import { ThemedText } from "@/components/themed-text";
-import { LOGO_USAGE } from "@/constants/logos";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { checkEmailExists, checkUsernameExists } from "@/lib/database-helpers";
 import {
   UserDetailsFormData,
   userDetailsSchema,
 } from "@/lib/validations/signup-step1";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Alert, Image, ScrollView, View } from "react-native";
+import {
+  Alert,
+  Linking,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface SignupStep1Props {
   onNext: (data: UserDetailsFormData) => void;
@@ -22,6 +29,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
   onNext,
   initialData,
 }) => {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
@@ -39,6 +47,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
       address: initialData?.address || "",
       password: initialData?.password || "",
       confirmPassword: initialData?.confirmPassword || "",
+      acceptedTerms: initialData?.acceptedTerms || false,
     },
   });
 
@@ -81,28 +90,6 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
   return (
     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
       <View>
-        {/* Header */}
-        <View className="mb-8 items-center">
-          <Image
-            source={LOGO_USAGE.splash}
-            className="w-48 h-48 mb-4"
-            resizeMode="contain"
-          />
-          <ThemedText
-            className="text-[40px] font-[PlayfairDisplay_700Bold] leading-tight mb-3"
-            style={{ color: "#3B2F2F" }}
-          >
-            Create Account
-          </ThemedText>
-          <ThemedText
-            className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed"
-            style={{ color: "#6B7280" }}
-          >
-            Join ThriftVerse and start your sustainable fashion journey
-          </ThemedText>
-        </View>
-
-        {/* Profile Image Picker */}
         <Controller
           control={control}
           name="name"
@@ -115,9 +102,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
           )}
         />
 
-        {/* Form - No Card, Clean */}
         <View className="mt-4">
-          {/* Name */}
           <Controller
             control={control}
             name="name"
@@ -230,6 +215,68 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
             )}
           />
 
+          {/* Terms and Conditions */}
+          <Controller
+            control={control}
+            name="acceptedTerms"
+            render={({ field: { onChange, value } }) => (
+              <View className="mt-4 mb-2">
+                <TouchableOpacity
+                  onPress={() => onChange(!value)}
+                  className="flex-row items-start"
+                  activeOpacity={0.7}
+                >
+                  <View
+                    className={`w-5 h-5 rounded border-2 mr-3 mt-0.5 items-center justify-center ${
+                      value
+                        ? "bg-[#3B2F2F] border-[#3B2F2F]"
+                        : "border-[#D1D5DB]"
+                    }`}
+                  >
+                    {value && (
+                      <IconSymbol name="checkmark" size={12} color="#FFFFFF" />
+                    )}
+                  </View>
+                  <View className="flex-1">
+                    <ThemedText
+                      className="text-[13px] font-[NunitoSans_400Regular] leading-5"
+                      style={{ color: "#6B7280" }}
+                    >
+                      I agree to the{" "}
+                      <ThemedText
+                        className="text-[13px] font-[NunitoSans_700Bold]"
+                        style={{ color: "#3B2F2F" }}
+                        onPress={() =>
+                          Linking.openURL("https://thriftverse.com/terms")
+                        }
+                      >
+                        Terms & Conditions
+                      </ThemedText>{" "}
+                      and{" "}
+                      <ThemedText
+                        className="text-[13px] font-[NunitoSans_700Bold]"
+                        style={{ color: "#3B2F2F" }}
+                        onPress={() =>
+                          Linking.openURL("https://thriftverse.com/privacy")
+                        }
+                      >
+                        Privacy Policy
+                      </ThemedText>
+                    </ThemedText>
+                  </View>
+                </TouchableOpacity>
+                {errors.acceptedTerms && (
+                  <ThemedText
+                    className="text-[13px] font-[NunitoSans_500Medium] mt-2 ml-8"
+                    style={{ color: "#EF4444" }}
+                  >
+                    {errors.acceptedTerms.message}
+                  </ThemedText>
+                )}
+              </View>
+            )}
+          />
+
           {/* Submit Button */}
           <FormButton
             title="Sign Up"
@@ -238,6 +285,25 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
             variant="primary"
             className="mt-2"
           />
+        </View>
+      </View>
+
+      <View className="mt-6 pb-4">
+        <View className="flex-row justify-center items-center">
+          <ThemedText
+            className="text-[14px] font-[NunitoSans_400Regular]"
+            style={{ color: "#6B7280" }}
+          >
+            Already have an account?{" "}
+          </ThemedText>
+          <TouchableOpacity onPress={() => router.back()}>
+            <ThemedText
+              className="text-[14px] font-[NunitoSans_700Bold]"
+              style={{ color: "#3B2F2F" }}
+            >
+              Sign In
+            </ThemedText>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>

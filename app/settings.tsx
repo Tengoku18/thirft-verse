@@ -90,6 +90,26 @@ export default function SettingsScreen() {
         },
       ],
     },
+    {
+      title: "Legal",
+      options: [
+        {
+          label: "Terms & Conditions",
+          icon: "doc.text",
+          onPress: () => router.push("/policies/terms"),
+        },
+        {
+          label: "Privacy Policy",
+          icon: "hand.raised",
+          onPress: () => router.push("/policies/privacy"),
+        },
+        {
+          label: "Refund Policy",
+          icon: "arrow.uturn.left.circle",
+          onPress: () => router.push("/policies/refund"),
+        },
+      ],
+    },
   ];
 
   return (

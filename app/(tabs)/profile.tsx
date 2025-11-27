@@ -1,3 +1,4 @@
+import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import { ProductGrid } from "@/components/molecules/ProductGrid";
 import { ThemedText } from "@/components/themed-text";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -174,37 +175,32 @@ export default function ProfileScreen() {
   });
 
   return (
-    <ScrollView
-      className="flex-1 bg-white"
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 100 }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor="#3B2F2F"
-          colors={["#3B2F2F"]}
-        />
+    <TabScreenLayout
+      title="Profile"
+      rightComponent={
+        <TouchableOpacity
+          onPress={() => router.push("/settings")}
+          activeOpacity={0.7}
+        >
+          <IconSymbol name="line.3.horizontal" size={24} color="#3B2F2F" />
+        </TouchableOpacity>
       }
     >
-      {/* Header - Clean Design */}
-      <View className="px-6 pt-14 pb-6">
-        {/* Username Header with Settings Icon */}
-        <View className="flex-row items-center justify-between mb-6">
-          <ThemedText
-            className="text-[28px] font-[PlayfairDisplay_700Bold] leading-tight"
-            style={{ color: "#3B2F2F" }}
-          >
-            {profile.store_username}
-          </ThemedText>
-          <TouchableOpacity
-            onPress={() => router.push("/settings")}
-            className="w-10 h-10 justify-center items-center"
-            activeOpacity={0.7}
-          >
-            <IconSymbol name="line.3.horizontal" size={24} color="#3B2F2F" />
-          </TouchableOpacity>
-        </View>
+      <ScrollView
+        className="flex-1 bg-white"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#3B2F2F"
+            colors={["#3B2F2F"]}
+          />
+        }
+      >
+        {/* Profile Content */}
+        <View className="px-6 pb-6">
 
         {/* Profile Info Row */}
         <View className="flex-row items-center mb-5">
@@ -582,6 +578,7 @@ export default function ProfileScreen() {
           />
         )}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </TabScreenLayout>
   );
 }

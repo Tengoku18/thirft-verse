@@ -2,6 +2,7 @@ import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { ThemedText } from "@/components/themed-text";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { LOGO_USAGE } from "@/constants/logos";
 import { useAuth } from "@/contexts/AuthContext";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
@@ -18,7 +19,6 @@ import {
   View,
 } from "react-native";
 import * as yup from "yup";
-import { LOGO_USAGE } from "@/constants/logos";
 
 // Step 1: Enter Email
 interface EmailFormData {
@@ -195,7 +195,8 @@ export default function ForgotPasswordScreen() {
       if (error) {
         Alert.alert(
           "Error",
-          error.message || "Failed to reset password. Please check your code and try again."
+          error.message ||
+            "Failed to reset password. Please check your code and try again."
         );
         setLoading(false);
         return;
@@ -250,7 +251,6 @@ export default function ForgotPasswordScreen() {
       setResendLoading(false);
     }
   };
-
 
   const renderStep = () => {
     switch (currentStep) {
@@ -332,13 +332,7 @@ export default function ForgotPasswordScreen() {
                 className="text-[15px] leading-6 font-[NunitoSans_400Regular] mb-2"
                 style={{ color: "#6B7280" }}
               >
-                We've sent a 6-digit verification code to
-              </ThemedText>
-              <ThemedText
-                className="text-[17px] font-semibold font-[NunitoSans_700Bold]"
-                style={{ color: "#3B2F2F" }}
-              >
-                {email}
+                We&apos;ve sent a 6-digit verification code to {email}
               </ThemedText>
             </View>
 

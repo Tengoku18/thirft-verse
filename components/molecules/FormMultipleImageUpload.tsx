@@ -238,15 +238,17 @@ export const FormMultipleImageUpload: React.FC<
                 className="text-[13px] font-[NunitoSans_400Regular] text-center"
                 style={{ color: "#6B7280" }}
               >
-                {maxImages - value.length} remaining
+                {value.length > 0
+                  ? `Add ${maxImages - value.length} more`
+                  : `Select up to ${maxImages} images`}
               </ThemedText>
             </View>
           )}
         </TouchableOpacity>
       )}
 
-      {/* Hint */}
-      {hint && !error && (
+      {/* Hint - only show when no images uploaded */}
+      {hint && !error && value.length === 0 && (
         <ThemedText
           className="text-[12px] font-[NunitoSans_400Regular] mt-2"
           style={{ color: "#6B7280" }}

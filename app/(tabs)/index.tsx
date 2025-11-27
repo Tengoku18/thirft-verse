@@ -6,12 +6,9 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   FlatList,
   RefreshControl,
-  Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllAvailableProducts, getAllStores } from '@/lib/api-helpers';
 import { ProductWithStore, Profile } from '@/lib/types/database';
 import {
@@ -30,7 +27,7 @@ import StoreCard from '@/components/molecules/StoreCard';
 import { ProductCardSkeleton } from '@/components/molecules/ProductCardSkeleton';
 import { StoreCardSkeleton } from '@/components/molecules/StoreCardSkeleton';
 import { Ionicons } from '@expo/vector-icons';
-import { LOGO_USAGE } from '@/constants/logos';
+import { TabScreenLayout } from '@/components/layouts/TabScreenLayout';
 
 type ExploreTab = 'products' | 'stores';
 
@@ -186,16 +183,7 @@ export default function ExploreScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Image
-          source={LOGO_USAGE.header}
-          style={styles.headerLogo}
-          resizeMode="contain"
-        />
-      </View>
-
+    <TabScreenLayout title="Explore">
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -204,24 +192,24 @@ export default function ExploreScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#1A1A1A"
-            colors={['#1A1A1A']}
+            tintColor="#3B2F2F"
+            colors={['#3B2F2F']}
           />
         }
       >
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#666666" style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder={`Search ${activeTab}...`}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor="#999999"
+            placeholderTextColor="#9CA3AF"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#666666" />
+              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
             </TouchableOpacity>
           )}
         </View>
@@ -408,26 +396,14 @@ export default function ExploreScreen() {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </TabScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF7F2',
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
     backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-  },
-  headerLogo: {
-    width: 200,
-    height: 50,
   },
   skeletonContainer: {
     paddingTop: 8,
@@ -450,29 +426,31 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    margin: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: 12,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    color: '#1A1A1A',
+    fontSize: 15,
+    color: '#3B2F2F',
+    fontFamily: 'NunitoSans_400Regular',
   },
   tabsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
     marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   tab: {
     flex: 1,
@@ -480,18 +458,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
+    marginBottom: -1,
   },
   activeTab: {
-    borderBottomColor: '#1A1A1A',
+    borderBottomColor: '#3B2F2F',
   },
   tabText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#666666',
+    fontSize: 15,
+    fontFamily: 'NunitoSans_600SemiBold',
+    color: '#9CA3AF',
   },
   activeTabText: {
-    color: '#1A1A1A',
-    fontWeight: '600',
+    color: '#3B2F2F',
+    fontFamily: 'NunitoSans_700Bold',
   },
   filtersContainer: {
     paddingHorizontal: 16,
@@ -499,31 +478,32 @@ const styles = StyleSheet.create({
   },
   filterLabel: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#666666',
+    fontFamily: 'NunitoSans_700Bold',
+    color: '#6B7280',
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: 10,
+    letterSpacing: 0.5,
   },
   categoriesScroll: {
     marginBottom: 16,
   },
   categoryChip: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 20,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
     marginRight: 8,
   },
   categoryChipSelected: {
-    backgroundColor: '#1A1A1A',
-    borderColor: '#1A1A1A',
+    backgroundColor: '#3B2F2F',
+    borderColor: '#3B2F2F',
   },
   categoryChipText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#666666',
+    fontFamily: 'NunitoSans_600SemiBold',
+    color: '#6B7280',
   },
   categoryChipTextSelected: {
     color: '#FFFFFF',
@@ -539,42 +519,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#E5E5E5',
-    marginRight: 8,
+    borderColor: '#E5E7EB',
+    marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#1A1A1A',
-    borderColor: '#1A1A1A',
+    backgroundColor: '#3B2F2F',
+    borderColor: '#3B2F2F',
   },
   checkboxLabel: {
     fontSize: 14,
-    color: '#1A1A1A',
+    fontFamily: 'NunitoSans_500Medium',
+    color: '#3B2F2F',
   },
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
   },
   sortButtonText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#1A1A1A',
-    marginLeft: 4,
+    fontFamily: 'NunitoSans_600SemiBold',
+    color: '#3B2F2F',
+    marginLeft: 6,
   },
   sortMenu: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 8,
     marginTop: 8,
     shadowColor: '#000',
@@ -592,11 +573,12 @@ const styles = StyleSheet.create({
   },
   sortOptionText: {
     fontSize: 14,
-    color: '#666666',
+    fontFamily: 'NunitoSans_500Medium',
+    color: '#6B7280',
   },
   sortOptionTextActive: {
-    color: '#1A1A1A',
-    fontWeight: '600',
+    color: '#3B2F2F',
+    fontFamily: 'NunitoSans_700Bold',
   },
   clearButton: {
     paddingVertical: 8,
@@ -604,13 +586,14 @@ const styles = StyleSheet.create({
   },
   clearButtonText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1A1A1A',
+    fontFamily: 'NunitoSans_600SemiBold',
+    color: '#3B2F2F',
     textDecorationLine: 'underline',
   },
   resultCount: {
     fontSize: 14,
-    color: '#666666',
+    fontFamily: 'NunitoSans_500Medium',
+    color: '#6B7280',
   },
   resultsContainer: {
     paddingHorizontal: 16,
@@ -625,13 +608,14 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1A1A1A',
+    fontFamily: 'NunitoSans_700Bold',
+    color: '#3B2F2F',
     marginTop: 16,
     marginBottom: 4,
   },
   emptyStateText: {
     fontSize: 14,
-    color: '#666666',
+    fontFamily: 'NunitoSans_400Regular',
+    color: '#6B7280',
   },
 });

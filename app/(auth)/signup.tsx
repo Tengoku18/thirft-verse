@@ -1,7 +1,7 @@
+import { AuthHeader } from "@/components/navigation/AuthHeader";
 import { SignupStep1 } from "@/components/organisms/SignupStep1";
 import { SignupStep2 } from "@/components/organisms/SignupStep2";
 import { ThemedText } from "@/components/themed-text";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { supabase } from "@/lib/supabase";
 import { UserDetailsFormData } from "@/lib/validations/signup-step1";
 import { useRouter } from "expo-router";
@@ -178,14 +178,12 @@ export default function SignupScreen() {
     >
       <View className="flex-1 px-6 pt-12 pb-8">
         {currentStep <= 2 && (
-          <TouchableOpacity
-            onPress={() =>
+          <AuthHeader
+            title={currentStep === 1 ? "Create Account" : "Verification"}
+            onBack={() =>
               currentStep === 1 ? router.back() : setCurrentStep(1)
             }
-            className="w-10 h-10 justify-center mb-6"
-          >
-            <IconSymbol name="chevron.left" size={24} color="#3B2F2F" />
-          </TouchableOpacity>
+          />
         )}
 
         {currentStep === 2 && (
@@ -212,27 +210,6 @@ export default function SignupScreen() {
         )}
 
         <View className="flex-1">{renderCurrentStep()}</View>
-
-        {currentStep === 1 && (
-          <View className="mt-6 pb-4">
-            <View className="flex-row justify-center items-center">
-              <ThemedText
-                className="text-[14px] font-[NunitoSans_400Regular]"
-                style={{ color: "#6B7280" }}
-              >
-                Already have an account?{" "}
-              </ThemedText>
-              <TouchableOpacity onPress={() => router.back()}>
-                <ThemedText
-                  className="text-[14px] font-[NunitoSans_700Bold]"
-                  style={{ color: "#3B2F2F" }}
-                >
-                  Sign In
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
       </View>
     </KeyboardAvoidingView>
   );

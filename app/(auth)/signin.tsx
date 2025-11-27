@@ -86,26 +86,17 @@ export default function SignInScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-1 px-6 pt-20 pb-8">
-          {/* Modern Minimal Header */}
+        <View className="flex-1 px-6 pt-20">
           <View className="mb-12">
-            {/* Logo/Brand - Subtle & Modern */}
             <View className="mb-8 items-center">
               <Image
                 source={LOGO_USAGE.splash}
                 className="w-48 h-48 mb-4"
                 resizeMode="contain"
               />
-              <ThemedText
-                className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed"
-                style={{ color: "#6B7280" }}
-              >
-                Sign in to your account to continue
-              </ThemedText>
             </View>
           </View>
 
-          {/* Form - No Card, Clean & Minimal */}
           <View className="flex-1">
             {/* Email */}
             <Controller

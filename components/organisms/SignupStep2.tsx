@@ -85,9 +85,14 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
 
       if (error) {
         console.error("❌ Verification error:", error);
+        const isExpiredError =
+          error.message?.toLowerCase().includes("expired") ||
+          error.message?.toLowerCase().includes("invalid");
         Alert.alert(
           "Verification Failed",
-          error.message || "Invalid or expired code. Please try again."
+          isExpiredError
+            ? "Your verification code has expired or is invalid. Please tap 'Resend Code' to get a new one."
+            : error.message || "Invalid or expired code. Please try again."
         );
         setLoading(false);
         return;
@@ -110,18 +115,12 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
         if (!profileResult.success) {
           const error = profileResult.error as any;
           const errorMessage = error?.message || error?.toString() || "";
-
-          // Check if it's a duplicate key error (profile already created by trigger)
           if (
             errorMessage.toLowerCase().includes("duplicate") ||
             errorMessage.toLowerCase().includes("already exists") ||
             errorMessage.toLowerCase().includes("unique constraint")
           ) {
-            // Profile already exists from trigger, that's perfect - proceed
-            console.log("✅ Profile already exists (created by trigger), continuing...");
-          }
-          // Check if table doesn't exist
-          else if (
+          } else if (
             (profileResult as any).tableNotFound ||
             error?.code === "PGRST205"
           ) {
@@ -142,10 +141,8 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
                 },
               ]
             );
-            return; // STOP - Don't proceed without profile
-          }
-          // Other unexpected errors - CRITICAL
-          else {
+            return;
+          } else {
             console.error(
               "❌ CRITICAL: Failed to create profile:",
               profileResult.error
@@ -165,7 +162,10 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
             return; // STOP - Don't proceed without profile
           }
         } else {
-          console.log("✅ Profile created successfully for user:", data.user.id);
+          console.log(
+            "✅ Profile created successfully for user:",
+            data.user.id
+          );
         }
 
         // All done! Proceed to next step
@@ -189,7 +189,7 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
     try {
       // Resend OTP by calling resend API
       const { error } = await supabase.auth.resend({
-        type: 'signup',
+        type: "signup",
         email: email,
       });
 
@@ -223,31 +223,8 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
 
   return (
     <View className="flex-1">
-      {/* Header */}
-      <View className="mb-10">
-        <ThemedText
-          className="text-[15px] leading-6 font-[NunitoSans_400Regular] mb-2"
-          style={{ color: "#6B7280" }}
-        >
-          We&apos;ve sent a 6-digit verification code to
-        </ThemedText>
-        <ThemedText
-          className="text-[17px] font-semibold font-[NunitoSans_700Bold]"
-          style={{ color: "#3B2F2F" }}
-        >
-          {email}
-        </ThemedText>
-      </View>
-
       {/* OTP Input */}
       <View className="mb-10">
-        <ThemedText
-          className="text-[13px] font-semibold mb-4 font-[NunitoSans_600SemiBold] tracking-wide uppercase"
-          style={{ color: "#3B2F2F" }}
-        >
-          Enter Verification Code
-        </ThemedText>
-
         <View className="flex-row justify-between mb-6">
           {otp.map((digit, index) => (
             <TextInput
@@ -257,7 +234,7 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
               }}
               className="w-[52px] h-[58px] border-[2px] border-transparent bg-[#FAFAFA] rounded-2xl text-center text-[22px] font-[NunitoSans_700Bold] text-[#3B2F2F]"
               style={{
-                borderColor: digit ? "#3B2F2F" : "transparent",
+                borderColor: "#3B2F2F",
                 backgroundColor: digit ? "#FFFFFF" : "#FAFAFA",
               }}
               value={digit}

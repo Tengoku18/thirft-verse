@@ -2,6 +2,7 @@ import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { FormPicker } from "@/components/atoms/FormPicker";
 import { FormTextarea } from "@/components/atoms/FormTextarea";
+import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import { FormMultipleImageUpload } from "@/components/molecules/FormMultipleImageUpload";
 import { ThemedText } from "@/components/themed-text";
 import { useAuth } from "@/contexts/AuthContext";
@@ -130,28 +131,13 @@ export const ProductCreationForm: React.FC = () => {
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-[#FAF7F2]"
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 120 }}
-    >
-      <View className="px-6 pt-6">
-        {/* Header Section */}
-        <View className="mb-8">
-          <ThemedText
-            className="text-[36px] font-[PlayfairDisplay_700Bold] leading-tight mb-2"
-            style={{ color: "#3B2F2F" }}
-          >
-            List Your{"\n"}Product
-          </ThemedText>
-          <ThemedText
-            className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed"
-            style={{ color: "#6B7280" }}
-          >
-            Share your pre-loved treasures with the ThriftVerse community
-          </ThemedText>
-        </View>
-
+    <TabScreenLayout title="List Product">
+      <ScrollView
+        className="flex-1 bg-white"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
+        <View className="px-6">
         {/* Image Upload Section */}
         <View className="bg-white rounded-3xl p-6 mb-6 shadow-sm">
           <ThemedText
@@ -189,7 +175,7 @@ export const ProductCreationForm: React.FC = () => {
                 value={value || []}
                 onChange={onChange}
                 error={errors.other_images?.message}
-                hint="Upload 1-4 additional product images (required)"
+                hint="Add up to 4 product images to showcase your item"
                 maxImages={4}
                 bucket="products"
                 folder="products"
@@ -333,7 +319,8 @@ export const ProductCreationForm: React.FC = () => {
           loading={loading}
           variant="primary"
         />
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </TabScreenLayout>
   );
 };

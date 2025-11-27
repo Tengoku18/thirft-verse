@@ -38,7 +38,7 @@ export const userDetailsSchema = yup.object({
   address: yup
     .string()
     .trim()
-    .min(5, 'Address must be at least 5 characters')
+    .min(15, 'Please enter a complete address (at least 15 characters)')
     .max(200, 'Address must be less than 200 characters')
     .required('Address is required'),
 
@@ -51,6 +51,11 @@ export const userDetailsSchema = yup.object({
     .string()
     .oneOf([yup.ref('password')], 'Passwords must match')
     .required('Please confirm your password'),
+
+  acceptedTerms: yup
+    .boolean()
+    .oneOf([true], 'You must accept the Terms & Conditions')
+    .required('You must accept the Terms & Conditions'),
 });
 
 // TypeScript type from schema
