@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import Head from "next/head";
+import { Suspense } from "react";
 import { Toaster } from 'react-hot-toast';
+import ProgressBar from "@/_components/common/ProgressBar";
 import "./globals.css";
 
 const nunitoSans = Nunito_Sans({
@@ -97,6 +99,9 @@ export default function RootLayout({
       <body
         className={`${nunitoSans.variable} ${folito.variable} antialiased`}
       >
+        <Suspense fallback={null}>
+          <ProgressBar />
+        </Suspense>
         <Toaster
           position="top-right"
           toastOptions={{
