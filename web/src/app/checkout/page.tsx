@@ -1,8 +1,9 @@
 'use client'
 
-import { initiateEsewaPayment } from '@/actions/payment'
+import { initiateEsewaPayment, initiateFonepayPayment } from '@/actions/payment'
 import { getProductById } from '@/actions/products'
 import CheckoutForm from '@/_components/CheckoutForm'
+import PaymentMethodSelector, { PaymentMethod } from '@/_components/PaymentMethodSelector'
 import { Product } from '@/types/database'
 import { ShippingAddress } from '@/types/database'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -15,6 +16,7 @@ function CheckoutContent() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [product, setProduct] = useState<Product | null>(null)
   const [isLoadingProduct, setIsLoadingProduct] = useState(true)
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('esewa')
 
   // Get product details from URL params
   const productId = searchParams.get('productId')
@@ -78,18 +80,33 @@ function CheckoutContent() {
     setIsProcessing(true)
 
     try {
-      // Initiate eSewa payment with buyer information
-      const result = await initiateEsewaPayment({
-        amount: totalAmount,
-        productId,
-        productName,
-        quantity: parsedQuantity,
-        taxAmount: 0,
-        deliveryCharge: 0,
-        buyer_name: data.buyer_name,
-        buyer_email: data.buyer_email,
-        shipping_address: data.shipping_address,
-      })
+      let result
+
+      if (paymentMethod === 'esewa') {
+        // Initiate eSewa payment
+        result = await initiateEsewaPayment({
+          amount: totalAmount,
+          productId,
+          productName,
+          quantity: parsedQuantity,
+          taxAmount: 0,
+          deliveryCharge: 0,
+          buyer_name: data.buyer_name,
+          buyer_email: data.buyer_email,
+          shipping_address: data.shipping_address,
+        })
+      } else {
+        // Initiate FonePay payment
+        result = await initiateFonepayPayment({
+          amount: totalAmount,
+          productId,
+          productName,
+          quantity: parsedQuantity,
+          buyer_name: data.buyer_name,
+          buyer_email: data.buyer_email,
+          shipping_address: data.shipping_address,
+        })
+      }
 
       if (result.success && result.formHtml) {
         // Open the payment form in a new window or current window
@@ -156,17 +173,28 @@ function CheckoutContent() {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl bg-background shadow-xl">
-            <CheckoutForm
-              productName={productName}
-              price={unitPrice}
-              currency={currency}
-              quantity={parsedQuantity}
-              totalAmount={totalAmount}
-              product={product}
-              isLoadingProduct={isLoadingProduct}
-              onSubmit={handleCheckoutSubmit}
-            />
+          <div className="space-y-6">
+            {/* Payment Method Selection */}
+            <div className="rounded-2xl bg-background p-6 shadow-xl">
+              <PaymentMethodSelector
+                selectedMethod={paymentMethod}
+                onMethodChange={setPaymentMethod}
+              />
+            </div>
+
+            {/* Checkout Form */}
+            <div className="rounded-2xl bg-background shadow-xl">
+              <CheckoutForm
+                productName={productName}
+                price={unitPrice}
+                currency={currency}
+                quantity={parsedQuantity}
+                totalAmount={totalAmount}
+                product={product}
+                isLoadingProduct={isLoadingProduct}
+                onSubmit={handleCheckoutSubmit}
+              />
+            </div>
           </div>
         )}
       </div>

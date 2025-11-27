@@ -20,7 +20,10 @@ export {
 export {
   initiateEsewaPayment,
   verifyEsewaPayment,
+  initiateFonepayPayment,
+  verifyFonepayPayment,
   handlePaymentFailure,
+  createOrderFromPayment,
 } from './payment'
 
 export {
