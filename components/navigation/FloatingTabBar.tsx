@@ -109,7 +109,7 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
             const { options } = descriptors[route.key];
 
             // Filter out tabs with href: null (hidden tabs)
-            if (options.href === null) {
+            if ((options as any).href === null) {
               return null;
             }
 

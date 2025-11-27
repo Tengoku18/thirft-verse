@@ -93,14 +93,14 @@ export default function SignInScreen() {
             <View className="mb-8 items-center">
               <Image
                 source={LOGO_USAGE.splash}
-                className="w-48 h-48 mb-4"
-                resizeMode="contain"
+                className="w-40 h-40 mb-4"
+                resizeMode="contain" 
               />
               <ThemedText
-                className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed"
+                className="text-[40] font-folito leading-relaxed"
                 style={{ color: "#6B7280" }}
               >
-                Sign in to your account to continue
+              Welcome Back
               </ThemedText>
             </View>
           </View>
@@ -114,7 +114,7 @@ export default function SignInScreen() {
               render={({ field: { onChange, onBlur, value } }) => (
                 <FormInput
                   label="Email Address"
-                  placeholder="your@email.com"
+                  placeholder="user@gmail.com"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}

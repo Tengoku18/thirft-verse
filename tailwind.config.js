@@ -30,6 +30,13 @@ module.exports = {
       "playfair-bold": ["PlayfairDisplay_700Bold"],
       "playfair-extrabold": ["PlayfairDisplay_800ExtraBold"],
       "playfair-black": ["PlayfairDisplay_900Black"],
+
+      // Folito font family variants
+      folito: ["Folito-Regular"],
+      "folito-light": ["Folito-Light"],
+      "folito-medium": ["Folito-Medium"],
+      "folito-bold": ["Folito-Bold"],
+      "folito-black": ["Folito-Black"],
     },
     extend: {
       colors: {

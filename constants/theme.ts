@@ -60,3 +60,14 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
+
+// Folito font family configuration
+export const FolitoFonts = {
+  light: 'Folito-Light',
+  regular: 'Folito-Regular',
+  medium: 'Folito-Medium',
+  bold: 'Folito-Bold',
+  black: 'Folito-Black',
+} as const;
+
+export type FolitoFontWeight = keyof typeof FolitoFonts;

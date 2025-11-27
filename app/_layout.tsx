@@ -59,6 +59,11 @@ export default function RootLayout() {
     NunitoSans_700Bold,
     NunitoSans_800ExtraBold,
     NunitoSans_900Black,
+    "Folito-Light": require("@/assets/fonts/Folito-Light.ttf"),
+    "Folito-Regular": require("@/assets/fonts/Folito-Regular.ttf"),
+    "Folito-Medium": require("@/assets/fonts/Folito-Medium.ttf"),
+    "Folito-Bold": require("@/assets/fonts/Folito-Bold.ttf"),
+    "Folito-Black": require("@/assets/fonts/Folito-Black.ttf"),
   });
 
   useEffect(() => {
