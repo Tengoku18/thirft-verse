@@ -1,5 +1,6 @@
 'use client';
 
+import { appConfig } from '@/config/appConfig';
 import { Facebook, Heart, Instagram, Twitter } from 'lucide-react';
 import Link from 'next/link';
 
@@ -65,14 +66,16 @@ export default function Footer() {
                   Features
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/pricing"
-                  className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
-                >
-                  Pricing
-                </Link>
-              </li>
+              {appConfig.showPricing && (
+                <li>
+                  <Link
+                    href="/pricing"
+                    className="text-primary/70 hover:text-secondary text-sm transition-colors duration-200"
+                  >
+                    Pricing
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link
                   href="/#how-it-works"
