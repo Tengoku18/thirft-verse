@@ -371,6 +371,7 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
                         currency={seller?.currency || 'NPR'}
                         quantity={order.quantity}
                         paymentDate={formatDate(order.created_at)}
+                        paymentMethod={order.payment_method}
                       />
                     </div>
                   )}

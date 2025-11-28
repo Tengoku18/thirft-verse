@@ -146,6 +146,7 @@ export default async function PaymentSuccessPage({
             transactionUuid={transactionUuid}
             currency="NPR"
             quantity={quantity}
+            paymentMethod={isFonepayPayment ? 'FonePay' : 'eSewa'}
           />
           <Link
             href="/"
