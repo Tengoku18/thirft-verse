@@ -20,32 +20,28 @@ export const checkUsernameExists = async (
   username: string
 ): Promise<boolean> => {
   try {
+    const lowercaseUsername = username.toLowerCase();
+
     const { data, error } = await supabase
       .from("profiles")
       .select("id")
-      .eq("store_username", username.toLowerCase())
+      .eq("store_username", lowercaseUsername)
       .maybeSingle();
 
-    // If API key is invalid, skip check and allow signup
     if (error) {
-      // Table doesn't exist yet - skip check
+      // Table doesn't exist
       if (error.code === "PGRST205") {
-        console.warn(
-          "⚠️  profiles table not found - skipping username check. Please run SQL migration."
-        );
-        return false; // Allow signup to continue
+        console.warn("⚠️  profiles table not found - skipping username check.");
+        return false;
       }
+      // Invalid API key
       if (error.message?.includes("Invalid API key")) {
-        console.warn(
-          "⚠️  Supabase API key invalid - skipping username check. Please update credentials in .env"
-        );
-        return false; // Allow signup to continue
+        console.warn("⚠️  Supabase API key invalid - skipping username check.");
+        return false;
       }
+      // No rows found is not an error for our purposes
       if (error.code !== "PGRST116") {
-        console.warn(
-          "⚠️  Error checking username - skipping check:",
-          error.message
-        );
+        console.warn("⚠️  Error checking username:", error.message);
         return false;
       }
     }
@@ -292,6 +288,7 @@ interface UpdateProfileData {
   userId: string;
   name?: string;
   bio?: string;
+  address?: string;
   profile_image?: string;
 }
 
@@ -300,6 +297,7 @@ export const updateUserProfile = async (data: UpdateProfileData) => {
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.bio !== undefined) updateData.bio = data.bio;
+    if (data.address !== undefined) updateData.address = data.address;
     if (data.profile_image !== undefined)
       updateData.profile_image = data.profile_image;
 
@@ -427,6 +425,89 @@ export const getCurrentSession = async () => {
     return { success: true, data: session };
   } catch (error) {
     console.error("💥 Error in getCurrentSession:", error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * Get orders where user is the buyer (purchases)
+ */
+export const getOrdersByBuyer = async (buyerEmail: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        seller:profiles!orders_seller_id_fkey(id, name, store_username),
+        product:products!orders_product_id_fkey(id, title, cover_image, price)
+      `)
+      .eq("buyer_email", buyerEmail)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      if (error.code === "PGRST205") {
+        console.warn("⚠️  orders table not found. Please run SQL migration.");
+        return { success: false, data: [], tableNotFound: true };
+      }
+      console.error("❌ Error fetching buyer orders:", error);
+      return { success: false, data: [], error };
+    }
+
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error("💥 Error in getOrdersByBuyer:", error);
+    return { success: false, data: [], error };
+  }
+};
+
+/**
+ * Get orders where user is the seller (sales)
+ */
+export const getOrdersBySeller = async (sellerId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        product:products!orders_product_id_fkey(id, title, cover_image, price)
+      `)
+      .eq("seller_id", sellerId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      if (error.code === "PGRST205") {
+        console.warn("⚠️  orders table not found. Please run SQL migration.");
+        return { success: false, data: [], tableNotFound: true };
+      }
+      console.error("❌ Error fetching seller orders:", error);
+      return { success: false, data: [], error };
+    }
+
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error("💥 Error in getOrdersBySeller:", error);
+    return { success: false, data: [], error };
+  }
+};
+
+/**
+ * Update order status
+ */
+export const updateOrderStatus = async (orderId: string, status: 'pending' | 'completed' | 'cancelled' | 'refunded') => {
+  try {
+    const { error } = await supabase
+      .from("orders")
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq("id", orderId);
+
+    if (error) {
+      console.error("❌ Error updating order status:", error);
+      return { success: false, error };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("💥 Error in updateOrderStatus:", error);
     return { success: false, error };
   }
 };

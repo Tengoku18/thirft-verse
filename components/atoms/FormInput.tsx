@@ -24,7 +24,7 @@ export const FormInput = React.forwardRef<TextInput, FormInputProps>(
     return (
       <View className="mb-6">
         {label && (
-          <ThemedText className="text-[13px] font-[NunitoSans_600SemiBold] mb-3 tracking-wide uppercase" style={{ color: '#3B2F2F' }}>
+          <ThemedText className="text-[13px] font-[NunitoSans_600SemiBold] mb-3" style={{ color: '#3B2F2F' }}>
             {label}
           </ThemedText>
         )}

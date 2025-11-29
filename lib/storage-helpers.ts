@@ -170,6 +170,48 @@ export const getImageDimensions = (
 };
 
 /**
+ * Upload profile image from local file URI
+ * @param userId - User ID to use as folder name
+ * @param localUri - Local file URI from ImagePicker
+ * @returns Object with success status and path or error
+ */
+export const uploadProfileImage = async (
+  userId: string,
+  localUri: string
+): Promise<{ success: boolean; path?: string; error?: any }> => {
+  try {
+    // Get file extension from URI
+    const uriParts = localUri.split(".");
+    const extension = uriParts[uriParts.length - 1] || "jpg";
+
+    // Generate unique filename
+    const filename = `${userId}/${Date.now()}.${extension}`;
+
+    // Fetch the file as blob
+    const response = await fetch(localUri);
+    const blob = await response.blob();
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from("profiles")
+      .upload(filename, blob, {
+        contentType: `image/${extension === "jpg" ? "jpeg" : extension}`,
+        upsert: true,
+      });
+
+    if (error) {
+      console.error("❌ Profile image upload error:", error);
+      return { success: false, error };
+    }
+
+    return { success: true, path: filename };
+  } catch (error) {
+    console.error("💥 Profile image upload failed:", error);
+    return { success: false, error };
+  }
+};
+
+/**
  * Storage bucket names
  */
 export const STORAGE_BUCKETS = {

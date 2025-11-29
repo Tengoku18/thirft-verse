@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "thriftverse",
+    "name": "ThriftVerse",
     "slug": "thriftverse",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,12 +9,15 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.thriftverse.app"
     },
     "android": {
+      "package": "com.thriftverse.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo/fav-icon.png",
-        "backgroundColor": "#E6F4FE"
+        "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -41,6 +44,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    },
+    "owner": "thriftverse"
   }
 }

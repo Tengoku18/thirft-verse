@@ -31,8 +31,8 @@ import "../global.css";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Provider } from "react-redux";
 import { store } from "@/store";
+import { Provider } from "react-redux";
 
 // Prevent auto-hiding the splash screen
 SplashScreen.preventAutoHideAsync();
@@ -74,13 +74,23 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <AuthProvider>
-        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="settings" options={{ headerShown: false }} />
             <Stack.Screen name="policies" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="edit-profile"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="change-password"
+              options={{ headerShown: false }}
+            />
             <Stack.Screen
               name="modal"
               options={{ presentation: "modal", title: "Modal" }}

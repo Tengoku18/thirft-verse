@@ -7,7 +7,7 @@ import { getProductsByStoreId } from "@/lib/database-helpers";
 import { getProfileImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import { Product } from "@/lib/types/database";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -31,6 +31,7 @@ type TabType = "listings" | "sold";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -38,7 +39,16 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>("listings");
+  const [activeTab, setActiveTab] = useState<TabType>(
+    tab === "sold" ? "sold" : "listings"
+  );
+
+  // Update active tab when navigating with tab param
+  useEffect(() => {
+    if (tab === "sold" || tab === "listings") {
+      setActiveTab(tab);
+    }
+  }, [tab]);
 
   useEffect(() => {
     loadProfile();
@@ -336,25 +346,7 @@ export default function ProfileScreen() {
             </ThemedText>
           ) : (
             <TouchableOpacity
-              onPress={() => {
-                Alert.alert(
-                  "Add Bio",
-                  "Tell us about yourself and your thrift shop! Share your story with the community.",
-                  [
-                    { text: "Later", style: "cancel" },
-                    {
-                      text: "Add Bio",
-                      onPress: () => {
-                        // TODO: Navigate to edit profile screen
-                        Alert.alert(
-                          "Edit Profile",
-                          "Edit profile functionality coming soon!"
-                        );
-                      },
-                    },
-                  ]
-                );
-              }}
+              onPress={() => router.push("/edit-profile")}
               activeOpacity={0.7}
             >
               <ThemedText
@@ -370,12 +362,7 @@ export default function ProfileScreen() {
         {/* Action Buttons */}
         <View className="flex-row gap-3 mt-4">
           <TouchableOpacity
-            onPress={() =>
-              Alert.alert(
-                "Edit Profile",
-                "Edit profile functionality coming soon!"
-              )
-            }
+            onPress={() => router.push("/edit-profile")}
             style={{
               flex: 1,
               backgroundColor: "#EFEFEF",

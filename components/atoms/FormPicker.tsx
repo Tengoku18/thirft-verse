@@ -46,7 +46,7 @@ export const FormPicker: React.FC<FormPickerProps> = ({
       {/* Label */}
       {label && (
         <ThemedText
-          className="text-[13px] font-[NunitoSans_600SemiBold] mb-3 tracking-wide uppercase"
+          className="text-[13px] font-[NunitoSans_600SemiBold] mb-3"
           style={{ color: '#3B2F2F' }}
         >
           {label}
@@ -60,7 +60,7 @@ export const FormPicker: React.FC<FormPickerProps> = ({
         className={`h-[58px] px-4 rounded-2xl border-[2px] flex-row items-center justify-between ${
           error
             ? "border-red-500 bg-red-50"
-            : "border-transparent bg-[#FAFAFA]"
+            : "border-[#E5E7EB] bg-white"
         } ${disabled ? 'opacity-50' : ''}`}
         activeOpacity={0.7}
       >

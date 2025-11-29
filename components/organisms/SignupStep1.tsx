@@ -10,15 +10,18 @@ import {
 } from "@/lib/validations/signup-step1";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
+  ActivityIndicator,
   Alert,
   Linking,
   ScrollView,
   TouchableOpacity,
   View,
 } from "react-native";
+
+type UsernameStatus = "idle" | "checking" | "available" | "taken";
 
 interface SignupStep1Props {
   onNext: (data: UserDetailsFormData) => void;
@@ -32,11 +35,14 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     control,
     handleSubmit,
     setError,
+    watch,
     formState: { errors },
   } = useForm<UserDetailsFormData>({
     resolver: yupResolver(userDetailsSchema),
@@ -50,6 +56,43 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
       acceptedTerms: initialData?.acceptedTerms || false,
     },
   });
+
+  const username = watch("username");
+
+  // Check username availability with debounce
+  useEffect(() => {
+    // Clear previous timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    // Reset status if username is empty or too short
+    if (!username || username.length < 3) {
+      setUsernameStatus("idle");
+      return;
+    }
+
+    // Set checking status
+    setUsernameStatus("checking");
+
+    // Debounce the API call
+    debounceTimer.current = setTimeout(async () => {
+      try {
+        const exists = await checkUsernameExists(username);
+        setUsernameStatus(exists ? "taken" : "available");
+      } catch (error) {
+        console.error("Error checking username:", error);
+        setUsernameStatus("idle");
+      }
+    }, 500);
+
+    // Cleanup on unmount
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [username]);
 
   const onSubmit = async (data: UserDetailsFormData) => {
     setLoading(true);
@@ -138,27 +181,6 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
             )}
           />
 
-          {/* Username */}
-          <Controller
-            control={control}
-            name="username"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <FormInput
-                label="Username"
-                placeholder="Choose a unique username"
-                autoCapitalize="none"
-                autoCorrect={false}
-                value={value}
-                onBlur={onBlur}
-                onChangeText={(text) =>
-                  onChange(text.toLowerCase().replace(/[^a-z0-9_]/g, ""))
-                }
-                error={errors.username?.message}
-              />
-            )}
-          />
-
-          {/* Address */}
           <Controller
             control={control}
             name="address"
@@ -171,9 +193,75 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                 onBlur={onBlur}
                 onChangeText={onChange}
                 error={errors.address?.message}
-                multiline
-                numberOfLines={2}
               />
+            )}
+          />
+
+          {/* Username */}
+          <Controller
+            control={control}
+            name="username"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <View>
+                <FormInput
+                  label="Username"
+                  placeholder="Choose a unique username"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={(text) =>
+                    onChange(text.toLowerCase().replace(/[^a-z0-9_]/g, ""))
+                  }
+                  error={errors.username?.message}
+                />
+                {/* Username availability indicator */}
+                {value && value.length >= 3 && !errors.username && (
+                  <View className="flex-row items-center -mt-4 mb-4 ml-1">
+                    {usernameStatus === "checking" && (
+                      <>
+                        <ActivityIndicator size="small" color="#6B7280" />
+                        <ThemedText
+                          className="text-[12px] font-[NunitoSans_500Medium] ml-2"
+                          style={{ color: "#6B7280" }}
+                        >
+                          Checking availability...
+                        </ThemedText>
+                      </>
+                    )}
+                    {usernameStatus === "available" && (
+                      <>
+                        <IconSymbol
+                          name="checkmark.circle.fill"
+                          size={16}
+                          color="#22C55E"
+                        />
+                        <ThemedText
+                          className="text-[12px] font-[NunitoSans_600SemiBold] ml-2"
+                          style={{ color: "#22C55E" }}
+                        >
+                          Username is available
+                        </ThemedText>
+                      </>
+                    )}
+                    {usernameStatus === "taken" && (
+                      <>
+                        <IconSymbol
+                          name="xmark.circle.fill"
+                          size={16}
+                          color="#EF4444"
+                        />
+                        <ThemedText
+                          className="text-[12px] font-[NunitoSans_600SemiBold] ml-2"
+                          style={{ color: "#EF4444" }}
+                        >
+                          Username is already taken
+                        </ThemedText>
+                      </>
+                    )}
+                  </View>
+                )}
+              </View>
             )}
           />
 

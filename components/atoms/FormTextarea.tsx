@@ -29,7 +29,7 @@ export const FormTextarea = React.forwardRef<TextInput, FormTextareaProps>(
         <View className="flex-row items-center justify-between mb-3">
           {label && (
             <ThemedText
-              className="text-[13px] font-[NunitoSans_600SemiBold] tracking-wide uppercase"
+              className="text-[13px] font-[NunitoSans_600SemiBold]"
               style={{ color: '#3B2F2F' }}
             >
               {label}
@@ -60,7 +60,7 @@ export const FormTextarea = React.forwardRef<TextInput, FormTextareaProps>(
               ? "border-red-500 bg-red-50"
               : isFocused
                 ? "border-[#3B2F2F] bg-white"
-                : "border-transparent bg-[#FAFAFA]"
+                : "border-[#E5E7EB] bg-white"
           } ${className || ""}`}
           style={{ color: textColor, textAlignVertical: 'top' }}
           placeholderTextColor="#9CA3AF"

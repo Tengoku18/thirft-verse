@@ -24,6 +24,7 @@ interface AuthContextType {
     token: string,
     newPassword: string
   ) => Promise<{ error: any }>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -153,6 +154,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: updateError };
   };
 
+  const refreshProfile = async () => {
+    if (user) {
+      await dispatch(fetchUserProfile(user.id));
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -164,6 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signOut,
         resetPasswordForEmail,
         verifyOtpAndResetPassword,
+        refreshProfile,
       }}
     >
       {children}

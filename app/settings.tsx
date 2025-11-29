@@ -2,13 +2,25 @@ import { CustomHeader } from "@/components/navigation/CustomHeader";
 import { ThemedText } from "@/components/themed-text";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
-import React from "react";
-import { Alert, ScrollView, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { getProfileImageUrl } from "@/lib/storage-helpers";
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const profile = useAppSelector((state) => state.profile.profile);
+  const [deleting, setDeleting] = useState(false);
 
   const handleLogout = async () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -29,6 +41,69 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone. All your data, products, and order history will be permanently deleted.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => confirmDeleteAccount(),
+        },
+      ]
+    );
+  };
+
+  const confirmDeleteAccount = async () => {
+    // Second confirmation for safety
+    Alert.alert(
+      "Final Confirmation",
+      "This is your last chance. Are you absolutely sure you want to delete your account?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Yes, Delete My Account",
+          style: "destructive",
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              // Delete user's products first
+              if (user?.id) {
+                await supabase
+                  .from("products")
+                  .delete()
+                  .eq("store_id", user.id);
+
+                // Delete user's profile
+                await supabase.from("profiles").delete().eq("id", user.id);
+              }
+
+              // Sign out and delete auth user
+              // Note: Full auth user deletion requires admin privileges or edge function
+              await signOut();
+              router.replace("/(auth)/signin");
+
+              Alert.alert(
+                "Account Deleted",
+                "Your account has been successfully deleted."
+              );
+            } catch (error) {
+              console.error("Delete account error:", error);
+              Alert.alert(
+                "Error",
+                "Failed to delete account. Please try again."
+              );
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const settingsOptions = [
     {
       title: "Account",
@@ -36,12 +111,12 @@ export default function SettingsScreen() {
         {
           label: "Edit Profile",
           icon: "person.circle",
-          onPress: () => Alert.alert("Edit Profile", "Coming soon!"),
+          onPress: () => router.push("/edit-profile"),
         },
         {
           label: "Change Password",
           icon: "lock.shield",
-          onPress: () => Alert.alert("Change Password", "Coming soon!"),
+          onPress: () => router.push("/change-password"),
         },
         {
           label: "Privacy Settings",
@@ -50,26 +125,26 @@ export default function SettingsScreen() {
         },
       ],
     },
-    {
-      title: "Preferences",
-      options: [
-        {
-          label: "Notifications",
-          icon: "bell",
-          onPress: () => Alert.alert("Notifications", "Coming soon!"),
-        },
-        {
-          label: "Language",
-          icon: "globe",
-          onPress: () => Alert.alert("Language", "Coming soon!"),
-        },
-        {
-          label: "Currency",
-          icon: "banknote",
-          onPress: () => Alert.alert("Currency", "Coming soon!"),
-        },
-      ],
-    },
+    // {
+    //   title: "Preferences",
+    //   options: [
+    //     {
+    //       label: "Notifications",
+    //       icon: "bell",
+    //       onPress: () => Alert.alert("Notifications", "Coming soon!"),
+    //     },
+    //     {
+    //       label: "Language",
+    //       icon: "globe",
+    //       onPress: () => Alert.alert("Language", "Coming soon!"),
+    //     },
+    //     {
+    //       label: "Currency",
+    //       icon: "banknote",
+    //       onPress: () => Alert.alert("Currency", "Coming soon!"),
+    //     },
+    //   ],
+    // },
     {
       title: "Support",
       options: [
@@ -129,20 +204,28 @@ export default function SettingsScreen() {
         {/* User Info Card */}
         <View className="mx-6 mt-6 mb-4 p-4 bg-[#FAFAFA] rounded-2xl">
           <View className="flex-row items-center">
-            <View className="w-12 h-12 rounded-full bg-[#3B2F2F] justify-center items-center mr-3">
-              <ThemedText
-                className="text-xl font-bold font-[PlayfairDisplay_700Bold]"
-                style={{ color: "#FFFFFF" }}
-              >
-                {user?.user_metadata?.name?.charAt(0).toUpperCase() || "U"}
-              </ThemedText>
-            </View>
+            {profile?.profile_image ? (
+              <Image
+                source={{ uri: getProfileImageUrl(profile.profile_image) }}
+                className="w-12 h-12 rounded-full mr-3"
+                style={{ backgroundColor: "#E5E7EB" }}
+              />
+            ) : (
+              <View className="w-12 h-12 rounded-full bg-[#3B2F2F] justify-center items-center mr-3">
+                <ThemedText
+                  className="text-xl font-bold font-[PlayfairDisplay_700Bold]"
+                  style={{ color: "#FFFFFF" }}
+                >
+                  {(profile?.name || user?.user_metadata?.name)?.charAt(0).toUpperCase() || "U"}
+                </ThemedText>
+              </View>
+            )}
             <View className="flex-1">
               <ThemedText
                 className="text-[16px] font-[NunitoSans_700Bold]"
                 style={{ color: "#3B2F2F" }}
               >
-                {user?.user_metadata?.name || "User"}
+                {profile?.name || user?.user_metadata?.name || "User"}
               </ThemedText>
               <ThemedText
                 className="text-[13px] font-[NunitoSans_400Regular]"
@@ -158,8 +241,12 @@ export default function SettingsScreen() {
         {settingsOptions.map((section, sectionIndex) => (
           <View key={section.title} className="mb-6">
             <ThemedText
-              className="text-[13px] font-[NunitoSans_600SemiBold] mb-3 px-6 uppercase tracking-wider"
-              style={{ color: "#9CA3AF" }}
+              className="text-[13px] font-[NunitoSans_600SemiBold] mb-3 px-6"
+              style={{
+                color: "#9CA3AF",
+                textTransform: "capitalize",
+                letterSpacing: 1,
+              }}
             >
               {section.title}
             </ThemedText>
@@ -194,22 +281,69 @@ export default function SettingsScreen() {
           </View>
         ))}
 
-        {/* Logout Button */}
-        <View className="px-6 mb-8">
-          <TouchableOpacity
-            onPress={handleLogout}
-            className="bg-red-50 border-2 border-red-500 h-[58px] rounded-2xl justify-center items-center"
+        {/* Danger Zone Section */}
+        <View className="mb-6">
+          <ThemedText
+            className="text-[13px] font-[NunitoSans_600SemiBold] mb-3 px-6"
+            style={{
+              color: "#EF4444",
+              textTransform: "capitalize",
+              letterSpacing: 1,
+            }}
           >
-            <View className="flex-row items-center gap-2">
-              <IconSymbol name="arrow.right.square" size={20} color="#EF4444" />
-              <ThemedText
-                className="text-base font-[NunitoSans_700Bold]"
-                style={{ color: "#EF4444" }}
-              >
-                Logout
-              </ThemedText>
-            </View>
-          </TouchableOpacity>
+            Danger Zone
+          </ThemedText>
+
+          <View className="bg-white">
+            {/* Logout Option */}
+            <TouchableOpacity
+              onPress={handleLogout}
+              className="flex-row items-center px-6 py-4 border-b border-[#F3F4F6]"
+              activeOpacity={0.7}
+            >
+              <View className="w-10 h-10 rounded-full bg-red-50 justify-center items-center mr-4">
+                <IconSymbol
+                  name="arrow.right.square"
+                  size={20}
+                  color="#EF4444"
+                />
+              </View>
+              <View className="flex-1">
+                <ThemedText
+                  className="text-[15px] font-[NunitoSans_600SemiBold]"
+                  style={{ color: "#EF4444" }}
+                >
+                  Logout
+                </ThemedText>
+              </View>
+              <IconSymbol name="chevron.right" size={16} color="#EF4444" />
+            </TouchableOpacity>
+
+            {/* Delete Account Option */}
+            <TouchableOpacity
+              onPress={handleDeleteAccount}
+              disabled={deleting}
+              className="flex-row items-center px-6 py-4 border-b border-[#F3F4F6]"
+              activeOpacity={0.7}
+            >
+              <View className="w-10 h-10 rounded-full bg-red-50 justify-center items-center mr-4">
+                {deleting ? (
+                  <ActivityIndicator size="small" color="#EF4444" />
+                ) : (
+                  <IconSymbol name="trash" size={20} color="#EF4444" />
+                )}
+              </View>
+              <View className="flex-1">
+                <ThemedText
+                  className="text-[15px] font-[NunitoSans_600SemiBold]"
+                  style={{ color: "#EF4444" }}
+                >
+                  {deleting ? "Deleting..." : "Delete Account"}
+                </ThemedText>
+              </View>
+              <IconSymbol name="chevron.right" size={16} color="#EF4444" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Version Info */}

@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ProductWithStore } from '@/lib/types/database';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { getProductImageUrl } from '@/lib/storage-helpers';
 
 interface ProductCardProps {
   product: ProductWithStore;
@@ -11,8 +13,6 @@ interface ProductCardProps {
 export default function ProductCard({ product, onPress }: ProductCardProps) {
   const router = useRouter();
   const currency = product.store?.currency || 'NPR';
-  const storeName = product.store?.name || 'Unknown Store';
-  const isOutOfStock = product.availability_count === 0;
 
   const handlePress = () => {
     if (onPress) {
@@ -22,23 +22,27 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
     }
   };
 
+  const imageUrl = product.cover_image
+    ? getProductImageUrl(product.cover_image)
+    : null;
+
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={handlePress}
-      activeOpacity={0.7}
-      disabled={isOutOfStock}
+      activeOpacity={0.9}
     >
       {/* Product Image */}
       <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: product.cover_image }}
-          style={styles.image}
-          resizeMode="cover"
-        />
-        {isOutOfStock && (
-          <View style={styles.outOfStockBadge}>
-            <Text style={styles.outOfStockText}>Out of Stock</Text>
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.placeholderImage}>
+            <IconSymbol name="photo" size={40} color="#D1D5DB" />
           </View>
         )}
       </View>
@@ -48,16 +52,13 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
         <Text style={styles.title} numberOfLines={2}>
           {product.title}
         </Text>
-        <Text style={styles.storeName} numberOfLines={1}>
-          {storeName}
-        </Text>
-        <View style={styles.priceRow}>
+        <View style={styles.bottomRow}>
           <Text style={styles.price}>
             {currency} {product.price.toLocaleString()}
           </Text>
-          {product.availability_count > 0 && product.availability_count <= 5 && (
-            <Text style={styles.stock}>{product.availability_count} left</Text>
-          )}
+          <View style={styles.arrowButton}>
+            <IconSymbol name="arrow.up.right" size={16} color="#3B2F2F" />
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -68,66 +69,61 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    overflow: 'hidden',
+    borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
     marginBottom: 12,
+    margin: 2,
   },
   imageContainer: {
     width: '100%',
-    aspectRatio: 1,
+    aspectRatio: 0.85,
     position: 'relative',
+    backgroundColor: '#F3F4F6',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    overflow: 'hidden',
   },
   image: {
     width: '100%',
     height: '100%',
   },
-  outOfStockBadge: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+  placeholderImage: {
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  outOfStockText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    backgroundColor: '#F3F4F6',
   },
   infoContainer: {
-    padding: 12,
+    padding: 16,
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'NunitoSans_600SemiBold',
     color: '#1A1A1A',
-    marginBottom: 4,
-  },
-  storeName: {
-    fontSize: 13,
-    color: '#666666',
     marginBottom: 8,
+    lineHeight: 22,
   },
-  priceRow: {
+  bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   price: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
+    fontFamily: 'NunitoSans_700Bold',
+    color: '#DC2626',
   },
-  stock: {
-    fontSize: 12,
-    color: '#EF4444',
-    fontWeight: '500',
+  arrowButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

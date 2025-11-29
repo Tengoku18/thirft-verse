@@ -170,7 +170,9 @@ export default function ProductDetailsScreen() {
           {product.description && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Description</Text>
-              <Text style={styles.description}>{product.description}</Text>
+              <View style={styles.descriptionContainer}>
+                <Text style={styles.description}>{product.description}</Text>
+              </View>
             </View>
           )}
 
@@ -378,6 +380,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1A1A1A',
     marginBottom: 12,
+  },
+  descriptionContainer: {
+    backgroundColor: '#F9FAFB',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   description: {
     fontSize: 15,

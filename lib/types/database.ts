@@ -10,6 +10,7 @@ export interface Profile {
   id: string;
   name: string;
   bio: string | null;
+  address: string | null;
   profile_image: string | null;
   currency: string;
   store_username: string;

@@ -105,7 +105,7 @@ export default function SignInScreen() {
               render={({ field: { onChange, onBlur, value } }) => (
                 <FormInput
                   label="Email Address"
-                  placeholder="your@email.com"
+                  placeholder="user@gmail.com"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
