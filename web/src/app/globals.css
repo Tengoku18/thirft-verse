@@ -36,3 +36,45 @@ body {
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* NProgress Bar Styles */
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  background: linear-gradient(90deg, #D4A373, #CB997E, #D4A373);
+  background-size: 200% 100%;
+  animation: gradient-shift 2s ease infinite;
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 10px rgba(212, 163, 115, 0.5), 0 0 5px rgba(212, 163, 115, 0.3);
+}
+
+#nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0px;
+  width: 100px;
+  height: 100%;
+  box-shadow: 0 0 15px #D4A373, 0 0 8px #D4A373;
+  opacity: 1;
+  transform: rotate(3deg) translate(0px, -4px);
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

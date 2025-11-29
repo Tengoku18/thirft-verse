@@ -168,7 +168,7 @@ export default function TermsOfServicePage() {
             9. Limitation of Liability
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
-            ThriftVerse provides the platform "as is" without warranties of any
+            ThriftVerse provides the platform &quot;as is&quot; without warranties of any
             kind. We are not liable for:
           </p>
           <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
@@ -212,7 +212,7 @@ export default function TermsOfServicePage() {
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
             These terms are governed by the laws of Nepal. Any disputes shall be
-            resolved in the courts of Kathmandu, Nepal.
+            resolved in the courts of Butwal, Nepal.
           </p>
         </section>
 
@@ -225,9 +225,7 @@ export default function TermsOfServicePage() {
           </p>
           <div className="rounded-lg bg-surface border border-border p-6">
             <p className="text-primary/80">
-              <strong>Email:</strong> legal@thriftverse.com
-              <br />
-              <strong>Address:</strong> Thamel, Ward 26, Kathmandu 44600, Nepal
+              <strong>Email:</strong> thriftverse.shop@gmail.com
             </p>
           </div>
         </section>

@@ -141,7 +141,7 @@ export default function PrivacyPolicyPage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            8. Children's Privacy
+            8. Children&apos;s Privacy
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
             ThriftVerse is not intended for users under 18 years of age. We do
@@ -171,9 +171,7 @@ export default function PrivacyPolicyPage() {
           </p>
           <div className="rounded-lg bg-surface border border-border p-6">
             <p className="text-primary/80">
-              <strong>Email:</strong> privacy@thriftverse.com
-              <br />
-              <strong>Address:</strong> Thamel, Ward 26, Kathmandu 44600, Nepal
+              <strong>Email:</strong> thriftverse.shop@gmail.com
             </p>
           </div>
         </section>

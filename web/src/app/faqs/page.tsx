@@ -1,8 +1,9 @@
 'use client';
 
 import PageLayout from '@/_components/common/PageLayout';
-import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
 
 const faqCategories = [
   {
@@ -176,9 +177,12 @@ export default function FAQsPage() {
           <p className="mb-6 text-primary/70">
             Our support team is here to help you succeed
           </p>
-          <button className="rounded-lg bg-secondary px-6 py-3 font-semibold text-primary transition-all hover:scale-105 hover:shadow-lg">
+          <Link
+            href="/contact"
+            className="inline-block rounded-lg bg-secondary cursor-pointer px-6 py-3 font-semibold text-primary transition-all hover:scale-105 hover:shadow-lg"
+          >
             Contact Support
-          </button>
+          </Link>
         </div>
       </div>
     </PageLayout>

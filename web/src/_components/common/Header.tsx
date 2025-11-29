@@ -14,7 +14,8 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { label: 'Features', href: '/#features' },
   { label: 'How It Works', href: '/#how-it-works' },
-  { label: 'Pricing', href: '/pricing' },
+  //TODO: Enable pricing page after proper planning
+  // { label: 'Pricing', href: '/pricing' },
   { label: 'Success Stories', href: '/success-stories' },
 ];
 
@@ -42,54 +43,44 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-surface/95 backdrop-blur-md shadow-md border-b border-border'
+          ? 'bg-surface/95 border-border border-b shadow-md backdrop-blur-md'
           : 'bg-transparent'
       }`}
     >
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 md:h-20 items-center justify-between">
+        <div className="flex h-16 items-center justify-between md:h-20">
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-start gap-2 group transition-transform hover:scale-105"
+            className="group flex items-start gap-2 transition-transform hover:scale-105"
           >
-            {/* <div className="relative w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-secondary to-accent-2 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow"> */}
-              {/* Logo placeholder - Replace with actual logo */}
-              {/* <ShoppingBag className="w-6 h-6 md:w-7 md:h-7 text-surface" /> */}
-              {/* Uncomment and use this when you have your logo */}
-         
-            {/* </div> */}
-            {/* <span className="font-heading text-xl md:text-2xl font-bold text-primary">
-              ThriftVerse
-            </span> */}
-
-                  <Image
-                src="/images/horizontal-logo.png"
-                alt="ThriftVerse Logo"
-                height={50}
-                width={180}
-                className="object-contain p-1"
-              /> 
+            <Image
+              src="/images/horizontal-logo.png"
+              alt="ThriftVerse Logo"
+              height={50}
+              width={180}
+              className="object-contain p-1"
+            />
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-8">
+          <div className="hidden items-center gap-8 lg:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="font-sans text-sm font-medium text-primary/70 hover:text-primary transition-colors relative group"
+                className="text-primary/70 hover:text-primary group relative font-sans text-sm font-medium transition-colors"
               >
                 {link.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-secondary transition-all duration-300 group-hover:w-full"></span>
+                <span className="bg-secondary absolute -bottom-1 left-0 h-0.5 w-0 transition-all duration-300 group-hover:w-full"></span>
               </Link>
             ))}
           </div>
 
           {/* Desktop CTA Buttons */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden items-center gap-4 lg:flex">
             <Link href="/start-selling">
               <Button size="sm">Get Started</Button>
             </Link>
@@ -98,13 +89,13 @@ export default function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-secondary/10 transition-colors"
+            className="hover:bg-secondary/10 rounded-lg p-2 transition-colors lg:hidden"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (
-              <X className="w-6 h-6 text-primary" />
+              <X className="text-primary h-6 w-6" />
             ) : (
-              <Menu className="w-6 h-6 text-primary" />
+              <Menu className="text-primary h-6 w-6" />
             )}
           </button>
         </div>
@@ -112,39 +103,39 @@ export default function Header() {
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden fixed inset-0 top-16 md:top-20 transition-all duration-300 ${
+        className={`fixed inset-0 top-16 transition-all duration-300 md:top-20 lg:hidden ${
           isMobileMenuOpen
-            ? 'opacity-100 pointer-events-auto'
-            : 'opacity-0 pointer-events-none'
+            ? 'pointer-events-auto opacity-100'
+            : 'pointer-events-none opacity-0'
         }`}
       >
         {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-primary/20 backdrop-blur-sm"
+          className="bg-primary/20 absolute inset-0 backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)}
         />
 
         {/* Menu Content */}
         <div
-          className={`relative bg-surface border-b border-border shadow-xl transition-transform duration-300 ${
+          className={`bg-surface border-border relative border-b shadow-xl transition-transform duration-300 ${
             isMobileMenuOpen ? 'translate-y-0' : '-translate-y-full'
           }`}
         >
-          <div className="px-4 py-6 space-y-4">
+          <div className="space-y-4 px-4 py-6">
             {/* Mobile Navigation Links */}
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-4 py-3 rounded-lg font-sans text-base font-medium text-primary/70 hover:text-primary hover:bg-background transition-all"
+                className="text-primary/70 hover:text-primary hover:bg-background block rounded-lg px-4 py-3 font-sans text-base font-medium transition-all"
               >
                 {link.label}
               </Link>
             ))}
 
             {/* Mobile CTA Buttons */}
-            <div className="pt-4 space-y-3 border-t border-border">
+            <div className="border-border space-y-3 border-t pt-4">
               <Link
                 href="/start-selling"
                 onClick={() => setIsMobileMenuOpen(false)}

@@ -12,6 +12,7 @@ interface DownloadReceiptProps {
   currency?: string
   quantity?: number
   paymentDate?: string
+  paymentMethod?: string
 }
 
 export default function DownloadReceipt({
@@ -24,6 +25,7 @@ export default function DownloadReceipt({
     dateStyle: 'medium',
     timeStyle: 'short',
   }),
+  paymentMethod = 'eSewa',
 }: DownloadReceiptProps) {
   const handleDownload = () => {
     const doc = new jsPDF()
@@ -110,7 +112,7 @@ export default function DownloadReceipt({
     doc.setFont('helvetica', 'bold')
     doc.text('Payment Method:', 20, currentY)
     doc.setFont('helvetica', 'normal')
-    doc.text('eSewa', 75, currentY)
+    doc.text(paymentMethod, 75, currentY)
     currentY += lineHeight
 
     // Quantity

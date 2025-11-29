@@ -204,7 +204,7 @@ export default function CookiePolicyPage() {
             6. Do Not Track
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
-            Some browsers have a "Do Not Track" feature. Currently, there is no
+            Some browsers have a &quot;Do Not Track&quot; feature. Currently, there is no
             industry standard for how to respond to these signals, so we do not
             respond to Do Not Track requests at this time.
           </p>
@@ -217,7 +217,7 @@ export default function CookiePolicyPage() {
           <p className="text-primary/80 leading-relaxed mb-4">
             We may update this Cookie Policy from time to time to reflect
             changes in technology or legal requirements. We will post the
-            updated policy on this page with a new "Last Updated" date.
+            updated policy on this page with a new &quot;Last Updated&quot; date.
           </p>
         </section>
 
@@ -230,9 +230,7 @@ export default function CookiePolicyPage() {
           </p>
           <div className="rounded-lg bg-surface border border-border p-6">
             <p className="text-primary/80">
-              <strong>Email:</strong> privacy@thriftverse.com
-              <br />
-              <strong>Address:</strong> Thamel, Ward 26, Kathmandu 44600, Nepal
+              <strong>Email:</strong> thriftverse.shop@gmail.com
             </p>
           </div>
         </section>
