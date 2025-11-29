@@ -168,7 +168,7 @@ export default function TermsOfServicePage() {
             9. Limitation of Liability
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
-            ThriftVerse provides the platform "as is" without warranties of any
+            ThriftVerse provides the platform &quot;as is&quot; without warranties of any
             kind. We are not liable for:
           </p>
           <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
