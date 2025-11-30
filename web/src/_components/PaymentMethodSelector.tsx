@@ -28,17 +28,17 @@ export default function PaymentMethodSelector({
       ),
       color: '#60bb46',
     },
-    {
-      id: 'fonepay' as PaymentMethod,
-      name: 'FonePay',
-      description: 'Bank payment gateway',
-      icon: (
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ee3124]/10">
-          <span className="text-xl font-bold text-[#ee3124]">F</span>
-        </div>
-      ),
-      color: '#ee3124',
-    },
+    // {
+    //   id: 'fonepay' as PaymentMethod,
+    //   name: 'FonePay',
+    //   description: 'Bank payment gateway',
+    //   icon: (
+    //     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ee3124]/10">
+    //       <span className="text-xl font-bold text-[#ee3124]">F</span>
+    //     </div>
+    //   ),
+    //   color: '#ee3124',
+    // },
     {
       id: 'cod' as PaymentMethod,
       name: 'Cash on Delivery',
@@ -58,7 +58,7 @@ export default function PaymentMethodSelector({
         Select Payment Method
       </h3>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         {paymentMethods.map((method) => {
           const isSelected = selectedMethod === method.id
           const isHovered = hoveredMethod === method.id
