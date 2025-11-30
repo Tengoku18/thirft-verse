@@ -8,6 +8,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { formatProductPrice, formatCheckoutPrice } from '@/utils/formatPrice'
+import { ShippingOption } from './ShippingOptionSelector'
 
 interface CheckoutFormProps {
   productName: string
@@ -17,6 +18,8 @@ interface CheckoutFormProps {
   totalAmount: number
   product: Product | null
   isLoadingProduct: boolean
+  shippingFee?: number
+  shippingOption: ShippingOption
   onSubmit: (data: {
     buyer_name: string
     buyer_email: string
@@ -32,6 +35,8 @@ export default function CheckoutForm({
   totalAmount,
   product,
   isLoadingProduct,
+  shippingFee = 0,
+  shippingOption,
   onSubmit,
 }: CheckoutFormProps) {
   const {
@@ -129,7 +134,29 @@ export default function CheckoutForm({
                     {formatProductPrice(product?.price || price, currency, false)}
                   </span>
                 </div>
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline gap-2 text-sm">
+                  <span className="text-primary/60">Quantity:</span>
+                  <span className="font-medium text-primary">
+                    {quantity}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2 text-sm">
+                  <span className="text-primary/60">Subtotal:</span>
+                  <span className="font-medium text-primary">
+                    {formatCheckoutPrice(price * quantity, currency)}
+                  </span>
+                </div>
+                {shippingFee > 0 && (
+                  <div className="flex items-baseline gap-2 text-sm">
+                    <span className="text-primary/60">
+                      Shipping ({shippingOption === 'home' ? 'Home Delivery' : 'Branch Pickup'}):
+                    </span>
+                    <span className="font-medium text-amber-600">
+                      +{formatCheckoutPrice(shippingFee, currency)}
+                    </span>
+                  </div>
+                )}
+                <div className="mt-2 flex items-baseline gap-2 border-t border-border/50 pt-2">
                   <span className="text-sm font-medium text-primary/60">
                     Total Amount:
                   </span>

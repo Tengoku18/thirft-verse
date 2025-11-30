@@ -1,9 +1,10 @@
 'use client'
 
-import { initiateEsewaPayment, initiateFonepayPayment } from '@/actions/payment'
+import { createCodOrder, initiateEsewaPayment, initiateFonepayPayment } from '@/actions/payment'
 import { getProductById } from '@/actions/products'
 import CheckoutForm from '@/_components/CheckoutForm'
 import PaymentMethodSelector, { PaymentMethod } from '@/_components/PaymentMethodSelector'
+import ShippingOptionSelector, { ShippingOption, getShippingFee } from '@/_components/ShippingOptionSelector'
 import { Product } from '@/types/database'
 import { ShippingAddress } from '@/types/database'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -17,6 +18,7 @@ function CheckoutContent() {
   const [product, setProduct] = useState<Product | null>(null)
   const [isLoadingProduct, setIsLoadingProduct] = useState(true)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('esewa')
+  const [shippingOption, setShippingOption] = useState<ShippingOption>(null)
 
   // Get product details from URL params
   const productId = searchParams.get('productId')
@@ -70,13 +72,25 @@ function CheckoutContent() {
 
   const parsedQuantity = parseInt(quantity, 10)
   const unitPrice = parseFloat(price)
-  const totalAmount = unitPrice * parsedQuantity
+  const baseAmount = unitPrice * parsedQuantity
+
+  // Get shipping fee based on selected shipping option
+  const shippingFee = getShippingFee(shippingOption)
+  const totalAmount = baseAmount + shippingFee
 
   const handleCheckoutSubmit = async (data: {
     buyer_name: string
     buyer_email: string
     shipping_address: ShippingAddress
   }) => {
+    // Validate shipping option is selected
+    if (!shippingOption) {
+      toast.error('Please select a delivery method', {
+        duration: 3000,
+      })
+      return
+    }
+
     setIsProcessing(true)
 
     try {
@@ -85,45 +99,88 @@ function CheckoutContent() {
       if (paymentMethod === 'esewa') {
         // Initiate eSewa payment
         result = await initiateEsewaPayment({
-          amount: totalAmount,
+          amount: baseAmount,
           productId,
           productName,
           quantity: parsedQuantity,
           taxAmount: 0,
-          deliveryCharge: 0,
+          deliveryCharge: shippingFee,
           buyer_name: data.buyer_name,
           buyer_email: data.buyer_email,
           shipping_address: data.shipping_address,
+          shippingOption: shippingOption,
         })
-      } else {
+
+        if (result.success && result.formHtml) {
+          // Open the payment form in a new window or current window
+          const paymentWindow = window.open('', '_self')
+          if (paymentWindow) {
+            paymentWindow.document.write(result.formHtml)
+            paymentWindow.document.close()
+          }
+        } else {
+          toast.error(`Payment initiation failed: ${result.error || 'Unknown error'}`, {
+            duration: 5000,
+          })
+          setIsProcessing(false)
+        }
+      } else if (paymentMethod === 'fonepay') {
         // Initiate FonePay payment
         result = await initiateFonepayPayment({
-          amount: totalAmount,
+          amount: baseAmount,
           productId,
           productName,
           quantity: parsedQuantity,
           buyer_name: data.buyer_name,
           buyer_email: data.buyer_email,
           shipping_address: data.shipping_address,
+          shippingFee: shippingFee,
+          shippingOption: shippingOption,
         })
-      }
 
-      if (result.success && result.formHtml) {
-        // Open the payment form in a new window or current window
-        const paymentWindow = window.open('', '_self')
-        if (paymentWindow) {
-          paymentWindow.document.write(result.formHtml)
-          paymentWindow.document.close()
+        if (result.success && result.formHtml) {
+          // Open the payment form in a new window or current window
+          const paymentWindow = window.open('', '_self')
+          if (paymentWindow) {
+            paymentWindow.document.write(result.formHtml)
+            paymentWindow.document.close()
+          }
+        } else {
+          toast.error(`Payment initiation failed: ${result.error || 'Unknown error'}`, {
+            duration: 5000,
+          })
+          setIsProcessing(false)
         }
-      } else {
-        toast.error(`Payment initiation failed: ${result.error || 'Unknown error'}`, {
-          duration: 5000,
+      } else if (paymentMethod === 'cod') {
+        // Create COD order directly
+        result = await createCodOrder({
+          productId,
+          productName,
+          quantity: parsedQuantity,
+          amount: baseAmount,
+          shippingFee,
+          shippingOption: shippingOption,
+          buyer_name: data.buyer_name,
+          buyer_email: data.buyer_email,
+          shipping_address: data.shipping_address,
         })
-        setIsProcessing(false)
+
+        if (result.success && result.orderId) {
+          toast.success('Order placed successfully!', {
+            duration: 3000,
+          })
+          // Redirect to order confirmation page
+          router.push(`/order/${result.orderId}?view=buyer`)
+        } else {
+          toast.error(result.error || 'Failed to place order', {
+            duration: 5000,
+          })
+          setIsProcessing(false)
+        }
       }
     } catch (error) {
-      console.error('Error initiating payment:', error)
-      toast.error('Failed to initiate payment. Please try again.', {
+      console.error('Error processing order:', error)
+      toast.error('Failed to process order. Please try again.', {
         duration: 5000,
       })
       setIsProcessing(false)
@@ -168,12 +225,21 @@ function CheckoutContent() {
                 Processing...
               </p>
               <p className="mt-2 text-sm text-primary/60">
-                Redirecting to payment gateway...
+                {paymentMethod === 'cod' ? 'Creating your order...' : 'Redirecting to payment gateway...'}
               </p>
             </div>
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Shipping Option Selection */}
+            <div className="rounded-2xl bg-background p-6 shadow-xl">
+              <ShippingOptionSelector
+                selectedOption={shippingOption}
+                onOptionChange={setShippingOption}
+                currency={currency}
+              />
+            </div>
+
             {/* Payment Method Selection */}
             <div className="rounded-2xl bg-background p-6 shadow-xl">
               <PaymentMethodSelector
@@ -193,6 +259,8 @@ function CheckoutContent() {
                 product={product}
                 isLoadingProduct={isLoadingProduct}
                 onSubmit={handleCheckoutSubmit}
+                shippingFee={shippingFee}
+                shippingOption={shippingOption}
               />
             </div>
           </div>

@@ -6,6 +6,8 @@ export interface FonepayPaymentParams {
   productId: string;
   productName: string;
   quantity: number;
+  shippingFee?: number;
+  shippingOption?: 'home' | 'branch';
   buyer_name: string;
   buyer_email: string;
   shipping_address: ShippingAddress;
