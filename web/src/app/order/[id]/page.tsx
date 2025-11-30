@@ -16,7 +16,8 @@ import {
   Calendar,
   Hash,
   Store,
-  ExternalLink
+  ExternalLink,
+  ArrowLeft
 } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import DownloadReceipt from '@/_components/DownloadReceipt'
@@ -95,6 +96,17 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
 
   return (
     <div className="min-h-screen bg-surface/30 py-8 px-4 sm:py-12">
+      {/* Back to Home Button */}
+      <div className="mx-auto max-w-4xl mb-4">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm font-medium text-primary/70 hover:text-primary transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Home
+        </Link>
+      </div>
+
       {/* Paper Container */}
       <div className="mx-auto max-w-4xl bg-white shadow-xl shadow-primary/5 sm:rounded-sm">
         {/* Header Section */}

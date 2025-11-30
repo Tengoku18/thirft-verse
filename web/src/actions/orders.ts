@@ -62,7 +62,7 @@ export async function createOrder(
         shipping_fee: params.shipping_fee || 0,
         shipping_option: params.shipping_option || null,
         payment_method: params.payment_method || 'eSewa',
-        status: params.status || 'completed',
+        status: params.status || 'pending',
         order_code: orderCode,
       })
       .select()

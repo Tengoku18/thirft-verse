@@ -136,7 +136,7 @@ export default function DownloadReceipt({
 
     doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
     doc.setFontSize(18)
-    doc.text(formatCheckoutPrice(parseFloat(amount), currency), 190, currentY + 7, { align: 'right' })
+    doc.text(formatCheckoutPrice(parseFloat(amount), currency), 185, currentY + 7, { align: 'right' })
 
     // Reset text color
     doc.setTextColor(textColor[0], textColor[1], textColor[2])

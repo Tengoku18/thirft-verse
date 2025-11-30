@@ -498,7 +498,7 @@ export async function createCodOrder(
       transaction_code: transactionCode,
       transaction_uuid: transactionUuid,
       payment_method: 'Cash on Delivery',
-      status: 'pending', // COD orders start as pending until delivery
+      status: 'pending',
     });
 
     if (!orderResult.success || !orderResult.order) {
