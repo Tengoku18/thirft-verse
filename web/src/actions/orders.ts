@@ -22,7 +22,10 @@ interface CreateOrderParams {
   transaction_code: string;
   transaction_uuid: string;
   amount: number;
+  shipping_fee?: number;
+  shipping_option?: 'home' | 'branch' | null;
   payment_method?: string;
+  status?: 'pending' | 'completed' | 'cancelled' | 'refunded';
 }
 
 interface GetOrdersParams {
@@ -56,8 +59,10 @@ export async function createOrder(
         transaction_code: params.transaction_code,
         transaction_uuid: params.transaction_uuid,
         amount: params.amount,
+        shipping_fee: params.shipping_fee || 0,
+        shipping_option: params.shipping_option || null,
         payment_method: params.payment_method || 'eSewa',
-        status: 'completed',
+        status: params.status || 'pending',
         order_code: orderCode,
       })
       .select()

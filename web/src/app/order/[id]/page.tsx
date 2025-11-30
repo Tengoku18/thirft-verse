@@ -16,7 +16,8 @@ import {
   Calendar,
   Hash,
   Store,
-  ExternalLink
+  ExternalLink,
+  ArrowLeft
 } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import DownloadReceipt from '@/_components/DownloadReceipt'
@@ -95,6 +96,17 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
 
   return (
     <div className="min-h-screen bg-surface/30 py-8 px-4 sm:py-12">
+      {/* Back to Home Button */}
+      <div className="mx-auto max-w-4xl mb-4">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm font-medium text-primary/70 hover:text-primary transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Home
+        </Link>
+      </div>
+
       {/* Paper Container */}
       <div className="mx-auto max-w-4xl bg-white shadow-xl shadow-primary/5 sm:rounded-sm">
         {/* Header Section */}
@@ -163,18 +175,31 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
               </h3>
 
               <div className="mt-4 space-y-2 text-sm">
-                <div className="flex items-center gap-3">
-                  <span className="text-primary/50 w-20">Quantity</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-primary/50">Quantity</span>
                   <span className="font-semibold text-primary">{order.quantity}x</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-primary/50 w-20">Unit Price</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-primary/50">Unit Price</span>
                   <span className="font-semibold text-primary">
                     {formatProductPrice(order.product?.price || 0, seller?.currency || 'USD', false)}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 pt-2">
-                  <span className="text-primary/50 w-20">Total</span>
+                {order.shipping_fee > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-primary/50">Shipping</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-amber-600">
+                        +{formatCheckoutPrice(order.shipping_fee, seller?.currency || 'NPR')}
+                      </span>
+                      <span className="text-xs text-primary/40">
+                        ({order.shipping_option === 'home' ? 'Home Delivery' : 'Branch Pickup'})
+                      </span>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-2 border-t border-primary/10">
+                  <span className="text-primary/50">Total</span>
                   <span className="font-heading text-2xl font-bold text-[#e8b647]">
                     {formatCheckoutPrice(order.amount, seller?.currency || 'NPR')}
                   </span>
@@ -300,15 +325,18 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
             </div>
 
             <div className="space-y-4">
-              <div>
-                <p className="text-xs text-primary/50">Transaction Code</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="font-mono text-sm font-medium text-primary">
-                    {order.transaction_code}
-                  </p>
-                  <CopyButton text={order.transaction_code} label="Copy" />
+              {/* Only show transaction code for non-COD payments */}
+              {order.payment_method !== 'Cash on Delivery' && (
+                <div>
+                  <p className="text-xs text-primary/50">Transaction Code</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="font-mono text-sm font-medium text-primary">
+                      {order.transaction_code}
+                    </p>
+                    <CopyButton text={order.transaction_code} label="Copy" />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div>
                 <p className="text-xs text-primary/50">Payment Method</p>
@@ -325,14 +353,21 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
 
               {/* Total Amount */}
               <div className="mt-6 rounded-lg bg-[#e8b647]/5 p-4">
-                <p className="text-xs text-primary/60">Total Amount Paid</p>
+                <p className="text-xs text-primary/60">
+                  {order.payment_method === 'Cash on Delivery' ? 'Total Amount to Pay' : 'Total Amount Paid'}
+                </p>
                 <p className="font-heading text-3xl font-bold text-[#e8b647] mt-1">
                   {formatCheckoutPrice(order.amount, seller?.currency || 'NPR')}
                 </p>
+                {order.shipping_fee > 0 && (
+                  <p className="text-xs text-primary/50 mt-2">
+                    Includes shipping fee of {formatCheckoutPrice(order.shipping_fee, seller?.currency || 'NPR')}
+                  </p>
+                )}
               </div>
 
-              {/* Download Receipt Button - Only for buyers */}
-              {isBuyer && (
+              {/* Download Receipt Button - Only for buyers and non-COD */}
+              {isBuyer && order.payment_method !== 'Cash on Delivery' && (
                 <div className="mt-4">
                   <DownloadReceipt
                     transactionCode={order.transaction_code}
@@ -343,6 +378,18 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
                     paymentDate={formatDate(order.created_at)}
                     paymentMethod={order.payment_method}
                   />
+                </div>
+              )}
+
+              {/* COD Information */}
+              {order.payment_method === 'Cash on Delivery' && (
+                <div className="mt-4 rounded-lg bg-amber-50 p-4 border border-amber-200">
+                  <p className="text-sm font-medium text-amber-900">
+                    Cash on Delivery
+                  </p>
+                  <p className="text-xs text-amber-700 mt-1">
+                    Please keep the exact amount ready when receiving your order. Payment will be collected upon delivery.
+                  </p>
                 </div>
               )}
             </div>
