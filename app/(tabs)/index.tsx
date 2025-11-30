@@ -33,7 +33,9 @@ interface Stats {
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const [exploreProducts, setExploreProducts] = useState<ProductWithStore[]>([]);
+  const [exploreProducts, setExploreProducts] = useState<ProductWithStore[]>(
+    []
+  );
   const [stats, setStats] = useState<Stats>({
     itemsSold: 0,
     totalViews: 0,
@@ -103,17 +105,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <TabScreenLayout
-      title="Home"
-      rightComponent={
-        <TouchableOpacity
-          onPress={() => router.push("/settings")}
-          activeOpacity={0.7}
-        >
-          <IconSymbol name="gearshape" size={24} color="#3B2F2F" />
-        </TouchableOpacity>
-      }
-    >
+    <TabScreenLayout title="ThriftVerse">
       <ScrollView
         className="flex-1 bg-white"
         showsVerticalScrollIndicator={false}
@@ -140,7 +132,7 @@ export default function HomeScreen() {
               bgColor="#FEF2F2"
               iconBgColor="#FEE2E2"
               textColor="#DC2626"
-              onPress={() => router.push("/(tabs)/profile?tab=sold")}
+              onPress={() => router.push("/profile?tab=sold")}
             />
             <StatCard
               label="Total views"
@@ -167,7 +159,7 @@ export default function HomeScreen() {
               bgColor="#EFF6FF"
               iconBgColor="#DBEAFE"
               textColor="#2563EB"
-              onPress={() => router.push("/(tabs)/profile?tab=listings")}
+              onPress={() => router.push("/profile?tab=listings")}
             />
           </View>
         </View>
@@ -177,7 +169,7 @@ export default function HomeScreen() {
           <View className="px-6 flex-row items-center justify-between mb-4">
             <HeadingBoldText>Explore</HeadingBoldText>
             <TouchableOpacity
-              onPress={() => router.push("/(tabs)/explore")}
+              onPress={() => router.push("/explore")}
               className="flex-row items-center"
               activeOpacity={0.7}
             >
@@ -192,10 +184,14 @@ export default function HomeScreen() {
           {exploreProducts.length > 0 ? (
             <View className="px-4 flex-row flex-wrap" style={{ gap: 12 }}>
               {exploreProducts.map((product) => (
-                <View key={product.id} style={{ width: '47%' }}>
+                <View key={product.id} style={{ width: "47%" }}>
                   <ProductCard
                     product={product}
-                    onPress={() => Linking.openURL(`https://www.thriftverse.shop/product/${product.id}`)}
+                    onPress={() =>
+                      Linking.openURL(
+                        `https://www.thriftverse.shop/product/${product.id}`
+                      )
+                    }
                   />
                 </View>
               ))}
@@ -275,4 +271,3 @@ function StatCard({
     </Container>
   );
 }
-

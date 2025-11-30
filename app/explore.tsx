@@ -3,6 +3,13 @@ import ProductCard from "@/components/molecules/ProductCard";
 import { ProductCardSkeleton } from "@/components/molecules/ProductCardSkeleton";
 import StoreCard from "@/components/molecules/StoreCard";
 import { StoreCardSkeleton } from "@/components/molecules/StoreCardSkeleton";
+import {
+  BodyMediumText,
+  BodyRegularText,
+  BodySemiboldText,
+  HeadingBoldText,
+} from "@/components/Typography";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { PRODUCT_CATEGORIES } from "@/constants/categories";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAllAvailableProducts, getAllStores } from "@/lib/api-helpers";
@@ -18,13 +25,12 @@ import {
 } from "@/lib/explore-helpers";
 import { ProductWithStore, Profile } from "@/lib/types/database";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   RefreshControl,
   ScrollView,
-  StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -34,6 +40,7 @@ type ExploreTab = "products" | "stores";
 
 export default function ExploreScreen() {
   const { user } = useAuth();
+  const router = useRouter();
 
   // Tab state
   const [activeTab, setActiveTab] = useState<ExploreTab>("products");
@@ -175,11 +182,11 @@ export default function ExploreScreen() {
 
   const renderSkeletonLoading = () => {
     return (
-      <View style={styles.skeletonContainer}>
+      <View className="pt-2">
         {activeTab === "products" ? (
-          <View style={styles.productSkeletonGrid}>
+          <View className="flex-row flex-wrap justify-between">
             {[1, 2, 3, 4, 5, 6].map((key) => (
-              <View key={key} style={styles.productSkeletonItem}>
+              <View key={key} style={{ width: "48%" }} className="mb-3">
                 <ProductCardSkeleton />
               </View>
             ))}
@@ -195,34 +202,80 @@ export default function ExploreScreen() {
     );
   };
 
-  const SearchBar = (
-    <View style={styles.searchContainer}>
-      <Ionicons
-        name="search"
-        size={20}
-        color="#9CA3AF"
-        style={styles.searchIcon}
-      />
-      <TextInput
-        style={styles.searchInput}
-        placeholder={`Search ${activeTab}...`}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        placeholderTextColor="#9CA3AF"
-      />
-      {searchQuery.length > 0 && (
-        <TouchableOpacity onPress={() => setSearchQuery("")}>
-          <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+  // Header with back button + search bar in same line
+  const HeaderWithSearch = (
+    <View className="flex-row items-center px-4 pb-4">
+      <TouchableOpacity
+        onPress={() => router.back()}
+        className="pr-2"
+        activeOpacity={0.7}
+      >
+        <IconSymbol name="chevron.left" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
+      <View className="flex-1 flex-row items-center bg-white rounded-3xl px-3.5 py-2.5">
+        <Ionicons name="search" size={20} color="#9CA3AF" className="mr-3" />
+        <TextInput
+          className="flex-1 text-[15px] text-[#3B2F2F]"
+          placeholder={`Search ${activeTab}...`}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor="#9CA3AF"
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery("")}>
+            <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+
+  // Sticky tabs component
+  const StickyTabs = (
+    <View className="bg-[#3B2F2F]">
+      {HeaderWithSearch}
+      <View className="flex-row px-4 bg-white border-b border-[#E5E7EB]">
+        <TouchableOpacity
+          className={`flex-1 py-3 items-center border-b-2 ${
+            activeTab === "products" ? "border-[#3B2F2F]" : "border-transparent"
+          }`}
+          onPress={() => setActiveTab("products")}
+          style={{ marginBottom: -1 }}
+        >
+          <BodySemiboldText
+            style={{
+              color: activeTab === "products" ? "#3B2F2F" : "#9CA3AF",
+              fontSize: 15,
+            }}
+          >
+            Products ({filteredProducts.length})
+          </BodySemiboldText>
         </TouchableOpacity>
-      )}
+        <TouchableOpacity
+          className={`flex-1 py-3 items-center border-b-2 ${
+            activeTab === "stores" ? "border-[#3B2F2F]" : "border-transparent"
+          }`}
+          onPress={() => setActiveTab("stores")}
+          style={{ marginBottom: -1 }}
+        >
+          <BodySemiboldText
+            style={{
+              color: activeTab === "stores" ? "#3B2F2F" : "#9CA3AF",
+              fontSize: 15,
+            }}
+          >
+            Stores ({filteredStores.length})
+          </BodySemiboldText>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
   return (
-    <TabScreenLayout title="Explore" stickyComponent={SearchBar}>
+    <TabScreenLayout showHeader={false} stickyComponent={StickyTabs}>
       <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -233,126 +286,112 @@ export default function ExploreScreen() {
           />
         }
       >
-        {/* Tabs */}
-        <View style={styles.tabsContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "products" && styles.activeTab]}
-            onPress={() => setActiveTab("products")}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === "products" && styles.activeTabText,
-              ]}
-            >
-              Products ({filteredProducts.length})
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "stores" && styles.activeTab]}
-            onPress={() => setActiveTab("stores")}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === "stores" && styles.activeTabText,
-              ]}
-            >
-              Stores ({filteredStores.length})
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Product Filters */}
         {activeTab === "products" && (
-          <View style={styles.filtersContainer}>
+          <View className="px-4 pt-4 mb-2">
             {/* Categories Header with Clear Button */}
-            <View style={styles.categoriesHeader}>
-              <Text style={styles.filterLabel}>Categories</Text>
+            <View className="flex-row justify-between items-center mb-2.5">
+              <BodySemiboldText style={{ color: "#6B7280", fontSize: 12 }}>
+                Categories
+              </BodySemiboldText>
               {hasActiveFilters && (
                 <TouchableOpacity onPress={resetFilters}>
-                  <Text style={styles.clearButtonText}>Clear all</Text>
+                  <BodySemiboldText style={{ color: "#DC2626", fontSize: 13 }}>
+                    Clear all
+                  </BodySemiboldText>
                 </TouchableOpacity>
               )}
             </View>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={styles.categoriesScroll}
+              className="mb-4"
             >
               {PRODUCT_CATEGORIES.map((category) => {
                 const isSelected = selectedCategories.includes(category);
                 return (
                   <TouchableOpacity
                     key={category}
-                    style={[
-                      styles.categoryChip,
-                      isSelected && styles.categoryChipSelected,
-                    ]}
+                    className={`px-4 py-2.5 rounded-full mr-2 border-[1.5px] ${
+                      isSelected
+                        ? "bg-[#3B2F2F] border-[#3B2F2F]"
+                        : "bg-white border-[#E5E7EB]"
+                    }`}
                     onPress={() => toggleCategory(category)}
                   >
-                    <Text
-                      style={[
-                        styles.categoryChipText,
-                        isSelected && styles.categoryChipTextSelected,
-                      ]}
+                    <BodySemiboldText
+                      style={{
+                        color: isSelected ? "#FFFFFF" : "#6B7280",
+                        fontSize: 14,
+                      }}
                     >
                       {category}
-                    </Text>
+                    </BodySemiboldText>
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
 
             {/* Controls Row */}
-            <View style={styles.controlsRow}>
+            <View className="flex-row justify-between items-center mb-2">
               <TouchableOpacity
-                style={styles.checkboxContainer}
+                className="flex-row items-center"
                 onPress={() => setInStockOnly(!inStockOnly)}
               >
                 <View
-                  style={[
-                    styles.checkbox,
-                    inStockOnly && styles.checkboxChecked,
-                  ]}
+                  className={`w-[22px] h-[22px] rounded-md border-2 mr-2.5 justify-center items-center ${
+                    inStockOnly
+                      ? "bg-[#3B2F2F] border-[#3B2F2F]"
+                      : "border-[#E5E7EB]"
+                  }`}
                 >
                   {inStockOnly && (
                     <Ionicons name="checkmark" size={16} color="#FFFFFF" />
                   )}
                 </View>
-                <Text style={styles.checkboxLabel}>In stock only</Text>
+                <BodyMediumText style={{ color: "#3B2F2F", fontSize: 14 }}>
+                  In stock only
+                </BodyMediumText>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.sortButton}
+                className="flex-row items-center px-3 py-1.5 rounded-lg bg-white border border-[#E5E7EB]"
                 onPress={() => setShowSortMenu(!showSortMenu)}
               >
                 <Ionicons name="swap-vertical" size={16} color="#1A1A1A" />
-                <Text style={styles.sortButtonText}>Sort</Text>
+                <BodySemiboldText
+                  style={{ color: "#3B2F2F", fontSize: 13, marginLeft: 4 }}
+                >
+                  Sort
+                </BodySemiboldText>
               </TouchableOpacity>
             </View>
 
             {/* Sort Menu */}
             {showSortMenu && (
-              <View style={styles.sortMenu}>
+              <View className="bg-white rounded-xl p-2 mt-2 shadow-md">
                 {productSortOptions.map((option) => (
                   <TouchableOpacity
                     key={option.value}
-                    style={styles.sortOption}
+                    className="flex-row justify-between items-center py-3 px-3"
                     onPress={() => {
                       setProductSortBy(option.value);
                       setShowSortMenu(false);
                     }}
                   >
-                    <Text
-                      style={[
-                        styles.sortOptionText,
-                        productSortBy === option.value &&
-                          styles.sortOptionTextActive,
-                      ]}
+                    <BodyMediumText
+                      style={{
+                        color:
+                          productSortBy === option.value
+                            ? "#3B2F2F"
+                            : "#6B7280",
+                        fontSize: 14,
+                        fontWeight:
+                          productSortBy === option.value ? "700" : "500",
+                      }}
                     >
                       {option.label}
-                    </Text>
+                    </BodyMediumText>
                     {productSortBy === option.value && (
                       <Ionicons name="checkmark" size={20} color="#1A1A1A" />
                     )}
@@ -365,41 +404,47 @@ export default function ExploreScreen() {
 
         {/* Store Sort */}
         {activeTab === "stores" && (
-          <View style={styles.filtersContainer}>
-            <View style={styles.controlsRow}>
-              <Text style={styles.resultCount}>
+          <View className="px-4 pt-3 pb-2">
+            <View className="flex-row justify-between items-center mb-2">
+              <BodyMediumText style={{ color: "#6B7280", fontSize: 13 }}>
                 {filteredStores.length} stores
-              </Text>
+              </BodyMediumText>
               <TouchableOpacity
-                style={styles.sortButton}
+                className="flex-row items-center px-3 py-1.5 rounded-lg bg-white border border-[#E5E7EB]"
                 onPress={() => setShowSortMenu(!showSortMenu)}
               >
-                <Ionicons name="swap-vertical" size={16} color="#1A1A1A" />
-                <Text style={styles.sortButtonText}>Sort</Text>
+                <Ionicons name="swap-vertical" size={14} color="#3B2F2F" />
+                <BodySemiboldText
+                  style={{ color: "#3B2F2F", fontSize: 13, marginLeft: 4 }}
+                >
+                  Sort
+                </BodySemiboldText>
               </TouchableOpacity>
             </View>
 
             {/* Sort Menu */}
             {showSortMenu && (
-              <View style={styles.sortMenu}>
+              <View className="bg-white rounded-xl p-2 mt-2 shadow-md">
                 {storeSortOptions.map((option) => (
                   <TouchableOpacity
                     key={option.value}
-                    style={styles.sortOption}
+                    className="flex-row justify-between items-center py-3 px-3"
                     onPress={() => {
                       setStoreSortBy(option.value);
                       setShowSortMenu(false);
                     }}
                   >
-                    <Text
-                      style={[
-                        styles.sortOptionText,
-                        storeSortBy === option.value &&
-                          styles.sortOptionTextActive,
-                      ]}
+                    <BodyMediumText
+                      style={{
+                        color:
+                          storeSortBy === option.value ? "#3B2F2F" : "#6B7280",
+                        fontSize: 14,
+                        fontWeight:
+                          storeSortBy === option.value ? "700" : "500",
+                      }}
                     >
                       {option.label}
-                    </Text>
+                    </BodyMediumText>
                     {storeSortBy === option.value && (
                       <Ionicons name="checkmark" size={20} color="#1A1A1A" />
                     )}
@@ -411,35 +456,47 @@ export default function ExploreScreen() {
         )}
 
         {/* Results */}
-        <View style={styles.resultsContainer}>
+        <View className="px-4">
           {loading ? (
             renderSkeletonLoading()
           ) : activeTab === "products" ? (
             filteredProducts.length === 0 ? (
-              <View style={styles.emptyState}>
+              <View className="py-16 items-center">
                 <Ionicons name="cube-outline" size={64} color="#CCCCCC" />
-                <Text style={styles.emptyStateTitle}>No products found</Text>
-                <Text style={styles.emptyStateText}>
+                <HeadingBoldText
+                  style={{ color: "#3B2F2F", marginTop: 16, marginBottom: 4 }}
+                >
+                  No products found
+                </HeadingBoldText>
+                <BodyRegularText style={{ color: "#6B7280", fontSize: 14 }}>
                   Try adjusting your filters
-                </Text>
+                </BodyRegularText>
               </View>
             ) : (
               <FlatList
                 data={filteredProducts}
-                renderItem={({ item }) => <ProductCard product={item} />}
+                renderItem={({ item }) => (
+                  <View style={{ width: "47%" }}>
+                    <ProductCard product={item} />
+                  </View>
+                )}
                 keyExtractor={(item) => item.id}
                 numColumns={2}
-                columnWrapperStyle={styles.productRow}
+                columnWrapperStyle={{ justifyContent: "flex-start", gap: 12 }}
                 scrollEnabled={false}
               />
             )
           ) : filteredStores.length === 0 ? (
-            <View style={styles.emptyState}>
+            <View className="py-16 items-center">
               <Ionicons name="storefront-outline" size={64} color="#CCCCCC" />
-              <Text style={styles.emptyStateTitle}>No stores found</Text>
-              <Text style={styles.emptyStateText}>
+              <HeadingBoldText
+                style={{ color: "#3B2F2F", marginTop: 16, marginBottom: 4 }}
+              >
+                No stores found
+              </HeadingBoldText>
+              <BodyRegularText style={{ color: "#6B7280", fontSize: 14 }}>
                 Try adjusting your search
-              </Text>
+              </BodyRegularText>
             </View>
           ) : (
             filteredStores.map((store) => (
@@ -451,223 +508,3 @@ export default function ExploreScreen() {
     </TabScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  skeletonContainer: {
-    paddingTop: 8,
-  },
-  productSkeletonGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  productSkeletonItem: {
-    width: "48%",
-    marginBottom: 12,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 100,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginHorizontal: 16,
-    marginTop: 4,
-    marginBottom: 8,
-    borderWidth: 1.5,
-    borderColor: "#E5E7EB",
-  },
-  searchIcon: {
-    marginRight: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: "#3B2F2F",
-    fontFamily: "NunitoSans_400Regular",
-  },
-  tabsContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-    borderBottomWidth: 2,
-    borderBottomColor: "transparent",
-    marginBottom: -1,
-  },
-  activeTab: {
-    borderBottomColor: "#3B2F2F",
-  },
-  tabText: {
-    fontSize: 15,
-    fontFamily: "NunitoSans_600SemiBold",
-    color: "#9CA3AF",
-  },
-  activeTabText: {
-    color: "#3B2F2F",
-    fontFamily: "NunitoSans_700Bold",
-  },
-  filtersContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  categoriesHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  filterLabel: {
-    fontSize: 12,
-    fontFamily: "NunitoSans_700Bold",
-    color: "#6B7280",
-    textTransform: "capitalize",
-    letterSpacing: 0.5,
-  },
-  categoriesScroll: {
-    marginBottom: 16,
-  },
-  categoryChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1.5,
-    borderColor: "#E5E7EB",
-    marginRight: 8,
-  },
-  categoryChipSelected: {
-    backgroundColor: "#3B2F2F",
-    borderColor: "#3B2F2F",
-  },
-  categoryChipText: {
-    fontSize: 14,
-    fontFamily: "NunitoSans_600SemiBold",
-    color: "#6B7280",
-  },
-  categoryChipTextSelected: {
-    color: "#FFFFFF",
-  },
-  controlsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: "#E5E7EB",
-    marginRight: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  checkboxChecked: {
-    backgroundColor: "#3B2F2F",
-    borderColor: "#3B2F2F",
-  },
-  checkboxLabel: {
-    fontSize: 14,
-    fontFamily: "NunitoSans_500Medium",
-    color: "#3B2F2F",
-  },
-  sortButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1.5,
-    borderColor: "#E5E7EB",
-  },
-  sortButtonText: {
-    fontSize: 14,
-    fontFamily: "NunitoSans_600SemiBold",
-    color: "#3B2F2F",
-    marginLeft: 6,
-  },
-  sortMenu: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 8,
-    marginTop: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sortOption: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-  },
-  sortOptionText: {
-    fontSize: 14,
-    fontFamily: "NunitoSans_500Medium",
-    color: "#6B7280",
-  },
-  sortOptionTextActive: {
-    color: "#3B2F2F",
-    fontFamily: "NunitoSans_700Bold",
-  },
-  clearButtonText: {
-    fontSize: 13,
-    fontFamily: "NunitoSans_600SemiBold",
-    color: "#DC2626",
-  },
-  resultCount: {
-    fontSize: 14,
-    fontFamily: "NunitoSans_500Medium",
-    color: "#6B7280",
-  },
-  resultsContainer: {
-    paddingHorizontal: 12,
-  },
-  productRow: {
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  emptyState: {
-    paddingVertical: 64,
-    alignItems: "center",
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontFamily: "NunitoSans_700Bold",
-    color: "#3B2F2F",
-    marginTop: 16,
-    marginBottom: 4,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    fontFamily: "NunitoSans_400Regular",
-    color: "#6B7280",
-  },
-});

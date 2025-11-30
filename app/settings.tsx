@@ -8,6 +8,7 @@ import {
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
+import { getProfileImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
@@ -20,7 +21,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { getProfileImageUrl } from "@/lib/storage-helpers";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -195,17 +195,11 @@ export default function SettingsScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      {/* Custom Header */}
-      <CustomHeader
-        title="Settings"
-        showBackButton={true}
-        backRoute="/(tabs)/profile"
-      />
-
+      <CustomHeader title="Settings" showBackButton={true} />
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 24 }}
       >
         {/* User Info Card */}
         <View className="mx-6 mt-6 mb-4 p-4 bg-[#FAFAFA] rounded-2xl">
@@ -219,7 +213,9 @@ export default function SettingsScreen() {
             ) : (
               <View className="w-12 h-12 rounded-full bg-[#3B2F2F] justify-center items-center mr-3">
                 <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 20 }}>
-                  {(profile?.name || user?.user_metadata?.name)?.charAt(0).toUpperCase() || "U"}
+                  {(profile?.name || user?.user_metadata?.name)
+                    ?.charAt(0)
+                    .toUpperCase() || "U"}
                 </HeadingBoldText>
               </View>
             )}
@@ -309,7 +305,6 @@ export default function SettingsScreen() {
                   Logout
                 </BodySemiboldText>
               </View>
-              <IconSymbol name="chevron.right" size={16} color="#EF4444" />
             </TouchableOpacity>
 
             {/* Delete Account Option */}
@@ -331,7 +326,6 @@ export default function SettingsScreen() {
                   {deleting ? "Deleting..." : "Delete Account"}
                 </BodySemiboldText>
               </View>
-              <IconSymbol name="chevron.right" size={16} color="#EF4444" />
             </TouchableOpacity>
           </View>
         </View>
@@ -341,7 +335,10 @@ export default function SettingsScreen() {
           <CaptionText style={{ color: "#9CA3AF" }}>
             ThriftVerse v1.0.0
           </CaptionText>
-          <CaptionText className="mt-1" style={{ color: "#D1D5DB", fontSize: 11 }}>
+          <CaptionText
+            className="mt-1"
+            style={{ color: "#D1D5DB", fontSize: 11 }}
+          >
             Made with ❤️ for sustainable fashion
           </CaptionText>
         </View>

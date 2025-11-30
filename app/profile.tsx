@@ -191,15 +191,19 @@ export default function ProfileScreen() {
     }
   });
 
+  console.log("profile", profile?.store_username);
+
   return (
     <TabScreenLayout
-      title="Profile"
+      title={`@${profile?.store_username}`}
+      showBackButton
+      showDefaultIcons={false}
       rightComponent={
         <TouchableOpacity
           onPress={() => router.push("/settings")}
           activeOpacity={0.7}
         >
-          <IconSymbol name="line.3.horizontal" size={24} color="#3B2F2F" />
+          <IconSymbol name="gearshape" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       }
     >
@@ -217,41 +221,49 @@ export default function ProfileScreen() {
         }
       >
         {/* Profile Content */}
-        <View className="px-6 pb-6">
+        <View
+          style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
+        >
           {/* Profile Info Row */}
-          <View className="flex-row items-center mb-5">
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 16,
+            }}
+          >
             {/* Avatar with Border */}
-            <View className="mr-7">
+            <View style={{ marginRight: 20 }}>
               <View
                 style={{
-                  width: 90,
-                  height: 90,
-                  borderRadius: 45,
-                  padding: 3,
-                  backgroundColor: "#F5F5F5",
+                  width: 80,
+                  height: 80,
+                  borderRadius: 40,
+                  padding: 2,
+                  backgroundColor: "#F3F4F6",
                 }}
               >
                 {profile.profile_image ? (
                   <Image
                     source={{ uri: getProfileImageUrl(profile.profile_image) }}
                     style={{
-                      width: 84,
-                      height: 84,
-                      borderRadius: 42,
+                      width: 76,
+                      height: 76,
+                      borderRadius: 38,
                     }}
                   />
                 ) : (
                   <View
                     style={{
-                      width: 84,
-                      height: 84,
-                      borderRadius: 42,
+                      width: 76,
+                      height: 76,
+                      borderRadius: 38,
                       backgroundColor: "#3B2F2F",
                       justifyContent: "center",
                       alignItems: "center",
                     }}
                   >
-                    <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 30 }}>
+                    <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 28 }}>
                       {profile.name.charAt(0).toUpperCase()}
                     </HeadingBoldText>
                   </View>
@@ -259,16 +271,24 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            {/* Stats Row - Enhanced Marketplace Style */}
-            <View className="flex-1 flex-row justify-around">
+            {/* Stats Row */}
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                justifyContent: "space-around",
+              }}
+            >
               <TouchableOpacity
-                className="items-center"
+                style={{ alignItems: "center" }}
                 onPress={() => setActiveTab("listings")}
               >
-                <BodyExtraboldText style={{ fontSize: 20 }} className="mb-1">
+                <BodyExtraboldText style={{ fontSize: 18 }}>
                   {productsCount.listings}
                 </BodyExtraboldText>
-                <BodySmallSemiboldText style={{ color: "#6B7280" }}>
+                <BodySmallSemiboldText
+                  style={{ color: "#6B7280", fontSize: 12 }}
+                >
                   Listings
                 </BodySmallSemiboldText>
               </TouchableOpacity>
@@ -276,19 +296,21 @@ export default function ProfileScreen() {
               <View
                 style={{
                   width: 1,
-                  height: 40,
+                  height: 36,
                   backgroundColor: "#E5E7EB",
                 }}
               />
 
               <TouchableOpacity
-                className="items-center"
+                style={{ alignItems: "center" }}
                 onPress={() => setActiveTab("sold")}
               >
-                <BodyExtraboldText style={{ fontSize: 20 }} className="mb-1">
+                <BodyExtraboldText style={{ fontSize: 18 }}>
                   {productsCount.sold}
                 </BodyExtraboldText>
-                <BodySmallSemiboldText style={{ color: "#6B7280" }}>
+                <BodySmallSemiboldText
+                  style={{ color: "#6B7280", fontSize: 12 }}
+                >
                   Sold
                 </BodySmallSemiboldText>
               </TouchableOpacity>
@@ -296,31 +318,35 @@ export default function ProfileScreen() {
               <View
                 style={{
                   width: 1,
-                  height: 40,
+                  height: 36,
                   backgroundColor: "#E5E7EB",
                 }}
               />
 
-              <TouchableOpacity className="items-center">
-                <BodyExtraboldText style={{ fontSize: 20 }} className="mb-1">
+              <TouchableOpacity style={{ alignItems: "center" }}>
+                <BodyExtraboldText style={{ fontSize: 18 }}>
                   0
                 </BodyExtraboldText>
-                <BodySmallSemiboldText style={{ color: "#6B7280" }}>
+                <BodySmallSemiboldText
+                  style={{ color: "#6B7280", fontSize: 12 }}
+                >
                   Reviews
                 </BodySmallSemiboldText>
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Name and Bio - Instagram Style */}
-          <View className="mb-3">
-            <BodyBoldText style={{ fontSize: 15 }} className="mb-1">
+          {/* Name and Bio */}
+          <View style={{ marginBottom: 12 }}>
+            <BodyBoldText style={{ fontSize: 15, marginBottom: 2 }}>
               {profile.name}
             </BodyBoldText>
 
-            {/* Bio Section - Enhanced */}
+            {/* Bio Section */}
             {profile.bio && profile.bio.trim() !== "" ? (
-              <BodyRegularText className="leading-relaxed">
+              <BodyRegularText
+                style={{ fontSize: 14, color: "#374151", lineHeight: 20 }}
+              >
                 {profile.bio}
               </BodyRegularText>
             ) : (
@@ -329,8 +355,11 @@ export default function ProfileScreen() {
                 activeOpacity={0.7}
               >
                 <BodyRegularText
-                  className="leading-relaxed"
-                  style={{ color: "#9CA3AF", fontStyle: "italic" }}
+                  style={{
+                    fontSize: 14,
+                    color: "#9CA3AF",
+                    fontStyle: "italic",
+                  }}
                 >
                   Add a bio to tell your story...
                 </BodyRegularText>
@@ -339,14 +368,14 @@ export default function ProfileScreen() {
           </View>
 
           {/* Action Buttons */}
-          <View className="flex-row gap-3 mt-4">
+          <View style={{ flexDirection: "row", gap: 10 }}>
             <TouchableOpacity
               onPress={() => router.push("/edit-profile")}
               style={{
                 flex: 1,
-                backgroundColor: "#EFEFEF",
-                height: 36,
-                borderRadius: 10,
+                backgroundColor: "#F3F4F6",
+                height: 34,
+                borderRadius: 8,
                 justifyContent: "center",
                 alignItems: "center",
                 flexDirection: "row",
@@ -354,8 +383,10 @@ export default function ProfileScreen() {
               }}
               activeOpacity={0.7}
             >
-              <IconSymbol name="pencil" size={16} color="#3B2F2F" />
-              <BodySmallSemiboldText style={{ fontWeight: "700" }}>
+              <IconSymbol name="pencil" size={14} color="#3B2F2F" />
+              <BodySmallSemiboldText
+                style={{ fontWeight: "600", fontSize: 13 }}
+              >
                 Edit Profile
               </BodySmallSemiboldText>
             </TouchableOpacity>
@@ -374,9 +405,9 @@ export default function ProfileScreen() {
               }}
               style={{
                 flex: 1,
-                backgroundColor: "#EFEFEF",
-                height: 36,
-                borderRadius: 10,
+                backgroundColor: "#F3F4F6",
+                height: 34,
+                borderRadius: 8,
                 justifyContent: "center",
                 alignItems: "center",
                 flexDirection: "row",
@@ -386,22 +417,26 @@ export default function ProfileScreen() {
             >
               <IconSymbol
                 name="square.and.arrow.up"
-                size={16}
+                size={14}
                 color="#3B2F2F"
               />
-              <BodySmallSemiboldText style={{ fontWeight: "700" }}>
+              <BodySmallSemiboldText
+                style={{ fontWeight: "600", fontSize: 13 }}
+              >
                 Share
               </BodySmallSemiboldText>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Tab Buttons - Enhanced Design */}
+        {/* Tab Buttons */}
         <View
           style={{
             flexDirection: "row",
-            borderTopWidth: 0.5,
-            borderTopColor: "#DBDBDB",
+            borderTopWidth: 1,
+            borderTopColor: "#F3F4F6",
+            borderBottomWidth: 1,
+            borderBottomColor: "#F3F4F6",
             backgroundColor: "#FFFFFF",
           }}
         >
@@ -409,7 +444,7 @@ export default function ProfileScreen() {
             onPress={() => setActiveTab("listings")}
             style={{
               flex: 1,
-              paddingVertical: 14,
+              paddingVertical: 12,
               alignItems: "center",
               borderBottomWidth: 2,
               borderBottomColor:
@@ -422,15 +457,16 @@ export default function ProfileScreen() {
             >
               <IconSymbol
                 name="square.grid.3x3.fill"
-                size={18}
+                size={16}
                 color={activeTab === "listings" ? "#3B2F2F" : "#9CA3AF"}
               />
               <CaptionText
                 style={{
                   color: activeTab === "listings" ? "#3B2F2F" : "#9CA3AF",
-                  fontWeight: "700",
+                  fontWeight: "600",
                   textTransform: "uppercase",
                   letterSpacing: 0.5,
+                  fontSize: 11,
                 }}
               >
                 Listings
@@ -440,17 +476,17 @@ export default function ProfileScreen() {
                   backgroundColor:
                     activeTab === "listings" ? "#3B2F2F" : "#E5E7EB",
                   paddingHorizontal: 6,
-                  paddingVertical: 2,
-                  borderRadius: 10,
-                  minWidth: 24,
+                  paddingVertical: 1,
+                  borderRadius: 8,
+                  minWidth: 20,
                 }}
               >
                 <CaptionText
-                  className="text-center"
                   style={{
                     color: activeTab === "listings" ? "#FFFFFF" : "#6B7280",
-                    fontWeight: "700",
+                    fontWeight: "600",
                     fontSize: 10,
+                    textAlign: "center",
                   }}
                 >
                   {productsCount.listings}
@@ -463,7 +499,7 @@ export default function ProfileScreen() {
             onPress={() => setActiveTab("sold")}
             style={{
               flex: 1,
-              paddingVertical: 14,
+              paddingVertical: 12,
               alignItems: "center",
               borderBottomWidth: 2,
               borderBottomColor:
@@ -476,15 +512,16 @@ export default function ProfileScreen() {
             >
               <IconSymbol
                 name="checkmark.circle.fill"
-                size={18}
+                size={16}
                 color={activeTab === "sold" ? "#3B2F2F" : "#9CA3AF"}
               />
               <CaptionText
                 style={{
                   color: activeTab === "sold" ? "#3B2F2F" : "#9CA3AF",
-                  fontWeight: "700",
+                  fontWeight: "600",
                   textTransform: "uppercase",
                   letterSpacing: 0.5,
+                  fontSize: 11,
                 }}
               >
                 Sold
@@ -493,17 +530,17 @@ export default function ProfileScreen() {
                 style={{
                   backgroundColor: activeTab === "sold" ? "#3B2F2F" : "#E5E7EB",
                   paddingHorizontal: 6,
-                  paddingVertical: 2,
-                  borderRadius: 10,
-                  minWidth: 24,
+                  paddingVertical: 1,
+                  borderRadius: 8,
+                  minWidth: 20,
                 }}
               >
                 <CaptionText
-                  className="text-center"
                   style={{
                     color: activeTab === "sold" ? "#FFFFFF" : "#6B7280",
-                    fontWeight: "700",
+                    fontWeight: "600",
                     fontSize: 10,
+                    textAlign: "center",
                   }}
                 >
                   {productsCount.sold}
@@ -513,36 +550,58 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Products Grid Section - Instagram Style */}
+        {/* Products Grid Section */}
         <View>
           {loadingProducts ? (
-            <View className="py-16 items-center">
+            <View style={{ paddingVertical: 48, alignItems: "center" }}>
               <ActivityIndicator size="large" color="#3B2F2F" />
-              <BodyRegularText style={{ color: "#6B7280" }} className="mt-4">
+              <BodyRegularText style={{ color: "#6B7280", marginTop: 12 }}>
                 Loading products...
               </BodyRegularText>
             </View>
           ) : filteredProducts.length === 0 ? (
-            <View className="py-16 items-center px-6">
-              <View className="w-24 h-24 rounded-full bg-[#FAFAFA] justify-center items-center mb-4">
+            <View
+              style={{
+                paddingVertical: 48,
+                paddingHorizontal: 16,
+                alignItems: "center",
+              }}
+            >
+              <View
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 40,
+                  backgroundColor: "#F9FAFB",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginBottom: 12,
+                }}
+              >
                 {activeTab === "listings" ? (
-                  <IconSymbol name="bag" size={40} color="#9CA3AF" />
+                  <IconSymbol name="bag" size={32} color="#9CA3AF" />
                 ) : (
                   <IconSymbol
                     name="checkmark.seal.fill"
-                    size={40}
+                    size={32}
                     color="#9CA3AF"
                   />
                 )}
               </View>
-              <HeadingBoldText className="mb-2 text-center">
+              <HeadingBoldText
+                style={{ marginBottom: 4, textAlign: "center", fontSize: 16 }}
+              >
                 {activeTab === "listings"
                   ? "No Active Listings"
                   : "No Sold Items"}
               </HeadingBoldText>
               <BodyRegularText
-                className="text-center leading-relaxed"
-                style={{ color: "#6B7280" }}
+                style={{
+                  color: "#6B7280",
+                  textAlign: "center",
+                  fontSize: 14,
+                  lineHeight: 20,
+                }}
               >
                 {activeTab === "listings"
                   ? "Start listing your thrift finds to share with the community"

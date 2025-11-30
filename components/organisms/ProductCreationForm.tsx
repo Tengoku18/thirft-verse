@@ -2,7 +2,7 @@ import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { FormPicker } from "@/components/atoms/FormPicker";
 import { FormTextarea } from "@/components/atoms/FormTextarea";
-import { AuthHeader } from "@/components/navigation/AuthHeader";
+import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import {
   BodyRegularText,
   BodySemiboldText,
@@ -34,7 +34,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export const ProductCreationForm: React.FC = () => {
   const router = useRouter();
@@ -281,15 +280,7 @@ export const ProductCreationForm: React.FC = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
-      {/* Header */}
-      <View className="px-6 pt-2">
-        <AuthHeader title="Add your product" onBack={() => router.back()} />
-      </View>
-
-      {/* Divider */}
-      <View className="h-[1px] bg-[#E5E7EB]" />
-
+    <TabScreenLayout title="Add Product">
       <ScrollView
         className="flex-1 bg-white"
         showsVerticalScrollIndicator={false}
@@ -374,7 +365,10 @@ export const ProductCreationForm: React.FC = () => {
                 ) : (
                   <View className="items-center">
                     <IconSymbol name="photo" size={48} color="#9CA3AF" />
-                    <BodySemiboldText className="mt-3" style={{ color: "#6B7280", fontSize: 16 }}>
+                    <BodySemiboldText
+                      className="mt-3"
+                      style={{ color: "#6B7280", fontSize: 16 }}
+                    >
                       Tap to add cover photo
                     </BodySemiboldText>
                   </View>
@@ -389,7 +383,10 @@ export const ProductCreationForm: React.FC = () => {
               Additional Photos
             </BodySemiboldText>
             <BodySemiboldText
-              style={{ color: otherImages.length >= 5 ? "#EF4444" : "#6B7280", fontSize: 12 }}
+              style={{
+                color: otherImages.length >= 5 ? "#EF4444" : "#6B7280",
+                fontSize: 12,
+              }}
             >
               {otherImages.length}/5
             </BodySemiboldText>
@@ -592,6 +589,6 @@ export const ProductCreationForm: React.FC = () => {
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </TabScreenLayout>
   );
 };

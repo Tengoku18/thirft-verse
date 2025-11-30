@@ -28,6 +28,7 @@ export default function TabLayout() {
         name="explore"
         options={{
           title: "Search",
+          href: null, // Hidden from tab bar, accessible via header icon
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="magnifyingglass" color={color} />
           ),
@@ -36,7 +37,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="product"
         options={{
-          title: "Sell",
+          title: "Add Product",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="plus.circle.fill" color={color} />
           ),
@@ -55,6 +56,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
+          href: null, // Hidden from tab bar, accessible via header icon
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="person.fill" color={color} />
           ),
