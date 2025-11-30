@@ -24,6 +24,25 @@ import { headers } from 'next/headers';
 import { createOrder, getOrderByTransactionUuid } from './orders';
 import { getProductById } from './products';
 
+interface CodOrderParams {
+  productId: string;
+  productName: string;
+  quantity: number;
+  amount: number;
+  shippingFee: number;
+  shippingOption: 'home' | 'branch';
+  buyer_name: string;
+  buyer_email: string;
+  shipping_address: ShippingAddress;
+}
+
+interface CodOrderResult {
+  success: boolean;
+  orderId?: string;
+  orderCode?: string;
+  error?: string;
+}
+
 interface InitiatePaymentResult {
   success: boolean;
   formHtml?: string;
@@ -100,6 +119,7 @@ export async function initiateEsewaPayment(
         shipping_address: params.shipping_address,
         amount: totalAmount,
         quantity: params.quantity,
+        shipping_option: params.shippingOption || null,
       });
 
     if (metadataError) {
@@ -327,6 +347,14 @@ export async function createOrderFromPayment(
       }
     }
 
+    // Calculate shipping fee from metadata if shipping option is stored
+    let shippingFee = 0;
+    if (metadata.shipping_option === 'home') {
+      shippingFee = 170;
+    } else if (metadata.shipping_option === 'branch') {
+      shippingFee = 120;
+    }
+
     // Create order from payment metadata (idempotent - will return existing order if it exists)
     const orderResult = await createOrder({
       seller_id: metadata.seller_id,
@@ -338,6 +366,8 @@ export async function createOrderFromPayment(
       transaction_code: metadata.transaction_code || transactionUuid,
       transaction_uuid: transactionUuid,
       amount: parseFloat(metadata.amount),
+      shipping_fee: shippingFee,
+      shipping_option: metadata.shipping_option || null,
       payment_method: metadata.payment_method || 'eSewa',
     });
 
@@ -432,6 +462,106 @@ export async function createOrderFromPayment(
 }
 
 /**
+ * Create COD (Cash on Delivery) order without payment gateway
+ */
+export async function createCodOrder(
+  params: CodOrderParams
+): Promise<CodOrderResult> {
+  try {
+    // Get product details to find seller
+    const product = await getProductById({ id: params.productId });
+    if (!product) {
+      return {
+        success: false,
+        error: 'Product not found',
+      };
+    }
+
+    // Generate a unique transaction code for COD
+    const transactionCode = `COD-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    const transactionUuid = generateTransactionUuid();
+
+    // Calculate total amount (base amount + shipping fee)
+    const totalAmount = params.amount + params.shippingFee;
+
+    // Create order directly
+    const orderResult = await createOrder({
+      product_id: params.productId,
+      seller_id: product.store_id,
+      buyer_name: params.buyer_name,
+      buyer_email: params.buyer_email,
+      shipping_address: params.shipping_address,
+      amount: totalAmount,
+      shipping_fee: params.shippingFee,
+      shipping_option: params.shippingOption,
+      quantity: params.quantity,
+      transaction_code: transactionCode,
+      transaction_uuid: transactionUuid,
+      payment_method: 'Cash on Delivery',
+      status: 'pending',
+    });
+
+    if (!orderResult.success || !orderResult.order) {
+      return {
+        success: false,
+        error: orderResult.error || 'Failed to create COD order',
+      };
+    }
+
+    // Send confirmation emails
+    try {
+      const supabase = createServiceRoleClient();
+      const { data: seller } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', product.store_id)
+        .single();
+
+      const { data: authUser } = await supabase.auth.admin.getUserById(product.store_id);
+      const sellerEmail = authUser?.user?.email;
+
+      if (product && seller && sellerEmail) {
+        await sendOrderEmails({
+          buyer: {
+            email: params.buyer_email,
+            name: params.buyer_name,
+          },
+          seller: {
+            email: sellerEmail,
+            name: seller.name || seller.store_username || 'Seller',
+          },
+          order: {
+            id: orderResult.order.id,
+            orderCode: orderResult.order.order_code || orderResult.order.id,
+            date: new Date().toLocaleDateString(),
+            total: totalAmount,
+            itemName: product.title,
+            storeName: seller.store_username || seller.name || 'ThriftVerse Store',
+            currency: seller.currency || 'NPR',
+          },
+        });
+        console.log('COD order confirmation emails sent successfully');
+      }
+    } catch (emailError) {
+      console.error('Failed to send COD order confirmation emails:', emailError);
+      // Don't fail the order creation if email sending fails
+    }
+
+    return {
+      success: true,
+      orderId: orderResult.order.id,
+      orderCode: orderResult.order.order_code || orderResult.order.id,
+    };
+  } catch (error) {
+    console.error('Failed to create COD order:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create COD order',
+    };
+  }
+}
+
+/**
  * Handle payment failure
  */
 export async function handlePaymentFailure(
@@ -465,6 +595,10 @@ export async function initiateFonepayPayment(
     const protocol = host.includes('localhost') ? 'http' : 'https';
     const baseUrl = `${protocol}://${host}`;
 
+    // Calculate total amount including shipping
+    const shippingFee = params.shippingFee || 0;
+    const totalAmount = params.amount + shippingFee;
+
     // Get product details to find seller
     const product = await getProductById({ id: params.productId });
     if (!product) {
@@ -485,9 +619,10 @@ export async function initiateFonepayPayment(
         buyer_email: params.buyer_email,
         buyer_name: params.buyer_name,
         shipping_address: params.shipping_address,
-        amount: params.amount,
+        amount: totalAmount,
         quantity: params.quantity,
         payment_method: 'FonePay',
+        shipping_option: params.shippingOption || null,
       });
 
     if (metadataError) {
@@ -499,7 +634,7 @@ export async function initiateFonepayPayment(
     }
 
     // FonePay parameters
-    const amount = params.amount.toFixed(2);
+    const amount = totalAmount.toFixed(2);
     const currency = 'NPR';
     const paymentMode = 'P'; // P = Payment
     const date = getFonepayDate(); // MM/DD/YYYY format

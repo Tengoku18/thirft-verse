@@ -8,6 +8,7 @@ export interface EsewaPaymentParams {
   quantity: number;
   taxAmount?: number;
   deliveryCharge?: number;
+  shippingOption?: 'home' | 'branch';
   buyer_name: string;
   buyer_email: string;
   shipping_address: ShippingAddress;

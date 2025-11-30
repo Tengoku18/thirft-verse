@@ -53,6 +53,7 @@ export interface Product {
   other_images: string[]
   availability_count: number
   status: ProductStatus
+  shipping_fee: number
   created_at: string
   updated_at: string
 }
@@ -73,6 +74,8 @@ export interface Order {
   transaction_code: string
   transaction_uuid: string
   amount: number
+  shipping_fee: number
+  shipping_option: 'home' | 'branch' | null
   payment_method: string
   status: OrderStatus
   created_at: string

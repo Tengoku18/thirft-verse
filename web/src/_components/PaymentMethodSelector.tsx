@@ -1,9 +1,9 @@
 'use client'
 
-import { Check } from 'lucide-react'
+import { Check, Truck } from 'lucide-react'
 import { useState } from 'react'
 
-export type PaymentMethod = 'esewa' | 'fonepay'
+export type PaymentMethod = 'esewa' | 'fonepay' | 'cod'
 
 interface PaymentMethodSelectorProps {
   selectedMethod: PaymentMethod
@@ -28,16 +28,27 @@ export default function PaymentMethodSelector({
       ),
       color: '#60bb46',
     },
+    // {
+    //   id: 'fonepay' as PaymentMethod,
+    //   name: 'FonePay',
+    //   description: 'Bank payment gateway',
+    //   icon: (
+    //     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ee3124]/10">
+    //       <span className="text-xl font-bold text-[#ee3124]">F</span>
+    //     </div>
+    //   ),
+    //   color: '#ee3124',
+    // },
     {
-      id: 'fonepay' as PaymentMethod,
-      name: 'FonePay',
-      description: 'Bank payment gateway',
+      id: 'cod' as PaymentMethod,
+      name: 'Cash on Delivery',
+      description: 'Pay when you receive',
       icon: (
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ee3124]/10">
-          <span className="text-xl font-bold text-[#ee3124]">F</span>
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f59e0b]/10">
+          <Truck className="h-6 w-6 text-[#f59e0b]" strokeWidth={2.5} />
         </div>
       ),
-      color: '#ee3124',
+      color: '#f59e0b',
     },
   ]
 
@@ -114,6 +125,11 @@ export default function PaymentMethodSelector({
             <>
               You will be redirected to <span className="font-semibold">FonePay</span> to select
               your bank and complete payment.
+            </>
+          )}
+          {selectedMethod === 'cod' && (
+            <>
+              Pay with <span className="font-semibold">cash</span> when your order is delivered.
             </>
           )}
         </p>
