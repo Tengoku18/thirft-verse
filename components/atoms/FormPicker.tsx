@@ -27,6 +27,7 @@ export interface FormPickerProps {
   options: PickerOption[];
   placeholder?: string;
   disabled?: boolean;
+  required?: boolean;
 }
 
 export const FormPicker: React.FC<FormPickerProps> = ({
@@ -37,6 +38,7 @@ export const FormPicker: React.FC<FormPickerProps> = ({
   options,
   placeholder = "Select an option",
   disabled = false,
+  required = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectedOption = options.find((opt) => opt.value === value);
@@ -52,6 +54,7 @@ export const FormPicker: React.FC<FormPickerProps> = ({
       {label && (
         <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
           {label}
+          {required && <BodySemiboldText style={{ color: "#EF4444", fontSize: 13 }}> *</BodySemiboldText>}
         </BodySemiboldText>
       )}
 

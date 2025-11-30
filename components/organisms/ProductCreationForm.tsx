@@ -479,6 +479,7 @@ export const ProductCreationForm: React.FC = () => {
               <FormInput
                 label="Product name"
                 placeholder="Eg: HUBA X VEK Cloth Jersey - Blue"
+                required
                 value={value}
                 onBlur={onBlur}
                 onChangeText={onChange}
@@ -496,6 +497,7 @@ export const ProductCreationForm: React.FC = () => {
               <FormTextarea
                 label="Description"
                 placeholder="Explain your product here..."
+                required
                 value={value}
                 onBlur={onBlur}
                 onChangeText={onChange}
@@ -513,6 +515,7 @@ export const ProductCreationForm: React.FC = () => {
               <FormPicker
                 label="Category"
                 placeholder="Select a category"
+                required
                 value={value}
                 onChange={onChange}
                 options={categoryOptions}
@@ -529,6 +532,7 @@ export const ProductCreationForm: React.FC = () => {
               <FormInput
                 label="Pricing"
                 placeholder="NPR"
+                required
                 value={value?.toString()}
                 onBlur={onBlur}
                 onChangeText={(text) => {
@@ -549,6 +553,7 @@ export const ProductCreationForm: React.FC = () => {
               <FormInput
                 label="Quantity"
                 placeholder="1"
+                required
                 value={value?.toString()}
                 onBlur={onBlur}
                 onChangeText={(text) => {
@@ -577,29 +582,16 @@ export const ProductCreationForm: React.FC = () => {
               ))}
             </View>
           )}
+
+          {/* Post Button */}
+          <FormButton
+            title={loading ? "Posting..." : "Post"}
+            onPress={handleSubmit(onSubmit)}
+            loading={loading}
+            variant="primary"
+          />
         </View>
       </ScrollView>
-
-      {/* Fixed Post Button */}
-      <View
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          paddingHorizontal: 24,
-          paddingBottom: 32,
-          paddingTop: 16,
-          backgroundColor: "#FFFFFF",
-        }}
-      >
-        <FormButton
-          title={loading ? "Posting..." : "Post"}
-          onPress={handleSubmit(onSubmit)}
-          loading={loading}
-          variant="primary"
-        />
-      </View>
     </SafeAreaView>
   );
 };

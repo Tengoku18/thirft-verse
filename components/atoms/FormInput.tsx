@@ -11,10 +11,11 @@ import {
 export interface FormInputProps extends TextInputProps {
   label?: string;
   error?: string;
+  required?: boolean;
 }
 
 export const FormInput = React.forwardRef<TextInput, FormInputProps>(
-  ({ label, error, className, secureTextEntry, ...props }, ref) => {
+  ({ label, error, required, className, secureTextEntry, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const textColor = "#3B2F2F";
@@ -26,6 +27,7 @@ export const FormInput = React.forwardRef<TextInput, FormInputProps>(
         {label && (
           <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
             {label}
+            {required && <BodySemiboldText style={{ color: "#EF4444", fontSize: 13 }}> *</BodySemiboldText>}
           </BodySemiboldText>
         )}
 

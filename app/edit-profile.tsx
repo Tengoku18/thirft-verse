@@ -343,6 +343,7 @@ export default function EditProfileScreen() {
               label="Full Name"
               placeholder="Enter your full name"
               autoCapitalize="words"
+              required
               value={profileData.name}
               onChangeText={(text) =>
                 setProfileData((prev) => ({ ...prev, name: text }))

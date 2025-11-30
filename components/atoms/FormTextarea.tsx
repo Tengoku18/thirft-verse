@@ -10,10 +10,11 @@ export interface FormTextareaProps extends TextInputProps {
   label?: string;
   error?: string;
   maxLength?: number;
+  required?: boolean;
 }
 
 export const FormTextarea = React.forwardRef<TextInput, FormTextareaProps>(
-  ({ label, error, maxLength = 1000, className, ...props }, ref) => {
+  ({ label, error, maxLength = 1000, required, className, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
     const [charCount, setCharCount] = useState(props.value?.toString().length || 0);
     const textColor = "#3B2F2F";
@@ -30,6 +31,7 @@ export const FormTextarea = React.forwardRef<TextInput, FormTextareaProps>(
           {label && (
             <BodySemiboldText style={{ fontSize: 13 }}>
               {label}
+              {required && <BodySemiboldText style={{ color: "#EF4444", fontSize: 13 }}> *</BodySemiboldText>}
             </BodySemiboldText>
           )}
           {maxLength && (

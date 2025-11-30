@@ -114,6 +114,7 @@ export default function SignInScreen() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  required
                   value={value}
                   onBlur={onBlur}
                   onChangeText={(text) => onChange(text.toLowerCase())}
@@ -133,6 +134,7 @@ export default function SignInScreen() {
                   secureTextEntry
                   autoCapitalize="none"
                   autoCorrect={false}
+                  required
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}

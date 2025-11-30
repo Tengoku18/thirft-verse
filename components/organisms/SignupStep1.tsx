@@ -154,6 +154,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                 label="Full Name"
                 placeholder="Enter your full name"
                 autoCapitalize="words"
+                required
                 value={value}
                 onBlur={onBlur}
                 onChangeText={onChange}
@@ -173,6 +174,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                required
                 value={value}
                 onBlur={onBlur}
                 onChangeText={(text) => onChange(text.toLowerCase())}
@@ -189,6 +191,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                 label="Address"
                 placeholder="Enter your address"
                 autoCapitalize="words"
+                required
                 value={value}
                 onBlur={onBlur}
                 onChangeText={onChange}
@@ -208,6 +211,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                   placeholder="Choose a unique username"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  required
                   value={value}
                   onBlur={onBlur}
                   onChangeText={(text) =>
@@ -267,6 +271,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
+                required
                 value={value}
                 onBlur={onBlur}
                 onChangeText={onChange}
@@ -286,6 +291,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
+                required
                 value={value}
                 onBlur={onBlur}
                 onChangeText={onChange}

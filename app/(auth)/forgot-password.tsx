@@ -7,7 +7,6 @@ import {
   HeadingBoldText,
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { LOGO_USAGE } from "@/constants/logos";
 import { useAuth } from "@/contexts/AuthContext";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
@@ -15,7 +14,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   Alert,
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -39,7 +37,7 @@ const emailSchema = yup.object({
     .required("Email is required"),
 });
 
-// Step 3: Reset Password
+// Step 2: Reset Password (combined with OTP verification)
 interface PasswordFormData {
   password: string;
   confirmPassword: string;
@@ -84,7 +82,7 @@ export default function ForgotPasswordScreen() {
     defaultValues: { email: "" },
   });
 
-  // Step 3 Form
+  // Step 2 Form (Password)
   const {
     control: passwordControl,
     handleSubmit: handlePasswordSubmit,
@@ -263,13 +261,6 @@ export default function ForgotPasswordScreen() {
         return (
           <View className="flex-1">
             <View className="mb-12">
-              <View className="items-center mb-6">
-                <Image
-                  source={LOGO_USAGE.splash}
-                  className="w-40 h-40"
-                  resizeMode="contain"
-                />
-              </View>
               <View className="w-16 h-16 bg-[#3B2F2F] rounded-2xl justify-center items-center mb-6">
                 <IconSymbol name="lock.fill" size={28} color="#FFFFFF" />
               </View>
@@ -283,8 +274,8 @@ export default function ForgotPasswordScreen() {
                 className="leading-relaxed"
                 style={{ color: "#6B7280", fontSize: 15 }}
               >
-                Enter your email address and we'll send you a verification code
-                to reset your password.
+                Enter your email address and we&apos;ll send you a verification
+                code to reset your password.
               </BodyRegularText>
             </View>
 
@@ -299,6 +290,7 @@ export default function ForgotPasswordScreen() {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
+                    required
                     value={value}
                     onBlur={onBlur}
                     onChangeText={(text) => onChange(text.toLowerCase())}
@@ -403,7 +395,8 @@ export default function ForgotPasswordScreen() {
                   <FormInput
                     label="New Password"
                     placeholder="Enter new password"
-                    isPassword
+                    secureTextEntry
+                    required
                     value={value}
                     onBlur={onBlur}
                     onChangeText={onChange}
@@ -419,7 +412,8 @@ export default function ForgotPasswordScreen() {
                   <FormInput
                     label="Confirm Password"
                     placeholder="Re-enter new password"
-                    isPassword
+                    secureTextEntry
+                    required
                     value={value}
                     onBlur={onBlur}
                     onChangeText={onChange}
