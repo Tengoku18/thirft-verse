@@ -1,6 +1,11 @@
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyRegularText,
+  BodySemiboldText,
+  CaptionText,
+  HeadingBoldText,
+} from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { LOGO_USAGE } from "@/constants/logos";
 import { useAuth } from "@/contexts/AuthContext";
@@ -268,19 +273,19 @@ export default function ForgotPasswordScreen() {
               <View className="w-16 h-16 bg-[#3B2F2F] rounded-2xl justify-center items-center mb-6">
                 <IconSymbol name="lock.fill" size={28} color="#FFFFFF" />
               </View>
-              <ThemedText
-                className="text-[40px] font-[PlayfairDisplay_700Bold] leading-tight mb-3"
-                style={{ color: "#3B2F2F" }}
+              <HeadingBoldText
+                className="leading-tight mb-3"
+                style={{ fontSize: 40 }}
               >
                 Forgot{"\n"}Password?
-              </ThemedText>
-              <ThemedText
-                className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed"
-                style={{ color: "#6B7280" }}
+              </HeadingBoldText>
+              <BodyRegularText
+                className="leading-relaxed"
+                style={{ color: "#6B7280", fontSize: 15 }}
               >
                 Enter your email address and we'll send you a verification code
                 to reset your password.
-              </ThemedText>
+              </BodyRegularText>
             </View>
 
             <View className="flex-1">
@@ -312,12 +317,9 @@ export default function ForgotPasswordScreen() {
 
               <View className="mt-6">
                 <TouchableOpacity onPress={() => router.back()}>
-                  <ThemedText
-                    className="text-center text-[14px] font-[NunitoSans_600SemiBold]"
-                    style={{ color: "#3B2F2F" }}
-                  >
+                  <BodySemiboldText className="text-center">
                     Back to Sign In
-                  </ThemedText>
+                  </BodySemiboldText>
                 </TouchableOpacity>
               </View>
             </View>
@@ -328,21 +330,21 @@ export default function ForgotPasswordScreen() {
         return (
           <View className="flex-1">
             <View className="mb-8">
-              <ThemedText
-                className="text-[15px] leading-6 font-[NunitoSans_400Regular] mb-2"
-                style={{ color: "#6B7280" }}
+              <BodyRegularText
+                className="leading-6 mb-2"
+                style={{ color: "#6B7280", fontSize: 15 }}
               >
                 We&apos;ve sent a 6-digit verification code to {email}
-              </ThemedText>
+              </BodyRegularText>
             </View>
 
             <View className="mb-6">
-              <ThemedText
-                className="text-[13px] font-semibold mb-4 font-[NunitoSans_600SemiBold] tracking-wide uppercase"
-                style={{ color: "#3B2F2F" }}
+              <BodySemiboldText
+                className="mb-4 tracking-wide uppercase"
+                style={{ fontSize: 13 }}
               >
                 Enter Verification Code
-              </ThemedText>
+              </BodySemiboldText>
 
               <View className="flex-row justify-between mb-4">
                 {otp.map((digit, index) => (
@@ -374,31 +376,25 @@ export default function ForgotPasswordScreen() {
                     onPress={handleResendCode}
                     disabled={resendLoading}
                   >
-                    <ThemedText
-                      className="text-[14px] font-[NunitoSans_600SemiBold]"
-                      style={{ color: "#3B2F2F" }}
-                    >
+                    <BodySemiboldText>
                       {resendLoading ? "Sending..." : "Resend Code"}
-                    </ThemedText>
+                    </BodySemiboldText>
                   </TouchableOpacity>
                 ) : (
-                  <ThemedText
-                    className="text-[14px] font-[NunitoSans_400Regular]"
-                    style={{ color: "#9CA3AF" }}
-                  >
+                  <BodyRegularText style={{ color: "#9CA3AF" }}>
                     Resend code in {timer}s
-                  </ThemedText>
+                  </BodyRegularText>
                 )}
               </View>
             </View>
 
             <View className="mb-6">
-              <ThemedText
-                className="text-[13px] font-semibold mb-4 font-[NunitoSans_600SemiBold] tracking-wide uppercase"
-                style={{ color: "#3B2F2F" }}
+              <BodySemiboldText
+                className="mb-4 tracking-wide uppercase"
+                style={{ fontSize: 13 }}
               >
                 Set New Password
-              </ThemedText>
+              </BodySemiboldText>
 
               <Controller
                 control={passwordControl}
@@ -434,19 +430,16 @@ export default function ForgotPasswordScreen() {
             </View>
 
             <View className="mb-6 p-5 bg-[#FAFAFA] rounded-2xl border-[2px] border-[#E5E1DB]">
-              <ThemedText
-                className="text-[13px] font-[NunitoSans_600SemiBold] mb-2"
-                style={{ color: "#3B2F2F" }}
-              >
+              <BodySemiboldText className="mb-2" style={{ fontSize: 13 }}>
                 Password Requirements:
-              </ThemedText>
-              <ThemedText
-                className="text-[13px] font-[NunitoSans_400Regular] leading-5"
-                style={{ color: "#6B7280" }}
+              </BodySemiboldText>
+              <BodyRegularText
+                className="leading-5"
+                style={{ color: "#6B7280", fontSize: 13 }}
               >
                 • At least 8 characters long{"\n"}• Contains uppercase and
                 lowercase letters{"\n"}• Contains at least one number
-              </ThemedText>
+              </BodyRegularText>
             </View>
 
             <View className="mt-auto">
@@ -499,12 +492,12 @@ export default function ForgotPasswordScreen() {
           {/* Step Header */}
           {currentStep > 1 && (
             <View className="mb-8">
-              <ThemedText
-                className="text-[11px] font-[NunitoSans_600SemiBold] mb-2 tracking-widest uppercase"
-                style={{ color: "#6B7280" }}
+              <CaptionText
+                className="mb-2 tracking-widest uppercase"
+                style={{ color: "#6B7280", fontWeight: "600", fontSize: 11 }}
               >
                 Step {currentStep} of 2
-              </ThemedText>
+              </CaptionText>
             </View>
           )}
 
@@ -514,12 +507,9 @@ export default function ForgotPasswordScreen() {
           {/* Footer */}
           {currentStep === 1 && (
             <View className="mt-auto pt-8 pb-4">
-              <ThemedText
-                className="text-center text-xs font-[NunitoSans_400Regular]"
-                style={{ color: "#9CA3AF" }}
-              >
+              <CaptionText className="text-center" style={{ color: "#9CA3AF" }}>
                 ThriftVerse • Sustainable Fashion Marketplace
-              </ThemedText>
+              </CaptionText>
             </View>
           )}
         </View>

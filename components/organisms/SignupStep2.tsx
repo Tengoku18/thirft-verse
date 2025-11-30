@@ -1,5 +1,5 @@
 import { FormButton } from "@/components/atoms/FormButton";
-import { ThemedText } from "@/components/themed-text";
+import { BodyRegularText, BodySemiboldText } from "@/components/Typography";
 import { createUserProfile } from "@/lib/database-helpers";
 import { supabase } from "@/lib/supabase";
 import React, { useEffect, useRef, useState } from "react";
@@ -256,33 +256,24 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
               onPress={handleResendCode}
               disabled={resendLoading}
             >
-              <ThemedText
-                className="text-[14px] font-[NunitoSans_600SemiBold]"
-                style={{ color: "#3B2F2F" }}
-              >
+              <BodySemiboldText>
                 {resendLoading ? "Sending..." : "Resend Code"}
-              </ThemedText>
+              </BodySemiboldText>
             </TouchableOpacity>
           ) : (
-            <ThemedText
-              className="text-[14px] font-[NunitoSans_400Regular]"
-              style={{ color: "#9CA3AF" }}
-            >
+            <BodyRegularText style={{ color: "#9CA3AF" }}>
               Resend code in {timer}s
-            </ThemedText>
+            </BodyRegularText>
           )}
         </View>
       </View>
 
       {/* Info */}
       <View className="mb-8 p-5 bg-[#FAFAFA] rounded-2xl border-[2px] border-[#E5E1DB]">
-        <ThemedText
-          className="text-[14px] font-[NunitoSans_400Regular] leading-6"
-          style={{ color: "#6B7280" }}
-        >
+        <BodyRegularText className="leading-6" style={{ color: "#6B7280" }}>
           Check your spam folder if you don&apos;t see the email. The code will
           expire in 60 minutes.
-        </ThemedText>
+        </BodyRegularText>
       </View>
 
       {/* Buttons */}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Image, TouchableOpacity, Dimensions, FlatList } from 'react-native';
-import { ThemedText } from '@/components/themed-text';
+import { BodyBoldText, CaptionText } from '@/components/Typography';
 import { Product } from '@/lib/types/database';
 import { getProductImageUrl } from '@/lib/storage-helpers';
 
@@ -65,14 +65,13 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
               marginBottom: 4,
             }}
           >
-            <ThemedText className="text-2xl">✓</ThemedText>
+            <BodyBoldText style={{ fontSize: 24 }}>✓</BodyBoldText>
           </View>
-          <ThemedText
-            className="text-xs font-[NunitoSans_700Bold] uppercase tracking-wider"
-            style={{ color: '#FFFFFF' }}
+          <CaptionText
+            style={{ color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: 0.5 }}
           >
             Sold
-          </ThemedText>
+          </CaptionText>
         </View>
       )}
     </TouchableOpacity>

@@ -1,7 +1,12 @@
 import { AuthHeader } from "@/components/navigation/AuthHeader";
 import { SignupStep1 } from "@/components/organisms/SignupStep1";
 import { SignupStep2 } from "@/components/organisms/SignupStep2";
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyBoldText,
+  BodyRegularText,
+  CaptionText,
+  HeadingBoldText,
+} from "@/components/Typography";
 import { supabase } from "@/lib/supabase";
 import { UserDetailsFormData } from "@/lib/validations/signup-step1";
 import { useRouter } from "expo-router";
@@ -108,9 +113,9 @@ export default function SignupScreen() {
       return (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#D4A373" />
-          <ThemedText className="text-base text-[#6B705C] mt-4 font-[NunitoSans_400Regular]">
+          <BodyRegularText style={{ color: "#6B705C" }} className="mt-4">
             Creating your account...
-          </ThemedText>
+          </BodyRegularText>
         </View>
       );
     }
@@ -136,33 +141,30 @@ export default function SignupScreen() {
         return (
           <View className="flex-1 justify-center items-center px-4">
             <View className="w-24 h-24 bg-[#3B2F2F] rounded-3xl justify-center items-center mb-8">
-              <ThemedText className="text-5xl" style={{ color: "#FFFFFF" }}>
+              <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 48 }}>
                 ✓
-              </ThemedText>
+              </HeadingBoldText>
             </View>
-            <ThemedText
-              className="text-[36px] font-[PlayfairDisplay_700Bold] mb-4 text-center leading-tight"
-              style={{ color: "#3B2F2F" }}
+            <HeadingBoldText
+              className="mb-4 text-center leading-tight"
+              style={{ fontSize: 36 }}
             >
               Welcome to{"\n"}ThriftVerse!
-            </ThemedText>
-            <ThemedText
-              className="text-[15px] text-center mb-12 font-[NunitoSans_400Regular] px-4 leading-relaxed"
-              style={{ color: "#6B7280" }}
+            </HeadingBoldText>
+            <BodyRegularText
+              className="text-center mb-12 px-4 leading-relaxed"
+              style={{ color: "#6B7280", fontSize: 15 }}
             >
               Your account has been created successfully.{"\n"}Let&apos;s start
               your thrifting journey!
-            </ThemedText>
+            </BodyRegularText>
             <TouchableOpacity
               onPress={() => router.replace("/(tabs)")}
               className="bg-[#3B2F2F] px-12 h-[58px] rounded-2xl justify-center items-center shadow-lg w-full"
             >
-              <ThemedText
-                className="text-base font-[NunitoSans_700Bold]"
-                style={{ color: "#FFFFFF", letterSpacing: 0.5 }}
-              >
+              <BodyBoldText style={{ color: "#FFFFFF", letterSpacing: 0.5 }}>
                 Get Started
-              </ThemedText>
+              </BodyBoldText>
             </TouchableOpacity>
           </View>
         );
@@ -188,24 +190,24 @@ export default function SignupScreen() {
 
         {currentStep === 2 && (
           <View className="mb-8">
-            <ThemedText
-              className="text-[11px] font-[NunitoSans_600SemiBold] mb-2 tracking-widest uppercase"
-              style={{ color: "#6B7280" }}
+            <CaptionText
+              className="mb-2 tracking-widest uppercase"
+              style={{ color: "#6B7280", fontWeight: "600", fontSize: 11 }}
             >
               Step {currentStep} of 3
-            </ThemedText>
-            <ThemedText
-              className="text-[32px] font-[PlayfairDisplay_700Bold] leading-tight mb-2"
-              style={{ color: "#3B2F2F" }}
+            </CaptionText>
+            <HeadingBoldText
+              className="leading-tight mb-2"
+              style={{ fontSize: 32 }}
             >
               Email Verification
-            </ThemedText>
-            <ThemedText
-              className="text-[15px] font-[NunitoSans_400Regular] leading-relaxed"
-              style={{ color: "#6B7280" }}
+            </HeadingBoldText>
+            <BodyRegularText
+              className="leading-relaxed"
+              style={{ color: "#6B7280", fontSize: 15 }}
             >
               We&apos;ve sent a code to verify your email
-            </ThemedText>
+            </BodyRegularText>
           </View>
         )}
 

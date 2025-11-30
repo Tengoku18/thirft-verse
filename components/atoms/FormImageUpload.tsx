@@ -1,4 +1,9 @@
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyRegularText,
+  BodySemiboldText,
+  CaptionText,
+  HeadingBoldText,
+} from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { uploadImageToStorage } from "@/lib/upload-helpers";
@@ -102,19 +107,15 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
     <View className="mb-6">
       {/* Label */}
       <View className="flex-row items-center mb-3">
-        <ThemedText
-          className="text-[13px] font-[NunitoSans_600SemiBold] tracking-wide uppercase"
-          style={{ color: "#3B2F2F" }}
+        <BodySemiboldText
+          style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: 0.5 }}
         >
           {label}
-        </ThemedText>
+        </BodySemiboldText>
         {required && (
-          <ThemedText
-            className="text-[13px] font-[NunitoSans_600SemiBold] ml-1"
-            style={{ color: "#EF4444" }}
-          >
+          <BodySemiboldText className="ml-1" style={{ color: "#EF4444", fontSize: 13 }}>
             *
-          </ThemedText>
+          </BodySemiboldText>
         )}
       </View>
 
@@ -172,12 +173,11 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
                 backgroundColor: "rgba(59, 47, 47, 0.9)",
               }}
             >
-              <ThemedText
-                className="text-[11px] font-[NunitoSans_700Bold] uppercase tracking-wider"
-                style={{ color: "#FFFFFF" }}
+              <CaptionText
+                style={{ color: "#FFFFFF", textTransform: "uppercase", letterSpacing: 0.5, fontSize: 11 }}
               >
                 Cover Photo
-              </ThemedText>
+              </CaptionText>
             </View>
           </View>
         ) : (
@@ -196,18 +196,12 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
             {uploading ? (
               <View className="items-center">
                 <ActivityIndicator size="large" color="#3B2F2F" />
-                <ThemedText
-                  className="text-[16px] font-[NunitoSans_600SemiBold] mt-4"
-                  style={{ color: "#3B2F2F" }}
-                >
+                <BodySemiboldText className="mt-4" style={{ fontSize: 16 }}>
                   Uploading image...
-                </ThemedText>
-                <ThemedText
-                  className="text-[13px] font-[NunitoSans_400Regular] mt-2"
-                  style={{ color: "#6B7280" }}
-                >
+                </BodySemiboldText>
+                <BodyRegularText className="mt-2" style={{ color: "#6B7280", fontSize: 13 }}>
                   Please wait
-                </ThemedText>
+                </BodyRegularText>
               </View>
             ) : (
               <View className="items-center px-6">
@@ -224,18 +218,12 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
                 >
                   <IconSymbol name="photo" size={40} color="#3B2F2F" />
                 </View>
-                <ThemedText
-                  className="text-[18px] font-[PlayfairDisplay_700Bold] mb-2"
-                  style={{ color: "#3B2F2F" }}
-                >
+                <HeadingBoldText className="mb-2" style={{ fontSize: 18 }}>
                   Upload Cover Photo
-                </ThemedText>
-                <ThemedText
-                  className="text-[14px] font-[NunitoSans_400Regular] text-center"
-                  style={{ color: "#6B7280" }}
-                >
+                </HeadingBoldText>
+                <BodyRegularText className="text-center" style={{ color: "#6B7280" }}>
                   Tap to select an image
-                </ThemedText>
+                </BodyRegularText>
               </View>
             )}
           </TouchableOpacity>
@@ -244,22 +232,16 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
 
       {/* Hint */}
       {hint && !error && (
-        <ThemedText
-          className="text-[12px] font-[NunitoSans_400Regular] mt-2"
-          style={{ color: "#6B7280" }}
-        >
+        <CaptionText className="mt-2" style={{ color: "#6B7280" }}>
           {hint}
-        </ThemedText>
+        </CaptionText>
       )}
 
       {/* Error Message */}
       {error && (
-        <ThemedText
-          className="text-[13px] font-[NunitoSans_600SemiBold] mt-2"
-          style={{ color: "#EF4444" }}
-        >
+        <BodySemiboldText className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
           {error}
-        </ThemedText>
+        </BodySemiboldText>
       )}
     </View>
   );

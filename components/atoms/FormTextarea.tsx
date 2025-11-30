@@ -1,4 +1,4 @@
-import { ThemedText } from "@/components/themed-text";
+import { BodySemiboldText, CaptionText } from "@/components/Typography";
 import React, { useState } from "react";
 import {
   TextInput,
@@ -28,20 +28,16 @@ export const FormTextarea = React.forwardRef<TextInput, FormTextareaProps>(
         {/* Label with character count */}
         <View className="flex-row items-center justify-between mb-3">
           {label && (
-            <ThemedText
-              className="text-[13px] font-[NunitoSans_600SemiBold]"
-              style={{ color: '#3B2F2F' }}
-            >
+            <BodySemiboldText style={{ fontSize: 13 }}>
               {label}
-            </ThemedText>
+            </BodySemiboldText>
           )}
           {maxLength && (
-            <ThemedText
-              className="text-[12px] font-[NunitoSans_600SemiBold]"
-              style={{ color: charCount > maxLength ? '#EF4444' : '#6B7280' }}
+            <BodySemiboldText
+              style={{ color: charCount > maxLength ? '#EF4444' : '#6B7280', fontSize: 12 }}
             >
               {charCount}/{maxLength}
-            </ThemedText>
+            </BodySemiboldText>
           )}
         </View>
 
@@ -73,9 +69,9 @@ export const FormTextarea = React.forwardRef<TextInput, FormTextareaProps>(
         />
 
         {error && (
-          <ThemedText className="text-[13px] text-red-500 mt-2 font-[NunitoSans_500Medium]">
+          <CaptionText className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
             {error}
-          </ThemedText>
+          </CaptionText>
         )}
       </View>
     );

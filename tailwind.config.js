@@ -12,10 +12,10 @@ module.exports = {
       // Set Nunito Sans as default sans-serif (body text)
       sans: ["NunitoSans_400Regular"],
 
-      // Set Playfair Display as default serif (headings)
-      serif: ["PlayfairDisplay_400Regular"],
+      // Set Folito as default serif (headings)
+      serif: ["Folito_400Regular"],
 
-      // Additional font weight variants
+      // Nunito Sans font weight variants (body text)
       "sans-extralight": ["NunitoSans_200ExtraLight"],
       "sans-light": ["NunitoSans_300Light"],
       "sans-medium": ["NunitoSans_500Medium"],
@@ -24,12 +24,13 @@ module.exports = {
       "sans-extrabold": ["NunitoSans_800ExtraBold"],
       "sans-black": ["NunitoSans_900Black"],
 
-      playfair: ["PlayfairDisplay_400Regular"],
-      "playfair-medium": ["PlayfairDisplay_500Medium"],
-      "playfair-semibold": ["PlayfairDisplay_600SemiBold"],
-      "playfair-bold": ["PlayfairDisplay_700Bold"],
-      "playfair-extrabold": ["PlayfairDisplay_800ExtraBold"],
-      "playfair-black": ["PlayfairDisplay_900Black"],
+      // Folito font weight variants (headings)
+      folito: ["Folito_400Regular"],
+      "folito-medium": ["Folito_500Medium"],
+      "folito-semibold": ["Folito_600SemiBold"],
+      "folito-bold": ["Folito_700Bold"],
+      "folito-extrabold": ["Folito_800ExtraBold"],
+      "folito-black": ["Folito_900Black"],
     },
     extend: {
       colors: {

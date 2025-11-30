@@ -1,6 +1,12 @@
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import ProductCard from "@/components/molecules/ProductCard";
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyExtraboldText,
+  BodyRegularText,
+  BodySemiboldText,
+  BodySmallSemiboldText,
+  HeadingBoldText,
+} from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAllAvailableProducts } from "@/lib/api-helpers";
@@ -10,6 +16,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   RefreshControl,
   ScrollView,
   TouchableOpacity,
@@ -122,12 +129,7 @@ export default function HomeScreen() {
       >
         {/* Statistics Section */}
         <View className="px-6 pt-4">
-          <ThemedText
-            className="text-[20px] font-[PlayfairDisplay_700Bold] mb-4"
-            style={{ color: "#3B2F2F" }}
-          >
-            Statistics
-          </ThemedText>
+          <HeadingBoldText className="mb-4">Statistics</HeadingBoldText>
 
           {/* Stats Grid - 2x2 */}
           <View className="flex-row gap-3 mb-3">
@@ -173,23 +175,15 @@ export default function HomeScreen() {
         {/* Explore Section */}
         <View className="mt-6">
           <View className="px-6 flex-row items-center justify-between mb-4">
-            <ThemedText
-              className="text-[20px] font-[PlayfairDisplay_700Bold]"
-              style={{ color: "#3B2F2F" }}
-            >
-              Explore
-            </ThemedText>
+            <HeadingBoldText>Explore</HeadingBoldText>
             <TouchableOpacity
               onPress={() => router.push("/(tabs)/explore")}
               className="flex-row items-center"
               activeOpacity={0.7}
             >
-              <ThemedText
-                className="text-[14px] font-[NunitoSans_600SemiBold] mr-1"
-                style={{ color: "#6B7280" }}
-              >
+              <BodySemiboldText style={{ color: "#6B7280" }} className="mr-1">
                 See all
-              </ThemedText>
+              </BodySemiboldText>
               <IconSymbol name="arrow.right" size={14} color="#6B7280" />
             </TouchableOpacity>
           </View>
@@ -201,7 +195,7 @@ export default function HomeScreen() {
                 <View key={product.id} style={{ width: '47%' }}>
                   <ProductCard
                     product={product}
-                    onPress={() => router.push(`/product/${product.id}`)}
+                    onPress={() => Linking.openURL(`https://www.thriftverse.shop/product/${product.id}`)}
                   />
                 </View>
               ))}
@@ -211,18 +205,15 @@ export default function HomeScreen() {
               <View className="w-20 h-20 rounded-full bg-[#F5F5F5] justify-center items-center mb-4">
                 <IconSymbol name="bag" size={36} color="#9CA3AF" />
               </View>
-              <ThemedText
-                className="text-[16px] font-[NunitoSans_600SemiBold] mb-2"
-                style={{ color: "#3B2F2F" }}
-              >
+              <BodySemiboldText style={{ fontSize: 16 }} className="mb-2">
                 No products available
-              </ThemedText>
-              <ThemedText
-                className="text-[14px] font-[NunitoSans_400Regular] text-center"
+              </BodySemiboldText>
+              <BodyRegularText
                 style={{ color: "#6B7280" }}
+                className="text-center"
               >
                 Check back later for new items
-              </ThemedText>
+              </BodyRegularText>
             </View>
           )}
         </View>
@@ -268,12 +259,9 @@ function StatCard({
       {...(onPress && { onPress, activeOpacity: 0.7 })}
     >
       <View className="flex-row items-center justify-between mb-3">
-        <ThemedText
-          className="text-[13px] font-[NunitoSans_600SemiBold]"
-          style={{ color: textColor }}
-        >
+        <BodySmallSemiboldText style={{ color: textColor }}>
           {label}
-        </ThemedText>
+        </BodySmallSemiboldText>
         <View
           className="w-8 h-8 rounded-full items-center justify-center"
           style={{ backgroundColor: iconBgColor }}
@@ -281,12 +269,9 @@ function StatCard({
           <IconSymbol name={icon as any} size={16} color={textColor} />
         </View>
       </View>
-      <ThemedText
-        className="text-[26px] font-[NunitoSans_800ExtraBold]"
-        style={{ color: textColor }}
-      >
+      <BodyExtraboldText style={{ color: textColor, fontSize: 26 }}>
         {value}
-      </ThemedText>
+      </BodyExtraboldText>
     </Container>
   );
 }

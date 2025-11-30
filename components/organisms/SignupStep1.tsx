@@ -1,7 +1,7 @@
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { ProfileImagePicker } from "@/components/atoms/ProfileImagePicker";
-import { ThemedText } from "@/components/themed-text";
+import { BodyBoldText, BodyRegularText, CaptionText } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { checkEmailExists, checkUsernameExists } from "@/lib/database-helpers";
 import {
@@ -221,12 +221,9 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                     {usernameStatus === "checking" && (
                       <>
                         <ActivityIndicator size="small" color="#6B7280" />
-                        <ThemedText
-                          className="text-[12px] font-[NunitoSans_500Medium] ml-2"
-                          style={{ color: "#6B7280" }}
-                        >
+                        <CaptionText className="ml-2" style={{ color: "#6B7280" }}>
                           Checking availability...
-                        </ThemedText>
+                        </CaptionText>
                       </>
                     )}
                     {usernameStatus === "available" && (
@@ -236,12 +233,9 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                           size={16}
                           color="#22C55E"
                         />
-                        <ThemedText
-                          className="text-[12px] font-[NunitoSans_600SemiBold] ml-2"
-                          style={{ color: "#22C55E" }}
-                        >
+                        <CaptionText className="ml-2" style={{ color: "#22C55E" }}>
                           Username is available
-                        </ThemedText>
+                        </CaptionText>
                       </>
                     )}
                     {usernameStatus === "taken" && (
@@ -251,12 +245,9 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                           size={16}
                           color="#EF4444"
                         />
-                        <ThemedText
-                          className="text-[12px] font-[NunitoSans_600SemiBold] ml-2"
-                          style={{ color: "#EF4444" }}
-                        >
+                        <CaptionText className="ml-2" style={{ color: "#EF4444" }}>
                           Username is already taken
-                        </ThemedText>
+                        </CaptionText>
                       </>
                     )}
                   </View>
@@ -326,40 +317,38 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                     )}
                   </View>
                   <View className="flex-1">
-                    <ThemedText
-                      className="text-[13px] font-[NunitoSans_400Regular] leading-5"
-                      style={{ color: "#6B7280" }}
+                    <BodyRegularText
+                      className="leading-5"
+                      style={{ color: "#6B7280", fontSize: 13 }}
                     >
                       I agree to the{" "}
-                      <ThemedText
-                        className="text-[13px] font-[NunitoSans_700Bold]"
-                        style={{ color: "#3B2F2F" }}
+                      <BodyBoldText
+                        style={{ fontSize: 13 }}
                         onPress={() =>
                           Linking.openURL("https://thriftverse.com/terms")
                         }
                       >
                         Terms & Conditions
-                      </ThemedText>{" "}
+                      </BodyBoldText>{" "}
                       and{" "}
-                      <ThemedText
-                        className="text-[13px] font-[NunitoSans_700Bold]"
-                        style={{ color: "#3B2F2F" }}
+                      <BodyBoldText
+                        style={{ fontSize: 13 }}
                         onPress={() =>
                           Linking.openURL("https://thriftverse.com/privacy")
                         }
                       >
                         Privacy Policy
-                      </ThemedText>
-                    </ThemedText>
+                      </BodyBoldText>
+                    </BodyRegularText>
                   </View>
                 </TouchableOpacity>
                 {errors.acceptedTerms && (
-                  <ThemedText
-                    className="text-[13px] font-[NunitoSans_500Medium] mt-2 ml-8"
-                    style={{ color: "#EF4444" }}
+                  <CaptionText
+                    className="mt-2 ml-8"
+                    style={{ color: "#EF4444", fontSize: 13 }}
                   >
                     {errors.acceptedTerms.message}
-                  </ThemedText>
+                  </CaptionText>
                 )}
               </View>
             )}
@@ -378,19 +367,11 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
 
       <View className="mt-6 pb-4">
         <View className="flex-row justify-center items-center">
-          <ThemedText
-            className="text-[14px] font-[NunitoSans_400Regular]"
-            style={{ color: "#6B7280" }}
-          >
+          <BodyRegularText style={{ color: "#6B7280" }}>
             Already have an account?{" "}
-          </ThemedText>
+          </BodyRegularText>
           <TouchableOpacity onPress={() => router.back()}>
-            <ThemedText
-              className="text-[14px] font-[NunitoSans_700Bold]"
-              style={{ color: "#3B2F2F" }}
-            >
-              Sign In
-            </ThemedText>
+            <BodyBoldText>Sign In</BodyBoldText>
           </TouchableOpacity>
         </View>
       </View>

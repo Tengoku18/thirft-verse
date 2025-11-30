@@ -1,4 +1,9 @@
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyRegularText,
+  BodySemiboldText,
+  CaptionText,
+  HeadingBoldText,
+} from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { uploadMultipleImages } from "@/lib/upload-helpers";
@@ -118,18 +123,16 @@ export const FormMultipleImageUpload: React.FC<
     <View className="mb-6">
       {/* Label with count */}
       <View className="flex-row items-center justify-between mb-3">
-        <ThemedText
-          className="text-[13px] font-[NunitoSans_600SemiBold] tracking-wide uppercase"
-          style={{ color: "#3B2F2F" }}
+        <BodySemiboldText
+          style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: 0.5 }}
         >
           {label}
-        </ThemedText>
-        <ThemedText
-          className="text-[12px] font-[NunitoSans_600SemiBold]"
-          style={{ color: value.length >= maxImages ? "#EF4444" : "#6B7280" }}
+        </BodySemiboldText>
+        <BodySemiboldText
+          style={{ color: value.length >= maxImages ? "#EF4444" : "#6B7280", fontSize: 12 }}
         >
           {value.length}/{maxImages}
-        </ThemedText>
+        </BodySemiboldText>
       </View>
 
       {/* Images Grid */}
@@ -204,12 +207,9 @@ export const FormMultipleImageUpload: React.FC<
           {uploading ? (
             <View className="items-center">
               <ActivityIndicator size="large" color="#3B2F2F" />
-              <ThemedText
-                className="text-[14px] font-[NunitoSans_600SemiBold] mt-3"
-                style={{ color: "#3B2F2F" }}
-              >
+              <BodySemiboldText className="mt-3" style={{ fontSize: 14 }}>
                 Uploading...
-              </ThemedText>
+              </BodySemiboldText>
             </View>
           ) : (
             <View className="items-center px-6">
@@ -226,22 +226,16 @@ export const FormMultipleImageUpload: React.FC<
               >
                 <IconSymbol name="photo.stack" size={32} color="#3B2F2F" />
               </View>
-              <ThemedText
-                className="text-[16px] font-[PlayfairDisplay_700Bold] mb-1"
-                style={{ color: "#3B2F2F" }}
-              >
+              <HeadingBoldText className="mb-1" style={{ fontSize: 16 }}>
                 {value.length > 0
                   ? "Add More Photos"
                   : "Upload Additional Photos"}
-              </ThemedText>
-              <ThemedText
-                className="text-[13px] font-[NunitoSans_400Regular] text-center"
-                style={{ color: "#6B7280" }}
-              >
+              </HeadingBoldText>
+              <BodyRegularText className="text-center" style={{ color: "#6B7280", fontSize: 13 }}>
                 {value.length > 0
                   ? `Add ${maxImages - value.length} more`
                   : `Select up to ${maxImages} images`}
-              </ThemedText>
+              </BodyRegularText>
             </View>
           )}
         </TouchableOpacity>
@@ -249,22 +243,16 @@ export const FormMultipleImageUpload: React.FC<
 
       {/* Hint - only show when no images uploaded */}
       {hint && !error && value.length === 0 && (
-        <ThemedText
-          className="text-[12px] font-[NunitoSans_400Regular] mt-2"
-          style={{ color: "#6B7280" }}
-        >
+        <CaptionText className="mt-2" style={{ color: "#6B7280" }}>
           {hint}
-        </ThemedText>
+        </CaptionText>
       )}
 
       {/* Error Message */}
       {error && (
-        <ThemedText
-          className="text-[13px] font-[NunitoSans_600SemiBold] mt-2"
-          style={{ color: "#EF4444" }}
-        >
+        <BodySemiboldText className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
           {error}
-        </ThemedText>
+        </BodySemiboldText>
       )}
     </View>
   );

@@ -1,4 +1,9 @@
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyRegularText,
+  BodySemiboldText,
+  CaptionText,
+  HeadingBoldText,
+} from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import React, { useState } from "react";
 import {
@@ -45,12 +50,9 @@ export const FormPicker: React.FC<FormPickerProps> = ({
     <View className="mb-6">
       {/* Label */}
       {label && (
-        <ThemedText
-          className="text-[13px] font-[NunitoSans_600SemiBold] mb-3"
-          style={{ color: '#3B2F2F' }}
-        >
+        <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
           {label}
-        </ThemedText>
+        </BodySemiboldText>
       )}
 
       {/* Picker Button */}
@@ -64,12 +66,12 @@ export const FormPicker: React.FC<FormPickerProps> = ({
         } ${disabled ? 'opacity-50' : ''}`}
         activeOpacity={0.7}
       >
-        <ThemedText
-          className="text-[15px] font-[NunitoSans_400Regular] flex-1"
-          style={{ color: selectedOption ? '#3B2F2F' : '#9CA3AF' }}
+        <BodyRegularText
+          className="flex-1"
+          style={{ color: selectedOption ? '#3B2F2F' : '#9CA3AF', fontSize: 15 }}
         >
           {selectedOption?.label || placeholder}
-        </ThemedText>
+        </BodyRegularText>
         <IconSymbol
           name="chevron.down"
           size={20}
@@ -79,9 +81,9 @@ export const FormPicker: React.FC<FormPickerProps> = ({
 
       {/* Error Message */}
       {error && (
-        <ThemedText className="text-[13px] text-red-500 mt-2 font-[NunitoSans_500Medium]">
+        <CaptionText className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
           {error}
-        </ThemedText>
+        </CaptionText>
       )}
 
       {/* Modal Picker */}
@@ -102,12 +104,9 @@ export const FormPicker: React.FC<FormPickerProps> = ({
             {/* Modal Header */}
             <View className="border-b border-[#E5E7EB] px-6 py-5">
               <View className="flex-row items-center justify-between">
-                <ThemedText
-                  className="text-[18px] font-[PlayfairDisplay_700Bold]"
-                  style={{ color: '#3B2F2F' }}
-                >
+                <HeadingBoldText style={{ fontSize: 18 }}>
                   {label || 'Select an option'}
-                </ThemedText>
+                </HeadingBoldText>
                 <TouchableOpacity
                   onPress={() => setIsOpen(false)}
                   className="w-8 h-8 items-center justify-center"
@@ -130,12 +129,11 @@ export const FormPicker: React.FC<FormPickerProps> = ({
                     }`}
                     activeOpacity={0.7}
                   >
-                    <ThemedText
-                      className="text-[16px] font-[NunitoSans_400Regular]"
-                      style={{ color: isSelected ? '#FFFFFF' : '#3B2F2F' }}
+                    <BodyRegularText
+                      style={{ color: isSelected ? '#FFFFFF' : '#3B2F2F', fontSize: 16 }}
                     >
                       {option.label}
-                    </ThemedText>
+                    </BodyRegularText>
                     {isSelected && (
                       <IconSymbol name="checkmark" size={20} color="#FFFFFF" />
                     )}

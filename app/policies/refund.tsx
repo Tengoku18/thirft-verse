@@ -1,5 +1,5 @@
 import { CustomHeader } from "@/components/navigation/CustomHeader";
-import { ThemedText } from "@/components/themed-text";
+import { BodyBoldText, BodyRegularText, CaptionText } from "@/components/Typography";
 import React from "react";
 import { ScrollView, View } from "react-native";
 
@@ -14,12 +14,9 @@ export default function RefundScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         <View className="px-6 py-4">
-          <ThemedText
-            className="text-[13px] font-[NunitoSans_400Regular] mb-6"
-            style={{ color: "#6B7280" }}
-          >
+          <CaptionText className="mb-6" style={{ color: "#6B7280" }}>
             Last updated: January 2025
-          </ThemedText>
+          </CaptionText>
 
           <Section title="1. Overview">
             ThriftVerse is a peer-to-peer marketplace for pre-loved items. As
@@ -109,18 +106,12 @@ function Section({
 }) {
   return (
     <View className="mb-6">
-      <ThemedText
-        className="text-[16px] font-[NunitoSans_700Bold] mb-2"
-        style={{ color: "#3B2F2F" }}
-      >
+      <BodyBoldText className="mb-2" style={{ color: "#3B2F2F", fontSize: 16 }}>
         {title}
-      </ThemedText>
-      <ThemedText
-        className="text-[14px] font-[NunitoSans_400Regular] leading-6"
-        style={{ color: "#4B5563" }}
-      >
+      </BodyBoldText>
+      <BodyRegularText className="leading-6" style={{ color: "#4B5563", fontSize: 14 }}>
         {children}
-      </ThemedText>
+      </BodyRegularText>
     </View>
   );
 }

@@ -1,4 +1,9 @@
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyRegularText,
+  BodySemiboldText,
+  CaptionText,
+  HeadingBoldText,
+} from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { uploadMultipleImages } from "@/lib/upload-helpers";
@@ -118,18 +123,16 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
     <View className="mb-6">
       {/* Label */}
       <View className="flex-row items-center justify-between mb-3">
-        <ThemedText
-          className="text-[13px] font-[NunitoSans_600SemiBold] tracking-wide uppercase"
-          style={{ color: "#3B2F2F" }}
+        <BodySemiboldText
+          style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: 0.5 }}
         >
           Product Photos
-        </ThemedText>
-        <ThemedText
-          className="text-[12px] font-[NunitoSans_600SemiBold]"
-          style={{ color: images.length >= maxImages ? "#EF4444" : "#6B7280" }}
+        </BodySemiboldText>
+        <BodySemiboldText
+          style={{ color: images.length >= maxImages ? "#EF4444" : "#6B7280", fontSize: 12 }}
         >
           {images.length}/{maxImages}
-        </ThemedText>
+        </BodySemiboldText>
       </View>
 
       {/* Main Image Display / Upload Area */}
@@ -162,18 +165,12 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
             {uploading ? (
               <View className="items-center">
                 <ActivityIndicator size="large" color="#3B2F2F" />
-                <ThemedText
-                  className="text-[16px] font-[NunitoSans_600SemiBold] mt-4"
-                  style={{ color: "#3B2F2F" }}
-                >
+                <BodySemiboldText className="mt-4" style={{ fontSize: 16 }}>
                   Uploading images...
-                </ThemedText>
-                <ThemedText
-                  className="text-[13px] font-[NunitoSans_400Regular] mt-2"
-                  style={{ color: "#6B7280" }}
-                >
+                </BodySemiboldText>
+                <BodyRegularText className="mt-2" style={{ color: "#6B7280", fontSize: 13 }}>
                   Please wait
-                </ThemedText>
+                </BodyRegularText>
               </View>
             ) : (
               <View className="items-center">
@@ -194,24 +191,15 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
                     color="#3B2F2F"
                   />
                 </View>
-                <ThemedText
-                  className="text-[18px] font-[PlayfairDisplay_700Bold] mb-2"
-                  style={{ color: "#3B2F2F" }}
-                >
+                <HeadingBoldText className="mb-2" style={{ fontSize: 18 }}>
                   Add Product Photos
-                </ThemedText>
-                <ThemedText
-                  className="text-[14px] font-[NunitoSans_400Regular] text-center px-8"
-                  style={{ color: "#6B7280" }}
-                >
+                </HeadingBoldText>
+                <BodyRegularText className="text-center px-8" style={{ color: "#6B7280" }}>
                   Upload up to {maxImages} high-quality images
-                </ThemedText>
-                <ThemedText
-                  className="text-[12px] font-[NunitoSans_400Regular] mt-2"
-                  style={{ color: "#9CA3AF" }}
-                >
+                </BodyRegularText>
+                <CaptionText className="mt-2" style={{ color: "#9CA3AF" }}>
                   First image will be the cover photo
-                </ThemedText>
+                </CaptionText>
               </View>
             )}
           </TouchableOpacity>
@@ -278,12 +266,11 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
                         backgroundColor: "rgba(59, 47, 47, 0.9)",
                       }}
                     >
-                      <ThemedText
-                        className="text-[11px] font-[NunitoSans_700Bold] uppercase tracking-wider"
-                        style={{ color: "#FFFFFF" }}
+                      <CaptionText
+                        style={{ color: "#FFFFFF", textTransform: "uppercase", letterSpacing: 0.5, fontSize: 11 }}
                       >
                         Cover Photo
-                      </ThemedText>
+                      </CaptionText>
                     </View>
                   )}
                 </View>
@@ -374,12 +361,9 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
               ) : (
                 <>
                   <IconSymbol name="plus" size={20} color="#3B2F2F" />
-                  <ThemedText
-                    className="text-[9px] font-[NunitoSans_600SemiBold] mt-1"
-                    style={{ color: "#6B7280" }}
-                  >
+                  <CaptionText className="mt-1" style={{ color: "#6B7280", fontSize: 9 }}>
                     Add More
-                  </ThemedText>
+                  </CaptionText>
                 </>
               )}
             </TouchableOpacity>
@@ -390,24 +374,18 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
       {/* Error Message */}
       {error && (
         <View className="mt-2">
-          <ThemedText
-            className="text-[12px] font-[NunitoSans_600SemiBold]"
-            style={{ color: "#EF4444" }}
-          >
+          <BodySemiboldText style={{ color: "#EF4444", fontSize: 12 }}>
             {error}
-          </ThemedText>
+          </BodySemiboldText>
         </View>
       )}
 
       {/* Helper Text */}
       {!error && images.length > 0 && (
         <View className="mt-2">
-          <ThemedText
-            className="text-[12px] font-[NunitoSans_400Regular]"
-            style={{ color: "#6B7280" }}
-          >
+          <CaptionText style={{ color: "#6B7280" }}>
             Swipe to reorder images. First image is the cover photo.
-          </ThemedText>
+          </CaptionText>
         </View>
       )}
     </View>

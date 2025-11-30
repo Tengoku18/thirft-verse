@@ -1,7 +1,7 @@
-import { ThemedText } from "@/components/themed-text";
 import { LOGOS } from "@/constants/logos";
 import React from "react";
 import { Image, View } from "react-native";
+import { HeadingSemiboldText } from "../Typography";
 
 interface TabHeaderProps {
   title: string;
@@ -23,18 +23,20 @@ export function TabHeader({ title, rightComponent }: TabHeaderProps) {
 
         {/* Centered title */}
         <View className="flex-1 items-center">
-          <ThemedText
-            className="text-[18px] font-[NunitoSans_800ExtraBold]"
+          {/* <ThemedText
+            className="text-[20px] font-[Folito_700Bold]"
             style={{ color: "#3B2F2F" }}
           >
             {title}
-          </ThemedText>
+          </ThemedText> */}
+
+          <HeadingSemiboldText className="text-[20px]">
+            {title}
+          </HeadingSemiboldText>
         </View>
 
         {/* Right component or placeholder for balance */}
-        <View className="w-10 items-end">
-          {rightComponent}
-        </View>
+        <View className="w-10 items-end">{rightComponent}</View>
       </View>
     </View>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { ThemedText } from '@/components/themed-text';
+import { BodySemiboldText, CaptionText } from '@/components/Typography';
 
 export interface StepperStep {
   id: number;
@@ -40,20 +40,21 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({ steps, current
                 className={`w-9 h-9 rounded-full justify-center items-center mb-2 ${circleColor} ${
                   isActive ? 'border-2 border-[#D4A373]' : ''
                 }`}>
-                <ThemedText
-                  className="text-sm font-semibold font-[NunitoSans_600SemiBold]"
-                  style={{ color: isActive || isCompleted ? '#FFFFFF' : '#3B2F2F' }}>
+                <BodySemiboldText
+                  style={{ color: isActive || isCompleted ? '#FFFFFF' : '#3B2F2F', fontSize: 14 }}>
                   {isCompleted ? '✓' : step.id}
-                </ThemedText>
+                </BodySemiboldText>
               </View>
 
               {/* Label */}
-              <ThemedText
-                className={`text-xs text-center font-[NunitoSans_400Regular] ${textColor} ${
-                  isActive ? 'font-semibold' : ''
-                }`}>
+              <CaptionText
+                className="text-center"
+                style={{
+                  color: isActive ? '#D4A373' : isCompleted ? '#6B705C' : '#C7BFB3',
+                  fontWeight: isActive ? '600' : '400',
+                }}>
                 {step.label}
-              </ThemedText>
+              </CaptionText>
             </View>
 
             {/* Connector Line */}

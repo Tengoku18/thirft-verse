@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ThemedText } from '@/components/themed-text';
+import { HeadingSemiboldText } from '@/components/Typography';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
 interface CustomHeaderProps {
@@ -49,12 +49,9 @@ export function CustomHeader({
         )}
 
         {/* Center Section - Title */}
-        <ThemedText
-          className="text-[24px] font-[PlayfairDisplay_700Bold]"
-          style={{ color: '#3B2F2F' }}
-        >
+        <HeadingSemiboldText style={{ fontSize: 24 }}>
           {title}
-        </ThemedText>
+        </HeadingSemiboldText>
 
         {/* Right Section - Icon or Empty Space */}
         {rightIcon ? (

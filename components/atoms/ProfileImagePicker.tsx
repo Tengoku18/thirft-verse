@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { ThemedText } from '@/components/themed-text';
+import { BodySemiboldText, CaptionText } from '@/components/Typography';
 import { UserIcon, CameraIcon } from '@/components/icons';
 import { getProfileImageUrl } from '@/lib/storage-helpers';
 
@@ -96,9 +96,9 @@ export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
 
   return (
     <View className="items-center mb-6">
-      <ThemedText className="text-sm font-semibold mb-3 font-[NunitoSans_600SemiBold] text-[#3B2F2F]">
+      <BodySemiboldText className="mb-3" style={{ color: '#3B2F2F', fontSize: 14 }}>
         Profile Picture (Optional)
-      </ThemedText>
+      </BodySemiboldText>
 
       <TouchableOpacity
         onPress={showOptions}
@@ -127,9 +127,9 @@ export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
         )}
       </TouchableOpacity>
 
-      <ThemedText className="text-xs text-[#6B705C] mt-2 text-center font-[NunitoSans_400Regular]">
+      <CaptionText className="mt-2 text-center" style={{ color: '#6B705C' }}>
         Tap to {value ? 'change' : 'add'} photo
-      </ThemedText>
+      </CaptionText>
     </View>
   );
 };

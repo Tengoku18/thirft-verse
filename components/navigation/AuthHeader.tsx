@@ -1,4 +1,4 @@
-import { ThemedText } from "@/components/themed-text";
+import { BodyBoldText } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
@@ -20,12 +20,9 @@ export function AuthHeader({ title, onBack, rightComponent }: AuthHeaderProps) {
         >
           <IconSymbol name="chevron.left" size={22} color="#3B2F2F" />
         </TouchableOpacity>
-        <ThemedText
-          className="text-[20px] font-[NunitoSans_700Bold] tracking-tight"
-          style={{ color: "#3B2F2F" }}
-        >
+        <BodyBoldText style={{ fontSize: 20, letterSpacing: -0.5 }}>
           {title}
-        </ThemedText>
+        </BodyBoldText>
       </View>
 
       {rightComponent && (

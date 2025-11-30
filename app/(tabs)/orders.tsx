@@ -1,5 +1,12 @@
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyBoldText,
+  BodyExtraboldText,
+  BodyRegularText,
+  BodySmallSemiboldText,
+  CaptionText,
+  HeadingBoldText,
+} from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { getOrdersByBuyer, getOrdersBySeller } from "@/lib/database-helpers";
@@ -70,12 +77,9 @@ function OrderItem({ order, type }: OrderItemProps) {
         {/* Header Row */}
         <View className="flex-row justify-between items-center mb-3">
           <View className="flex-row items-center">
-            <ThemedText
-              className="text-[12px] font-[NunitoSans_600SemiBold]"
-              style={{ color: "#6B7280" }}
-            >
+            <CaptionText style={{ color: "#6B7280", fontWeight: "600" }}>
               {order.order_code || `#${order.id.slice(0, 8)}`}
-            </ThemedText>
+            </CaptionText>
           </View>
           <View
             style={{
@@ -85,12 +89,16 @@ function OrderItem({ order, type }: OrderItemProps) {
               borderRadius: 12,
             }}
           >
-            <ThemedText
-              className="text-[11px] font-[NunitoSans_700Bold] capitalize"
-              style={{ color: statusColors.text }}
+            <CaptionText
+              style={{
+                color: statusColors.text,
+                fontWeight: "700",
+                fontSize: 11,
+                textTransform: "capitalize",
+              }}
             >
               {order.status}
-            </ThemedText>
+            </CaptionText>
           </View>
         </View>
 
@@ -104,43 +112,35 @@ function OrderItem({ order, type }: OrderItemProps) {
             />
           )}
           <View className="flex-1 justify-center">
-            <ThemedText
-              className="text-[15px] font-[NunitoSans_700Bold] mb-1"
-              style={{ color: "#3B2F2F" }}
+            <BodyBoldText
+              style={{ fontSize: 15 }}
+              className="mb-1"
               numberOfLines={2}
             >
               {order.product?.title || "Product"}
-            </ThemedText>
+            </BodyBoldText>
             {type === "purchase" && order.seller && (
-              <ThemedText
-                className="text-[13px] font-[NunitoSans_400Regular]"
-                style={{ color: "#6B7280" }}
+              <BodySmallSemiboldText
+                style={{ color: "#6B7280", fontWeight: "400" }}
               >
                 Sold by @{order.seller.store_username}
-              </ThemedText>
+              </BodySmallSemiboldText>
             )}
             {type === "sale" && (
-              <ThemedText
-                className="text-[13px] font-[NunitoSans_400Regular]"
-                style={{ color: "#6B7280" }}
+              <BodySmallSemiboldText
+                style={{ color: "#6B7280", fontWeight: "400" }}
               >
                 Buyer: {order.buyer_name}
-              </ThemedText>
+              </BodySmallSemiboldText>
             )}
           </View>
           <View className="justify-center items-end">
-            <ThemedText
-              className="text-[16px] font-[NunitoSans_800ExtraBold]"
-              style={{ color: "#3B2F2F" }}
-            >
+            <BodyExtraboldText style={{ fontSize: 16 }}>
               {formatPrice(order.amount)}
-            </ThemedText>
-            <ThemedText
-              className="text-[11px] font-[NunitoSans_400Regular] mt-1"
-              style={{ color: "#9CA3AF" }}
-            >
+            </BodyExtraboldText>
+            <CaptionText style={{ color: "#9CA3AF", fontSize: 11 }} className="mt-1">
               {formatDate(order.created_at)}
-            </ThemedText>
+            </CaptionText>
           </View>
         </View>
 
@@ -149,13 +149,13 @@ function OrderItem({ order, type }: OrderItemProps) {
           <View className="mt-3 pt-3 border-t border-[#F3F4F6]">
             <View className="flex-row items-center">
               <IconSymbol name="location.fill" size={14} color="#6B7280" />
-              <ThemedText
-                className="text-[12px] font-[NunitoSans_400Regular] ml-1 flex-1"
+              <CaptionText
                 style={{ color: "#6B7280" }}
+                className="ml-1 flex-1"
                 numberOfLines={1}
               >
                 {order.shipping_address?.city}, {order.shipping_address?.state}
-              </ThemedText>
+              </CaptionText>
             </View>
           </View>
         )}
@@ -174,20 +174,17 @@ function EmptyState({ type }: { type: TabType }) {
           color="#9CA3AF"
         />
       </View>
-      <ThemedText
-        className="text-[20px] font-[PlayfairDisplay_700Bold] mb-2 text-center"
-        style={{ color: "#3B2F2F" }}
-      >
+      <HeadingBoldText className="mb-2 text-center">
         {type === "purchases" ? "No Purchases Yet" : "No Sales Yet"}
-      </ThemedText>
-      <ThemedText
-        className="text-[14px] font-[NunitoSans_400Regular] text-center leading-relaxed"
+      </HeadingBoldText>
+      <BodyRegularText
+        className="text-center leading-relaxed"
         style={{ color: "#6B7280" }}
       >
         {type === "purchases"
           ? "Your purchase history will appear here once you buy something"
           : "Orders from your customers will appear here"}
-      </ThemedText>
+      </BodyRegularText>
     </View>
   );
 }
@@ -285,14 +282,14 @@ export default function OrdersScreen() {
                   size={18}
                   color={activeTab === "purchases" ? "#3B2F2F" : "#6B7280"}
                 />
-                <ThemedText
-                  className="text-[14px] font-[NunitoSans_700Bold] ml-2"
+                <BodyBoldText
+                  className="ml-2"
                   style={{
                     color: activeTab === "purchases" ? "#3B2F2F" : "#6B7280",
                   }}
                 >
                   Purchases
-                </ThemedText>
+                </BodyBoldText>
                 {pendingCount.purchases > 0 && (
                   <View
                     style={{
@@ -305,12 +302,11 @@ export default function OrdersScreen() {
                       marginLeft: 6,
                     }}
                   >
-                    <ThemedText
-                      className="text-[11px] font-[NunitoSans_700Bold]"
-                      style={{ color: "#FFFFFF" }}
+                    <CaptionText
+                      style={{ color: "#FFFFFF", fontWeight: "700", fontSize: 11 }}
                     >
                       {pendingCount.purchases}
-                    </ThemedText>
+                    </CaptionText>
                   </View>
                 )}
               </View>
@@ -338,14 +334,14 @@ export default function OrdersScreen() {
                   size={18}
                   color={activeTab === "sales" ? "#3B2F2F" : "#6B7280"}
                 />
-                <ThemedText
-                  className="text-[14px] font-[NunitoSans_700Bold] ml-2"
+                <BodyBoldText
+                  className="ml-2"
                   style={{
                     color: activeTab === "sales" ? "#3B2F2F" : "#6B7280",
                   }}
                 >
                   Sales
-                </ThemedText>
+                </BodyBoldText>
                 {pendingCount.sales > 0 && (
                   <View
                     style={{
@@ -358,12 +354,11 @@ export default function OrdersScreen() {
                       marginLeft: 6,
                     }}
                   >
-                    <ThemedText
-                      className="text-[11px] font-[NunitoSans_700Bold]"
-                      style={{ color: "#FFFFFF" }}
+                    <CaptionText
+                      style={{ color: "#FFFFFF", fontWeight: "700", fontSize: 11 }}
                     >
                       {pendingCount.sales}
-                    </ThemedText>
+                    </CaptionText>
                   </View>
                 )}
               </View>

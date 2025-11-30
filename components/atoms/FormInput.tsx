@@ -1,4 +1,4 @@
-import { ThemedText } from "@/components/themed-text";
+import { BodySemiboldText, CaptionText } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import React, { useState } from "react";
 import {
@@ -24,9 +24,9 @@ export const FormInput = React.forwardRef<TextInput, FormInputProps>(
     return (
       <View className="mb-6">
         {label && (
-          <ThemedText className="text-[13px] font-[NunitoSans_600SemiBold] mb-3" style={{ color: '#3B2F2F' }}>
+          <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
             {label}
-          </ThemedText>
+          </BodySemiboldText>
         )}
 
         <View className="relative">
@@ -73,12 +73,9 @@ export const FormInput = React.forwardRef<TextInput, FormInputProps>(
         </View>
 
         {error && (
-          <ThemedText
-            className="text-[13px] mt-2 font-[NunitoSans_500Medium]"
-            style={{ color: "#EF4444" }}
-          >
+          <CaptionText className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
             {error}
-          </ThemedText>
+          </CaptionText>
         )}
       </View>
     );

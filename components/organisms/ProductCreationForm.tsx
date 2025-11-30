@@ -3,7 +3,11 @@ import { FormInput } from "@/components/atoms/FormInput";
 import { FormPicker } from "@/components/atoms/FormPicker";
 import { FormTextarea } from "@/components/atoms/FormTextarea";
 import { AuthHeader } from "@/components/navigation/AuthHeader";
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyRegularText,
+  BodySemiboldText,
+  CaptionText,
+} from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { createProduct } from "@/lib/database-helpers";
@@ -293,12 +297,9 @@ export const ProductCreationForm: React.FC = () => {
       >
         <View className="px-6 pt-4">
           {/* Cover Image Section */}
-          <ThemedText
-            className="text-[13px] font-[NunitoSans_600SemiBold] mb-3"
-            style={{ color: "#3B2F2F" }}
-          >
+          <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
             Cover Photo
-          </ThemedText>
+          </BodySemiboldText>
           <View
             style={{
               aspectRatio: 1.15,
@@ -347,12 +348,9 @@ export const ProductCreationForm: React.FC = () => {
                   }}
                   activeOpacity={0.8}
                 >
-                  <ThemedText
-                    className="text-[13px] font-[NunitoSans_600SemiBold]"
-                    style={{ color: "#FFFFFF" }}
-                  >
+                  <BodySemiboldText style={{ color: "#FFFFFF", fontSize: 13 }}>
                     Change Photo
-                  </ThemedText>
+                  </BodySemiboldText>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -369,22 +367,16 @@ export const ProductCreationForm: React.FC = () => {
                 {uploadingCover ? (
                   <View className="items-center">
                     <ActivityIndicator size="large" color="#3B2F2F" />
-                    <ThemedText
-                      className="text-[14px] font-[NunitoSans_600SemiBold] mt-3"
-                      style={{ color: "#3B2F2F" }}
-                    >
+                    <BodySemiboldText className="mt-3">
                       Uploading...
-                    </ThemedText>
+                    </BodySemiboldText>
                   </View>
                 ) : (
                   <View className="items-center">
                     <IconSymbol name="photo" size={48} color="#9CA3AF" />
-                    <ThemedText
-                      className="text-[16px] font-[NunitoSans_600SemiBold] mt-3"
-                      style={{ color: "#6B7280" }}
-                    >
+                    <BodySemiboldText className="mt-3" style={{ color: "#6B7280", fontSize: 16 }}>
                       Tap to add cover photo
-                    </ThemedText>
+                    </BodySemiboldText>
                   </View>
                 )}
               </TouchableOpacity>
@@ -393,18 +385,14 @@ export const ProductCreationForm: React.FC = () => {
 
           {/* Additional Photos Section */}
           <View className="flex-row items-center justify-between my-3">
-            <ThemedText
-              className="text-[13px] font-[NunitoSans_600SemiBold]"
-              style={{ color: "#3B2F2F" }}
-            >
+            <BodySemiboldText style={{ fontSize: 13 }}>
               Additional Photos
-            </ThemedText>
-            <ThemedText
-              className="text-[12px] font-[NunitoSans_600SemiBold]"
-              style={{ color: otherImages.length >= 5 ? "#EF4444" : "#6B7280" }}
+            </BodySemiboldText>
+            <BodySemiboldText
+              style={{ color: otherImages.length >= 5 ? "#EF4444" : "#6B7280", fontSize: 12 }}
             >
               {otherImages.length}/5
-            </ThemedText>
+            </BodySemiboldText>
           </View>
           <View
             style={{
@@ -474,12 +462,9 @@ export const ProductCreationForm: React.FC = () => {
                 ) : (
                   <View className="items-center">
                     <IconSymbol name="camera" size={24} color="#9CA3AF" />
-                    <ThemedText
-                      className="text-[12px] font-[NunitoSans_500Medium] mt-1"
-                      style={{ color: "#9CA3AF" }}
-                    >
+                    <CaptionText className="mt-1" style={{ color: "#9CA3AF" }}>
                       Add
-                    </ThemedText>
+                    </CaptionText>
                   </View>
                 )}
               </TouchableOpacity>
@@ -579,20 +564,16 @@ export const ProductCreationForm: React.FC = () => {
           {/* Error Summary */}
           {Object.keys(errors).length > 0 && (
             <View className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-6">
-              <ThemedText
-                className="text-[14px] font-[NunitoSans_600SemiBold] mb-2"
-                style={{ color: "#EF4444" }}
-              >
+              <BodySemiboldText className="mb-2" style={{ color: "#EF4444" }}>
                 Please fix the following errors:
-              </ThemedText>
+              </BodySemiboldText>
               {Object.entries(errors).map(([field, error]) => (
-                <ThemedText
+                <BodyRegularText
                   key={field}
-                  className="text-[13px] font-[NunitoSans_400Regular]"
-                  style={{ color: "#DC2626" }}
+                  style={{ color: "#DC2626", fontSize: 13 }}
                 >
                   • {(error as FieldError)?.message}
-                </ThemedText>
+                </BodyRegularText>
               ))}
             </View>
           )}

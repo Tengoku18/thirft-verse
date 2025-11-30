@@ -1,6 +1,11 @@
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyBoldText,
+  BodyRegularText,
+  BodySemiboldText,
+  CaptionText,
+} from "@/components/Typography";
 import { LOGO_USAGE } from "@/constants/logos";
 import { useAuth } from "@/contexts/AuthContext";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -139,12 +144,7 @@ export default function SignInScreen() {
             {/* Forgot Password Link */}
             <Link href="/(auth)/forgot-password" asChild>
               <TouchableOpacity className="items-end mb-8">
-                <ThemedText
-                  className="text-[14px] font-[NunitoSans_600SemiBold]"
-                  style={{ color: "#3B2F2F" }}
-                >
-                  Forgot Password?
-                </ThemedText>
+                <BodySemiboldText>Forgot Password?</BodySemiboldText>
               </TouchableOpacity>
             </Link>
 
@@ -159,20 +159,12 @@ export default function SignInScreen() {
             {/* Sign Up Link */}
             <View className="mt-8">
               <View className="flex-row justify-center items-center">
-                <ThemedText
-                  className="text-[14px] font-[NunitoSans_400Regular]"
-                  style={{ color: "#6B7280" }}
-                >
+                <BodyRegularText style={{ color: "#6B7280" }}>
                   Don&apos;t have an account?{" "}
-                </ThemedText>
+                </BodyRegularText>
                 <Link href="/(auth)/signup" asChild>
                   <TouchableOpacity>
-                    <ThemedText
-                      className="text-[14px] font-[NunitoSans_700Bold]"
-                      style={{ color: "#3B2F2F" }}
-                    >
-                      Sign Up
-                    </ThemedText>
+                    <BodyBoldText>Sign Up</BodyBoldText>
                   </TouchableOpacity>
                 </Link>
               </View>
@@ -184,38 +176,25 @@ export default function SignInScreen() {
             <View className="flex-row justify-center items-center flex-wrap gap-2">
               <Link href="https://www.thriftverse.shop/privacy" asChild>
                 <TouchableOpacity>
-                  <ThemedText
-                    className="text-[12px] font-[NunitoSans_400Regular]"
-                    style={{ color: "#6B7280" }}
-                  >
+                  <CaptionText style={{ color: "#6B7280" }}>
                     Privacy Policy
-                  </ThemedText>
+                  </CaptionText>
                 </TouchableOpacity>
               </Link>
-              <ThemedText className="text-[12px]" style={{ color: "#9CA3AF" }}>
-                •
-              </ThemedText>
+              <CaptionText style={{ color: "#9CA3AF" }}>•</CaptionText>
               <Link href="https://www.thriftverse.shop/terms" asChild>
                 <TouchableOpacity>
-                  <ThemedText
-                    className="text-[12px] font-[NunitoSans_400Regular]"
-                    style={{ color: "#6B7280" }}
-                  >
+                  <CaptionText style={{ color: "#6B7280" }}>
                     Terms & Conditions
-                  </ThemedText>
+                  </CaptionText>
                 </TouchableOpacity>
               </Link>
-              <ThemedText className="text-[12px]" style={{ color: "#9CA3AF" }}>
-                •
-              </ThemedText>
+              <CaptionText style={{ color: "#9CA3AF" }}>•</CaptionText>
               <Link href="https://www.thriftverse.shop/cookies" asChild>
                 <TouchableOpacity>
-                  <ThemedText
-                    className="text-[12px] font-[NunitoSans_400Regular]"
-                    style={{ color: "#6B7280" }}
-                  >
+                  <CaptionText style={{ color: "#6B7280" }}>
                     Cookie Policy
-                  </ThemedText>
+                  </CaptionText>
                 </TouchableOpacity>
               </Link>
             </View>
@@ -223,12 +202,9 @@ export default function SignInScreen() {
 
           {/* Bottom Branding - Subtle */}
           <View className="pt-4 pb-4">
-            <ThemedText
-              className="text-center text-xs font-[NunitoSans_400Regular]"
-              style={{ color: "#9CA3AF" }}
-            >
+            <CaptionText className="text-center" style={{ color: "#9CA3AF" }}>
               ThriftVerse • Sustainable Fashion Marketplace
-            </ThemedText>
+            </CaptionText>
           </View>
         </View>
       </ScrollView>

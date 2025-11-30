@@ -1,4 +1,4 @@
-import { ThemedText } from "@/components/themed-text";
+import { BodyBoldText } from "@/components/Typography";
 import React from "react";
 import {
   ActivityIndicator,
@@ -56,17 +56,15 @@ export const FormButton: React.FC<FormButtonProps> = ({
       {loading ? (
         <ActivityIndicator color={getTextColor()} size="small" />
       ) : (
-        <ThemedText
+        <BodyBoldText
           style={{
             color: getTextColor(),
-            fontFamily: "NunitoSans_700Bold",
             fontSize: 16,
-            fontWeight: "700",
             letterSpacing: 0.5,
           }}
         >
           {title}
-        </ThemedText>
+        </BodyBoldText>
       )}
     </TouchableOpacity>
   );

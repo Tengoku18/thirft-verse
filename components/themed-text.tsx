@@ -47,11 +47,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     lineHeight: 32,
-    fontFamily: 'PlayfairDisplay_700Bold',
+    fontFamily: 'Folito_700Bold',
   },
   subtitle: {
     fontSize: 20,
-    fontFamily: 'PlayfairDisplay_600SemiBold',
+    fontFamily: 'Folito_600SemiBold',
   },
   link: {
     lineHeight: 30,

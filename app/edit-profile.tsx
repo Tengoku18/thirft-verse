@@ -1,7 +1,12 @@
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { CustomHeader } from "@/components/navigation/CustomHeader";
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyRegularText,
+  BodySemiboldText,
+  CaptionText,
+  HeadingBoldText,
+} from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { updateUserProfile } from "@/lib/database-helpers";
@@ -297,12 +302,9 @@ export default function EditProfileScreen() {
                     borderColor: "#E5E7EB",
                   }}
                 >
-                  <ThemedText
-                    className="text-4xl font-bold font-[PlayfairDisplay_700Bold]"
-                    style={{ color: "#FFFFFF" }}
-                  >
+                  <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 36 }}>
                     {profileData.name.charAt(0).toUpperCase() || "U"}
-                  </ThemedText>
+                  </HeadingBoldText>
                 </View>
               )}
 
@@ -326,12 +328,12 @@ export default function EditProfileScreen() {
               </View>
             </TouchableOpacity>
 
-            <ThemedText
-              className="text-[13px] font-[NunitoSans_400Regular] mt-3"
-              style={{ color: "#6B7280" }}
+            <BodyRegularText
+              className="mt-3"
+              style={{ color: "#6B7280", fontSize: 13 }}
             >
               Tap to change profile photo
-            </ThemedText>
+            </BodyRegularText>
           </View>
 
           {/* Form Fields */}
@@ -362,12 +364,9 @@ export default function EditProfileScreen() {
 
             {/* Bio Field */}
             <View className="mb-6">
-              <ThemedText
-                className="text-[13px] font-[NunitoSans_600SemiBold] mb-3"
-                style={{ color: "#3B2F2F" }}
-              >
+              <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
                 Bio
-              </ThemedText>
+              </BodySemiboldText>
               <View className="relative">
                 <FormInput
                   placeholder="Tell us about yourself and your thrift shop..."
@@ -382,76 +381,58 @@ export default function EditProfileScreen() {
                   label=""
                 />
               </View>
-              <ThemedText
-                className="text-[12px] font-[NunitoSans_400Regular] mt-1"
+              <CaptionText
+                className="mt-1"
                 style={{
                   color: profileData.bio.length > 300 ? "#EF4444" : "#9CA3AF",
                 }}
               >
                 {profileData.bio.length}/300 characters
-              </ThemedText>
+              </CaptionText>
             </View>
 
             {/* Username (Read-only) */}
             <View className="mb-6">
-              <ThemedText
-                className="text-[13px] font-[NunitoSans_600SemiBold] mb-3"
-                style={{ color: "#3B2F2F" }}
-              >
+              <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
                 Username
-              </ThemedText>
+              </BodySemiboldText>
               <View
                 className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center"
               >
                 <View className="flex-row items-center">
-                  <ThemedText
-                    className="text-[15px] font-[NunitoSans_400Regular]"
-                    style={{ color: "#6B7280" }}
-                  >
+                  <BodyRegularText style={{ color: "#6B7280", fontSize: 15 }}>
                     @{user?.user_metadata?.username || "username"}
-                  </ThemedText>
+                  </BodyRegularText>
                   <View className="ml-2">
                     <IconSymbol name="lock.fill" size={14} color="#9CA3AF" />
                   </View>
                 </View>
               </View>
-              <ThemedText
-                className="text-[12px] font-[NunitoSans_400Regular] mt-2"
-                style={{ color: "#9CA3AF" }}
-              >
+              <CaptionText className="mt-2" style={{ color: "#9CA3AF" }}>
                 Username cannot be changed
-              </ThemedText>
+              </CaptionText>
             </View>
 
             {/* Email (Read-only) */}
             <View className="mb-6">
-              <ThemedText
-                className="text-[13px] font-[NunitoSans_600SemiBold] mb-3"
-                style={{ color: "#3B2F2F" }}
-              >
+              <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
                 Email
-              </ThemedText>
+              </BodySemiboldText>
               <View
                 className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center"
               >
                 <View className="flex-row items-center">
-                  <ThemedText
-                    className="text-[15px] font-[NunitoSans_400Regular]"
-                    style={{ color: "#6B7280" }}
-                  >
+                  <BodyRegularText style={{ color: "#6B7280", fontSize: 15 }}>
                     {user?.email || "email@example.com"}
-                  </ThemedText>
+                  </BodyRegularText>
                   <View className="ml-2">
                     <IconSymbol name="lock.fill" size={14} color="#9CA3AF" />
                   </View>
                 </View>
               </View>
-              <ThemedText
-                className="text-[12px] font-[NunitoSans_400Regular] mt-2"
-                style={{ color: "#9CA3AF" }}
-              >
+              <CaptionText className="mt-2" style={{ color: "#9CA3AF" }}>
                 Email cannot be changed from here
-              </ThemedText>
+              </CaptionText>
             </View>
           </View>
 

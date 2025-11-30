@@ -9,14 +9,6 @@ import {
   NunitoSans_900Black,
 } from "@expo-google-fonts/nunito-sans";
 import {
-  PlayfairDisplay_400Regular,
-  PlayfairDisplay_500Medium,
-  PlayfairDisplay_600SemiBold,
-  PlayfairDisplay_700Bold,
-  PlayfairDisplay_800ExtraBold,
-  PlayfairDisplay_900Black,
-} from "@expo-google-fonts/playfair-display";
-import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
@@ -45,12 +37,15 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   const [fontsLoaded] = useFonts({
-    PlayfairDisplay_400Regular,
-    PlayfairDisplay_500Medium,
-    PlayfairDisplay_600SemiBold,
-    PlayfairDisplay_700Bold,
-    PlayfairDisplay_800ExtraBold,
-    PlayfairDisplay_900Black,
+    // Folito fonts for headings (loaded from local assets)
+    Folito_300Light: require("../assets/fonts/Folito-Light.ttf"),
+    Folito_400Regular: require("../assets/fonts/Folito-Regular.ttf"),
+    Folito_500Medium: require("../assets/fonts/Folito-Medium.ttf"),
+    Folito_600SemiBold: require("../assets/fonts/Folito-Bold.ttf"), // Using Bold as SemiBold
+    Folito_700Bold: require("../assets/fonts/Folito-Bold.ttf"),
+    Folito_800ExtraBold: require("../assets/fonts/Folito-Black.ttf"), // Using Black as ExtraBold
+    Folito_900Black: require("../assets/fonts/Folito-Black.ttf"),
+    // Nunito Sans fonts for body text
     NunitoSans_200ExtraLight,
     NunitoSans_300Light,
     NunitoSans_400Regular,

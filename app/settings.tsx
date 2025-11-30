@@ -1,5 +1,11 @@
 import { CustomHeader } from "@/components/navigation/CustomHeader";
-import { ThemedText } from "@/components/themed-text";
+import {
+  BodyBoldText,
+  BodyRegularText,
+  BodySemiboldText,
+  CaptionText,
+  HeadingBoldText,
+} from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -212,27 +218,18 @@ export default function SettingsScreen() {
               />
             ) : (
               <View className="w-12 h-12 rounded-full bg-[#3B2F2F] justify-center items-center mr-3">
-                <ThemedText
-                  className="text-xl font-bold font-[PlayfairDisplay_700Bold]"
-                  style={{ color: "#FFFFFF" }}
-                >
+                <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 20 }}>
                   {(profile?.name || user?.user_metadata?.name)?.charAt(0).toUpperCase() || "U"}
-                </ThemedText>
+                </HeadingBoldText>
               </View>
             )}
             <View className="flex-1">
-              <ThemedText
-                className="text-[16px] font-[NunitoSans_700Bold]"
-                style={{ color: "#3B2F2F" }}
-              >
+              <BodyBoldText style={{ fontSize: 16 }}>
                 {profile?.name || user?.user_metadata?.name || "User"}
-              </ThemedText>
-              <ThemedText
-                className="text-[13px] font-[NunitoSans_400Regular]"
-                style={{ color: "#6B7280" }}
-              >
+              </BodyBoldText>
+              <BodyRegularText style={{ color: "#6B7280", fontSize: 13 }}>
                 {user?.email}
-              </ThemedText>
+              </BodyRegularText>
             </View>
           </View>
         </View>
@@ -240,16 +237,17 @@ export default function SettingsScreen() {
         {/* Settings Sections */}
         {settingsOptions.map((section, sectionIndex) => (
           <View key={section.title} className="mb-6">
-            <ThemedText
-              className="text-[13px] font-[NunitoSans_600SemiBold] mb-3 px-6"
+            <BodySemiboldText
+              className="mb-3 px-6"
               style={{
                 color: "#9CA3AF",
                 textTransform: "capitalize",
                 letterSpacing: 1,
+                fontSize: 13,
               }}
             >
               {section.title}
-            </ThemedText>
+            </BodySemiboldText>
 
             <View className="bg-white">
               {section.options.map((option, index) => (
@@ -267,12 +265,9 @@ export default function SettingsScreen() {
                     />
                   </View>
                   <View className="flex-1">
-                    <ThemedText
-                      className="text-[15px] font-[NunitoSans_600SemiBold]"
-                      style={{ color: "#3B2F2F" }}
-                    >
+                    <BodySemiboldText style={{ fontSize: 15 }}>
                       {option.label}
-                    </ThemedText>
+                    </BodySemiboldText>
                   </View>
                   <IconSymbol name="chevron.right" size={16} color="#9CA3AF" />
                 </TouchableOpacity>
@@ -283,16 +278,17 @@ export default function SettingsScreen() {
 
         {/* Danger Zone Section */}
         <View className="mb-6">
-          <ThemedText
-            className="text-[13px] font-[NunitoSans_600SemiBold] mb-3 px-6"
+          <BodySemiboldText
+            className="mb-3 px-6"
             style={{
               color: "#EF4444",
               textTransform: "capitalize",
               letterSpacing: 1,
+              fontSize: 13,
             }}
           >
             Danger Zone
-          </ThemedText>
+          </BodySemiboldText>
 
           <View className="bg-white">
             {/* Logout Option */}
@@ -309,12 +305,9 @@ export default function SettingsScreen() {
                 />
               </View>
               <View className="flex-1">
-                <ThemedText
-                  className="text-[15px] font-[NunitoSans_600SemiBold]"
-                  style={{ color: "#EF4444" }}
-                >
+                <BodySemiboldText style={{ color: "#EF4444", fontSize: 15 }}>
                   Logout
-                </ThemedText>
+                </BodySemiboldText>
               </View>
               <IconSymbol name="chevron.right" size={16} color="#EF4444" />
             </TouchableOpacity>
@@ -334,12 +327,9 @@ export default function SettingsScreen() {
                 )}
               </View>
               <View className="flex-1">
-                <ThemedText
-                  className="text-[15px] font-[NunitoSans_600SemiBold]"
-                  style={{ color: "#EF4444" }}
-                >
+                <BodySemiboldText style={{ color: "#EF4444", fontSize: 15 }}>
                   {deleting ? "Deleting..." : "Delete Account"}
-                </ThemedText>
+                </BodySemiboldText>
               </View>
               <IconSymbol name="chevron.right" size={16} color="#EF4444" />
             </TouchableOpacity>
@@ -348,18 +338,12 @@ export default function SettingsScreen() {
 
         {/* Version Info */}
         <View className="items-center pb-8">
-          <ThemedText
-            className="text-[12px] font-[NunitoSans_400Regular]"
-            style={{ color: "#9CA3AF" }}
-          >
+          <CaptionText style={{ color: "#9CA3AF" }}>
             ThriftVerse v1.0.0
-          </ThemedText>
-          <ThemedText
-            className="text-[11px] font-[NunitoSans_400Regular] mt-1"
-            style={{ color: "#D1D5DB" }}
-          >
+          </CaptionText>
+          <CaptionText className="mt-1" style={{ color: "#D1D5DB", fontSize: 11 }}>
             Made with ❤️ for sustainable fashion
-          </ThemedText>
+          </CaptionText>
         </View>
       </ScrollView>
     </View>
