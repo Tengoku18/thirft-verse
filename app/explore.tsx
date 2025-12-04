@@ -28,7 +28,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  FlatList,
   RefreshControl,
   ScrollView,
   TextInput,
@@ -204,18 +203,18 @@ export default function ExploreScreen() {
 
   // Header with back button + search bar in same line
   const HeaderWithSearch = (
-    <View className="flex-row items-center px-4 pb-4">
+    <View className="flex-row items-center px-5 pb-3">
       <TouchableOpacity
         onPress={() => router.back()}
-        className="pr-2"
+        className="w-10 h-10 rounded-full bg-[#F5F5F5] justify-center items-center mr-3"
         activeOpacity={0.7}
       >
-        <IconSymbol name="chevron.left" size={24} color="#FFFFFF" />
+        <IconSymbol name="chevron.left" size={20} color="#3B2F2F" />
       </TouchableOpacity>
-      <View className="flex-1 flex-row items-center bg-white rounded-3xl px-3.5 py-2.5">
-        <Ionicons name="search" size={20} color="#9CA3AF" className="mr-3" />
+      <View className="flex-1 flex-row items-center bg-[#F5F5F5] rounded-xl px-4 py-3">
+        <Ionicons name="search" size={20} color="#9CA3AF" />
         <TextInput
-          className="flex-1 text-[15px] text-[#3B2F2F]"
+          className="flex-1 text-[15px] text-[#3B2F2F] ml-2"
           placeholder={`Search ${activeTab}...`}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -232,7 +231,7 @@ export default function ExploreScreen() {
 
   // Sticky tabs component
   const StickyTabs = (
-    <View className="bg-[#3B2F2F]">
+    <View className="bg-white">
       {HeaderWithSearch}
       <View className="flex-row px-4 bg-white border-b border-[#E5E7EB]">
         <TouchableOpacity
@@ -473,18 +472,20 @@ export default function ExploreScreen() {
                 </BodyRegularText>
               </View>
             ) : (
-              <FlatList
-                data={filteredProducts}
-                renderItem={({ item }) => (
-                  <View style={{ width: "47%" }}>
-                    <ProductCard product={item} />
-                  </View>
-                )}
-                keyExtractor={(item) => item.id}
-                numColumns={2}
-                columnWrapperStyle={{ justifyContent: "flex-start", gap: 12 }}
-                scrollEnabled={false}
-              />
+              <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+                {filteredProducts.map((product, index) => {
+                  // Pattern: small, large, large, small (repeating)
+                  const patternIndex = index % 4;
+                  const isSmall = patternIndex === 0 || patternIndex === 3;
+                  const cardSize = isSmall ? 'small' : 'large';
+
+                  return (
+                    <View key={product.id} style={{ width: "47%" }}>
+                      <ProductCard product={product} size={cardSize as any} />
+                    </View>
+                  );
+                })}
+              </View>
             )
           ) : filteredStores.length === 0 ? (
             <View className="py-16 items-center">

@@ -314,25 +314,6 @@ export default function ProfileScreen() {
                   Sold
                 </BodySmallSemiboldText>
               </TouchableOpacity>
-
-              <View
-                style={{
-                  width: 1,
-                  height: 36,
-                  backgroundColor: "#E5E7EB",
-                }}
-              />
-
-              <TouchableOpacity style={{ alignItems: "center" }}>
-                <BodyExtraboldText style={{ fontSize: 18 }}>
-                  0
-                </BodyExtraboldText>
-                <BodySmallSemiboldText
-                  style={{ color: "#6B7280", fontSize: 12 }}
-                >
-                  Reviews
-                </BodySmallSemiboldText>
-              </TouchableOpacity>
             </View>
           </View>
 

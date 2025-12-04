@@ -1,18 +1,19 @@
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import {
   BodyBoldText,
-  BodyExtraboldText,
+  BodyMediumText,
   BodyRegularText,
-  BodySmallSemiboldText,
+  BodySemiboldText,
   CaptionText,
   HeadingBoldText,
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
-import { getOrdersByBuyer, getOrdersBySeller } from "@/lib/database-helpers";
+import { getOrdersBySeller, getProductsByStoreId } from "@/lib/database-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
-import { OrderWithDetails } from "@/lib/types/database";
-import { useFocusEffect } from "expo-router";
+import { Product } from "@/lib/types/database";
+import dayjs from "dayjs";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -23,167 +24,147 @@ import {
   View,
 } from "react-native";
 
-type TabType = "purchases" | "sales";
+type StatusFilter = "all" | "pending" | "completed";
 
-interface OrderItemProps {
-  order: OrderWithDetails;
-  type: "purchase" | "sale";
+// Unified item type that works for both orders and sold products
+interface OrderItem {
+  id: string;
+  type: "order" | "sold_product";
+  order_code: string | null;
+  product_title: string;
+  product_image: string | null;
+  buyer_name: string;
+  amount: number;
+  payment_method: string;
+  status: "pending" | "completed";
+  created_at: string;
+  // Original data for navigation
+  originalId: string;
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "pending":
-      return { bg: "#FEF3C7", text: "#D97706" };
-    case "completed":
-      return { bg: "#D1FAE5", text: "#059669" };
-    case "cancelled":
-      return { bg: "#FEE2E2", text: "#DC2626" };
-    case "refunded":
-      return { bg: "#E0E7FF", text: "#4F46E5" };
-    default:
-      return { bg: "#F3F4F6", text: "#6B7280" };
-  }
-};
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
+interface OrderCardProps {
+  item: OrderItem;
+  onPress?: () => void;
+}
 
 const formatPrice = (amount: number) => {
   return `Rs. ${amount.toLocaleString()}`;
 };
 
-function OrderItem({ order, type }: OrderItemProps) {
-  const statusColors = getStatusColor(order.status);
+const statusConfig = {
+  pending: { bg: "#FEF3C7", text: "#D97706", label: "Pending" },
+  completed: { bg: "#D1FAE5", text: "#059669", label: "Completed" },
+};
+
+function OrderCard({ item, onPress }: OrderCardProps) {
+  const itemDate = dayjs(item.created_at);
+  const currentStatus = statusConfig[item.status];
 
   return (
     <TouchableOpacity
-      className="bg-white rounded-2xl mb-3 overflow-hidden"
+      onPress={onPress}
+      activeOpacity={0.7}
+      className="bg-white rounded-2xl mb-4 overflow-hidden"
       style={{
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 4,
       }}
-      activeOpacity={0.7}
     >
-      <View className="p-4">
-        {/* Header Row */}
-        <View className="flex-row justify-between items-center mb-3">
-          <View className="flex-row items-center">
-            <CaptionText style={{ color: "#6B7280", fontWeight: "600" }}>
-              {order.order_code || `#${order.id.slice(0, 8)}`}
-            </CaptionText>
-          </View>
+      {/* Status Bar at Top */}
+      <View
+        style={{ backgroundColor: currentStatus.bg }}
+        className="px-4 py-2 flex-row items-center justify-between"
+      >
+        <View className="flex-row items-center">
           <View
-            style={{
-              backgroundColor: statusColors.bg,
-              paddingHorizontal: 10,
-              paddingVertical: 4,
-              borderRadius: 12,
-            }}
-          >
-            <CaptionText
-              style={{
-                color: statusColors.text,
-                fontWeight: "700",
-                fontSize: 11,
-                textTransform: "capitalize",
-              }}
-            >
-              {order.status}
-            </CaptionText>
-          </View>
+            className="w-2 h-2 rounded-full mr-2"
+            style={{ backgroundColor: currentStatus.text }}
+          />
+          <CaptionText style={{ color: currentStatus.text, fontWeight: "700", fontSize: 12 }}>
+            {currentStatus.label}
+          </CaptionText>
         </View>
+        <CaptionText style={{ color: currentStatus.text, fontSize: 11 }}>
+          {item.order_code || `#${item.id.slice(0, 8).toUpperCase()}`}
+        </CaptionText>
+      </View>
 
-        {/* Product Info */}
+      <View className="p-4">
+        {/* Product Info Row */}
         <View className="flex-row">
-          {order.product?.cover_image && (
+          {/* Product Image */}
+          {item.product_image ? (
             <Image
-              source={{ uri: getProductImageUrl(order.product.cover_image) }}
-              className="w-16 h-16 rounded-xl mr-3"
+              source={{ uri: getProductImageUrl(item.product_image) }}
+              className="w-20 h-20 rounded-xl"
               style={{ backgroundColor: "#F3F4F6" }}
             />
+          ) : (
+            <View className="w-20 h-20 rounded-xl bg-[#F3F4F6] justify-center items-center">
+              <IconSymbol name="bag.fill" size={28} color="#9CA3AF" />
+            </View>
           )}
-          <View className="flex-1 justify-center">
-            <BodyBoldText
-              style={{ fontSize: 15 }}
-              className="mb-1"
-              numberOfLines={2}
-            >
-              {order.product?.title || "Product"}
+
+          {/* Order Details */}
+          <View className="flex-1 ml-4 justify-center">
+            <BodyBoldText style={{ fontSize: 16 }} numberOfLines={2}>
+              {item.product_title}
             </BodyBoldText>
-            {type === "purchase" && order.seller && (
-              <BodySmallSemiboldText
-                style={{ color: "#6B7280", fontWeight: "400" }}
+
+            <View className="flex-row items-center mt-2">
+              <IconSymbol name="person.fill" size={12} color="#6B7280" />
+              <BodyMediumText
+                style={{ color: "#6B7280", fontSize: 13, marginLeft: 4 }}
+                numberOfLines={1}
               >
-                Sold by @{order.seller.store_username}
-              </BodySmallSemiboldText>
-            )}
-            {type === "sale" && (
-              <BodySmallSemiboldText
-                style={{ color: "#6B7280", fontWeight: "400" }}
-              >
-                Buyer: {order.buyer_name}
-              </BodySmallSemiboldText>
-            )}
-          </View>
-          <View className="justify-center items-end">
-            <BodyExtraboldText style={{ fontSize: 16 }}>
-              {formatPrice(order.amount)}
-            </BodyExtraboldText>
-            <CaptionText style={{ color: "#9CA3AF", fontSize: 11 }} className="mt-1">
-              {formatDate(order.created_at)}
-            </CaptionText>
+                {item.buyer_name}
+              </BodyMediumText>
+            </View>
+
+            <HeadingBoldText style={{ fontSize: 18, color: "#3B2F2F", marginTop: 8 }}>
+              {formatPrice(item.amount)}
+            </HeadingBoldText>
           </View>
         </View>
 
-        {/* Shipping Address Preview for Sales */}
-        {type === "sale" && order.status === "pending" && (
-          <View className="mt-3 pt-3 border-t border-[#F3F4F6]">
-            <View className="flex-row items-center">
-              <IconSymbol name="location.fill" size={14} color="#6B7280" />
-              <CaptionText
-                style={{ color: "#6B7280" }}
-                className="ml-1 flex-1"
-                numberOfLines={1}
-              >
-                {order.shipping_address?.city}, {order.shipping_address?.state}
-              </CaptionText>
-            </View>
+        {/* Footer */}
+        <View className="mt-4 pt-3 border-t border-[#F3F4F6] flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <IconSymbol name="calendar" size={14} color="#9CA3AF" />
+            <CaptionText style={{ color: "#9CA3AF", marginLeft: 4, fontSize: 12 }}>
+              {itemDate.format("DD MMM, YYYY")}
+            </CaptionText>
           </View>
-        )}
+
+          <View className="flex-row items-center bg-[#F3F4F6] px-2 py-1 rounded-md">
+            <IconSymbol name="tag.fill" size={12} color="#6B7280" />
+            <CaptionText style={{ color: "#6B7280", marginLeft: 4, fontSize: 11 }}>
+              {item.payment_method}
+            </CaptionText>
+          </View>
+        </View>
       </View>
     </TouchableOpacity>
   );
 }
 
-function EmptyState({ type }: { type: TabType }) {
+function EmptyState() {
   return (
     <View className="py-16 items-center px-6">
-      <View className="w-24 h-24 rounded-full bg-[#FAFAFA] justify-center items-center mb-4">
-        <IconSymbol
-          name={type === "purchases" ? "bag" : "dollarsign.circle"}
-          size={40}
-          color="#9CA3AF"
-        />
+      <View className="w-24 h-24 rounded-full bg-[#F3F4F6] justify-center items-center mb-4">
+        <IconSymbol name="bag.fill" size={40} color="#9CA3AF" />
       </View>
       <HeadingBoldText className="mb-2 text-center">
-        {type === "purchases" ? "No Purchases Yet" : "No Sales Yet"}
+        No Orders Yet
       </HeadingBoldText>
       <BodyRegularText
         className="text-center leading-relaxed"
         style={{ color: "#6B7280" }}
       >
-        {type === "purchases"
-          ? "Your purchase history will appear here once you buy something"
-          : "Orders from your customers will appear here"}
+        When customers purchase your products, their orders will appear here for you to manage and track.
       </BodyRegularText>
     </View>
   );
@@ -191,29 +172,83 @@ function EmptyState({ type }: { type: TabType }) {
 
 export default function OrdersScreen() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabType>("purchases");
-  const [purchases, setPurchases] = useState<OrderWithDetails[]>([]);
-  const [sales, setSales] = useState<OrderWithDetails[]>([]);
+  const router = useRouter();
+  const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
-  const loadOrders = async () => {
-    if (!user) return;
+  const loadData = async () => {
+    if (!user) {
+      console.log("⚠️ No user logged in");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const [purchasesResult, salesResult] = await Promise.all([
-        getOrdersByBuyer(user.email || ""),
-        getOrdersBySeller(user.id),
-      ]);
+      console.log("📦 Loading orders for user:", user.id);
 
-      if (purchasesResult.success) {
-        setPurchases(purchasesResult.data as OrderWithDetails[]);
+      // First, try to get actual orders from the orders table
+      const ordersResult = await getOrdersBySeller(user.id);
+
+      let orderItems: OrderItem[] = [];
+
+      if (ordersResult.success && ordersResult.data.length > 0) {
+        // We have real orders - use them
+        console.log("✅ Found real orders:", ordersResult.data.length);
+        orderItems = ordersResult.data.map((order: any) => ({
+          id: order.id,
+          type: "order" as const,
+          order_code: order.order_code,
+          product_title: order.product?.title || "Order Item",
+          product_image: order.product?.cover_image || null,
+          buyer_name: order.buyer_name,
+          amount: order.amount,
+          payment_method: order.payment_method,
+          status: order.status as "pending" | "completed",
+          created_at: order.created_at,
+          originalId: order.id,
+        }));
+      } else {
+        // No real orders - fall back to sold products
+        console.log("📋 No orders found, checking sold products...");
+
+        const { data: soldProducts } = await getProductsByStoreId({
+          storeId: user.id,
+          status: "out_of_stock",
+          limit: 100,
+        });
+
+        if (soldProducts && soldProducts.length > 0) {
+          console.log("✅ Found sold products:", soldProducts.length);
+
+          // Convert sold products to order items
+          orderItems = soldProducts.map((product: Product) => {
+            const soldDate = dayjs(product.updated_at || product.created_at);
+            const daysSinceSold = dayjs().diff(soldDate, "day");
+
+            return {
+              id: product.id,
+              type: "sold_product" as const,
+              order_code: null,
+              product_title: product.title,
+              product_image: product.cover_image,
+              buyer_name: "Customer", // No buyer info for products
+              amount: product.price,
+              payment_method: "Sale",
+              // Auto-complete after 7 days
+              status: (daysSinceSold > 7 ? "completed" : "pending") as "pending" | "completed",
+              created_at: product.updated_at || product.created_at,
+              originalId: product.id,
+            };
+          });
+        }
       }
-      if (salesResult.success) {
-        setSales(salesResult.data as OrderWithDetails[]);
-      }
+
+      setItems(orderItems);
     } catch (error) {
-      console.error("Error loading orders:", error);
+      console.error("💥 Error loading data:", error);
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -221,149 +256,138 @@ export default function OrdersScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadOrders();
+      setLoading(true);
+      loadData();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user])
   );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadOrders();
+    await loadData();
     setRefreshing(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const currentOrders = activeTab === "purchases" ? purchases : sales;
-  const pendingCount = {
-    purchases: purchases.filter((o) => o.status === "pending").length,
-    sales: sales.filter((o) => o.status === "pending").length,
+  // Filter items based on status
+  const filteredItems = items.filter((item) => {
+    if (statusFilter === "all") return true;
+    return item.status === statusFilter;
+  });
+
+  // Count by status
+  const statusCounts = {
+    all: items.length,
+    pending: items.filter((i) => i.status === "pending").length,
+    completed: items.filter((i) => i.status === "completed").length,
   };
+
+  // Calculate total revenue for filtered items
+  const totalRevenue = filteredItems.reduce((sum, i) => sum + i.amount, 0);
 
   if (loading) {
     return (
       <TabScreenLayout title="Orders">
-        <View className="flex-1 bg-white justify-center items-center">
+        <View className="flex-1 bg-[#FAFAFA] justify-center items-center">
           <ActivityIndicator size="large" color="#3B2F2F" />
+          <BodyMediumText style={{ color: "#6B7280", marginTop: 12 }}>
+            Loading orders...
+          </BodyMediumText>
         </View>
       </TabScreenLayout>
     );
   }
 
+  const filterOptions: { key: StatusFilter; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "pending", label: "Pending" },
+    { key: "completed", label: "Completed" },
+  ];
+
+  const handleItemPress = (item: OrderItem) => {
+    // Always navigate to the single order detail screen
+    // It handles both real orders and sold products dynamically
+    router.push(`/order/${item.originalId}`);
+  };
+
   return (
     <TabScreenLayout title="Orders">
       <View className="flex-1 bg-[#FAFAFA]">
-        {/* Tab Buttons */}
-        <View className="bg-white px-4 pt-2 pb-0">
-          <View
-            style={{
-              flexDirection: "row",
-              backgroundColor: "#F3F4F6",
-              borderRadius: 12,
-              padding: 4,
-            }}
-          >
-            <TouchableOpacity
-              onPress={() => setActiveTab("purchases")}
-              style={{
-                flex: 1,
-                paddingVertical: 10,
-                borderRadius: 10,
-                backgroundColor:
-                  activeTab === "purchases" ? "#FFFFFF" : "transparent",
-                shadowColor: activeTab === "purchases" ? "#000" : "transparent",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: activeTab === "purchases" ? 0.1 : 0,
-                shadowRadius: 2,
-                elevation: activeTab === "purchases" ? 2 : 0,
-              }}
-              activeOpacity={0.7}
-            >
-              <View className="flex-row items-center justify-center">
-                <IconSymbol
-                  name="bag"
-                  size={18}
-                  color={activeTab === "purchases" ? "#3B2F2F" : "#6B7280"}
-                />
-                <BodyBoldText
-                  className="ml-2"
-                  style={{
-                    color: activeTab === "purchases" ? "#3B2F2F" : "#6B7280",
-                  }}
-                >
-                  Purchases
-                </BodyBoldText>
-                {pendingCount.purchases > 0 && (
-                  <View
-                    style={{
-                      backgroundColor: "#EF4444",
-                      borderRadius: 10,
-                      minWidth: 20,
-                      height: 20,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      marginLeft: 6,
-                    }}
-                  >
-                    <CaptionText
-                      style={{ color: "#FFFFFF", fontWeight: "700", fontSize: 11 }}
-                    >
-                      {pendingCount.purchases}
-                    </CaptionText>
-                  </View>
-                )}
+        {/* Summary Card */}
+        {items.length > 0 && (
+          <View className="mx-4 mt-4 p-4 bg-[#3B2F2F] rounded-2xl">
+            <View className="flex-row justify-between items-center">
+              <View>
+                <CaptionText style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
+                  Total Revenue
+                </CaptionText>
+                <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 24, marginTop: 4 }}>
+                  {formatPrice(totalRevenue)}
+                </HeadingBoldText>
               </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setActiveTab("sales")}
-              style={{
-                flex: 1,
-                paddingVertical: 10,
-                borderRadius: 10,
-                backgroundColor:
-                  activeTab === "sales" ? "#FFFFFF" : "transparent",
-                shadowColor: activeTab === "sales" ? "#000" : "transparent",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: activeTab === "sales" ? 0.1 : 0,
-                shadowRadius: 2,
-                elevation: activeTab === "sales" ? 2 : 0,
-              }}
-              activeOpacity={0.7}
-            >
-              <View className="flex-row items-center justify-center">
-                <IconSymbol
-                  name="dollarsign.circle"
-                  size={18}
-                  color={activeTab === "sales" ? "#3B2F2F" : "#6B7280"}
-                />
-                <BodyBoldText
-                  className="ml-2"
-                  style={{
-                    color: activeTab === "sales" ? "#3B2F2F" : "#6B7280",
-                  }}
-                >
-                  Sales
-                </BodyBoldText>
-                {pendingCount.sales > 0 && (
-                  <View
-                    style={{
-                      backgroundColor: "#EF4444",
-                      borderRadius: 10,
-                      minWidth: 20,
-                      height: 20,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      marginLeft: 6,
-                    }}
-                  >
-                    <CaptionText
-                      style={{ color: "#FFFFFF", fontWeight: "700", fontSize: 11 }}
-                    >
-                      {pendingCount.sales}
-                    </CaptionText>
-                  </View>
-                )}
+              <View className="items-end">
+                <CaptionText style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
+                  {statusFilter === "all" ? "Total Sales" : statusFilter === "pending" ? "Pending" : "Completed"}
+                </CaptionText>
+                <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 24, marginTop: 4 }}>
+                  {filteredItems.length}
+                </HeadingBoldText>
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
+        )}
+
+        {/* Status Filter Tabs */}
+        <View className="px-4 pt-4 pb-2">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8 }}
+          >
+            {filterOptions.map((option) => {
+              const isActive = statusFilter === option.key;
+              const count = statusCounts[option.key];
+
+              return (
+                <TouchableOpacity
+                  key={option.key}
+                  onPress={() => setStatusFilter(option.key)}
+                  className="flex-row items-center px-4 py-2.5 rounded-full"
+                  style={{
+                    backgroundColor: isActive ? "#3B2F2F" : "#FFFFFF",
+                    borderWidth: isActive ? 0 : 1,
+                    borderColor: "#E5E7EB",
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <BodySemiboldText
+                    style={{
+                      color: isActive ? "#FFFFFF" : "#374151",
+                      fontSize: 14,
+                    }}
+                  >
+                    {option.label}
+                  </BodySemiboldText>
+                  <View
+                    className="ml-2 px-2 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: isActive ? "rgba(255,255,255,0.2)" : "#F3F4F6",
+                    }}
+                  >
+                    <CaptionText
+                      style={{
+                        color: isActive ? "#FFFFFF" : "#6B7280",
+                        fontWeight: "700",
+                        fontSize: 11,
+                      }}
+                    >
+                      {count}
+                    </CaptionText>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
         </View>
 
         {/* Orders List */}
@@ -380,14 +404,14 @@ export default function OrdersScreen() {
             />
           }
         >
-          {currentOrders.length === 0 ? (
-            <EmptyState type={activeTab} />
+          {filteredItems.length === 0 ? (
+            <EmptyState />
           ) : (
-            currentOrders.map((order) => (
-              <OrderItem
-                key={order.id}
-                order={order}
-                type={activeTab === "purchases" ? "purchase" : "sale"}
+            filteredItems.map((item) => (
+              <OrderCard
+                key={item.id}
+                item={item}
+                onPress={() => handleItemPress(item)}
               />
             ))
           )}

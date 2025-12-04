@@ -11,6 +11,7 @@ interface TabScreenLayoutProps {
   stickyComponent?: React.ReactNode;
   showDefaultIcons?: boolean;
   showHeader?: boolean;
+  statusBarColor?: string;
   children: React.ReactNode;
 }
 
@@ -22,10 +23,14 @@ export function TabScreenLayout({
   stickyComponent,
   showDefaultIcons = true,
   showHeader = true,
+  statusBarColor,
   children,
 }: TabScreenLayoutProps) {
+  // Use provided color, or default based on whether header is shown
+  const safeAreaBgColor = statusBarColor ?? (showHeader ? "#3B2F2F" : "#FFFFFF");
+
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: "#3B2F2F" }} edges={["top"]}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: safeAreaBgColor }} edges={["top"]}>
       {showHeader && (
         <TabHeader
           title={title}
@@ -36,7 +41,7 @@ export function TabScreenLayout({
         />
       )}
       {stickyComponent && (
-        <View style={{ backgroundColor: "#3B2F2F" }}>
+        <View style={{ backgroundColor: safeAreaBgColor }}>
           {stickyComponent}
         </View>
       )}
