@@ -170,7 +170,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
             render={({ field: { onChange, onBlur, value } }) => (
               <FormInput
                 label="Email Address"
-                placeholder="your@email.com"
+                placeholder="john@gmail.com"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -331,7 +331,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                       <BodyBoldText
                         style={{ fontSize: 13 }}
                         onPress={() =>
-                          Linking.openURL("https://thriftverse.com/terms")
+                          Linking.openURL("https://www.thriftverse.shop/terms")
                         }
                       >
                         Terms & Conditions
@@ -340,7 +340,7 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                       <BodyBoldText
                         style={{ fontSize: 13 }}
                         onPress={() =>
-                          Linking.openURL("https://thriftverse.com/privacy")
+                          Linking.openURL("https://www.thriftverse.shop/privacy")
                         }
                       >
                         Privacy Policy

@@ -145,7 +145,10 @@ export const createMissingProfile = async () => {
     // Extract data from user metadata
     const metadata = user.user_metadata || {};
     const name = metadata.name || user.email?.split("@")[0] || "User";
-    const username = metadata.username || user.email?.split("@")[0] || `user_${user.id.slice(0, 8)}`;
+    const username =
+      metadata.username ||
+      user.email?.split("@")[0] ||
+      `user_${user.id.slice(0, 8)}`;
     const profileImage = metadata.profile_image || null;
     const address = metadata.address || "";
 
@@ -436,11 +439,13 @@ export const getOrdersByBuyer = async (buyerEmail: string) => {
   try {
     const { data, error } = await supabase
       .from("orders")
-      .select(`
+      .select(
+        `
         *,
         seller:profiles!orders_seller_id_fkey(id, name, store_username),
         product:products!orders_product_id_fkey(id, title, cover_image, price)
-      `)
+      `
+      )
       .eq("buyer_email", buyerEmail)
       .order("created_at", { ascending: false });
 
@@ -465,24 +470,56 @@ export const getOrdersByBuyer = async (buyerEmail: string) => {
  */
 export const getOrdersBySeller = async (sellerId: string) => {
   try {
+    console.log("🔍 Fetching orders for seller:", sellerId);
+
+    // First, try to get orders with product join
     const { data, error } = await supabase
       .from("orders")
-      .select(`
+      .select(
+        `
         *,
-        product:products!orders_product_id_fkey(id, title, cover_image, price)
-      `)
+        product:products(id, title, cover_image, price)
+      `
+      )
       .eq("seller_id", sellerId)
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error("❌ Error fetching seller orders:", error);
+
+      // If join fails, try without join
+      if (
+        error.code === "PGRST200" ||
+        error.message?.includes("relationship")
+      ) {
+        console.log("🔄 Retrying without product join...");
+        const { data: ordersOnly, error: ordersError } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("seller_id", sellerId)
+          .order("created_at", { ascending: false });
+
+        if (ordersError) {
+          console.error("❌ Error fetching orders (no join):", ordersError);
+          return { success: false, data: [], error: ordersError };
+        }
+
+        console.log(
+          "✅ Found orders (no product data):",
+          ordersOnly?.length || 0
+        );
+        return { success: true, data: ordersOnly || [] };
+      }
+
       if (error.code === "PGRST205") {
         console.warn("⚠️  orders table not found. Please run SQL migration.");
         return { success: false, data: [], tableNotFound: true };
       }
-      console.error("❌ Error fetching seller orders:", error);
+
       return { success: false, data: [], error };
     }
 
+    console.log("✅ Found orders:", data?.length || 0);
     return { success: true, data: data || [] };
   } catch (error) {
     console.error("💥 Error in getOrdersBySeller:", error);
@@ -491,9 +528,59 @@ export const getOrdersBySeller = async (sellerId: string) => {
 };
 
 /**
+ * Get a single order by ID with full details
+ */
+export const getOrderById = async (orderId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("orders")
+      .select(
+        `
+        *,
+        product:products(id, title, cover_image, price)
+      `
+      )
+      .eq("id", orderId)
+      .single();
+
+    if (error) {
+      // Try without join if relationship fails
+      if (
+        error.code === "PGRST200" ||
+        error.message?.includes("relationship")
+      ) {
+        const { data: orderOnly, error: orderError } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("id", orderId)
+          .single();
+
+        if (orderError) {
+          console.error("❌ Error fetching order:", orderError);
+          return { success: false, data: null, error: orderError };
+        }
+
+        return { success: true, data: orderOnly };
+      }
+
+      console.error("❌ Error fetching order:", error);
+      return { success: false, data: null, error };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("💥 Error in getOrderById:", error);
+    return { success: false, data: null, error };
+  }
+};
+
+/**
  * Update order status
  */
-export const updateOrderStatus = async (orderId: string, status: 'pending' | 'completed' | 'cancelled' | 'refunded') => {
+export const updateOrderStatus = async (
+  orderId: string,
+  status: "pending" | "completed" | "cancelled" | "refunded"
+) => {
   try {
     const { error } = await supabase
       .from("orders")
@@ -606,9 +693,14 @@ export const createProduct = async (data: CreateProductData) => {
       }
 
       // Foreign key constraint violation (profile doesn't exist)
-      if (error.code === "23503" && error.message?.includes("products_store_id_fkey")) {
+      if (
+        error.code === "23503" &&
+        error.message?.includes("products_store_id_fkey")
+      ) {
         console.error("❌ Foreign Key Error: Profile doesn't exist");
-        console.error("This means the user's profile was not created during signup");
+        console.error(
+          "This means the user's profile was not created during signup"
+        );
         console.error("store_id:", data.store_id);
         console.log("🔄 Attempting automatic profile recovery...");
 
@@ -616,7 +708,9 @@ export const createProduct = async (data: CreateProductData) => {
         const recoveryResult = await createMissingProfile();
 
         if (recoveryResult.success) {
-          console.log("✅ Profile recovered successfully! Retrying product creation...");
+          console.log(
+            "✅ Profile recovered successfully! Retrying product creation..."
+          );
 
           // Retry the product creation now that profile exists
           const { data: retryProduct, error: retryError } = await supabase
@@ -636,11 +730,15 @@ export const createProduct = async (data: CreateProductData) => {
             .single();
 
           if (retryError) {
-            console.error("❌ Retry failed after profile recovery:", retryError);
+            console.error(
+              "❌ Retry failed after profile recovery:",
+              retryError
+            );
             return {
               success: false,
               error: {
-                message: "Profile was recovered but product creation still failed. Please try again.",
+                message:
+                  "Profile was recovered but product creation still failed. Please try again.",
               },
             };
           }

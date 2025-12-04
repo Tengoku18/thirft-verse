@@ -92,6 +92,10 @@ export default function RootLayout() {
               name="modal"
               options={{ presentation: "modal", title: "Modal" }}
             />
+            <Stack.Screen
+              name="sold-item/[id]"
+              options={{ headerShown: false }}
+            />
           </Stack>
           <StatusBar style="dark" />
         </ThemeProvider>
