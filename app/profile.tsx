@@ -590,12 +590,7 @@ export default function ProfileScreen() {
               </BodyRegularText>
             </View>
           ) : (
-            <ProductGrid
-              products={filteredProducts}
-              onProductPress={(product) => {
-                router.push(`/product/${product.id}`);
-              }}
-            />
+            <ProductGrid products={filteredProducts} />
           )}
         </View>
       </ScrollView>

@@ -1,6 +1,6 @@
 import { TabHeader } from "@/components/navigation/TabHeader";
 import React from "react";
-import { View } from "react-native";
+import { StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface TabScreenLayoutProps {
@@ -29,8 +29,12 @@ export function TabScreenLayout({
   // Use provided color, or default based on whether header is shown
   const safeAreaBgColor = statusBarColor ?? (showHeader ? "#3B2F2F" : "#FFFFFF");
 
+  // Determine if background is dark to set status bar style
+  const isDarkBackground = safeAreaBgColor === "#3B2F2F" || safeAreaBgColor.toLowerCase() === "#000000";
+
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: safeAreaBgColor }} edges={["top"]}>
+      <StatusBar barStyle={isDarkBackground ? "light-content" : "dark-content"} />
       {showHeader && (
         <TabHeader
           title={title}

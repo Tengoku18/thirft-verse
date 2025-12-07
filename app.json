@@ -1,13 +1,12 @@
 {
   "expo": {
     "name": "ThriftVerse",
-    "slug": "thriftverse",
+    "slug": "thrift-verse",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo/fav-icon.png",
     "scheme": "thriftverse",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.thriftverse.app"
@@ -46,11 +45,12 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
+    "owner": "thriftme",
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "your-project-id"
+        "projectId": "6c1851d4-a94c-42f6-942c-c2d2f223aaa8"
       }
-    },
-    "owner": "thriftverse"
+    }
   }
 }
