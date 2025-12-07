@@ -10,7 +10,10 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAllAvailableProducts } from "@/lib/api-helpers";
-import { getOrdersBySeller, getProductsByStoreId } from "@/lib/database-helpers";
+import {
+  getOrdersBySeller,
+  getProductsByStoreId,
+} from "@/lib/database-helpers";
 import { ProductWithStore } from "@/lib/types/database";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
@@ -71,10 +74,11 @@ export default function HomeScreen() {
           limit: 100,
         });
 
-        const { data: soldProducts, count: soldCount } = await getProductsByStoreId({
-          storeId: user.id,
-          status: "out_of_stock",
-        });
+        const { data: soldProducts, count: soldCount } =
+          await getProductsByStoreId({
+            storeId: user.id,
+            status: "out_of_stock",
+          });
 
         // Try to get orders for real earnings data
         const ordersResult = await getOrdersBySeller(user.id);
@@ -86,12 +90,22 @@ export default function HomeScreen() {
         if (ordersResult.success && ordersResult.data.length > 0) {
           // Calculate from real orders
           const orders = ordersResult.data;
-          totalEarnings = orders.reduce((sum: number, order: any) => sum + (order.amount || 0), 0);
-          pendingOrders = orders.filter((o: any) => o.status === "pending").length;
-          itemsSold = orders.filter((o: any) => o.status === "completed").length;
+          totalEarnings = orders.reduce(
+            (sum: number, order: any) => sum + (order.amount || 0),
+            0
+          );
+          pendingOrders = orders.filter(
+            (o: any) => o.status === "pending"
+          ).length;
+          itemsSold = orders.filter(
+            (o: any) => o.status === "completed"
+          ).length;
         } else if (soldProducts && soldProducts.length > 0) {
           // Fallback: calculate from sold products
-          totalEarnings = soldProducts.reduce((sum, product) => sum + product.price, 0);
+          totalEarnings = soldProducts.reduce(
+            (sum, product) => sum + product.price,
+            0
+          );
         }
 
         setStats({
@@ -180,7 +194,11 @@ export default function HomeScreen() {
                     className="flex-row items-center px-3 py-1.5 rounded-full"
                     style={{ backgroundColor: "rgba(34, 197, 94, 0.15)" }}
                   >
-                    <IconSymbol name="checkmark.circle.fill" size={14} color="#22C55E" />
+                    <IconSymbol
+                      name="checkmark.circle.fill"
+                      size={14}
+                      color="#22C55E"
+                    />
                     <BodySemiboldText
                       style={{ color: "#22C55E", fontSize: 14, marginLeft: 4 }}
                     >
@@ -330,10 +348,7 @@ export default function HomeScreen() {
             <View className="px-4 flex-row flex-wrap" style={{ gap: 12 }}>
               {exploreProducts.map((product) => (
                 <View key={product.id} style={{ width: "47%" }}>
-                  <ProductCard
-                    product={product}
-                    onPress={() => router.push(`/product/${product.id}`)}
-                  />
+                  <ProductCard product={product} />
                 </View>
               ))}
             </View>

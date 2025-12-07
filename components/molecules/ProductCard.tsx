@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { ProductWithStore } from '@/lib/types/database';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { getProductImageUrl } from '@/lib/storage-helpers';
+import React from "react";
+import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import * as Linking from "expo-linking";
+import { ProductWithStore } from "@/lib/types/database";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { getProductImageUrl } from "@/lib/storage-helpers";
 
 interface ProductCardProps {
   product: ProductWithStore;
@@ -11,14 +11,15 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onPress }: ProductCardProps) {
-  const router = useRouter();
-  const currency = product.store?.currency || 'NPR';
+  const currency = product.store?.currency || "NPR";
 
   const handlePress = () => {
     if (onPress) {
       onPress();
     } else {
-      router.push(`/product/${product.id}`);
+      // Open product page in default browser
+      const productUrl = `https://www.thriftverse.shop/product/${product.id}`;
+      Linking.openURL(productUrl);
     }
   };
 
@@ -67,9 +68,9 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -77,50 +78,50 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   imageContainer: {
-    width: '100%',
+    width: "100%",
     height: 180,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: "#F3F4F6",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   placeholderImage: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F3F4F6",
   },
   infoContainer: {
     padding: 12,
   },
   title: {
     fontSize: 14,
-    fontFamily: 'NunitoSans_600SemiBold',
-    color: '#1A1A1A',
+    fontFamily: "NunitoSans_600SemiBold",
+    color: "#1A1A1A",
     marginBottom: 6,
     lineHeight: 20,
   },
   bottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   price: {
     fontSize: 15,
-    fontFamily: 'NunitoSans_700Bold',
-    color: '#DC2626',
+    fontFamily: "NunitoSans_700Bold",
+    color: "#DC2626",
   },
   arrowButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
