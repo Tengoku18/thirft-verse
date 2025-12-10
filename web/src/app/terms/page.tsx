@@ -8,7 +8,7 @@ export default function TermsOfServicePage() {
     >
       <div className="prose prose-primary mx-auto max-w-4xl py-12">
         <p className="text-primary/70 italic">
-          Last Updated: January 2025
+          Last Updated: December 2025
         </p>
 
         <section className="mb-8">
@@ -36,10 +36,64 @@ export default function TermsOfServicePage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            3. User Accounts
+            3. Product Categories
+          </h2>
+          <p className="text-primary/80 leading-relaxed mb-3">
+            ThriftVerse is a marketplace specializing in pre-owned, vintage, and
+            secondhand goods. Our platform supports the sale of products within
+            the following categories:
+          </p>
+          <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+            <li>
+              <strong>Clothing</strong> — Apparel items including tops, bottoms,
+              dresses, outerwear, and other wearable garments
+            </li>
+            <li>
+              <strong>Shoes</strong> — Footwear of all types including casual,
+              formal, athletic, and specialty shoes
+            </li>
+            <li>
+              <strong>Accessories</strong> — Fashion accessories such as belts,
+              scarves, hats, sunglasses, and similar items
+            </li>
+            <li>
+              <strong>Bags</strong> — Handbags, backpacks, purses, wallets, and
+              other carrying accessories
+            </li>
+            <li>
+              <strong>Jewelry</strong> — Costume and fashion jewelry including
+              necklaces, bracelets, earrings, and rings
+            </li>
+            <li>
+              <strong>Home &amp; Decor</strong> — Household items, decorative
+              pieces, furniture, and home accessories
+            </li>
+            <li>
+              <strong>Electronics</strong> — Consumer electronics, gadgets, and
+              related accessories in working condition
+            </li>
+            <li>
+              <strong>Books</strong> — Printed books, textbooks, magazines, and
+              other reading materials
+            </li>
+            <li>
+              <strong>Other</strong> — Miscellaneous items that do not fall into
+              the above categories but comply with our policies
+            </li>
+          </ul>
+          <p className="text-primary/80 leading-relaxed mb-4">
+            All products listed on ThriftVerse must be authentic, accurately
+            described, and comply with our Prohibited Items policy. Sellers are
+            responsible for ensuring their listings meet these requirements.
+          </p>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+            4. User Accounts
           </h2>
           <h3 className="font-heading text-xl font-semibold text-primary mb-3">
-            3.1 Account Creation
+            4.1 Account Creation
           </h3>
           <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
             <li>You must be at least 18 years old to create an account</li>
@@ -49,7 +103,7 @@ export default function TermsOfServicePage() {
           </ul>
 
           <h3 className="font-heading text-xl font-semibold text-primary mb-3">
-            3.2 Account Termination
+            4.2 Account Termination
           </h3>
           <p className="text-primary/80 leading-relaxed mb-4">
             We reserve the right to suspend or terminate accounts that violate
@@ -60,7 +114,7 @@ export default function TermsOfServicePage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            4. Seller Responsibilities
+            5. Seller Responsibilities
           </h2>
           <p className="text-primary/80 leading-relaxed mb-3">
             As a seller on ThriftVerse, you agree to:
@@ -92,7 +146,7 @@ export default function TermsOfServicePage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            5. Prohibited Items
+            6. Prohibited Items
           </h2>
           <p className="text-primary/80 leading-relaxed mb-3">
             The following items are prohibited from being sold on ThriftVerse:
@@ -110,10 +164,10 @@ export default function TermsOfServicePage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            6. Payments and Fees
+            7. Payments and Fees
           </h2>
           <h3 className="font-heading text-xl font-semibold text-primary mb-3">
-            6.1 Subscription Fees
+            7.1 Subscription Fees
           </h3>
           <p className="text-primary/80 leading-relaxed mb-4">
             Subscription fees for Pro and Enterprise plans are billed monthly or
@@ -121,7 +175,7 @@ export default function TermsOfServicePage() {
           </p>
 
           <h3 className="font-heading text-xl font-semibold text-primary mb-3">
-            6.2 Transaction Processing
+            7.2 Transaction Processing
           </h3>
           <p className="text-primary/80 leading-relaxed mb-4">
             All customer payments are processed through eSewa. ThriftVerse does
@@ -130,7 +184,7 @@ export default function TermsOfServicePage() {
           </p>
 
           <h3 className="font-heading text-xl font-semibold text-primary mb-3">
-            6.3 Taxes
+            7.3 Taxes
           </h3>
           <p className="text-primary/80 leading-relaxed mb-4">
             Sellers are responsible for determining and paying all applicable
@@ -141,7 +195,7 @@ export default function TermsOfServicePage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            7. Intellectual Property
+            8. Intellectual Property
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
             You retain ownership of content you upload to ThriftVerse. By
@@ -153,7 +207,7 @@ export default function TermsOfServicePage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            8. Disputes
+            9. Disputes
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
             Disputes between buyers and sellers should be resolved directly
@@ -165,7 +219,7 @@ export default function TermsOfServicePage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            9. Limitation of Liability
+            10. Limitation of Liability
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
             ThriftVerse provides the platform &quot;as is&quot; without warranties of any
@@ -186,7 +240,7 @@ export default function TermsOfServicePage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            10. Indemnification
+            11. Indemnification
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
             You agree to indemnify and hold ThriftVerse harmless from any claims,
@@ -197,7 +251,7 @@ export default function TermsOfServicePage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            11. Changes to Terms
+            12. Changes to Terms
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
             We may modify these terms at any time. We will notify users of
@@ -208,7 +262,7 @@ export default function TermsOfServicePage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            12. Governing Law
+            13. Governing Law
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
             These terms are governed by the laws of Nepal. Any disputes shall be
@@ -218,7 +272,7 @@ export default function TermsOfServicePage() {
 
         <section className="mb-8">
           <h2 className="font-heading text-2xl font-bold text-primary mb-4">
-            13. Contact Information
+            14. Contact Information
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
             For questions about these terms, contact us at:
