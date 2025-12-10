@@ -7,7 +7,7 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { uploadImageToStorage } from "@/lib/upload-helpers";
-import * as ImagePicker from "expo-image-picker";
+import { pickAndCropImage } from "@/lib/image-picker-helpers";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -41,54 +41,33 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
   const [uploading, setUploading] = useState(false);
 
   const pickImage = async () => {
+    const result = await pickAndCropImage({ aspectRatio: [1, 1], quality: 0.8 });
+
+    if (!result.success || !result.uri) {
+      return;
+    }
+
+    setUploading(true);
+
     try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (status !== "granted") {
+      const uploadResult = await uploadImageToStorage(
+        result.uri,
+        bucket,
+        folder
+      );
+      if (uploadResult.success && uploadResult.url) {
+        onChange(uploadResult.url);
+      } else {
         Alert.alert(
-          "Permission Required",
-          "Please allow access to your photo library to upload images."
+          "Upload Error",
+          uploadResult.error || "Failed to upload image"
         );
-        return;
       }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setUploading(true);
-
-        try {
-          const uploadResult = await uploadImageToStorage(
-            result.assets[0].uri,
-            bucket,
-            folder
-          );
-          if (uploadResult.success && uploadResult.url) {
-            onChange(uploadResult.url);
-          } else {
-            Alert.alert(
-              "Upload Error",
-              uploadResult.error || "Failed to upload image"
-            );
-          }
-        } catch (uploadError) {
-          console.error("Error uploading image:", uploadError);
-          Alert.alert(
-            "Upload Failed",
-            "Failed to upload image. Please try again."
-          );
-        } finally {
-          setUploading(false);
-        }
-      }
-    } catch (error) {
-      console.error("Error picking image:", error);
-      Alert.alert("Error", "Failed to pick image. Please try again.");
+    } catch (uploadError) {
+      console.error("Error uploading image:", uploadError);
+      Alert.alert("Upload Failed", "Failed to upload image. Please try again.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -108,12 +87,19 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
       {/* Label */}
       <View className="flex-row items-center mb-3">
         <BodySemiboldText
-          style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: 0.5 }}
+          style={{
+            fontSize: 13,
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+          }}
         >
           {label}
         </BodySemiboldText>
         {required && (
-          <BodySemiboldText className="ml-1" style={{ color: "#EF4444", fontSize: 13 }}>
+          <BodySemiboldText
+            className="ml-1"
+            style={{ color: "#EF4444", fontSize: 13 }}
+          >
             *
           </BodySemiboldText>
         )}
@@ -174,7 +160,12 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
               }}
             >
               <CaptionText
-                style={{ color: "#FFFFFF", textTransform: "uppercase", letterSpacing: 0.5, fontSize: 11 }}
+                style={{
+                  color: "#FFFFFF",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                  fontSize: 11,
+                }}
               >
                 Cover Photo
               </CaptionText>
@@ -199,7 +190,10 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
                 <BodySemiboldText className="mt-4" style={{ fontSize: 16 }}>
                   Uploading image...
                 </BodySemiboldText>
-                <BodyRegularText className="mt-2" style={{ color: "#6B7280", fontSize: 13 }}>
+                <BodyRegularText
+                  className="mt-2"
+                  style={{ color: "#6B7280", fontSize: 13 }}
+                >
                   Please wait
                 </BodyRegularText>
               </View>
@@ -221,7 +215,10 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
                 <HeadingBoldText className="mb-2" style={{ fontSize: 18 }}>
                   Upload Cover Photo
                 </HeadingBoldText>
-                <BodyRegularText className="text-center" style={{ color: "#6B7280" }}>
+                <BodyRegularText
+                  className="text-center"
+                  style={{ color: "#6B7280" }}
+                >
                   Tap to select an image
                 </BodyRegularText>
               </View>
@@ -239,7 +236,10 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
 
       {/* Error Message */}
       {error && (
-        <BodySemiboldText className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
+        <BodySemiboldText
+          className="mt-2"
+          style={{ color: "#EF4444", fontSize: 13 }}
+        >
           {error}
         </BodySemiboldText>
       )}

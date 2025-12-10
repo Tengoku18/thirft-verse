@@ -212,6 +212,62 @@ export const uploadProfileImage = async (
 };
 
 /**
+ * Upload payment QR image for a user
+ */
+export const uploadPaymentQRImage = async (
+  userId: string,
+  localUri: string
+): Promise<{ success: boolean; path?: string; error?: any }> => {
+  try {
+    // Get file extension from URI
+    const uriParts = localUri.split(".");
+    const extension = uriParts[uriParts.length - 1] || "jpg";
+
+    // Generate unique filename
+    const filename = `${userId}/payment_qr_${Date.now()}.${extension}`;
+
+    // Fetch the file as blob
+    const response = await fetch(localUri);
+    const blob = await response.blob();
+
+    // Upload to Supabase Storage (using profiles bucket)
+    const { data, error } = await supabase.storage
+      .from("profiles")
+      .upload(filename, blob, {
+        contentType: `image/${extension === "jpg" ? "jpeg" : extension}`,
+        upsert: true,
+      });
+
+    if (error) {
+      console.error("❌ Payment QR image upload error:", error);
+      return { success: false, error };
+    }
+
+    return { success: true, path: filename };
+  } catch (error) {
+    console.error("💥 Payment QR image upload failed:", error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * Get public URL for payment QR image
+ */
+export const getPaymentQRImageUrl = (path: string): string => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+
+  const { data } = supabase.storage.from("profiles").getPublicUrl(path);
+  console.log(
+    "c7253c20-89b4-416c-a002-750affaca00d/payment_qr_1765306981590.jpg",
+    path,
+    data.publicUrl
+  );
+
+  return data.publicUrl;
+};
+
+/**
  * Storage bucket names
  */
 export const STORAGE_BUCKETS = {

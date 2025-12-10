@@ -11,6 +11,7 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { createProduct } from "@/lib/database-helpers";
+import { pickAndCropImage, pickMultipleImages } from "@/lib/image-picker-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import {
   uploadImageToStorage,
@@ -22,7 +23,6 @@ import {
   productSchema,
 } from "@/lib/validations/product";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Controller, FieldError, useForm } from "react-hook-form";
@@ -72,128 +72,84 @@ export const ProductCreationForm: React.FC = () => {
   }));
 
   const pickCoverImage = async () => {
+    const result = await pickAndCropImage({ aspectRatio: [1, 1], quality: 0.8 });
+
+    if (!result.success || !result.uri) {
+      return;
+    }
+
+    setUploadingCover(true);
+
     try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (status !== "granted") {
+      const uploadResult = await uploadImageToStorage(
+        result.uri,
+        "products",
+        "products"
+      );
+      if (uploadResult.success && uploadResult.url) {
+        setValue("cover_image", uploadResult.url);
+      } else {
         Alert.alert(
-          "Permission Required",
-          "Please allow access to your photo library to upload images."
+          "Upload Error",
+          uploadResult.error || "Failed to upload image"
         );
-        return;
       }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setUploadingCover(true);
-
-        try {
-          const uploadResult = await uploadImageToStorage(
-            result.assets[0].uri,
-            "products",
-            "products"
-          );
-          if (uploadResult.success && uploadResult.url) {
-            setValue("cover_image", uploadResult.url);
-          } else {
-            Alert.alert(
-              "Upload Error",
-              uploadResult.error || "Failed to upload image"
-            );
-          }
-        } catch (uploadError) {
-          console.error("Error uploading image:", uploadError);
-          Alert.alert(
-            "Upload Failed",
-            "Failed to upload image. Please try again."
-          );
-        } finally {
-          setUploadingCover(false);
-        }
-      }
-    } catch (error) {
-      console.error("Error picking image:", error);
-      Alert.alert("Error", "Failed to pick image. Please try again.");
+    } catch (uploadError) {
+      console.error("Error uploading image:", uploadError);
+      Alert.alert("Upload Failed", "Failed to upload image. Please try again.");
+    } finally {
+      setUploadingCover(false);
     }
   };
 
   const pickAdditionalImages = async () => {
+    const maxOtherImages = 5;
+    const remainingSlots = maxOtherImages - otherImages.length;
+
+    if (remainingSlots <= 0) {
+      Alert.alert(
+        "Limit Reached",
+        `You can only upload up to ${maxOtherImages} additional images.`
+      );
+      return;
+    }
+
+    const result = await pickMultipleImages(remainingSlots);
+
+    if (!result.success || !result.uris || result.uris.length === 0) {
+      return;
+    }
+
+    setUploadingOther(true);
+
     try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const uploadResults = await uploadMultipleImages(
+        result.uris,
+        "products",
+        "products"
+      );
 
-      if (status !== "granted") {
+      const successfulUrls = uploadResults
+        .filter((r) => r.success && r.url)
+        .map((r) => r.url!);
+
+      const failedCount = uploadResults.filter((r) => !r.success).length;
+
+      if (successfulUrls.length > 0) {
+        setValue("other_images", [...otherImages, ...successfulUrls]);
+      }
+
+      if (failedCount > 0) {
         Alert.alert(
-          "Permission Required",
-          "Please allow access to your photo library to upload images."
+          "Upload Warning",
+          `${failedCount} image(s) failed to upload. ${successfulUrls.length} image(s) uploaded successfully.`
         );
-        return;
       }
-
-      const maxOtherImages = 5;
-      const remainingSlots = maxOtherImages - otherImages.length;
-
-      if (remainingSlots <= 0) {
-        Alert.alert(
-          "Limit Reached",
-          `You can only upload up to ${maxOtherImages} additional images.`
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsMultipleSelection: true,
-        selectionLimit: remainingSlots,
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets.length > 0) {
-        setUploadingOther(true);
-
-        try {
-          const localUris = result.assets.map((asset) => asset.uri);
-          const uploadResults = await uploadMultipleImages(
-            localUris,
-            "products",
-            "products"
-          );
-
-          const successfulUrls = uploadResults
-            .filter((r) => r.success && r.url)
-            .map((r) => r.url!);
-
-          const failedCount = uploadResults.filter((r) => !r.success).length;
-
-          if (successfulUrls.length > 0) {
-            setValue("other_images", [...otherImages, ...successfulUrls]);
-          }
-
-          if (failedCount > 0) {
-            Alert.alert(
-              "Upload Warning",
-              `${failedCount} image(s) failed to upload. ${successfulUrls.length} image(s) uploaded successfully.`
-            );
-          }
-        } catch (uploadError) {
-          console.error("Error uploading images:", uploadError);
-          Alert.alert(
-            "Upload Failed",
-            "Failed to upload images. Please try again."
-          );
-        } finally {
-          setUploadingOther(false);
-        }
-      }
-    } catch (error) {
-      console.error("Error picking images:", error);
-      Alert.alert("Error", "Failed to pick images. Please try again.");
+    } catch (uploadError) {
+      console.error("Error uploading images:", uploadError);
+      Alert.alert("Upload Failed", "Failed to upload images. Please try again.");
+    } finally {
+      setUploadingOther(false);
     }
   };
 
@@ -281,11 +237,13 @@ export const ProductCreationForm: React.FC = () => {
 
   return (
     <TabScreenLayout title="Add Product">
-      <ScrollView
-        className="flex-1 bg-white"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
+        <ScrollView
+          className="flex-1 bg-white"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
+        >
         <View className="px-6 pt-4">
           {/* Cover Image Section */}
           <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
@@ -475,7 +433,7 @@ export const ProductCreationForm: React.FC = () => {
             render={({ field: { onChange, onBlur, value } }) => (
               <FormInput
                 label="Product name"
-                placeholder="Eg: HUBA X VEK Cloth Jersey - Blue"
+                placeholder="Eg: Jeans"
                 required
                 value={value}
                 onBlur={onBlur}

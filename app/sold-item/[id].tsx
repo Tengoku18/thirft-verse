@@ -29,17 +29,29 @@ export default function SoldItemDetailScreen() {
 
       <View className="flex-1 justify-center items-center px-8">
         <View className="w-20 h-20 rounded-full bg-[#FEF3C7] justify-center items-center mb-6">
-          <IconSymbol name="arrow.triangle.2.circlepath" size={36} color="#D97706" />
+          <IconSymbol
+            name="arrow.triangle.2.circlepath"
+            size={36}
+            color="#D97706"
+          />
         </View>
 
-        <HeadingBoldText style={{ fontSize: 20, textAlign: "center", marginBottom: 8 }}>
+        <HeadingBoldText
+          style={{ fontSize: 20, textAlign: "center", marginBottom: 8 }}
+        >
           Orders Updated
         </HeadingBoldText>
 
         <BodyRegularText
-          style={{ color: "#6B7280", textAlign: "center", lineHeight: 22, marginBottom: 24 }}
+          style={{
+            color: "#6B7280",
+            textAlign: "center",
+            lineHeight: 22,
+            marginBottom: 24,
+          }}
         >
-          We've improved how orders are tracked! You'll be redirected to the new Orders screen where you can see real-time order status.
+          We&apos;ve improved how orders are tracked! You&apos;ll be redirected
+          to the new Orders screen where you can see real-time order status.
         </BodyRegularText>
 
         <TouchableOpacity
@@ -47,7 +59,9 @@ export default function SoldItemDetailScreen() {
           className="bg-[#3B2F2F] px-8 py-4 rounded-xl"
           activeOpacity={0.8}
         >
-          <BodyRegularText style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "600" }}>
+          <BodyRegularText
+            style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "600" }}
+          >
             Go to Orders
           </BodyRegularText>
         </TouchableOpacity>

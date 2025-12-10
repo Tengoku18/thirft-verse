@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
-import { View, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { BodySemiboldText, CaptionText } from '@/components/Typography';
-import { UserIcon, CameraIcon } from '@/components/icons';
-import { getProfileImageUrl } from '@/lib/storage-helpers';
+import React, { useState } from "react";
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import { BodySemiboldText, CaptionText } from "@/components/Typography";
+import { UserIcon, CameraIcon } from "@/components/icons";
+import { getProfileImageUrl } from "@/lib/storage-helpers";
+import { showImagePickerOptions } from "@/lib/image-picker-helpers";
 
 interface ProfileImagePickerProps {
   value?: string | null;
@@ -14,96 +19,37 @@ interface ProfileImagePickerProps {
 export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
   value,
   onChange,
-  name = 'User',
+  name = "User",
 }) => {
   const [uploading, setUploading] = useState(false);
 
-  const pickImage = async () => {
-    try {
-      // Request permissions
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (!permissionResult.granted) {
-        Alert.alert('Permission Required', 'Please allow access to your photos to upload a profile picture.');
-        return;
-      }
-
-      // Launch image picker
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        onChange(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image. Please try again.');
-    }
-  };
-
-  const takePhoto = async () => {
-    try {
-      // Request permissions
-      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-      if (!permissionResult.granted) {
-        Alert.alert('Permission Required', 'Please allow access to your camera to take a photo.');
-        return;
-      }
-
-      // Launch camera
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        onChange(result.assets[0].uri);
-      }
-    } catch (error: any) {
-      console.error('Error taking photo:', error);
-
-      // Handle camera not available on simulator gracefully
-      if (error?.message?.includes('Camera not available')) {
-        Alert.alert(
-          'Camera Not Available',
-          'The camera is not available on simulator. Please use "Choose from Library" or test on a physical device.',
-          [{ text: 'OK' }]
-        );
-      } else {
-        Alert.alert('Error', 'Failed to take photo. Please try again.');
-      }
-    }
-  };
-
-  const showOptions = () => {
-    Alert.alert(
-      'Profile Picture',
-      'Choose an option',
-      [
-        { text: 'Take Photo', onPress: takePhoto },
-        { text: 'Choose from Library', onPress: pickImage },
-        { text: 'Cancel', style: 'cancel' },
-        ...(value ? [{ text: 'Remove Photo', onPress: () => onChange(null), style: 'destructive' as const }] : []),
-      ]
+  const handleImageSelect = () => {
+    showImagePickerOptions(
+      { aspectRatio: [1, 1], quality: 0.8 },
+      (result) => {
+        if (result.success && result.uri) {
+          onChange(result.uri);
+        }
+      },
+      !!value,
+      () => onChange(null)
     );
   };
 
   return (
     <View className="items-center mb-6">
-      <BodySemiboldText className="mb-3" style={{ color: '#3B2F2F', fontSize: 14 }}>
+      <BodySemiboldText
+        className="mb-3"
+        style={{ color: "#3B2F2F", fontSize: 14 }}
+      >
         Profile Picture (Optional)
       </BodySemiboldText>
 
       <TouchableOpacity
-        onPress={showOptions}
+        onPress={handleImageSelect}
         className="relative"
-        disabled={uploading}>
+        disabled={uploading}
+      >
         {value ? (
           <Image
             source={{ uri: getProfileImageUrl(value) }}
@@ -127,8 +73,8 @@ export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
         )}
       </TouchableOpacity>
 
-      <CaptionText className="mt-2 text-center" style={{ color: '#6B705C' }}>
-        Tap to {value ? 'change' : 'add'} photo
+      <CaptionText className="mt-2 text-center" style={{ color: "#6B705C" }}>
+        Tap to {value ? "change" : "add"} photo
       </CaptionText>
     </View>
   );

@@ -31,7 +31,7 @@ export const FormButton: React.FC<FormButtonProps> = ({
       case "primary":
         return "bg-[#3B2F2F] shadow-lg"; // Modern dark button
       case "secondary":
-        return "bg-[#6B705C]";
+        return "bg-[#d4a373]";
       case "outline":
         return "bg-transparent border-[2px] border-[#3B2F2F]";
       default:

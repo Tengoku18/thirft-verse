@@ -37,7 +37,7 @@ const emailSchema = yup.object({
     .required("Email is required"),
 });
 
-// Step 2: Reset Password (combined with OTP verification)
+// Step 3: Reset Password
 interface PasswordFormData {
   password: string;
   confirmPassword: string;
@@ -46,10 +46,7 @@ interface PasswordFormData {
 const passwordSchema = yup.object({
   password: yup
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .matches(/[a-z]/, "Password must contain at least one lowercase letter")
-    .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .matches(/[0-9]/, "Password must contain at least one number")
+    .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
   confirmPassword: yup
     .string()
@@ -82,7 +79,7 @@ export default function ForgotPasswordScreen() {
     defaultValues: { email: "" },
   });
 
-  // Step 2 Form (Password)
+  // Step 3 Form (Password)
   const {
     control: passwordControl,
     handleSubmit: handlePasswordSubmit,
@@ -177,14 +174,21 @@ export default function ForgotPasswordScreen() {
     }
   };
 
-  // Combined step 2: Enter OTP and new password together
-  const handleResetPassword = async (data: PasswordFormData) => {
+  // Step 2: Verify OTP and proceed to step 3
+  const handleVerifyOtp = () => {
     const otpCode = otp.join("");
 
     if (otpCode.length !== 6) {
       Alert.alert("Invalid Code", "Please enter the complete 6-digit code");
       return;
     }
+
+    setCurrentStep(3);
+  };
+
+  // Step 3: Reset password with verified OTP
+  const handleResetPassword = async (data: PasswordFormData) => {
+    const otpCode = otp.join("");
 
     setLoading(true);
 
@@ -261,14 +265,11 @@ export default function ForgotPasswordScreen() {
         return (
           <View className="flex-1">
             <View className="mb-12">
-              <View className="w-16 h-16 bg-[#3B2F2F] rounded-2xl justify-center items-center mb-6">
-                <IconSymbol name="lock.fill" size={28} color="#FFFFFF" />
-              </View>
               <HeadingBoldText
                 className="leading-tight mb-3"
                 style={{ fontSize: 40 }}
               >
-                Forgot{"\n"}Password?
+                Forgot Password?
               </HeadingBoldText>
               <BodyRegularText
                 className="leading-relaxed"
@@ -322,8 +323,14 @@ export default function ForgotPasswordScreen() {
         return (
           <View className="flex-1">
             <View className="mb-8">
+              <HeadingBoldText
+                className="leading-tight mb-2"
+                style={{ fontSize: 32 }}
+              >
+                Email Verification
+              </HeadingBoldText>
               <BodyRegularText
-                className="leading-6 mb-2"
+                className="leading-6"
                 style={{ color: "#6B7280", fontSize: 15 }}
               >
                 We&apos;ve sent a 6-digit verification code to {email}
@@ -331,13 +338,6 @@ export default function ForgotPasswordScreen() {
             </View>
 
             <View className="mb-6">
-              <BodySemiboldText
-                className="mb-4 tracking-wide uppercase"
-                style={{ fontSize: 13 }}
-              >
-                Enter Verification Code
-              </BodySemiboldText>
-
               <View className="flex-row justify-between mb-4">
                 {otp.map((digit, index) => (
                   <TextInput
@@ -345,9 +345,9 @@ export default function ForgotPasswordScreen() {
                     ref={(ref) => {
                       inputRefs.current[index] = ref;
                     }}
-                    className="w-[52px] h-[58px] border-[2px] border-transparent bg-[#FAFAFA] rounded-2xl text-center text-[22px] font-[NunitoSans_700Bold] text-[#3B2F2F]"
+                    className="w-[52px] h-[58px] border-[2px] border-primary bg-[#FAFAFA] rounded-2xl text-center text-[22px] font-[NunitoSans_700Bold] text-[#3B2F2F]"
                     style={{
-                      borderColor: digit ? "#3B2F2F" : "transparent",
+                      borderColor: "#3B2F2F",
                       backgroundColor: digit ? "#FFFFFF" : "#FAFAFA",
                     }}
                     value={digit}
@@ -380,14 +380,36 @@ export default function ForgotPasswordScreen() {
               </View>
             </View>
 
-            <View className="mb-6">
-              <BodySemiboldText
-                className="mb-4 tracking-wide uppercase"
-                style={{ fontSize: 13 }}
-              >
-                Set New Password
-              </BodySemiboldText>
+            <View className="mt-auto">
+              <FormButton
+                title="Verify Code"
+                onPress={handleVerifyOtp}
+                loading={loading}
+                variant="primary"
+              />
+            </View>
+          </View>
+        );
 
+      case 3:
+        return (
+          <View className="flex-1">
+            <View className="mb-8">
+              <HeadingBoldText
+                className="leading-tight mb-2"
+                style={{ fontSize: 32 }}
+              >
+                Reset Password
+              </HeadingBoldText>
+              <BodyRegularText
+                className="leading-6"
+                style={{ color: "#6B7280", fontSize: 15 }}
+              >
+                Create a new password for your account
+              </BodyRegularText>
+            </View>
+
+            <View className="mb-6">
               <Controller
                 control={passwordControl}
                 name="password"
@@ -423,32 +445,12 @@ export default function ForgotPasswordScreen() {
               />
             </View>
 
-            <View className="mb-6 p-5 bg-[#FAFAFA] rounded-2xl border-[2px] border-[#E5E1DB]">
-              <BodySemiboldText className="mb-2" style={{ fontSize: 13 }}>
-                Password Requirements:
-              </BodySemiboldText>
-              <BodyRegularText
-                className="leading-5"
-                style={{ color: "#6B7280", fontSize: 13 }}
-              >
-                • At least 8 characters long{"\n"}• Contains uppercase and
-                lowercase letters{"\n"}• Contains at least one number
-              </BodyRegularText>
-            </View>
-
             <View className="mt-auto">
               <FormButton
                 title="Reset Password"
                 onPress={handlePasswordSubmit(handleResetPassword)}
                 loading={loading}
                 variant="primary"
-                className="mb-4"
-              />
-
-              <FormButton
-                title="Back"
-                onPress={() => setCurrentStep(1)}
-                variant="outline"
               />
             </View>
           </View>
@@ -471,7 +473,6 @@ export default function ForgotPasswordScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View className="flex-1 px-6 pt-12 pb-8">
-          {/* Back Button */}
           <TouchableOpacity
             onPress={() =>
               currentStep === 1
@@ -483,22 +484,17 @@ export default function ForgotPasswordScreen() {
             <IconSymbol name="chevron.left" size={24} color="#3B2F2F" />
           </TouchableOpacity>
 
-          {/* Step Header */}
-          {currentStep > 1 && (
-            <View className="mb-8">
-              <CaptionText
-                className="mb-2 tracking-widest uppercase"
-                style={{ color: "#6B7280", fontWeight: "600", fontSize: 11 }}
-              >
-                Step {currentStep} of 2
-              </CaptionText>
-            </View>
-          )}
+          <View className="mb-2">
+            <CaptionText
+              className="tracking-widest uppercase"
+              style={{ color: "#6B7280", fontWeight: "600", fontSize: 11 }}
+            >
+              Step {currentStep} of 3
+            </CaptionText>
+          </View>
 
-          {/* Current Step Content */}
           {renderStep()}
 
-          {/* Footer */}
           {currentStep === 1 && (
             <View className="mt-auto pt-8 pb-4">
               <CaptionText className="text-center" style={{ color: "#9CA3AF" }}>

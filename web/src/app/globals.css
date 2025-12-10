@@ -1,20 +1,21 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
-  --background: #FAF7F2;
-  --foreground: #3B2F2F;
+  --background: #faf7f2;
+  --foreground: #3b2f2f;
+  --test: #d4a373;
 }
 
 @theme inline {
   /* Colors */
-  --color-primary: #3B2F2F;
-  --color-secondary: #D4A373;
-  --color-background: #FAF7F2;
-  --color-surface: #FFFFFF;
-  --color-border: #C7BFB3;
-  --color-muted: #C7BFB3;
-  --color-accent-1: #6B705C;
-  --color-accent-2: #CB997E;
+  --color-primary: #3b2f2f;
+  --color-secondary: #d4a373;
+  --color-background: #3b2f2f;
+  --color-surface: #ffffff;
+  --color-border: #c7bfb3;
+  --color-muted: #c7bfb3;
+  --color-accent-1: #6b705c;
+  --color-accent-2: #cb997e;
 
   /* Fonts */
   --font-sans: var(--font-nunito-sans);
@@ -43,7 +44,7 @@ body {
 }
 
 #nprogress .bar {
-  background: linear-gradient(90deg, #D4A373, #CB997E, #D4A373);
+  background: linear-gradient(90deg, #d4a373, #cb997e, #d4a373);
   background-size: 200% 100%;
   animation: gradient-shift 2s ease infinite;
   position: fixed;
@@ -53,7 +54,9 @@ body {
   width: 100%;
   height: 3px;
   border-radius: 0 2px 2px 0;
-  box-shadow: 0 0 10px rgba(212, 163, 115, 0.5), 0 0 5px rgba(212, 163, 115, 0.3);
+  box-shadow:
+    0 0 10px rgba(212, 163, 115, 0.5),
+    0 0 5px rgba(212, 163, 115, 0.3);
 }
 
 #nprogress .peg {
@@ -62,7 +65,9 @@ body {
   right: 0px;
   width: 100px;
   height: 100%;
-  box-shadow: 0 0 15px #D4A373, 0 0 8px #D4A373;
+  box-shadow:
+    0 0 15px #d4a373,
+    0 0 8px #d4a373;
   opacity: 1;
   transform: rotate(3deg) translate(0px, -4px);
 }

@@ -64,6 +64,8 @@ export interface CreateProfileData {
   profile_image?: string | null;
   currency?: string;
   address?: string;
+  payment_username?: string;
+  payment_qr_image?: string | null;
 }
 
 export const createUserProfile = async (data: CreateProfileData) => {
@@ -76,6 +78,8 @@ export const createUserProfile = async (data: CreateProfileData) => {
       profile_image: data.profile_image || null,
       currency: data.currency || "NPR",
       address: data.address || "",
+      payment_username: data.payment_username || null,
+      payment_qr_image: data.payment_qr_image || null,
     });
 
     if (error) {
@@ -293,6 +297,8 @@ interface UpdateProfileData {
   bio?: string;
   address?: string;
   profile_image?: string;
+  payment_username?: string;
+  payment_qr_image?: string | null;
 }
 
 export const updateUserProfile = async (data: UpdateProfileData) => {
@@ -303,6 +309,10 @@ export const updateUserProfile = async (data: UpdateProfileData) => {
     if (data.address !== undefined) updateData.address = data.address;
     if (data.profile_image !== undefined)
       updateData.profile_image = data.profile_image;
+    if (data.payment_username !== undefined)
+      updateData.payment_username = data.payment_username;
+    if (data.payment_qr_image !== undefined)
+      updateData.payment_qr_image = data.payment_qr_image;
 
     const { error } = await supabase
       .from("profiles")

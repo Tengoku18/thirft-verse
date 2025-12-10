@@ -10,11 +10,15 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { updateUserProfile } from "@/lib/database-helpers";
-import { getProfileImageUrl } from "@/lib/storage-helpers";
+import {
+  getPaymentQRImageUrl,
+  getProfileImageUrl,
+  uploadPaymentQRImage,
+  uploadProfileImage,
+} from "@/lib/storage-helpers";
+import { showImagePickerOptions } from "@/lib/image-picker-helpers";
 import { supabase } from "@/lib/supabase";
-import { uploadProfileImage } from "@/lib/storage-helpers";
 import { useRouter } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -32,6 +36,8 @@ interface ProfileData {
   bio: string;
   address: string;
   profile_image: string | null;
+  payment_username: string;
+  payment_qr_image: string | null;
 }
 
 export default function EditProfileScreen() {
@@ -44,9 +50,16 @@ export default function EditProfileScreen() {
     bio: "",
     address: "",
     profile_image: null,
+    payment_username: "",
+    payment_qr_image: null,
   });
   const [newImageUri, setNewImageUri] = useState<string | null>(null);
-  const [errors, setErrors] = useState<{ name?: string; bio?: string; address?: string }>({});
+  const [newPaymentQRUri, setNewPaymentQRUri] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{
+    name?: string;
+    bio?: string;
+    address?: string;
+  }>({});
 
   useEffect(() => {
     loadProfile();
@@ -71,6 +84,8 @@ export default function EditProfileScreen() {
           bio: fetchedProfile.bio || "",
           address: fetchedProfile.address || "",
           profile_image: fetchedProfile.profile_image || null,
+          payment_username: fetchedProfile.payment_username || "",
+          payment_qr_image: fetchedProfile.payment_qr_image || null,
         });
       } else {
         // Fallback to user metadata
@@ -79,6 +94,8 @@ export default function EditProfileScreen() {
           bio: "",
           address: user.user_metadata?.address || "",
           profile_image: user.user_metadata?.profile_image || null,
+          payment_username: "",
+          payment_qr_image: null,
         });
       }
     } catch (error) {
@@ -111,108 +128,93 @@ export default function EditProfileScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const pickImage = async () => {
-    try {
-      const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (!permissionResult.granted) {
-        Alert.alert(
-          "Permission Required",
-          "Please allow access to your photos to upload a profile picture."
-        );
-        return;
+  const handleProfileImageSelect = () => {
+    showImagePickerOptions(
+      { aspectRatio: [1, 1], quality: 0.8 },
+      (result) => {
+        if (result.success && result.uri) {
+          setNewImageUri(result.uri);
+        }
+      },
+      !!(newImageUri || profileData.profile_image),
+      () => {
+        setNewImageUri(null);
+        setProfileData((prev) => ({ ...prev, profile_image: null }));
       }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setNewImageUri(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error("Error picking image:", error);
-      Alert.alert("Error", "Failed to pick image. Please try again.");
-    }
+    );
   };
 
-  const takePhoto = async () => {
-    try {
-      const permissionResult =
-        await ImagePicker.requestCameraPermissionsAsync();
-
-      if (!permissionResult.granted) {
-        Alert.alert(
-          "Permission Required",
-          "Please allow access to your camera to take a photo."
-        );
-        return;
+  const handlePaymentQRSelect = () => {
+    showImagePickerOptions(
+      { aspectRatio: [1, 1], quality: 0.8 },
+      (result) => {
+        if (result.success && result.uri) {
+          setNewPaymentQRUri(result.uri);
+        }
+      },
+      !!(newPaymentQRUri || profileData.payment_qr_image),
+      () => {
+        setNewPaymentQRUri(null);
+        setProfileData((prev) => ({ ...prev, payment_qr_image: null }));
       }
-
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setNewImageUri(result.assets[0].uri);
-      }
-    } catch (error: any) {
-      console.error("Error taking photo:", error);
-      if (error?.message?.includes("Camera not available")) {
-        Alert.alert(
-          "Camera Not Available",
-          "The camera is not available on simulator. Please use 'Choose from Library' or test on a physical device."
-        );
-      } else {
-        Alert.alert("Error", "Failed to take photo. Please try again.");
-      }
-    }
+    );
   };
 
-  const showImageOptions = () => {
-    const hasImage = newImageUri || profileData.profile_image;
-    Alert.alert("Profile Picture", "Choose an option", [
-      { text: "Take Photo", onPress: takePhoto },
-      { text: "Choose from Library", onPress: pickImage },
-      { text: "Cancel", style: "cancel" },
-      ...(hasImage
-        ? [
-            {
-              text: "Remove Photo",
-              onPress: () => {
-                setNewImageUri(null);
-                setProfileData((prev) => ({ ...prev, profile_image: null }));
-              },
-              style: "destructive" as const,
-            },
-          ]
-        : []),
-    ]);
-  };
-
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!validateForm() || !user) return;
+
+    // Show confirmation alert
+    Alert.alert(
+      "Update Profile",
+      "Are you sure you want to update your profile?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Yes, Update",
+          onPress: performSave,
+        },
+      ]
+    );
+  };
+
+  const performSave = async () => {
+    if (!user) return;
 
     setSaving(true);
 
     try {
       let imageUrl = profileData.profile_image;
+      let paymentQRUrl = profileData.payment_qr_image;
 
-      // Upload new image if selected
+      // Upload new profile image if selected
       if (newImageUri) {
         const uploadResult = await uploadProfileImage(user.id, newImageUri);
         if (uploadResult.success && uploadResult.path) {
           imageUrl = uploadResult.path;
         } else {
-          Alert.alert("Error", "Failed to upload profile image. Please try again.");
+          Alert.alert(
+            "Error",
+            "Failed to upload profile image. Please try again."
+          );
           setSaving(false);
           return;
+        }
+      }
+
+      // Upload new payment QR image if selected
+      if (newPaymentQRUri) {
+        const uploadResult = await uploadPaymentQRImage(
+          user.id,
+          newPaymentQRUri
+        );
+        if (uploadResult.success && uploadResult.path) {
+          paymentQRUrl = uploadResult.path;
+        } else {
+          console.error("Failed to upload QR image:", uploadResult.error);
+          // Continue without failing - user can try again
         }
       }
 
@@ -223,6 +225,8 @@ export default function EditProfileScreen() {
         bio: profileData.bio.trim(),
         address: profileData.address.trim(),
         profile_image: imageUrl || undefined,
+        payment_username: profileData.payment_username.trim() || undefined,
+        payment_qr_image: paymentQRUrl,
       });
 
       if (result.success) {
@@ -246,6 +250,16 @@ export default function EditProfileScreen() {
     if (newImageUri) return newImageUri;
     if (profileData.profile_image) {
       return getProfileImageUrl(profileData.profile_image);
+    }
+    return null;
+  };
+
+  const getDisplayPaymentQRUri = () => {
+    if (newPaymentQRUri) return newPaymentQRUri;
+    console.log("payment_qr_image", profileData.payment_qr_image);
+
+    if (profileData.payment_qr_image) {
+      return getPaymentQRImageUrl(profileData.payment_qr_image);
     }
     return null;
   };
@@ -274,7 +288,7 @@ export default function EditProfileScreen() {
           {/* Profile Image Section */}
           <View className="items-center py-8 px-6">
             <TouchableOpacity
-              onPress={showImageOptions}
+              onPress={handleProfileImageSelect}
               activeOpacity={0.8}
               className="relative"
             >
@@ -397,9 +411,7 @@ export default function EditProfileScreen() {
               <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
                 Username
               </BodySemiboldText>
-              <View
-                className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center"
-              >
+              <View className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center">
                 <View className="flex-row items-center">
                   <BodyRegularText style={{ color: "#6B7280", fontSize: 15 }}>
                     @{user?.user_metadata?.username || "username"}
@@ -419,9 +431,7 @@ export default function EditProfileScreen() {
               <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
                 Email
               </BodySemiboldText>
-              <View
-                className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center"
-              >
+              <View className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center">
                 <View className="flex-row items-center">
                   <BodyRegularText style={{ color: "#6B7280", fontSize: 15 }}>
                     {user?.email || "email@example.com"}
@@ -434,6 +444,87 @@ export default function EditProfileScreen() {
               <CaptionText className="mt-2" style={{ color: "#9CA3AF" }}>
                 Email cannot be changed from here
               </CaptionText>
+            </View>
+
+            {/* Payment Section Divider */}
+            <View className="mb-6 mt-2">
+              <View className="flex-row items-center">
+                <View className="flex-1 h-px bg-[#E5E7EB]" />
+                <BodySemiboldText
+                  className="mx-4"
+                  style={{ color: "#6B7280", fontSize: 12 }}
+                >
+                  PAYMENT DETAILS
+                </BodySemiboldText>
+                <View className="flex-1 h-px bg-[#E5E7EB]" />
+              </View>
+            </View>
+
+            {/* Payment Account Name */}
+            <FormInput
+              label="Payment Account Name"
+              placeholder="e.g., eSewa: 9812345678 or Bank: John Doe"
+              value={profileData.payment_username}
+              onChangeText={(text) =>
+                setProfileData((prev) => ({ ...prev, payment_username: text }))
+              }
+              autoCapitalize="none"
+            />
+            <CaptionText className="mb-6 -mt-2" style={{ color: "#6B7280" }}>
+              Enter your eSewa number, bank account name, or payment identifier
+            </CaptionText>
+
+            {/* Payment QR Code */}
+            <View className="mb-6">
+              <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
+                Payment QR Code{" "}
+                <CaptionText style={{ color: "#9CA3AF" }}>
+                  (Optional)
+                </CaptionText>
+              </BodySemiboldText>
+
+              <TouchableOpacity
+                onPress={handlePaymentQRSelect}
+                activeOpacity={0.8}
+                className="border-2 border-dashed border-[#E5E7EB] rounded-2xl overflow-hidden"
+                style={{ height: 180 }}
+              >
+                {getDisplayPaymentQRUri() ? (
+                  <View className="flex-1 relative">
+                    <Image
+                      source={{ uri: getDisplayPaymentQRUri()! }}
+                      style={{ width: "100%", height: "100%" }}
+                      resizeMode="contain"
+                    />
+                    <View
+                      className="absolute top-2 right-2 bg-white rounded-full p-2"
+                      style={{
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 4,
+                        elevation: 3,
+                      }}
+                    >
+                      <IconSymbol name="pencil" size={16} color="#3B2F2F" />
+                    </View>
+                  </View>
+                ) : (
+                  <View className="flex-1 justify-center items-center bg-[#FAFAFA]">
+                    <View className="w-14 h-14 rounded-full bg-[#F3F4F6] justify-center items-center mb-3">
+                      <IconSymbol name="qrcode" size={24} color="#9CA3AF" />
+                    </View>
+                    <BodySemiboldText
+                      style={{ color: "#6B7280", fontSize: 14 }}
+                    >
+                      Upload QR Code
+                    </BodySemiboldText>
+                    <CaptionText style={{ color: "#9CA3AF" }} className="mt-1">
+                      Tap to add your payment QR
+                    </CaptionText>
+                  </View>
+                )}
+              </TouchableOpacity>
             </View>
           </View>
 
