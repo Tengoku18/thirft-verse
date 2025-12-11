@@ -5,6 +5,13 @@ export type UserRole = 'ADMIN' | 'USER';
 export type SubscriptionPlan = 'BASIC' | 'SILVER' | 'GOLD';
 export type OrderStatus = 'pending' | 'completed' | 'cancelled' | 'refunded';
 export type ProductStatus = 'available' | 'out_of_stock';
+export type ProfileStatus = 'active' | 'suspended' | 'deleted';
+export type DeletionRequestStatus = 'pending' | 'approved' | 'rejected' | 'completed';
+
+export interface ProfileConfig {
+  status: ProfileStatus;
+  requestedForDeletion: boolean;
+}
 
 export interface Profile {
   id: string;
@@ -16,6 +23,7 @@ export interface Profile {
   store_username: string;
   role: UserRole;
   plan: SubscriptionPlan;
+  config: ProfileConfig;
   payment_username: string | null;
   payment_qr_image: string | null;
   created_at: string;
@@ -83,4 +91,18 @@ export interface Order {
 export interface OrderWithDetails extends Order {
   seller: Pick<Profile, 'id' | 'name' | 'store_username'> | null;
   product: Pick<Product, 'id' | 'title' | 'cover_image' | 'price'> | null;
+}
+
+export interface AccountDeletionRequest {
+  id: string;
+  user_id: string;
+  email: string;
+  reason: string;
+  status: DeletionRequestStatus;
+  admin_notes: string | null;
+  requested_at: string;
+  processed_at: string | null;
+  processed_by: string | null;
+  created_at: string;
+  updated_at: string;
 }
