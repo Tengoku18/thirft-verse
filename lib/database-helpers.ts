@@ -294,6 +294,8 @@ interface UpdateProfileData {
   bio?: string;
   address?: string;
   profile_image?: string;
+  payment_username?: string;
+  payment_qr_image?: string;
 }
 
 export const updateUserProfile = async (data: UpdateProfileData) => {
@@ -306,6 +308,10 @@ export const updateUserProfile = async (data: UpdateProfileData) => {
     if (data.address !== undefined) updateData.address = data.address;
     if (data.profile_image !== undefined)
       updateData.profile_image = data.profile_image;
+    if (data.payment_username !== undefined)
+      updateData.payment_username = data.payment_username;
+    if (data.payment_qr_image !== undefined)
+      updateData.payment_qr_image = data.payment_qr_image;
 
     const { error } = await supabase
       .from("profiles")

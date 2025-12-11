@@ -141,9 +141,17 @@ export const getImageDimensions = (
   });
 };
 
-export const uploadProfileImage = async (
-  userId: string,
-  localUri: string
+/**
+ * Reusable function to upload image from local URI to Supabase Storage
+ * @param localUri - Local file URI from ImagePicker
+ * @param bucket - Supabase storage bucket name
+ * @param folder - Folder path within the bucket
+ * @returns Full public URL of uploaded image
+ */
+export const uploadImageFromUri = async (
+  localUri: string,
+  bucket: string,
+  folder: string
 ): Promise<{ success: boolean; url?: string; error?: any }> => {
   try {
     // Extract extension properly (handle query params in URI)
@@ -163,7 +171,7 @@ export const uploadProfileImage = async (
     const fileName = `${Math.random()
       .toString(36)
       .substring(2)}-${Date.now()}.${extension}`;
-    const filePath = `profiles/${fileName}`;
+    const filePath = `${folder}/${fileName}`;
 
     // Read file as base64 using expo-file-system (reliable in React Native)
     const base64 = await readAsStringAsync(localUri, {
@@ -172,7 +180,7 @@ export const uploadProfileImage = async (
 
     // Upload to Supabase Storage using base64-arraybuffer decode
     const { error } = await supabase.storage
-      .from("profiles")
+      .from(bucket)
       .upload(filePath, decode(base64), {
         cacheControl: "3600",
         contentType: mimeType,
@@ -180,20 +188,40 @@ export const uploadProfileImage = async (
       });
 
     if (error) {
-      console.error("❌ Profile image upload error:", error);
+      console.error(`❌ Upload error (${bucket}/${folder}):`, error);
       return { success: false, error };
     }
 
     // Get the full public URL (matching web logic)
     const {
       data: { publicUrl },
-    } = supabase.storage.from("profiles").getPublicUrl(filePath);
+    } = supabase.storage.from(bucket).getPublicUrl(filePath);
 
     return { success: true, url: publicUrl };
   } catch (error) {
-    console.error("💥 Profile image upload failed:", error);
+    console.error(`💥 Upload failed (${bucket}/${folder}):`, error);
     return { success: false, error };
   }
+};
+
+/**
+ * Upload profile image
+ */
+export const uploadProfileImage = async (
+  _userId: string,
+  localUri: string
+): Promise<{ success: boolean; url?: string; error?: any }> => {
+  return uploadImageFromUri(localUri, "profiles", "profiles");
+};
+
+/**
+ * Upload payment QR code image
+ */
+export const uploadPaymentQRImage = async (
+  _userId: string,
+  localUri: string
+): Promise<{ success: boolean; url?: string; error?: any }> => {
+  return uploadImageFromUri(localUri, "payments", "qr-codes");
 };
 
 /**
@@ -202,5 +230,6 @@ export const uploadProfileImage = async (
 export const STORAGE_BUCKETS = {
   PRODUCTS: "products",
   PROFILES: "profiles",
+  PAYMENTS: "payments",
   AVATARS: "avatars",
 } as const;

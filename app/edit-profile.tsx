@@ -9,7 +9,11 @@ import {
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
-import { getProfileImageUrl, uploadProfileImage } from "@/lib/storage-helpers";
+import { updateUserProfile } from "@/lib/database-helpers";
+import {
+  uploadPaymentQRImage,
+  uploadProfileImage,
+} from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -30,6 +34,8 @@ interface ProfileData {
   bio: string;
   address: string;
   profile_image: string | null;
+  payment_username: string;
+  payment_qr_image: string | null;
 }
 
 export default function EditProfileScreen() {
@@ -42,8 +48,11 @@ export default function EditProfileScreen() {
     bio: "",
     address: "",
     profile_image: null,
+    payment_username: "",
+    payment_qr_image: null,
   });
   const [newImageUri, setNewImageUri] = useState<string | null>(null);
+  const [newPaymentQRUri, setNewPaymentQRUri] = useState<string | null>(null);
   const [errors, setErrors] = useState<{
     name?: string;
     bio?: string;
@@ -73,6 +82,8 @@ export default function EditProfileScreen() {
           bio: fetchedProfile.bio || "",
           address: fetchedProfile.address || "",
           profile_image: fetchedProfile.profile_image || null,
+          payment_username: fetchedProfile.payment_username || "",
+          payment_qr_image: fetchedProfile.payment_qr_image || null,
         });
       } else {
         // Fallback to user metadata
@@ -81,6 +92,8 @@ export default function EditProfileScreen() {
           bio: "",
           address: user.user_metadata?.address || "",
           profile_image: user.user_metadata?.profile_image || null,
+          payment_username: "",
+          payment_qr_image: null,
         });
       }
     } catch (error) {
@@ -141,59 +154,8 @@ export default function EditProfileScreen() {
     }
   };
 
-  const takePhoto = async () => {
-    try {
-      const permissionResult =
-        await ImagePicker.requestCameraPermissionsAsync();
-
-      if (!permissionResult.granted) {
-        Alert.alert(
-          "Permission Required",
-          "Please allow access to your camera to take a photo."
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: false,
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setNewImageUri(result.assets[0].uri);
-      }
-    } catch (error: any) {
-      console.error("Error taking photo:", error);
-      if (error?.message?.includes("Camera not available")) {
-        Alert.alert(
-          "Camera Not Available",
-          "The camera is not available on simulator. Please use 'Choose from Library' or test on a physical device."
-        );
-      } else {
-        Alert.alert("Error", "Failed to take photo. Please try again.");
-      }
-    }
-  };
-
   const showImageOptions = () => {
-    const hasImage = newImageUri || profileData.profile_image;
-    Alert.alert("Profile Picture", "Choose an option", [
-      { text: "Take Photo", onPress: takePhoto },
-      { text: "Choose from Library", onPress: pickImage },
-      { text: "Cancel", style: "cancel" },
-      ...(hasImage
-        ? [
-            {
-              text: "Remove Photo",
-              onPress: () => {
-                setNewImageUri(null);
-                setProfileData((prev) => ({ ...prev, profile_image: null }));
-              },
-              style: "destructive" as const,
-            },
-          ]
-        : []),
-    ]);
+    pickImage();
   };
 
   const handleSave = async () => {
@@ -203,8 +165,9 @@ export default function EditProfileScreen() {
 
     try {
       let imageUrl = profileData.profile_image;
+      let paymentQRUrl = profileData.payment_qr_image;
 
-      // Upload new image if selected
+      // Upload new profile image if selected
       if (newImageUri) {
         const uploadResult = await uploadProfileImage(user.id, newImageUri);
         if (uploadResult.success && uploadResult.url) {
@@ -219,26 +182,44 @@ export default function EditProfileScreen() {
         }
       }
 
-      console.log("imageUrl", imageUrl);
+      // Upload new payment QR code if selected
+      if (newPaymentQRUri) {
+        const uploadResult = await uploadPaymentQRImage(
+          user.id,
+          newPaymentQRUri
+        );
+        if (uploadResult.success && uploadResult.url) {
+          paymentQRUrl = uploadResult.url;
+        } else {
+          Alert.alert(
+            "Error",
+            "Failed to upload payment QR code. Please try again."
+          );
+          setSaving(false);
+          return;
+        }
+      }
 
-      // // Update profile in database
-      // const result = await updateUserProfile({
-      //   userId: user.id,
-      //   name: profileData.name.trim(),
-      //   bio: profileData.bio.trim(),
-      //   address: profileData.address.trim(),
-      //   profile_image: imageUrl || undefined,
-      // });
+      // Update profile in database
+      const result = await updateUserProfile({
+        userId: user.id,
+        name: profileData.name.trim(),
+        bio: profileData.bio.trim(),
+        address: profileData.address.trim(),
+        profile_image: imageUrl || undefined,
+        payment_username: profileData.payment_username.trim(),
+        payment_qr_image: paymentQRUrl || undefined,
+      });
 
-      // if (result.success) {
-      //   // Refresh the profile data in the app state
-      //   await refreshProfile();
-      //   Alert.alert("Success", "Profile updated successfully!", [
-      //     { text: "OK", onPress: () => router.back() },
-      //   ]);
-      // } else {
-      //   Alert.alert("Error", "Failed to update profile. Please try again.");
-      // }
+      if (result.success) {
+        // Refresh the profile data in the app state
+        await refreshProfile();
+        Alert.alert("Success", "Profile updated successfully!", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } else {
+        Alert.alert("Error", "Failed to update profile. Please try again.");
+      }
     } catch (error) {
       console.error("Error saving profile:", error);
       Alert.alert("Error", "An unexpected error occurred. Please try again.");
@@ -250,9 +231,45 @@ export default function EditProfileScreen() {
   const getDisplayImageUri = () => {
     if (newImageUri) return newImageUri;
     if (profileData.profile_image) {
-      return getProfileImageUrl(profileData.profile_image);
+      return profileData.profile_image;
     }
     return null;
+  };
+
+  const getDisplayPaymentQRUri = () => {
+    if (newPaymentQRUri) return newPaymentQRUri;
+    if (profileData.payment_qr_image) {
+      return profileData.payment_qr_image;
+    }
+    return null;
+  };
+
+  const handlePaymentQRSelect = async () => {
+    try {
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permissionResult.granted) {
+        Alert.alert(
+          "Permission Required",
+          "Please allow access to your photos to upload a QR code."
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: false,
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setNewPaymentQRUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error picking QR image:", error);
+      Alert.alert("Error", "Failed to pick QR code image. Please try again.");
+    }
   };
 
   if (loading) {
@@ -452,7 +469,7 @@ export default function EditProfileScreen() {
             </View>
 
             {/* Payment Account Name */}
-            {/* <FormInput
+            <FormInput
               label="Payment Account Name"
               placeholder="e.g., eSewa: 9812345678 or Bank: John Doe"
               value={profileData.payment_username}
@@ -463,10 +480,10 @@ export default function EditProfileScreen() {
             />
             <CaptionText className="mb-6 -mt-2" style={{ color: "#6B7280" }}>
               Enter your eSewa name, bank account name, or payment identifier
-            </CaptionText> */}
+            </CaptionText>
 
             {/* Payment QR Code */}
-            {/* <View className="mb-6">
+            <View className="mb-6">
               <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
                 Payment QR Code{" "}
                 <CaptionText style={{ color: "#9CA3AF" }}>
@@ -516,7 +533,7 @@ export default function EditProfileScreen() {
                   </View>
                 )}
               </TouchableOpacity>
-            </View> */}
+            </View>
           </View>
 
           {/* Save Button */}
