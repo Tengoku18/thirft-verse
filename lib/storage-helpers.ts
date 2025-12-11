@@ -1,18 +1,9 @@
+import { readAsStringAsync } from "expo-file-system/legacy";
+import { decode } from "base64-arraybuffer";
 import { supabase } from "./supabase";
-
-/**
- * Supabase Storage Helpers
- * Handles image URLs for the mobile app
- */
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 
-/**
- * Get the public URL for a file in Supabase Storage
- * @param bucket - Storage bucket name (e.g., 'products', 'profiles')
- * @param path - File path within the bucket
- * @returns Full public URL to the file
- */
 export const getStorageUrl = (bucket: string, path: string): string => {
   // Remove leading slash if present
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
@@ -71,14 +62,6 @@ export const getProfileImageUrl = (imagePath: string | null): string => {
   return getStorageUrl("profiles", imagePath);
 };
 
-/**
- * Upload image to Supabase Storage
- * @param bucket - Storage bucket name
- * @param path - Destination path
- * @param file - File to upload (can be File, Blob, or base64)
- * @param contentType - MIME type (e.g., 'image/jpeg')
- * @returns Object with success status and URL or error
- */
 export const uploadImage = async (
   bucket: string,
   path: string,
@@ -107,12 +90,6 @@ export const uploadImage = async (
   }
 };
 
-/**
- * Delete image from Supabase Storage
- * @param bucket - Storage bucket name
- * @param path - File path to delete
- * @returns Object with success status
- */
 export const deleteImage = async (
   bucket: string,
   path: string
@@ -131,11 +108,6 @@ export const deleteImage = async (
   }
 };
 
-/**
- * Generate a unique filename for upload
- * @param originalName - Original filename
- * @returns Unique filename with timestamp
- */
 export const generateUniqueFilename = (originalName: string): string => {
   const timestamp = Date.now();
   const randomStr = Math.random().toString(36).substring(2, 15);
@@ -169,44 +141,55 @@ export const getImageDimensions = (
   });
 };
 
-/**
- * Upload profile image from local file URI
- * @param userId - User ID to use as folder name
- * @param localUri - Local file URI from ImagePicker
- * @returns Object with success status and path or error
- */
 export const uploadProfileImage = async (
   userId: string,
   localUri: string
-): Promise<{ success: boolean; path?: string; error?: any }> => {
+): Promise<{ success: boolean; url?: string; error?: any }> => {
   try {
-    // Get file extension from URI
-    const uriParts = localUri.split(".");
-    const extension = uriParts[uriParts.length - 1] || "jpg";
+    // Extract extension properly (handle query params in URI)
+    const uriWithoutParams = localUri.split("?")[0];
+    const extension = uriWithoutParams.split(".").pop()?.toLowerCase() || "jpg";
 
-    // Generate unique filename
-    const filename = `${userId}/${Date.now()}.${extension}`;
+    // Determine MIME type
+    const mimeType =
+      extension === "png"
+        ? "image/png"
+        : extension === "gif"
+          ? "image/gif"
+          : extension === "webp"
+            ? "image/webp"
+            : "image/jpeg";
 
-    // Fetch the file as blob
-    const response = await fetch(localUri);
-    const blob = await response.blob();
+    const fileName = `${Math.random()
+      .toString(36)
+      .substring(2)}-${Date.now()}.${extension}`;
+    const filePath = `profiles/${fileName}`;
 
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
+    // Read file as base64 using expo-file-system (reliable in React Native)
+    const base64 = await readAsStringAsync(localUri, {
+      encoding: "base64",
+    });
+
+    // Upload to Supabase Storage using base64-arraybuffer decode
+    const { error } = await supabase.storage
       .from("profiles")
-      .upload(filename, blob, {
-        contentType: `image/${extension === "jpg" ? "jpeg" : extension}`,
+      .upload(filePath, decode(base64), {
+        cacheControl: "3600",
+        contentType: mimeType,
         upsert: true,
       });
-
-    console.log("data image kkjkkkkk", data);
 
     if (error) {
       console.error("❌ Profile image upload error:", error);
       return { success: false, error };
     }
 
-    return { success: true, path: filename };
+    // Get the full public URL (matching web logic)
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("profiles").getPublicUrl(filePath);
+
+    return { success: true, url: publicUrl };
   } catch (error) {
     console.error("💥 Profile image upload failed:", error);
     return { success: false, error };

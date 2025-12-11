@@ -106,8 +106,8 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
         if (profileImage) {
           try {
             const uploadResult = await uploadProfileImage(data.user.id, profileImage);
-            if (uploadResult.success && uploadResult.path) {
-              profile_image_path = uploadResult.path;
+            if (uploadResult.success && uploadResult.url) {
+              profile_image_path = uploadResult.url;
               console.log("✅ Profile image uploaded:", profile_image_path);
             } else {
               console.error("Failed to upload profile image:", uploadResult.error);

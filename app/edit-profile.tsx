@@ -9,7 +9,6 @@ import {
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
-import { updateUserProfile } from "@/lib/database-helpers";
 import { getProfileImageUrl, uploadProfileImage } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import * as ImagePicker from "expo-image-picker";
@@ -208,8 +207,8 @@ export default function EditProfileScreen() {
       // Upload new image if selected
       if (newImageUri) {
         const uploadResult = await uploadProfileImage(user.id, newImageUri);
-        if (uploadResult.success && uploadResult.path) {
-          imageUrl = uploadResult.path;
+        if (uploadResult.success && uploadResult.url) {
+          imageUrl = uploadResult.url;
         } else {
           Alert.alert(
             "Error",
@@ -220,27 +219,26 @@ export default function EditProfileScreen() {
         }
       }
 
-      console.log("here");
-      return;
+      console.log("imageUrl", imageUrl);
 
-      // Update profile in database
-      const result = await updateUserProfile({
-        userId: user.id,
-        name: profileData.name.trim(),
-        bio: profileData.bio.trim(),
-        address: profileData.address.trim(),
-        profile_image: imageUrl || undefined,
-      });
+      // // Update profile in database
+      // const result = await updateUserProfile({
+      //   userId: user.id,
+      //   name: profileData.name.trim(),
+      //   bio: profileData.bio.trim(),
+      //   address: profileData.address.trim(),
+      //   profile_image: imageUrl || undefined,
+      // });
 
-      if (result.success) {
-        // Refresh the profile data in the app state
-        await refreshProfile();
-        Alert.alert("Success", "Profile updated successfully!", [
-          { text: "OK", onPress: () => router.back() },
-        ]);
-      } else {
-        Alert.alert("Error", "Failed to update profile. Please try again.");
-      }
+      // if (result.success) {
+      //   // Refresh the profile data in the app state
+      //   await refreshProfile();
+      //   Alert.alert("Success", "Profile updated successfully!", [
+      //     { text: "OK", onPress: () => router.back() },
+      //   ]);
+      // } else {
+      //   Alert.alert("Error", "Failed to update profile. Please try again.");
+      // }
     } catch (error) {
       console.error("Error saving profile:", error);
       Alert.alert("Error", "An unexpected error occurred. Please try again.");
