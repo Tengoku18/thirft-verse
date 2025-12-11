@@ -100,6 +100,10 @@ export default function RootLayout() {
               name="product/[id]"
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="edit-product/[id]"
+              options={{ headerShown: false }}
+            />
           </Stack>
           <StatusBar style="dark" />
         </ThemeProvider>

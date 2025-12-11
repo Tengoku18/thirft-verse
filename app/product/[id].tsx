@@ -1,4 +1,5 @@
 import { FormButton } from "@/components/atoms/FormButton";
+import { ConfirmModal } from "@/components/molecules/ConfirmModal";
 import { CustomHeader } from "@/components/navigation/CustomHeader";
 import {
   BodyMediumText,
@@ -10,8 +11,12 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { getProductImageUrl } from "@/lib/storage-helpers";
-import { supabase } from "@/lib/supabase";
-import { Product } from "@/lib/types/database";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  clearSelectedProduct,
+  deleteProduct,
+  fetchProductById,
+} from "@/store/productsSlice";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -41,45 +46,30 @@ const statusConfig = {
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { user } = useAuth();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [deleting, setDeleting] = useState(false);
+
+  // Get product from Redux store
+  const {
+    selectedProduct: product,
+    selectedProductLoading: loading,
+    deleting,
+  } = useAppSelector((state) => state.products);
+
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  // Fetch product on mount or when id changes
   useEffect(() => {
-    loadProduct();
-  }, [id]);
-
-  const loadProduct = async () => {
-    if (!id) {
-      setLoading(false);
-      return;
+    if (id) {
+      dispatch(fetchProductById(id));
     }
 
-    try {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (error) {
-        console.error("Error loading product:", error);
-        Alert.alert("Error", "Failed to load product.");
-        router.back();
-        return;
-      }
-
-      setProduct(data);
-    } catch (error) {
-      console.error("Error loading product:", error);
-      Alert.alert("Error", "Failed to load product.");
-      router.back();
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Cleanup on unmount
+    return () => {
+      dispatch(clearSelectedProduct());
+    };
+  }, [id, dispatch]);
 
   const handleShare = async () => {
     if (!product) return;
@@ -112,43 +102,26 @@ export default function ProductDetailScreen() {
     router.push(`/edit-product/${product.id}` as any);
   };
 
-  const handleDelete = () => {
-    if (!product) return;
+  const handleDeletePress = () => {
+    setShowDeleteModal(true);
+  };
 
-    Alert.alert(
-      "Delete Product",
-      `Are you sure you want to delete "${product.title}"? This action cannot be undone.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            setDeleting(true);
-            try {
-              const { error } = await supabase
-                .from("products")
-                .delete()
-                .eq("id", product.id);
+  const handleConfirmDelete = async () => {
+    if (!product || !user) return;
 
-              if (error) {
-                Alert.alert("Error", "Failed to delete product. Please try again.");
-                setDeleting(false);
-                return;
-              }
+    try {
+      await dispatch(
+        deleteProduct({ productId: product.id, storeId: user.id })
+      ).unwrap();
 
-              Alert.alert("Success", "Product deleted successfully.", [
-                { text: "OK", onPress: () => router.back() },
-              ]);
-            } catch (error) {
-              console.error("Error deleting product:", error);
-              Alert.alert("Error", "Failed to delete product. Please try again.");
-              setDeleting(false);
-            }
-          },
-        },
-      ]
-    );
+      setShowDeleteModal(false);
+      Alert.alert("Success", "Product deleted successfully.", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } catch (error: any) {
+      setShowDeleteModal(false);
+      Alert.alert("Error", error || "Failed to delete product. Please try again.");
+    }
   };
 
   // Get all images for the gallery
@@ -331,7 +304,7 @@ export default function ProductDetailScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={handleDelete}
+                onPress={handleDeletePress}
                 disabled={deleting}
                 className="flex-row items-center justify-center bg-[#FEE2E2] py-4 rounded-xl"
                 activeOpacity={0.7}
@@ -364,6 +337,20 @@ export default function ProductDetailScreen() {
           icon={<IconSymbol name="globe" size={18} color="#FFFFFF" />}
         />
       </View>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        visible={showDeleteModal}
+        title="Delete Product"
+        message={`Are you sure you want to delete "${product?.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowDeleteModal(false)}
+        loading={deleting}
+        variant="danger"
+        icon="trash"
+      />
     </View>
   );
 }

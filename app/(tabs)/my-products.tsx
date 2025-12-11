@@ -1,4 +1,5 @@
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
+import { ConfirmModal } from "@/components/molecules/ConfirmModal";
 import {
   BodyBoldText,
   BodyMediumText,
@@ -9,9 +10,13 @@ import {
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
-import { getProductsByStoreId } from "@/lib/database-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
-import { Product, ProductStatus } from "@/lib/types/database";
+import { Product } from "@/lib/types/database";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  deleteProduct,
+  fetchUserProducts,
+} from "@/store/productsSlice";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
@@ -23,7 +28,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { supabase } from "@/lib/supabase";
 
 type StatusFilter = "all" | "available" | "out_of_stock";
 
@@ -177,77 +181,57 @@ function EmptyState({ onAddProduct }: { onAddProduct: () => void }) {
 export default function MyProductsScreen() {
   const { user } = useAuth();
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+
+  // Get products from Redux store
+  const {
+    userProducts: products,
+    userProductsLoading: loading,
+    deleting,
+  } = useAppSelector((state) => state.products);
+
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
-  const loadProducts = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const result = await getProductsByStoreId({
-        storeId: user.id,
-        limit: 100,
-      });
-
-      setProducts(result.data || []);
-    } catch (error) {
-      console.error("Error loading products:", error);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Fetch products on mount or when user changes
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      loadProducts();
-    }, [user])
+      if (user) {
+        dispatch(fetchUserProducts(user.id));
+      }
+    }, [user, dispatch])
   );
 
   const onRefresh = useCallback(async () => {
+    if (!user) return;
     setRefreshing(true);
-    await loadProducts();
+    await dispatch(fetchUserProducts(user.id));
     setRefreshing(false);
-  }, [user]);
+  }, [user, dispatch]);
 
-  const handleDelete = async (product: Product) => {
-    Alert.alert(
-      "Delete Product",
-      `Are you sure you want to delete "${product.title}"? This action cannot be undone.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const { error } = await supabase
-                .from("products")
-                .delete()
-                .eq("id", product.id);
+  const handleDeletePress = (product: Product) => {
+    setProductToDelete(product);
+    setShowDeleteModal(true);
+  };
 
-              if (error) {
-                Alert.alert("Error", "Failed to delete product. Please try again.");
-                return;
-              }
+  const handleConfirmDelete = async () => {
+    if (!productToDelete || !user) return;
 
-              // Remove from local state
-              setProducts(products.filter((p) => p.id !== product.id));
-              Alert.alert("Success", "Product deleted successfully.");
-            } catch (error) {
-              console.error("Error deleting product:", error);
-              Alert.alert("Error", "Failed to delete product. Please try again.");
-            }
-          },
-        },
-      ]
-    );
+    try {
+      await dispatch(
+        deleteProduct({ productId: productToDelete.id, storeId: user.id })
+      ).unwrap();
+
+      setShowDeleteModal(false);
+      setProductToDelete(null);
+      Alert.alert("Success", "Product deleted successfully.");
+    } catch (error: any) {
+      setShowDeleteModal(false);
+      setProductToDelete(null);
+      Alert.alert("Error", error || "Failed to delete product. Please try again.");
+    }
   };
 
   const handleEdit = (product: Product) => {
@@ -403,12 +387,29 @@ export default function MyProductsScreen() {
                 product={product}
                 onPress={() => handleProductPress(product)}
                 onEdit={() => handleEdit(product)}
-                onDelete={() => handleDelete(product)}
+                onDelete={() => handleDeletePress(product)}
               />
             ))
           )}
         </ScrollView>
       </View>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        visible={showDeleteModal}
+        title="Delete Product"
+        message={`Are you sure you want to delete "${productToDelete?.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setProductToDelete(null);
+        }}
+        loading={deleting}
+        variant="danger"
+        icon="trash"
+      />
     </TabScreenLayout>
   );
 }
