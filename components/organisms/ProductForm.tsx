@@ -2,6 +2,7 @@ import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { FormPicker } from "@/components/atoms/FormPicker";
 import { FormTextarea } from "@/components/atoms/FormTextarea";
+import { CompleteProfileModal } from "@/components/molecules/CompleteProfileModal";
 import { ConfirmModal } from "@/components/molecules/ConfirmModal";
 import { ProductSuccessModal } from "@/components/molecules/ProductSuccessModal";
 import {
@@ -20,7 +21,7 @@ import {
   ProductFormData,
   productSchema,
 } from "@/lib/validations/product";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   createProduct as createProductAction,
   updateProduct as updateProductAction,
@@ -50,6 +51,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
   const dispatch = useAppDispatch();
   const { user } = useAuth();
   const toast = useToast();
+  const profile = useAppSelector((state) => state.profile.profile);
   const [loading, setLoading] = useState(false);
 
   // For create mode: store local URIs
@@ -75,6 +77,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
   // Confirm modal state (for edit mode)
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingData, setPendingData] = useState<ProductFormData | null>(null);
+
+  // Complete profile modal state (for create mode)
+  const [showCompleteProfileModal, setShowCompleteProfileModal] =
+    useState(false);
 
   const {
     control,
@@ -246,6 +252,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
     );
   };
 
+  // Check if user has completed payment details
+  const hasPaymentDetails = () => {
+    return !!(
+      profile?.payment_username?.trim() && profile?.payment_qr_image?.trim()
+    );
+  };
+
+  const handleGoToEditProfile = () => {
+    setShowCompleteProfileModal(false);
+    router.push("/edit-profile");
+  };
+
   const onSubmit = async (data: ProductFormData) => {
     if (!user) {
       Alert.alert("Authentication Required", "Please sign in to continue.");
@@ -262,6 +280,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       setPendingData(data);
       setShowConfirmModal(true);
     } else {
+      // Check payment details for create mode
+      if (!hasPaymentDetails()) {
+        setShowCompleteProfileModal(true);
+        return;
+      }
       // Direct submit for create
       await handleCreate(data);
     }
@@ -759,6 +782,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
           loading={loading}
           variant="default"
           icon="pencil"
+        />
+      )}
+
+      {/* Complete Profile Modal (Create mode - payment details required) */}
+      {mode === "create" && (
+        <CompleteProfileModal
+          visible={showCompleteProfileModal}
+          onGoToProfile={handleGoToEditProfile}
+          onCancel={() => setShowCompleteProfileModal(false)}
         />
       )}
     </>

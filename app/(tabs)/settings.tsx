@@ -1,4 +1,5 @@
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
+import { ConfirmModal } from "@/components/molecules/ConfirmModal";
 import {
   BodyRegularText,
   BodySemiboldText,
@@ -17,7 +18,6 @@ import {
   Image,
   Linking,
   ScrollView,
-  Switch,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -111,6 +111,9 @@ export default function SettingsScreen() {
   const profile = useAppSelector((state) => state.profile.profile);
   const profileLoading = useAppSelector((state) => state.profile.loading);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const handleEditProfile = () => {
     router.push("/edit-profile" as any);
@@ -131,53 +134,36 @@ export default function SettingsScreen() {
   };
 
   const handleHelpSupport = () => {
-    Linking.openURL("mailto:support@thriftverse.com");
-  };
-
-  const handleRateApp = () => {
-    Alert.alert("Rate App", "This will open the app store for rating.");
-  };
-
-  const handleShareApp = () => {
-    Alert.alert("Share App", "Share functionality coming soon!");
+    Linking.openURL("https://www.thriftverse.shop/help");
   };
 
   const handleSignOut = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await signOut();
-            router.replace("/(auth)/signin" as any);
-          } catch (error) {
-            console.error("Error signing out:", error);
-            Alert.alert("Error", "Failed to sign out. Please try again.");
-          }
-        },
-      },
-    ]);
+    setShowSignOutModal(true);
+  };
+
+  const confirmSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+      setShowSignOutModal(false);
+      router.replace("/(auth)/signin" as any);
+    } catch (error) {
+      console.error("Error signing out:", error);
+      Alert.alert("Error", "Failed to sign out. Please try again.");
+    } finally {
+      setSigningOut(false);
+    }
   };
 
   const handleDeleteAccount = () => {
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteAccount = () => {
+    setShowDeleteModal(false);
     Alert.alert(
-      "Delete Account",
-      "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            Alert.alert(
-              "Contact Support",
-              "To delete your account, please contact support@thriftverse.com"
-            );
-          },
-        },
-      ]
+      "Contact Support",
+      "To delete your account, please contact support@thriftverse.com"
     );
   };
 
@@ -261,7 +247,7 @@ export default function SettingsScreen() {
         </SettingsSection>
 
         {/* Preferences Section */}
-        <SettingsSection title="Preferences">
+        {/* <SettingsSection title="Preferences">
           <SettingsItem
             icon="bell.fill"
             title="Push Notifications"
@@ -276,7 +262,7 @@ export default function SettingsScreen() {
               />
             }
           />
-        </SettingsSection>
+        </SettingsSection> */}
 
         {/* Support Section */}
         <SettingsSection title="Support">
@@ -324,6 +310,33 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
       </ScrollView>
+
+      {/* Sign Out Confirmation Modal */}
+      <ConfirmModal
+        visible={showSignOutModal}
+        title="Sign Out"
+        message="Are you sure you want to sign out of your account?"
+        confirmText="Sign Out"
+        cancelText="Cancel"
+        onConfirm={confirmSignOut}
+        onCancel={() => setShowSignOutModal(false)}
+        loading={signingOut}
+        variant="danger"
+        icon="rectangle.portrait.and.arrow.right.fill"
+      />
+
+      {/* Delete Account Confirmation Modal */}
+      <ConfirmModal
+        visible={showDeleteModal}
+        title="Delete Account"
+        message="Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDeleteAccount}
+        onCancel={() => setShowDeleteModal(false)}
+        variant="danger"
+        icon="trash.fill"
+      />
     </TabScreenLayout>
   );
 }

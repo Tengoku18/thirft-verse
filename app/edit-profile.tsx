@@ -59,6 +59,8 @@ export default function EditProfileScreen() {
     name?: string;
     bio?: string;
     address?: string;
+    payment_username?: string;
+    payment_qr_image?: string;
   }>({});
 
   useEffect(() => {
@@ -106,7 +108,13 @@ export default function EditProfileScreen() {
   };
 
   const validateForm = (): boolean => {
-    const newErrors: { name?: string; bio?: string; address?: string } = {};
+    const newErrors: {
+      name?: string;
+      bio?: string;
+      address?: string;
+      payment_username?: string;
+      payment_qr_image?: string;
+    } = {};
 
     if (!profileData.name.trim()) {
       newErrors.name = "Name is required";
@@ -120,8 +128,22 @@ export default function EditProfileScreen() {
       newErrors.bio = "Bio must be less than 300 characters";
     }
 
-    if (profileData.address && profileData.address.length > 255) {
+    if (!profileData.address?.trim()) {
+      newErrors.address = "Address is required";
+    } else if (profileData.address.length > 255) {
       newErrors.address = "Address must be less than 255 characters";
+    }
+
+    // Payment details validation
+    if (!profileData.payment_username?.trim()) {
+      newErrors.payment_username = "Payment account holder name is required";
+    }
+
+    // Check if payment QR image exists (either from profile or newly selected)
+    const hasPaymentQRImage =
+      profileData.payment_qr_image || newPaymentQRUri;
+    if (!hasPaymentQRImage) {
+      newErrors.payment_qr_image = "Payment QR code image is required";
     }
 
     setErrors(newErrors);
@@ -379,6 +401,7 @@ export default function EditProfileScreen() {
               label="Address"
               placeholder="Enter your address"
               autoCapitalize="words"
+              required
               value={profileData.address}
               onChangeText={(text) =>
                 setProfileData((prev) => ({ ...prev, address: text }))
@@ -471,13 +494,15 @@ export default function EditProfileScreen() {
 
             {/* Payment Account Name */}
             <FormInput
-              label="Payment Account Name"
+              label="Payment Account Holder Name"
               placeholder="e.g., eSewa: 9812345678 or Bank: John Doe"
               value={profileData.payment_username}
               onChangeText={(text) =>
                 setProfileData((prev) => ({ ...prev, payment_username: text }))
               }
               autoCapitalize="none"
+              required
+              error={errors.payment_username}
             />
             <CaptionText className="mb-6 -mt-2" style={{ color: "#6B7280" }}>
               Enter your eSewa name, bank account name, or payment identifier
@@ -485,18 +510,26 @@ export default function EditProfileScreen() {
 
             {/* Payment QR Code */}
             <View className="mb-6">
-              <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
-                Payment QR Code{" "}
-                <CaptionText style={{ color: "#9CA3AF" }}>
-                  (Optional)
-                </CaptionText>
-              </BodySemiboldText>
+              <View className="flex-row items-center mb-3">
+                <BodySemiboldText style={{ fontSize: 13 }}>
+                  Payment QR Code
+                </BodySemiboldText>
+                <BodySemiboldText style={{ color: "#EF4444", fontSize: 13 }}>
+                  {" "}
+                  *
+                </BodySemiboldText>
+              </View>
 
               <TouchableOpacity
                 onPress={handlePaymentQRSelect}
                 activeOpacity={0.8}
-                className="border-2 border-dashed border-[#E5E7EB] rounded-2xl overflow-hidden"
-                style={{ height: 180 }}
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  height: 180,
+                  borderWidth: 2,
+                  borderStyle: "dashed",
+                  borderColor: errors.payment_qr_image ? "#EF4444" : "#E5E7EB",
+                }}
               >
                 {getDisplayPaymentQRUri() ? (
                   <View className="flex-1 relative">
@@ -534,6 +567,11 @@ export default function EditProfileScreen() {
                   </View>
                 )}
               </TouchableOpacity>
+              {errors.payment_qr_image && (
+                <CaptionText className="mt-2" style={{ color: "#EF4444" }}>
+                  {errors.payment_qr_image}
+                </CaptionText>
+              )}
             </View>
           </View>
 
