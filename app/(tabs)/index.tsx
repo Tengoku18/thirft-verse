@@ -1,145 +1,243 @@
-import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
-import ProductCard from "@/components/molecules/ProductCard";
 import {
-  BodyBoldText,
-  BodyMediumText,
-  BodyRegularText,
-  BodySemiboldText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+  QuickActionsSection,
+  RecentOrdersSection,
+  RevenueCard,
+  SalesAnalyticsSection,
+  StoreLinkCard,
+  StoreOverviewSection,
+} from "@/components/dashboard";
+import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import { useAuth } from "@/contexts/AuthContext";
-import { getAllAvailableProducts } from "@/lib/api-helpers";
 import {
   getOrdersBySeller,
   getProductsByStoreId,
 } from "@/lib/database-helpers";
-import { ProductWithStore } from "@/lib/types/database";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useAppSelector } from "@/store/hooks";
+import dayjs from "dayjs";
+import { useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
-  TouchableOpacity,
   View,
 } from "react-native";
 
 interface Stats {
-  itemsSold: number;
+  totalRevenue: number;
+  totalOrders: number;
   pendingOrders: number;
+  completedOrders: number;
   totalProducts: number;
-  totalEarnings: number;
+  availableProducts: number;
+  outOfStock: number;
 }
 
-export default function HomeScreen() {
-  const router = useRouter();
+interface OrderData {
+  id: string;
+  buyer_name: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  product?: {
+    id: string;
+    title: string;
+    cover_image: string;
+  } | null;
+}
+
+interface WeeklyData {
+  labels: string[];
+  data: number[];
+  total: number;
+}
+
+export default function DashboardScreen() {
   const { user } = useAuth();
-  const [exploreProducts, setExploreProducts] = useState<ProductWithStore[]>(
-    []
-  );
+  const profile = useAppSelector((state) => state.profile.profile);
   const [stats, setStats] = useState<Stats>({
-    itemsSold: 0,
+    totalRevenue: 0,
+    totalOrders: 0,
     pendingOrders: 0,
+    completedOrders: 0,
     totalProducts: 0,
-    totalEarnings: 0,
+    availableProducts: 0,
+    outOfStock: 0,
+  });
+  const [recentOrders, setRecentOrders] = useState<OrderData[]>([]);
+  const [weeklyData, setWeeklyData] = useState<WeeklyData>({
+    labels: [],
+    data: [],
+    total: 0,
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadData();
+    loadDashboardData();
   }, [user]);
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
+      loadDashboardData();
     }, [user])
   );
 
-  const loadData = async () => {
-    try {
-      // Load other users' products for explore section (exclude own products)
-      const { data: allProducts } = await getAllAvailableProducts();
-      const otherUsersProducts = user
-        ? allProducts.filter((p) => p.store_id !== user.id)
-        : allProducts;
-      setExploreProducts(otherUsersProducts.slice(0, 4));
+  const loadDashboardData = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-      // Load user's own stats if logged in
-      if (user) {
-        // Get product counts
-        const { count: totalCount } = await getProductsByStoreId({
+    try {
+      // Fetch products data
+      const { count: totalProducts } = await getProductsByStoreId({
+        storeId: user.id,
+        limit: 100,
+      });
+
+      const { count: availableProducts } = await getProductsByStoreId({
+        storeId: user.id,
+        status: "available",
+      });
+
+      const { count: outOfStock } = await getProductsByStoreId({
+        storeId: user.id,
+        status: "out_of_stock",
+      });
+
+      // Fetch orders data
+      const ordersResult = await getOrdersBySeller(user.id);
+      const realOrders = ordersResult.success ? ordersResult.data : [];
+
+      let totalRevenue = 0;
+      let pendingOrders = 0;
+      let completedOrders = 0;
+      let totalOrders = 0;
+      let orderItems: OrderData[] = [];
+
+      if (realOrders.length > 0) {
+        // Use real orders
+        totalRevenue = realOrders.reduce(
+          (sum: number, order: any) => sum + (order.amount || 0),
+          0
+        );
+        pendingOrders = realOrders.filter(
+          (o: any) => o.status === "pending"
+        ).length;
+        completedOrders = realOrders.filter(
+          (o: any) => o.status === "completed"
+        ).length;
+        totalOrders = realOrders.length;
+        orderItems = realOrders;
+      } else {
+        // Fallback to sold products (same as orders screen)
+        const { data: soldProducts } = await getProductsByStoreId({
           storeId: user.id,
+          status: "out_of_stock",
           limit: 100,
         });
 
-        const { data: soldProducts, count: soldCount } =
-          await getProductsByStoreId({
-            storeId: user.id,
-            status: "out_of_stock",
+        if (soldProducts && soldProducts.length > 0) {
+          totalRevenue = soldProducts.reduce(
+            (sum: number, product: any) => sum + (product.price || 0),
+            0
+          );
+          // Calculate pending/completed based on days since sold (7 day threshold)
+          soldProducts.forEach((product: any) => {
+            const soldDate = dayjs(product.updated_at || product.created_at);
+            const daysSinceSold = dayjs().diff(soldDate, "day");
+            if (daysSinceSold > 7) {
+              completedOrders++;
+            } else {
+              pendingOrders++;
+            }
           });
-
-        // Try to get orders for real earnings data
-        const ordersResult = await getOrdersBySeller(user.id);
-
-        let totalEarnings = 0;
-        let pendingOrders = 0;
-        let itemsSold = soldCount || 0;
-
-        if (ordersResult.success && ordersResult.data.length > 0) {
-          // Calculate from real orders
-          const orders = ordersResult.data;
-          totalEarnings = orders.reduce(
-            (sum: number, order: any) => sum + (order.amount || 0),
-            0
-          );
-          pendingOrders = orders.filter(
-            (o: any) => o.status === "pending"
-          ).length;
-          itemsSold = orders.filter(
-            (o: any) => o.status === "completed"
-          ).length;
-        } else if (soldProducts && soldProducts.length > 0) {
-          // Fallback: calculate from sold products
-          totalEarnings = soldProducts.reduce(
-            (sum, product) => sum + product.price,
-            0
-          );
+          totalOrders = soldProducts.length;
+          // Convert sold products to order format for recent orders
+          orderItems = soldProducts.map((product: any) => ({
+            id: product.id,
+            buyer_name: "Customer",
+            amount: product.price,
+            status: dayjs().diff(dayjs(product.updated_at || product.created_at), "day") > 7 ? "completed" : "pending",
+            created_at: product.updated_at || product.created_at,
+            product: {
+              id: product.id,
+              title: product.title,
+              cover_image: product.cover_image,
+            },
+          }));
         }
-
-        setStats({
-          itemsSold,
-          pendingOrders,
-          totalProducts: totalCount || 0,
-          totalEarnings,
-        });
       }
+
+      setStats({
+        totalRevenue,
+        totalOrders,
+        pendingOrders,
+        completedOrders,
+        totalProducts: totalProducts || 0,
+        availableProducts: availableProducts || 0,
+        outOfStock: outOfStock || 0,
+      });
+
+      // Set recent orders (last 5)
+      setRecentOrders(orderItems.slice(0, 5));
+
+      // Calculate weekly data
+      const weeklyStats = calculateWeeklyData(orderItems);
+      setWeeklyData(weeklyStats);
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error("Error loading dashboard data:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  const calculateWeeklyData = (orders: any[]): WeeklyData => {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const today = dayjs();
+    const labels: string[] = [];
+    const data: number[] = [];
+    let total = 0;
+
+    // Get last 7 days
+    for (let i = 6; i >= 0; i--) {
+      const date = today.subtract(i, "day");
+      labels.push(days[date.day()]);
+
+      const dayOrders = orders.filter((order: any) =>
+        dayjs(order.created_at).isSame(date, "day")
+      );
+
+      const dayRevenue = dayOrders.reduce(
+        (sum: number, order: any) => sum + (order.amount || 0),
+        0
+      );
+      data.push(dayRevenue);
+      total += dayRevenue;
+    }
+
+    return { labels, data, total };
+  };
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadData();
+    await loadDashboardData();
     setRefreshing(false);
   }, [user]);
 
   if (loading) {
     return (
-      <View className="flex-1 bg-white justify-center items-center">
+      <View className="flex-1 bg-[#FAFAFA] justify-center items-center">
         <ActivityIndicator size="large" color="#3B2F2F" />
       </View>
     );
   }
 
   return (
-    <TabScreenLayout title="ThriftVerse">
+    <TabScreenLayout title="Dashboard">
       <ScrollView
-        className="flex-1 bg-white"
+        className="flex-1 bg-[#FAFAFA]"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={
@@ -151,236 +249,37 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Portfolio Card */}
-        <View className="px-4 pt-4">
-          <View
-            className="rounded-3xl p-5"
-            style={{
-              backgroundColor: "#3B2F2F",
-              shadowColor: "#3B2F2F",
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.3,
-              shadowRadius: 16,
-              elevation: 10,
-            }}
-          >
-            {/* Top Section - Balance */}
-            <View className="mb-4">
-              <BodyMediumText
-                style={{ color: "rgba(255,255,255,0.6)", fontSize: 14 }}
-              >
-                Total Earnings
-              </BodyMediumText>
-              <View className="flex-row items-center justify-between mt-2">
-                <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 36 }}>
-                  Rs. {formatNumber(stats.totalEarnings)}
-                </HeadingBoldText>
-                {stats.pendingOrders > 0 ? (
-                  <TouchableOpacity
-                    onPress={() => router.push("/(tabs)/orders")}
-                    className="flex-row items-center px-3 py-1.5 rounded-full"
-                    style={{ backgroundColor: "rgba(251, 191, 36, 0.15)" }}
-                    activeOpacity={0.7}
-                  >
-                    <IconSymbol name="clock.fill" size={14} color="#F59E0B" />
-                    <BodySemiboldText
-                      style={{ color: "#F59E0B", fontSize: 14, marginLeft: 4 }}
-                    >
-                      {stats.pendingOrders} pending
-                    </BodySemiboldText>
-                  </TouchableOpacity>
-                ) : (
-                  <View
-                    className="flex-row items-center px-3 py-1.5 rounded-full"
-                    style={{ backgroundColor: "rgba(34, 197, 94, 0.15)" }}
-                  >
-                    <IconSymbol
-                      name="checkmark.circle.fill"
-                      size={14}
-                      color="#22C55E"
-                    />
-                    <BodySemiboldText
-                      style={{ color: "#22C55E", fontSize: 14, marginLeft: 4 }}
-                    >
-                      All done
-                    </BodySemiboldText>
-                  </View>
-                )}
-              </View>
-            </View>
+        <RevenueCard
+          totalRevenue={stats.totalRevenue}
+          completedOrders={stats.completedOrders}
+          pendingOrders={stats.pendingOrders}
+        />
 
-            {/* Stats Row */}
-            <View className="flex-row items-center mb-5">
-              <TouchableOpacity
-                className="flex-1 flex-row items-center"
-                onPress={() => router.push("/profile?tab=sold")}
-                activeOpacity={0.7}
-              >
-                <View
-                  className="w-9 h-9 rounded-xl items-center justify-center mr-3"
-                  style={{ backgroundColor: "rgba(34, 197, 94, 0.15)" }}
-                >
-                  <IconSymbol
-                    name="checkmark.seal.fill"
-                    size={16}
-                    color="#22C55E"
-                  />
-                </View>
-                <View>
-                  <BodyBoldText style={{ color: "#FFFFFF", fontSize: 18 }}>
-                    {stats.itemsSold}
-                  </BodyBoldText>
-                  <BodyRegularText
-                    style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}
-                  >
-                    Items Sold
-                  </BodyRegularText>
-                </View>
-              </TouchableOpacity>
+        <QuickActionsSection
+          storeUsername={profile?.store_username}
+          pendingOrdersBadge={stats.pendingOrders}
+        />
 
-              <View
-                className="w-px h-10 mx-3"
-                style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-              />
+        <StoreOverviewSection
+          totalOrders={stats.totalOrders}
+          totalProducts={stats.totalProducts}
+          availableProducts={stats.availableProducts}
+          pendingOrders={stats.pendingOrders}
+          outOfStock={stats.outOfStock}
+        />
 
-              <TouchableOpacity
-                className="flex-1 flex-row items-center"
-                onPress={() => router.push("/profile?tab=listings")}
-                activeOpacity={0.7}
-              >
-                <View
-                  className="w-9 h-9 rounded-xl items-center justify-center mr-3"
-                  style={{ backgroundColor: "rgba(59, 130, 246, 0.15)" }}
-                >
-                  <IconSymbol
-                    name="shippingbox.fill"
-                    size={16}
-                    color="#60A5FA"
-                  />
-                </View>
-                <View>
-                  <BodyBoldText style={{ color: "#FFFFFF", fontSize: 18 }}>
-                    {stats.totalProducts}
-                  </BodyBoldText>
-                  <BodyRegularText
-                    style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}
-                  >
-                    Products
-                  </BodyRegularText>
-                </View>
-              </TouchableOpacity>
-            </View>
+        <SalesAnalyticsSection
+          data={weeklyData.data}
+          labels={weeklyData.labels}
+          totalAmount={weeklyData.total}
+        />
 
-            {/* Action Buttons Row */}
-            <View
-              className="flex-row items-center justify-between rounded-2xl p-2"
-              style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
-            >
-              <TouchableOpacity
-                className="flex-1 items-center py-3"
-                onPress={() => router.push("/(tabs)/product")}
-                activeOpacity={0.7}
-              >
-                <View
-                  className="w-10 h-10 rounded-full items-center justify-center mb-2"
-                  style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                >
-                  <IconSymbol name="plus" size={20} color="#FFFFFF" />
-                </View>
-                <BodyMediumText style={{ color: "#FFFFFF", fontSize: 12 }}>
-                  Add Product
-                </BodyMediumText>
-              </TouchableOpacity>
+        <RecentOrdersSection orders={recentOrders} />
 
-              <TouchableOpacity
-                className="flex-1 items-center py-3"
-                onPress={() => router.push("/(tabs)/orders")}
-                activeOpacity={0.7}
-              >
-                <View
-                  className="w-10 h-10 rounded-full items-center justify-center mb-2"
-                  style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                >
-                  <IconSymbol name="bag.fill" size={20} color="#FFFFFF" />
-                </View>
-                <BodyMediumText style={{ color: "#FFFFFF", fontSize: 12 }}>
-                  Orders
-                </BodyMediumText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="flex-1 items-center py-3"
-                onPress={() => router.push("/profile?tab=listings")}
-                activeOpacity={0.7}
-              >
-                <View
-                  className="w-10 h-10 rounded-full items-center justify-center mb-2"
-                  style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                >
-                  <IconSymbol name="chart.bar.fill" size={20} color="#FFFFFF" />
-                </View>
-                <BodyMediumText style={{ color: "#FFFFFF", fontSize: 12 }}>
-                  Analytics
-                </BodyMediumText>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
-        {/* Explore Section */}
-        <View className="mt-6">
-          <View className="px-6 flex-row items-center justify-between mb-4">
-            <HeadingBoldText>Explore</HeadingBoldText>
-            <TouchableOpacity
-              onPress={() => router.push("/explore")}
-              className="flex-row items-center"
-              activeOpacity={0.7}
-            >
-              <BodySemiboldText style={{ color: "#6B7280" }} className="mr-1">
-                See all
-              </BodySemiboldText>
-              <IconSymbol name="arrow.right" size={14} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Products Grid */}
-          {exploreProducts.length > 0 ? (
-            <View className="px-4 flex-row flex-wrap" style={{ gap: 12 }}>
-              {exploreProducts.map((product) => (
-                <View key={product.id} style={{ width: "47%" }}>
-                  <ProductCard product={product} />
-                </View>
-              ))}
-            </View>
-          ) : (
-            <View className="px-6 py-12 items-center">
-              <View className="w-20 h-20 rounded-full bg-[#F5F5F5] justify-center items-center mb-4">
-                <IconSymbol name="bag" size={36} color="#9CA3AF" />
-              </View>
-              <BodySemiboldText style={{ fontSize: 16 }} className="mb-2">
-                No products available
-              </BodySemiboldText>
-              <BodyRegularText
-                style={{ color: "#6B7280" }}
-                className="text-center"
-              >
-                Check back later for new items
-              </BodyRegularText>
-            </View>
-          )}
-        </View>
+        {profile?.store_username && (
+          <StoreLinkCard storeUsername={profile.store_username} />
+        )}
       </ScrollView>
     </TabScreenLayout>
   );
-}
-
-// Helper function to format numbers
-function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + "M";
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + "K";
-  }
-  return num.toString();
 }

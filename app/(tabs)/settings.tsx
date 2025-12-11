@@ -121,7 +121,8 @@ export default function SettingsScreen() {
 
   const handleViewStore = () => {
     if (profile?.store_username) {
-      router.push(`/store/${profile.store_username}` as any);
+      const storeUrl = `https://${profile.store_username}.thriftverse.shop/`;
+      Linking.openURL(storeUrl);
     }
   };
 
