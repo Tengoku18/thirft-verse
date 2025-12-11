@@ -18,8 +18,8 @@ import {
   deleteProduct,
   fetchUserProducts,
 } from "@/store/productsSlice";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -192,10 +192,18 @@ export default function MyProductsScreen() {
     deleting,
   } = useAppSelector((state) => state.products);
 
+  const { filter } = useLocalSearchParams<{ filter?: string }>();
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+
+  // Set filter from query params
+  useEffect(() => {
+    if (filter === "available" || filter === "out_of_stock") {
+      setStatusFilter(filter);
+    }
+  }, [filter]);
 
   // Fetch products on mount or when user changes
   useFocusEffect(

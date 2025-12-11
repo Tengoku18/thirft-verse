@@ -13,8 +13,8 @@ import { getOrdersBySeller, getProductsByStoreId } from "@/lib/database-helpers"
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { Product } from "@/lib/types/database";
 import dayjs from "dayjs";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -173,10 +173,18 @@ function EmptyState() {
 export default function OrdersScreen() {
   const { user } = useAuth();
   const router = useRouter();
+  const { filter } = useLocalSearchParams<{ filter?: string }>();
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+
+  // Set filter from query params
+  useEffect(() => {
+    if (filter === "pending" || filter === "completed") {
+      setStatusFilter(filter);
+    }
+  }, [filter]);
 
   const loadData = async () => {
     if (!user) {

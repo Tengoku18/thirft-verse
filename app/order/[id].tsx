@@ -515,7 +515,11 @@ export default function SingleOrderScreen() {
     }
   };
 
-  const handleViewProduct = () => {};
+  const handleViewProduct = () => {
+    if (order?.product?.id) {
+      router.push(`/product/${order.product.id}` as any);
+    }
+  };
 
   if (loading) {
     return (
