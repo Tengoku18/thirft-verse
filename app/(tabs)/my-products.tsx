@@ -12,6 +12,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { Product } from "@/lib/types/database";
+import { useToast } from "@/contexts/ToastContext";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   deleteProduct,
@@ -182,6 +183,7 @@ export default function MyProductsScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const toast = useToast();
 
   // Get products from Redux store
   const {
@@ -226,7 +228,7 @@ export default function MyProductsScreen() {
 
       setShowDeleteModal(false);
       setProductToDelete(null);
-      Alert.alert("Success", "Product deleted successfully.");
+      toast.success("Product deleted successfully");
     } catch (error: any) {
       setShowDeleteModal(false);
       setProductToDelete(null);

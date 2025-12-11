@@ -2,6 +2,7 @@ import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { CustomHeader } from "@/components/navigation/CustomHeader";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -28,6 +29,7 @@ interface PasswordErrors {
 export default function ChangePasswordScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const toast = useToast();
   const [saving, setSaving] = useState(false);
   const [passwordData, setPasswordData] = useState<PasswordData>({
     currentPassword: "",
@@ -101,11 +103,8 @@ export default function ChangePasswordScreen() {
       }
 
       // Success
-      Alert.alert(
-        "Success",
-        "Your password has been changed successfully!",
-        [{ text: "OK", onPress: () => router.back() }]
-      );
+      toast.success("Password changed successfully");
+      router.back();
     } catch (error) {
       console.error("Error changing password:", error);
       Alert.alert("Error", "An unexpected error occurred. Please try again.");

@@ -9,6 +9,7 @@ import {
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext";
 import { updateUserProfile } from "@/lib/database-helpers";
 import {
   uploadPaymentQRImage,
@@ -41,6 +42,7 @@ interface ProfileData {
 export default function EditProfileScreen() {
   const router = useRouter();
   const { user, refreshProfile } = useAuth();
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -214,9 +216,8 @@ export default function EditProfileScreen() {
       if (result.success) {
         // Refresh the profile data in the app state
         await refreshProfile();
-        Alert.alert("Success", "Profile updated successfully!", [
-          { text: "OK", onPress: () => router.back() },
-        ]);
+        toast.success("Profile updated successfully");
+        router.back();
       } else {
         Alert.alert("Error", "Failed to update profile. Please try again.");
       }

@@ -9,6 +9,7 @@ import {
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext";
 import { getOrderById, updateOrderStatus } from "@/lib/database-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
@@ -344,6 +345,7 @@ export default function SingleOrderScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const router = useRouter();
+  const toast = useToast();
 
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -489,7 +491,7 @@ export default function SingleOrderScreen() {
               const result = await updateOrderStatus(order.id, "completed");
               if (result.success) {
                 loadOrder();
-                Alert.alert("Success", "Order marked as delivered!");
+                toast.success("Order marked as delivered");
               } else {
                 Alert.alert("Error", "Could not update status.");
               }
