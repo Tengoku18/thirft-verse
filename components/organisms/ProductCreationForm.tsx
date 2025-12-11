@@ -3,6 +3,7 @@ import { FormInput } from "@/components/atoms/FormInput";
 import { FormPicker } from "@/components/atoms/FormPicker";
 import { FormTextarea } from "@/components/atoms/FormTextarea";
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
+import { ProductSuccessModal } from "@/components/molecules/ProductSuccessModal";
 import {
   BodyRegularText,
   BodySemiboldText,
@@ -11,8 +12,6 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { createProduct } from "@/lib/database-helpers";
-import { pickAndCropImage } from "@/lib/image-picker-helpers";
-import { getProductImageUrl } from "@/lib/storage-helpers";
 import { uploadImageToStorage } from "@/lib/upload-helpers";
 import {
   PRODUCT_CATEGORIES,
@@ -25,7 +24,6 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Controller, FieldError, useForm } from "react-hook-form";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
@@ -39,15 +37,23 @@ export const ProductCreationForm: React.FC = () => {
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [uploadingCover, setUploadingCover] = useState(false);
-  const [uploadingOther, setUploadingOther] = useState(false);
+  // Store local URIs - upload happens on submit
+  const [localCoverUri, setLocalCoverUri] = useState<string | null>(null);
+  const [localOtherUris, setLocalOtherUris] = useState<string[]>([]);
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdProduct, setCreatedProduct] = useState<{
+    id: string;
+    title: string;
+    price: number;
+    cover_image: string;
+  } | null>(null);
 
   const {
     control,
     handleSubmit,
     formState: { errors },
     reset,
-    watch,
     setValue,
   } = useForm<ProductFormData>({
     resolver: yupResolver(productSchema),
@@ -62,8 +68,6 @@ export const ProductCreationForm: React.FC = () => {
     },
   });
 
-  const coverImage = watch("cover_image");
-  const otherImages = watch("other_images") || [];
 
   // Category options for picker
   const categoryOptions = PRODUCT_CATEGORIES.map((cat) => ({
@@ -72,17 +76,6 @@ export const ProductCreationForm: React.FC = () => {
   }));
 
   const pickCoverImage = async () => {
-    const result = await pickAndCropImage({
-      aspectRatio: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.success || !result.uri) {
-      return;
-    }
-
-    setUploadingCover(true);
-
     try {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -102,31 +95,10 @@ export const ProductCreationForm: React.FC = () => {
       });
 
       if (!result.canceled && result.assets[0]) {
-        setUploadingCover(true);
-
-        try {
-          const uploadResult = await uploadImageToStorage(
-            result.assets[0].uri,
-            "products",
-            "products"
-          );
-          if (uploadResult.success && uploadResult.url) {
-            setValue("cover_image", uploadResult.url);
-          } else {
-            Alert.alert(
-              "Upload Error",
-              uploadResult.error || "Failed to upload image"
-            );
-          }
-        } catch (uploadError) {
-          console.error("Error uploading image:", uploadError);
-          Alert.alert(
-            "Upload Failed",
-            "Failed to upload image. Please try again."
-          );
-        } finally {
-          setUploadingCover(false);
-        }
+        // Store local URI and sync with form field
+        const uri = result.assets[0].uri;
+        setLocalCoverUri(uri);
+        setValue("cover_image", uri);
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -135,6 +107,13 @@ export const ProductCreationForm: React.FC = () => {
   };
 
   const pickAdditionalImages = async () => {
+    const remainingSlots = 5 - localOtherUris.length;
+
+    if (remainingSlots <= 0) {
+      Alert.alert("Limit Reached", "You can only add up to 5 additional images.");
+      return;
+    }
+
     try {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -146,24 +125,54 @@ export const ProductCreationForm: React.FC = () => {
         );
         return;
       }
-    } catch (uploadError) {
-      console.error("Error uploading images:", uploadError);
-      Alert.alert(
-        "Upload Failed",
-        "Failed to upload images. Please try again."
-      );
-    } finally {
-      setUploadingOther(false);
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsMultipleSelection: true,
+        selectionLimit: remainingSlots,
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets.length > 0) {
+        // Get all selected image URIs
+        const selectedUris = result.assets.map((asset) => asset.uri);
+        const newUris = [...localOtherUris, ...selectedUris];
+        setLocalOtherUris(newUris);
+        setValue("other_images", newUris);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to pick image. Please try again.");
     }
   };
 
   const removeCoverImage = () => {
+    setLocalCoverUri(null);
     setValue("cover_image", "");
   };
 
   const removeAdditionalImage = (index: number) => {
-    const newOtherImages = otherImages.filter((_, i) => i !== index);
-    setValue("other_images", newOtherImages);
+    const newUris = localOtherUris.filter((_, i) => i !== index);
+    setLocalOtherUris(newUris);
+    setValue("other_images", newUris);
+  };
+
+  const handleViewProduct = () => {
+    if (!createdProduct) return;
+    setShowSuccessModal(false);
+    reset();
+    setLocalCoverUri(null);
+    setLocalOtherUris([]);
+    router.push(`/product/${createdProduct.id}` as any);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    reset();
+    setLocalCoverUri(null);
+    setLocalOtherUris([]);
+    setCreatedProduct(null);
+    router.push("/(tabs)");
   };
 
   const onSubmit = async (data: ProductFormData) => {
@@ -175,14 +184,33 @@ export const ProductCreationForm: React.FC = () => {
       return;
     }
 
-    if (!data.cover_image) {
-      Alert.alert("Cover Image Required", "Please upload at least one image.");
-      return;
-    }
-
     setLoading(true);
 
     try {
+      // Upload cover image (data.cover_image is validated by yup)
+      const coverUploadResult = await uploadImageToStorage(
+        data.cover_image,
+        "products",
+        "products"
+      );
+
+      if (!coverUploadResult.success || !coverUploadResult.url) {
+        Alert.alert("Upload Error", "Failed to upload cover image. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Upload additional images
+      const uploadedOtherImages: string[] = [];
+      for (const uri of data.other_images || []) {
+        if (uri) {
+          const uploadResult = await uploadImageToStorage(uri, "products", "products");
+          if (uploadResult.success && uploadResult.url) {
+            uploadedOtherImages.push(uploadResult.url);
+          }
+        }
+      }
+
       const productData = {
         title: data.title,
         description: data.description,
@@ -190,26 +218,21 @@ export const ProductCreationForm: React.FC = () => {
         category: data.category,
         availability_count: data.availability_count,
         store_id: user.id,
-        cover_image: data.cover_image,
-        other_images: data.other_images,
+        cover_image: coverUploadResult.url,
+        other_images: uploadedOtherImages,
       };
 
       const result = await createProduct(productData);
 
-      if (result.success) {
-        const message = (result as any).profileRecovered
-          ? "Your profile was automatically recovered and your product has been listed successfully!"
-          : "Your product has been listed successfully.";
-
-        Alert.alert("Success!", message, [
-          {
-            text: "OK",
-            onPress: () => {
-              reset();
-              router.push("/(tabs)");
-            },
-          },
-        ]);
+      if (result.success && result.data) {
+        // Store created product info and show success modal
+        setCreatedProduct({
+          id: result.data.id,
+          title: data.title,
+          price: data.price,
+          cover_image: coverUploadResult.url,
+        });
+        setShowSuccessModal(true);
       } else {
         if (result.tableNotFound) {
           Alert.alert(
@@ -266,10 +289,10 @@ export const ProductCreationForm: React.FC = () => {
                 flex: 1,
               }}
             >
-              {coverImage ? (
+              {localCoverUri ? (
                 <View style={{ flex: 1, position: "relative" }}>
                   <Image
-                    source={{ uri: getProductImageUrl(coverImage) }}
+                    source={{ uri: localCoverUri }}
                     style={{ width: "100%", height: "100%" }}
                     resizeMode="cover"
                   />
@@ -315,7 +338,6 @@ export const ProductCreationForm: React.FC = () => {
               ) : (
                 <TouchableOpacity
                   onPress={pickCoverImage}
-                  disabled={uploadingCover}
                   style={{
                     flex: 1,
                     justifyContent: "center",
@@ -323,24 +345,15 @@ export const ProductCreationForm: React.FC = () => {
                   }}
                   activeOpacity={0.7}
                 >
-                  {uploadingCover ? (
-                    <View className="items-center">
-                      <ActivityIndicator size="large" color="#3B2F2F" />
-                      <BodySemiboldText className="mt-3">
-                        Uploading...
-                      </BodySemiboldText>
-                    </View>
-                  ) : (
-                    <View className="items-center">
-                      <IconSymbol name="photo" size={48} color="#9CA3AF" />
-                      <BodySemiboldText
-                        className="mt-3"
-                        style={{ color: "#6B7280", fontSize: 16 }}
-                      >
-                        Tap to add cover photo
-                      </BodySemiboldText>
-                    </View>
-                  )}
+                  <View className="items-center">
+                    <IconSymbol name="photo" size={48} color="#9CA3AF" />
+                    <BodySemiboldText
+                      className="mt-3"
+                      style={{ color: "#6B7280", fontSize: 16 }}
+                    >
+                      Tap to add cover photo
+                    </BodySemiboldText>
+                  </View>
                 </TouchableOpacity>
               )}
             </View>
@@ -352,11 +365,11 @@ export const ProductCreationForm: React.FC = () => {
               </BodySemiboldText>
               <BodySemiboldText
                 style={{
-                  color: otherImages.length >= 5 ? "#EF4444" : "#6B7280",
+                  color: localOtherUris.length >= 5 ? "#EF4444" : "#6B7280",
                   fontSize: 12,
                 }}
               >
-                {otherImages.length}/5
+                {localOtherUris.length}/5
               </BodySemiboldText>
             </View>
             <View
@@ -367,7 +380,7 @@ export const ProductCreationForm: React.FC = () => {
                 marginBottom: 24,
               }}
             >
-              {otherImages.map((image, index) => (
+              {localOtherUris.map((uri, index) => (
                 <View
                   key={index}
                   style={{
@@ -379,7 +392,7 @@ export const ProductCreationForm: React.FC = () => {
                   }}
                 >
                   <Image
-                    source={{ uri: getProductImageUrl(image) }}
+                    source={{ uri: uri }}
                     style={{ width: "100%", height: "100%" }}
                     resizeMode="cover"
                   />
@@ -405,10 +418,9 @@ export const ProductCreationForm: React.FC = () => {
               ))}
 
               {/* Add Button */}
-              {otherImages.length < 5 && (
+              {localOtherUris.length < 5 && (
                 <TouchableOpacity
                   onPress={pickAdditionalImages}
-                  disabled={uploadingOther}
                   style={{
                     width: 90,
                     height: 90,
@@ -422,19 +434,15 @@ export const ProductCreationForm: React.FC = () => {
                   }}
                   activeOpacity={0.7}
                 >
-                  {uploadingOther ? (
-                    <ActivityIndicator size="small" color="#9CA3AF" />
-                  ) : (
-                    <View className="items-center">
-                      <IconSymbol name="camera" size={24} color="#9CA3AF" />
-                      <CaptionText
-                        className="mt-1"
-                        style={{ color: "#9CA3AF" }}
-                      >
-                        Add
-                      </CaptionText>
-                    </View>
-                  )}
+                  <View className="items-center">
+                    <IconSymbol name="camera" size={24} color="#9CA3AF" />
+                    <CaptionText
+                      className="mt-1"
+                      style={{ color: "#9CA3AF" }}
+                    >
+                      Add
+                    </CaptionText>
+                  </View>
                 </TouchableOpacity>
               )}
             </View>
@@ -561,6 +569,15 @@ export const ProductCreationForm: React.FC = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Success Modal */}
+      <ProductSuccessModal
+        visible={showSuccessModal}
+        product={createdProduct}
+        onShare={() => {}}
+        onViewProduct={handleViewProduct}
+        onClose={handleCloseSuccessModal}
+      />
     </TabScreenLayout>
   );
 };

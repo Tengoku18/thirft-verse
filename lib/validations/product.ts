@@ -50,19 +50,16 @@ export const productSchema = yup.object().shape({
     .min(1, 'Availability must be at least 1')
     .typeError('Availability must be a valid number'),
 
-  // Cover image (required) - matches admin
+  // Cover image (required) - stores local URI before upload
   cover_image: yup
     .string()
-    .required('Cover image is required')
-    .url('Cover image must be a valid URL'),
+    .required('Cover image is required'),
 
-  // Other images (required array with at least 1 image)
+  // Other images (optional)
   other_images: yup
     .array()
-    .of(yup.string().required().url('Each image must be a valid URL'))
-    .required('At least one additional product image is required')
-    .min(1, 'At least one additional product image is required')
-    .max(4, 'Maximum 4 additional images allowed'),
+    .of(yup.string().defined())
+    .default([]),
 });
 
 export type ProductFormData = yup.InferType<typeof productSchema>;

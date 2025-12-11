@@ -96,6 +96,10 @@ export default function RootLayout() {
               name="sold-item/[id]"
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="product/[id]"
+              options={{ headerShown: false }}
+            />
           </Stack>
           <StatusBar style="dark" />
         </ThemeProvider>

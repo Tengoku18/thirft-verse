@@ -255,8 +255,8 @@ export default function MyProductsScreen() {
   };
 
   const handleProductPress = (product: Product) => {
-    // Navigate to edit product when tapping the card
-    router.push(`/edit-product/${product.id}` as any);
+    // Navigate to product detail screen when tapping the card
+    router.push(`/product/${product.id}` as any);
   };
 
   const handleAddProduct = () => {
