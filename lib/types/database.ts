@@ -16,6 +16,8 @@ export interface Profile {
   store_username: string;
   role: UserRole;
   plan: SubscriptionPlan;
+  payment_username: string | null;
+  payment_qr_image: string | null;
   created_at: string;
   updated_at: string;
 }

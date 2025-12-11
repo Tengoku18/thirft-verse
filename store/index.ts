@@ -28,3 +28,19 @@ export {
   clearProfile,
   setError as setProfileError,
 } from './profileSlice';
+
+// Export signup slice
+export {
+  loadSignupState,
+  persistSignupState,
+  clearPersistedSignupState,
+  setCurrentStep,
+  setFormData,
+  setPaymentData,
+  startSignup,
+  completeSignup,
+  resetSignup,
+  setSignupError,
+} from './signupSlice';
+
+export type { SignupFormData, SignupPaymentData } from './signupSlice';

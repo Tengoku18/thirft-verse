@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import {
   clearAuth,
   clearProfile,
+  clearPersistedSignupState,
   fetchCurrentSession,
   fetchUserProfile,
   setSession,
@@ -119,6 +120,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Clear Redux store
     dispatch(clearAuth());
     dispatch(clearProfile());
+    // Clear persisted signup state
+    dispatch(clearPersistedSignupState());
   };
 
   const resetPasswordForEmail = async (email: string) => {

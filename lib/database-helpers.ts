@@ -285,11 +285,12 @@ export const getProductsCountByStore = async (
 };
 
 /**
- * Update user profile (name and bio)
+ * Update user profile
  */
 interface UpdateProfileData {
   userId: string;
   name?: string;
+  store_username?: string;
   bio?: string;
   address?: string;
   profile_image?: string;
@@ -299,6 +300,8 @@ export const updateUserProfile = async (data: UpdateProfileData) => {
   try {
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
+    if (data.store_username !== undefined)
+      updateData.store_username = data.store_username.toLowerCase();
     if (data.bio !== undefined) updateData.bio = data.bio;
     if (data.address !== undefined) updateData.address = data.address;
     if (data.profile_image !== undefined)

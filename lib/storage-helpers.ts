@@ -199,6 +199,8 @@ export const uploadProfileImage = async (
         upsert: true,
       });
 
+    console.log("data image kkjkkkkk", data);
+
     if (error) {
       console.error("❌ Profile image upload error:", error);
       return { success: false, error };

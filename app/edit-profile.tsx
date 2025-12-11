@@ -10,11 +10,10 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { updateUserProfile } from "@/lib/database-helpers";
-import { getProfileImageUrl } from "@/lib/storage-helpers";
+import { getProfileImageUrl, uploadProfileImage } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
-import { uploadProfileImage } from "@/lib/storage-helpers";
-import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -46,7 +45,11 @@ export default function EditProfileScreen() {
     profile_image: null,
   });
   const [newImageUri, setNewImageUri] = useState<string | null>(null);
-  const [errors, setErrors] = useState<{ name?: string; bio?: string; address?: string }>({});
+  const [errors, setErrors] = useState<{
+    name?: string;
+    bio?: string;
+    address?: string;
+  }>({});
 
   useEffect(() => {
     loadProfile();
@@ -126,8 +129,7 @@ export default function EditProfileScreen() {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
+        allowsEditing: false,
         quality: 0.8,
       });
 
@@ -154,8 +156,7 @@ export default function EditProfileScreen() {
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
+        allowsEditing: false,
         quality: 0.8,
       });
 
@@ -210,11 +211,17 @@ export default function EditProfileScreen() {
         if (uploadResult.success && uploadResult.path) {
           imageUrl = uploadResult.path;
         } else {
-          Alert.alert("Error", "Failed to upload profile image. Please try again.");
+          Alert.alert(
+            "Error",
+            "Failed to upload profile image. Please try again."
+          );
           setSaving(false);
           return;
         }
       }
+
+      console.log("here");
+      return;
 
       // Update profile in database
       const result = await updateUserProfile({
@@ -397,9 +404,7 @@ export default function EditProfileScreen() {
               <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
                 Username
               </BodySemiboldText>
-              <View
-                className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center"
-              >
+              <View className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center">
                 <View className="flex-row items-center">
                   <BodyRegularText style={{ color: "#6B7280", fontSize: 15 }}>
                     @{user?.user_metadata?.username || "username"}
@@ -419,9 +424,7 @@ export default function EditProfileScreen() {
               <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
                 Email
               </BodySemiboldText>
-              <View
-                className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center"
-              >
+              <View className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center">
                 <View className="flex-row items-center">
                   <BodyRegularText style={{ color: "#6B7280", fontSize: 15 }}>
                     {user?.email || "email@example.com"}
@@ -435,6 +438,87 @@ export default function EditProfileScreen() {
                 Email cannot be changed from here
               </CaptionText>
             </View>
+
+            {/* Payment Section Divider */}
+            <View className="mb-6 mt-2">
+              <View className="flex-row items-center">
+                <View className="flex-1 h-px bg-[#E5E7EB]" />
+                <BodySemiboldText
+                  className="mx-4"
+                  style={{ color: "#6B7280", fontSize: 12 }}
+                >
+                  PAYMENT DETAILS
+                </BodySemiboldText>
+                <View className="flex-1 h-px bg-[#E5E7EB]" />
+              </View>
+            </View>
+
+            {/* Payment Account Name */}
+            {/* <FormInput
+              label="Payment Account Name"
+              placeholder="e.g., eSewa: 9812345678 or Bank: John Doe"
+              value={profileData.payment_username}
+              onChangeText={(text) =>
+                setProfileData((prev) => ({ ...prev, payment_username: text }))
+              }
+              autoCapitalize="none"
+            />
+            <CaptionText className="mb-6 -mt-2" style={{ color: "#6B7280" }}>
+              Enter your eSewa name, bank account name, or payment identifier
+            </CaptionText> */}
+
+            {/* Payment QR Code */}
+            {/* <View className="mb-6">
+              <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
+                Payment QR Code{" "}
+                <CaptionText style={{ color: "#9CA3AF" }}>
+                  (Optional)
+                </CaptionText>
+              </BodySemiboldText>
+
+              <TouchableOpacity
+                onPress={handlePaymentQRSelect}
+                activeOpacity={0.8}
+                className="border-2 border-dashed border-[#E5E7EB] rounded-2xl overflow-hidden"
+                style={{ height: 180 }}
+              >
+                {getDisplayPaymentQRUri() ? (
+                  <View className="flex-1 relative">
+                    <Image
+                      source={{ uri: getDisplayPaymentQRUri()! }}
+                      style={{ width: "100%", height: "100%" }}
+                      resizeMode="contain"
+                    />
+                    <View
+                      className="absolute top-2 right-2 bg-white rounded-full p-2"
+                      style={{
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 4,
+                        elevation: 3,
+                      }}
+                    >
+                      <IconSymbol name="pencil" size={16} color="#3B2F2F" />
+                    </View>
+                  </View>
+                ) : (
+                  <View className="flex-1 justify-center items-center bg-[#FAFAFA]">
+                    <View className="w-14 h-14 rounded-full bg-[#F3F4F6] justify-center items-center mb-3">
+                      <IconSymbol name="qrcode" size={24} color="#9CA3AF" />
+                    </View>
+                    <BodySemiboldText
+                      style={{ color: "#6B7280", fontSize: 14 }}
+                    >
+                      Upload QR Code
+                    </BodySemiboldText>
+                    <CaptionText style={{ color: "#9CA3AF" }} className="mt-1">
+                      Tap to add your payment QR
+                    </CaptionText>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View> */}
           </View>
 
           {/* Save Button */}

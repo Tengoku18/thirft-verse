@@ -2,28 +2,29 @@ import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { FormPicker } from "@/components/atoms/FormPicker";
 import { FormTextarea } from "@/components/atoms/FormTextarea";
-import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-} from "@/components/Typography";
+import { CustomHeader } from "@/components/navigation/CustomHeader";
+import { BodySemiboldText, CaptionText } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
-import { createProduct } from "@/lib/database-helpers";
-import { pickAndCropImage } from "@/lib/image-picker-helpers";
+import {
+  pickAndCropImage,
+  pickMultipleImages,
+} from "@/lib/image-picker-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
-import { uploadImageToStorage } from "@/lib/upload-helpers";
+import { supabase } from "@/lib/supabase";
+import {
+  uploadImageToStorage,
+  uploadMultipleImages,
+} from "@/lib/upload-helpers";
 import {
   PRODUCT_CATEGORIES,
   ProductFormData,
   productSchema,
 } from "@/lib/validations/product";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Controller, FieldError, useForm } from "react-hook-form";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
   Alert,
@@ -34,11 +35,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export const ProductCreationForm: React.FC = () => {
+export default function EditProductScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingOther, setUploadingOther] = useState(false);
 
@@ -58,18 +62,57 @@ export const ProductCreationForm: React.FC = () => {
       category: "",
       availability_count: undefined,
       cover_image: "",
-      other_images: [] as string[],
+      other_images: [],
     },
   });
 
   const coverImage = watch("cover_image");
   const otherImages = watch("other_images") || [];
 
-  // Category options for picker
   const categoryOptions = PRODUCT_CATEGORIES.map((cat) => ({
     label: cat,
     value: cat,
   }));
+
+  useEffect(() => {
+    loadProduct();
+  }, [id]);
+
+  const loadProduct = async () => {
+    if (!id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        Alert.alert("Error", "Failed to load product.");
+        router.back();
+        return;
+      }
+
+      if (data) {
+        reset({
+          title: data.title,
+          description: data.description || "",
+          price: data.price,
+          category: data.category,
+          availability_count: data.availability_count,
+          cover_image: data.cover_image,
+          other_images: data.other_images || [],
+        });
+      }
+    } catch (error) {
+      console.error("Error loading product:", error);
+      Alert.alert("Error", "Failed to load product.");
+      router.back();
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   const pickCoverImage = async () => {
     const result = await pickAndCropImage({
@@ -77,74 +120,70 @@ export const ProductCreationForm: React.FC = () => {
       quality: 0.8,
     });
 
-    if (!result.success || !result.uri) {
-      return;
-    }
+    if (!result.success || !result.uri) return;
 
     setUploadingCover(true);
 
     try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (status !== "granted") {
+      const uploadResult = await uploadImageToStorage(
+        result.uri,
+        "products",
+        "products"
+      );
+      if (uploadResult.success && uploadResult.url) {
+        setValue("cover_image", uploadResult.url);
+      } else {
         Alert.alert(
-          "Permission Required",
-          "Please allow access to your photo library to upload images."
+          "Upload Error",
+          uploadResult.error || "Failed to upload image"
         );
-        return;
       }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setUploadingCover(true);
-
-        try {
-          const uploadResult = await uploadImageToStorage(
-            result.assets[0].uri,
-            "products",
-            "products"
-          );
-          if (uploadResult.success && uploadResult.url) {
-            setValue("cover_image", uploadResult.url);
-          } else {
-            Alert.alert(
-              "Upload Error",
-              uploadResult.error || "Failed to upload image"
-            );
-          }
-        } catch (uploadError) {
-          console.error("Error uploading image:", uploadError);
-          Alert.alert(
-            "Upload Failed",
-            "Failed to upload image. Please try again."
-          );
-        } finally {
-          setUploadingCover(false);
-        }
-      }
-    } catch (error) {
-      console.error("Error picking image:", error);
-      Alert.alert("Error", "Failed to pick image. Please try again.");
+    } catch (uploadError) {
+      console.error("Error uploading image:", uploadError);
+      Alert.alert("Upload Failed", "Failed to upload image. Please try again.");
+    } finally {
+      setUploadingCover(false);
     }
   };
 
   const pickAdditionalImages = async () => {
-    try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const maxOtherImages = 5;
+    const remainingSlots = maxOtherImages - otherImages.length;
 
-      if (status !== "granted") {
+    if (remainingSlots <= 0) {
+      Alert.alert(
+        "Limit Reached",
+        `You can only upload up to ${maxOtherImages} additional images.`
+      );
+      return;
+    }
+
+    const result = await pickMultipleImages(remainingSlots);
+
+    if (!result.success || !result.uris || result.uris.length === 0) return;
+
+    setUploadingOther(true);
+
+    try {
+      const uploadResults = await uploadMultipleImages(
+        result.uris,
+        "products",
+        "products"
+      );
+      const successfulUrls = uploadResults
+        .filter((r) => r.success && r.url)
+        .map((r) => r.url!);
+      const failedCount = uploadResults.filter((r) => !r.success).length;
+
+      if (successfulUrls.length > 0) {
+        setValue("other_images", [...otherImages, ...successfulUrls]);
+      }
+
+      if (failedCount > 0) {
         Alert.alert(
-          "Permission Required",
-          "Please allow access to your photo library to upload images."
+          "Upload Warning",
+          `${failedCount} image(s) failed to upload. ${successfulUrls.length} image(s) uploaded successfully.`
         );
-        return;
       }
     } catch (uploadError) {
       console.error("Error uploading images:", uploadError);
@@ -167,89 +206,75 @@ export const ProductCreationForm: React.FC = () => {
   };
 
   const onSubmit = async (data: ProductFormData) => {
-    if (!user) {
-      Alert.alert(
-        "Authentication Required",
-        "Please sign in to create a product."
-      );
+    if (!user || !id) {
+      Alert.alert("Error", "Unable to update product.");
       return;
     }
 
     if (!data.cover_image) {
-      Alert.alert("Cover Image Required", "Please upload at least one image.");
+      Alert.alert("Cover Image Required", "Please upload a cover image.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const productData = {
-        title: data.title,
-        description: data.description,
-        price: data.price,
-        category: data.category,
-        availability_count: data.availability_count,
-        store_id: user.id,
-        cover_image: data.cover_image,
-        other_images: data.other_images,
-      };
+      const { error } = await supabase
+        .from("products")
+        .update({
+          title: data.title,
+          description: data.description,
+          price: data.price,
+          category: data.category,
+          availability_count: data.availability_count,
+          cover_image: data.cover_image,
+          other_images: data.other_images,
+          status: data.availability_count > 0 ? "available" : "out_of_stock",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .eq("store_id", user.id);
 
-      const result = await createProduct(productData);
-
-      if (result.success) {
-        const message = (result as any).profileRecovered
-          ? "Your profile was automatically recovered and your product has been listed successfully!"
-          : "Your product has been listed successfully.";
-
-        Alert.alert("Success!", message, [
-          {
-            text: "OK",
-            onPress: () => {
-              reset();
-              router.push("/(tabs)");
-            },
-          },
-        ]);
-      } else {
-        if (result.tableNotFound) {
-          Alert.alert(
-            "Setup Required",
-            "The products table is not set up. Please contact support or check the database migration."
-          );
-        } else if (result.rlsError) {
-          Alert.alert(
-            "Permission Error",
-            "There was a permission issue. Please try signing out and back in."
-          );
-        } else {
-          const errorMessage =
-            result.error &&
-            typeof result.error === "object" &&
-            "message" in result.error
-              ? (result.error as { message: string }).message
-              : "Failed to create product. Please try again.";
-          Alert.alert("Error", errorMessage);
-        }
+      if (error) {
+        console.error("Error updating product:", error);
+        Alert.alert("Error", "Failed to update product. Please try again.");
+        return;
       }
+
+      Alert.alert("Success", "Product updated successfully!", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
     } catch (error) {
-      console.error("Unexpected error creating product:", error);
-      Alert.alert("Error", "An unexpected error occurred. Please try again.");
+      console.error("Error updating product:", error);
+      Alert.alert("Error", "Failed to update product. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  if (initialLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white">
+        <CustomHeader title="Edit Product" />
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#3B2F2F" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <TabScreenLayout title="Add Product">
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <CustomHeader title="Edit Product" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <ScrollView
           className="flex-1 bg-white"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={{ paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
         >
           <View className="px-6 pt-4">
@@ -273,7 +298,6 @@ export const ProductCreationForm: React.FC = () => {
                     style={{ width: "100%", height: "100%" }}
                     resizeMode="cover"
                   />
-                  {/* Remove Button */}
                   <TouchableOpacity
                     onPress={removeCoverImage}
                     style={{
@@ -291,7 +315,6 @@ export const ProductCreationForm: React.FC = () => {
                   >
                     <IconSymbol name="xmark" size={16} color="#FFFFFF" />
                   </TouchableOpacity>
-                  {/* Change Photo Button */}
                   <TouchableOpacity
                     onPress={pickCoverImage}
                     style={{
@@ -383,7 +406,6 @@ export const ProductCreationForm: React.FC = () => {
                     style={{ width: "100%", height: "100%" }}
                     resizeMode="cover"
                   />
-                  {/* Remove Button */}
                   <TouchableOpacity
                     onPress={() => removeAdditionalImage(index)}
                     style={{
@@ -404,7 +426,6 @@ export const ProductCreationForm: React.FC = () => {
                 </View>
               ))}
 
-              {/* Add Button */}
               {otherImages.length < 5 && (
                 <TouchableOpacity
                   onPress={pickAdditionalImages}
@@ -534,26 +555,9 @@ export const ProductCreationForm: React.FC = () => {
               )}
             />
 
-            {/* Error Summary */}
-            {Object.keys(errors).length > 0 && (
-              <View className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-6">
-                <BodySemiboldText className="mb-2" style={{ color: "#EF4444" }}>
-                  Please fix the following errors:
-                </BodySemiboldText>
-                {Object.entries(errors).map(([field, error]) => (
-                  <BodyRegularText
-                    key={field}
-                    style={{ color: "#DC2626", fontSize: 13 }}
-                  >
-                    • {(error as FieldError)?.message}
-                  </BodyRegularText>
-                ))}
-              </View>
-            )}
-
-            {/* Post Button */}
+            {/* Update Button */}
             <FormButton
-              title={loading ? "Posting..." : "Post"}
+              title={loading ? "Updating..." : "Update Product"}
               onPress={handleSubmit(onSubmit)}
               loading={loading}
               variant="primary"
@@ -561,6 +565,6 @@ export const ProductCreationForm: React.FC = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </TabScreenLayout>
+    </SafeAreaView>
   );
-};
+}

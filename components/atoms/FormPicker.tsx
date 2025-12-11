@@ -64,8 +64,10 @@ export const FormPicker: React.FC<FormPickerProps> = ({
         disabled={disabled}
         className={`h-[58px] px-4 rounded-2xl border-[2px] flex-row items-center justify-between ${
           error
-            ? "border-red-500 bg-red-50"
-            : "border-[#E5E7EB] bg-white"
+            ? "border-[#EF4444] bg-[#FEF2F2]"
+            : isOpen
+              ? "border-[#3B2F2F] bg-white"
+              : "border-[#E5E7EB] bg-white"
         } ${disabled ? 'opacity-50' : ''}`}
         activeOpacity={0.7}
       >

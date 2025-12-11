@@ -8,16 +8,22 @@ import {
 } from "@/components/Typography";
 import { LOGO_USAGE } from "@/constants/logos";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  persistSignupState,
+  setCurrentStep,
+  setFormData,
+} from "@/store";
+import { useAppDispatch } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -40,8 +46,10 @@ const signInSchema = yup.object({
 
 export default function SignInScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const {
     control,
@@ -57,25 +65,77 @@ export default function SignInScreen() {
 
   const onSubmit = async (data: SignInFormData) => {
     setLoading(true);
+    setErrorMessage("");
 
     try {
       const { error } = await signIn(data.email, data.password);
 
       if (error) {
-        Alert.alert(
-          "Sign In Failed",
-          error.message || "Invalid email or password"
-        );
+        const errorMsg = error.message?.toLowerCase() || "";
+
+        // Check if the error is "Email not confirmed"
+        if (
+          errorMsg.includes("email not confirmed") ||
+          errorMsg.includes("email_not_confirmed")
+        ) {
+          // User exists but email is not verified
+          // Save email to Redux and redirect to verification screen
+          dispatch(
+            setFormData({
+              email: data.email,
+              password: data.password,
+              name: "",
+              username: "",
+              address: "",
+              profileImage: null,
+            })
+          );
+          dispatch(setCurrentStep(2));
+          await dispatch(
+            persistSignupState({
+              currentStep: 2,
+              formData: {
+                email: data.email,
+                password: data.password,
+                name: "",
+                username: "",
+                address: "",
+                profileImage: null,
+              },
+              isSignupInProgress: true,
+            })
+          );
+
+          setLoading(false);
+          router.replace("/(auth)/signup-step2");
+          return;
+        }
+
+        // Check if user doesn't exist
+        if (
+          errorMsg.includes("invalid login credentials") ||
+          errorMsg.includes("invalid_credentials") ||
+          errorMsg.includes("user not found")
+        ) {
+          setErrorMessage(
+            "Account not found. Please sign up to create an account."
+          );
+          setLoading(false);
+          return;
+        }
+
+        // Generic error
+        setErrorMessage(error.message || "Invalid email or password");
         setLoading(false);
         return;
       }
 
-      // Reset loading and navigate manually
+      // Success - navigate to home
       setLoading(false);
       router.replace("/(tabs)");
     } catch (error) {
-      console.error("💥 Unexpected sign in error:", error);
-      Alert.alert("Error", "An unexpected error occurred. Please try again.");
+      console.error("Unexpected sign in error:", error);
+      setErrorMessage("An unexpected error occurred. Please try again.");
       setLoading(false);
     }
   };
@@ -85,6 +145,7 @@ export default function SignInScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-white"
     >
+      <StatusBar barStyle="dark-content" />
       <ScrollView
         className="flex-1"
         contentContainerClassName="flex-grow"
@@ -103,6 +164,15 @@ export default function SignInScreen() {
           </View>
 
           <View className="flex-1">
+            {/* Error message */}
+            {errorMessage && (
+              <View className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
+                <BodyRegularText style={{ color: "#EF4444", fontSize: 14 }}>
+                  {errorMessage}
+                </BodyRegularText>
+              </View>
+            )}
+
             {/* Email */}
             <Controller
               control={control}
@@ -117,7 +187,10 @@ export default function SignInScreen() {
                   required
                   value={value}
                   onBlur={onBlur}
-                  onChangeText={(text) => onChange(text.toLowerCase())}
+                  onChangeText={(text) => {
+                    onChange(text.toLowerCase());
+                    if (errorMessage) setErrorMessage("");
+                  }}
                   error={errors.email?.message}
                 />
               )}
@@ -137,7 +210,10 @@ export default function SignInScreen() {
                   required
                   value={value}
                   onBlur={onBlur}
-                  onChangeText={onChange}
+                  onChangeText={(text) => {
+                    onChange(text);
+                    if (errorMessage) setErrorMessage("");
+                  }}
                   error={errors.password?.message}
                 />
               )}

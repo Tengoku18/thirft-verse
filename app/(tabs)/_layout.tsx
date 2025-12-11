@@ -35,9 +35,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="my-products"
+        options={{
+          title: "My Products",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="bag.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="product"
         options={{
-          title: "Add Product",
+          title: "Add",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="plus.circle.fill" color={color} />
           ),
@@ -48,7 +57,16 @@ export default function TabLayout() {
         options={{
           title: "Orders",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="bag.fill" color={color} />
+            <IconSymbol size={28} name="shippingbox.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Settings",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="gearshape.fill" color={color} />
           ),
         }}
       />

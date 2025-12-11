@@ -1,6 +1,7 @@
 import { FormButton } from "@/components/atoms/FormButton";
 import { BodyRegularText, BodySemiboldText } from "@/components/Typography";
 import { createUserProfile } from "@/lib/database-helpers";
+import { uploadProfileImage } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, TextInput, TouchableOpacity, View } from "react-native";
@@ -99,7 +100,24 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
       }
 
       if (data.user) {
-        const profile_image = profileImage || null;
+        let profile_image_path: string | null = null;
+
+        // Upload profile image if provided
+        if (profileImage) {
+          try {
+            const uploadResult = await uploadProfileImage(data.user.id, profileImage);
+            if (uploadResult.success && uploadResult.path) {
+              profile_image_path = uploadResult.path;
+              console.log("✅ Profile image uploaded:", profile_image_path);
+            } else {
+              console.error("Failed to upload profile image:", uploadResult.error);
+              // Continue without profile image - user can update later
+            }
+          } catch (uploadError) {
+            console.error("Error uploading profile image:", uploadError);
+            // Continue without profile image - user can update later
+          }
+        }
 
         // Create user profile in database
         const profileResult = await createUserProfile({
@@ -107,7 +125,7 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
           name,
           store_username: username,
           bio: "",
-          profile_image: profile_image,
+          profile_image: profile_image_path,
           currency: "NPR",
           address: address,
         });
