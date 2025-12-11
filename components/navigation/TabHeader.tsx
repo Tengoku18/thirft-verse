@@ -1,6 +1,5 @@
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { LOGOS } from "@/constants/logos";
-import { getProfileImageUrl } from "@/lib/storage-helpers";
 import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -85,26 +84,6 @@ export function TabHeader({
                 activeOpacity={0.7}
               >
                 <IconSymbol name="magnifyingglass" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => router.push("/profile")}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                activeOpacity={0.7}
-              >
-                {profile?.profile_image ? (
-                  <Image
-                    source={{ uri: getProfileImageUrl(profile.profile_image) }}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 14,
-                      borderWidth: 1.5,
-                      borderColor: "#FFFFFF",
-                    }}
-                  />
-                ) : (
-                  <IconSymbol name="person.circle" size={26} color="#FFFFFF" />
-                )}
               </TouchableOpacity>
             </>
           ) : null}

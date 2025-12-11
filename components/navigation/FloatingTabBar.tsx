@@ -1,19 +1,19 @@
-import React, { useEffect } from 'react';
-import { View, TouchableOpacity, Platform, StyleSheet } from 'react-native';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { BlurView } from "expo-blur";
+import * as Haptics from "expo-haptics";
+import React, { useEffect } from "react";
+import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function TabButton({
   route,
-  index,
   isFocused,
   options,
   onPress,
@@ -46,8 +46,8 @@ function TabButton({
 
   const iconName = options.tabBarIcon
     ? // @ts-ignore
-      options.tabBarIcon({ focused: isFocused, color: '', size: 24 }).props.name
-    : 'house.fill';
+      options.tabBarIcon({ focused: isFocused, color: "", size: 24 }).props.name
+    : "house.fill";
 
   return (
     <TouchableOpacity
@@ -70,13 +70,17 @@ function TabButton({
       <IconSymbol
         name={iconName}
         size={26}
-        color={isFocused ? '#FFFFFF' : '#9CA3AF'}
+        color={isFocused ? "#3B2F2F" : "#6B7280"}
       />
     </TouchableOpacity>
   );
 }
 
-export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function FloatingTabBar({
+  state,
+  descriptors,
+  navigation,
+}: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -84,58 +88,70 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
       style={[
         styles.container,
         {
-          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 16,
+          paddingBottom: Platform.OS === "ios" ? insets.bottom : 16,
         },
       ]}
     >
-      {/* Floating Tab Bar */}
-      <View style={styles.tabBar}>
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
+      {/* Shadow wrapper (separate from overflow:hidden) */}
+      <View style={styles.shadowWrapper}>
+        {/* Clipped content wrapper */}
+        <View style={styles.tabBarWrapper}>
+          {/* Blur Background */}
+          <BlurView intensity={60} tint="light" style={styles.blurView} />
 
-          // Filter out tabs with href: null (hidden tabs)
-          if (options.href === null) {
-            return null;
-          }
+          {/* Glass overlay for better effect */}
+          <View style={styles.glassOverlay} />
 
-          const isFocused = state.index === index;
+          {/* Tab buttons */}
+          <View style={styles.tabBar}>
+            {state.routes.map((route, index) => {
+              const { options } = descriptors[route.key];
 
-          const onPress = () => {
-            // Haptic feedback
-            if (Platform.OS === 'ios') {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }
+              // Filter out tabs with href: null (hidden tabs)
+              if ((options as any).href === null) {
+                return null;
+              }
 
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
+              const isFocused = state.index === index;
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+              const onPress = () => {
+                // Haptic feedback
+                if (Platform.OS === "ios") {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
 
-          const onLongPress = () => {
-            navigation.emit({
-              type: 'tabLongPress',
-              target: route.key,
-            });
-          };
+                const event = navigation.emit({
+                  type: "tabPress",
+                  target: route.key,
+                  canPreventDefault: true,
+                });
 
-          return (
-            <TabButton
-              key={route.key}
-              route={route}
-              index={index}
-              isFocused={isFocused}
-              options={options}
-              onPress={onPress}
-              onLongPress={onLongPress}
-            />
-          );
-        })}
+                if (!isFocused && !event.defaultPrevented) {
+                  navigation.navigate(route.name);
+                }
+              };
+
+              const onLongPress = () => {
+                navigation.emit({
+                  type: "tabLongPress",
+                  target: route.key,
+                });
+              };
+
+              return (
+                <TabButton
+                  key={route.key}
+                  route={route}
+                  index={index}
+                  isFocused={isFocused}
+                  options={options}
+                  onPress={onPress}
+                  onLongPress={onLongPress}
+                />
+              );
+            })}
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -143,45 +159,62 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     paddingHorizontal: 20,
     paddingTop: 0,
   },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#3B2F2F',
+  shadowWrapper: {
     borderRadius: 30,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    shadowColor: '#000',
+    // Strong shadow for depth
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 10,
     },
     shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  tabBarWrapper: {
+    borderRadius: 30,
+    overflow: "hidden",
+  },
+  blurView: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  glassOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    // Subtle border effect
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 30,
+  },
+  tabBar: {
+    flexDirection: "row",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
   },
   tab: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 10,
     paddingHorizontal: 8,
-    position: 'relative',
+    position: "relative",
     borderRadius: 20,
     minHeight: 50,
   },
   activeBackground: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(59, 47, 47, 0.15)",
     borderRadius: 22,
   },
 });
