@@ -7,7 +7,7 @@ import {
 } from '@/actions'
 import { getSubDomain } from '@/utils/domainHelpers'
 import { pluralize } from '@/utils/textHelpers'
-import { Compass, Store } from 'lucide-react'
+import { Compass, MapPin, Store } from 'lucide-react'
 import { headers } from 'next/headers'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -105,6 +105,12 @@ export default async function Home() {
                   <div className="flex items-center gap-1.5 rounded-full bg-background/60 px-4 py-1.5 backdrop-blur-sm">
                     <Store className="h-4 w-4" />
                     @{profile.store_username}
+                  </div>
+                )}
+                {profile?.address && (
+                  <div className="flex items-center gap-1.5 rounded-full bg-background/60 px-4 py-1.5 backdrop-blur-sm">
+                    <MapPin className="h-4 w-4" />
+                    {profile.address}
                   </div>
                 )}
               </div>
