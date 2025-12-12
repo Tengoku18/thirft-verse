@@ -12,6 +12,7 @@ interface TabHeaderProps {
   onBack?: () => void;
   rightComponent?: React.ReactNode;
   showDefaultIcons?: boolean; // Show search & profile icons (Messenger-style)
+  showTextLogo?: boolean; // Show text logo instead of icon + title (for dashboard)
 }
 
 export function TabHeader({
@@ -20,6 +21,7 @@ export function TabHeader({
   onBack,
   rightComponent,
   showDefaultIcons = true,
+  showTextLogo = false,
 }: TabHeaderProps) {
   const router = useRouter();
   const profile = useAppSelector((state) => state.profile.profile);
@@ -56,6 +58,12 @@ export function TabHeader({
                 </HeadingBoldText>
               )}
             </>
+          ) : showTextLogo ? (
+            <Image
+              source={LOGOS.text}
+              style={{ width: 120, height: 32 }}
+              resizeMode="contain"
+            />
           ) : (
             <View className="flex-row items-center">
               <Image

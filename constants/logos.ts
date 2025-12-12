@@ -8,6 +8,7 @@ export const LOGOS = {
   horizontal: require('../assets/logo/horizontal-logo.png'),
   vertical: require('../assets/logo/vertical-logo.png'),
   icon: require('../assets/logo/fav-icon.png'),
+  text: require('../assets/logo/text-logo.png'),
 
   // Social media OG image
   og: require('../assets/logo/og.png'),

@@ -11,6 +11,7 @@ interface TabScreenLayoutProps {
   stickyComponent?: React.ReactNode;
   showDefaultIcons?: boolean;
   showHeader?: boolean;
+  showTextLogo?: boolean;
   statusBarColor?: string;
   children: React.ReactNode;
 }
@@ -23,6 +24,7 @@ export function TabScreenLayout({
   stickyComponent,
   showDefaultIcons = true,
   showHeader = true,
+  showTextLogo = false,
   statusBarColor,
   children,
 }: TabScreenLayoutProps) {
@@ -42,6 +44,7 @@ export function TabScreenLayout({
           onBack={onBack}
           rightComponent={rightComponent}
           showDefaultIcons={showDefaultIcons}
+          showTextLogo={showTextLogo}
         />
       )}
       {stickyComponent && (

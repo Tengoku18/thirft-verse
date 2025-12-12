@@ -259,7 +259,7 @@ export default function DashboardScreen() {
   }
 
   return (
-    <TabScreenLayout title="Dashboard">
+    <TabScreenLayout showTextLogo>
       <ScrollView
         className="flex-1 bg-[#FAFAFA]"
         showsVerticalScrollIndicator={false}
