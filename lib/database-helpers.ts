@@ -481,50 +481,17 @@ export const getOrdersBySeller = async (sellerId: string) => {
   try {
     console.log("🔍 Fetching orders for seller:", sellerId);
 
-    // First, try to get orders with product join
     const { data, error } = await supabase
       .from("orders")
-      .select(
-        `
+      .select(`
         *,
-        product:products(id, title, cover_image, price)
-      `
-      )
+        product:product_id(id, title, cover_image, price)
+      `)
       .eq("seller_id", sellerId)
       .order("created_at", { ascending: false });
 
     if (error) {
       console.error("❌ Error fetching seller orders:", error);
-
-      // If join fails, try without join
-      if (
-        error.code === "PGRST200" ||
-        error.message?.includes("relationship")
-      ) {
-        console.log("🔄 Retrying without product join...");
-        const { data: ordersOnly, error: ordersError } = await supabase
-          .from("orders")
-          .select("*")
-          .eq("seller_id", sellerId)
-          .order("created_at", { ascending: false });
-
-        if (ordersError) {
-          console.error("❌ Error fetching orders (no join):", ordersError);
-          return { success: false, data: [], error: ordersError };
-        }
-
-        console.log(
-          "✅ Found orders (no product data):",
-          ordersOnly?.length || 0
-        );
-        return { success: true, data: ordersOnly || [] };
-      }
-
-      if (error.code === "PGRST205") {
-        console.warn("⚠️  orders table not found. Please run SQL migration.");
-        return { success: false, data: [], tableNotFound: true };
-      }
-
       return { success: false, data: [], error };
     }
 

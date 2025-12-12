@@ -10,10 +10,12 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
-import { getOrderById, updateOrderStatus } from "@/lib/database-helpers";
+import { getOrderById } from "@/lib/database-helpers";
+import { pickImage, takePhoto } from "@/lib/image-picker-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import { Product } from "@/lib/types/database";
+import { uploadImageToStorage } from "@/lib/upload-helpers";
 import dayjs from "dayjs";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
@@ -22,8 +24,10 @@ import {
   Alert,
   Image,
   Linking,
+  Modal,
   RefreshControl,
   ScrollView,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -37,7 +41,7 @@ interface OrderDetail {
   id: string;
   type: "order" | "product";
   orderCode: string;
-  status: "pending" | "completed" | "cancelled" | "refunded";
+  status: string; // pending, shipping, processing, delivered, completed, cancelled, refunded
 
   // Product
   product: {
@@ -89,12 +93,33 @@ interface OrderDetail {
 
 const formatPrice = (amount: number) => `Rs. ${amount.toLocaleString()}`;
 
-const STATUS_CONFIG = {
+const STATUS_CONFIG: Record<
+  string,
+  { bg: string; text: string; label: string; icon: string }
+> = {
   pending: {
     bg: "#FEF3C7",
     text: "#D97706",
     label: "Pending",
     icon: "clock.fill",
+  },
+  processing: {
+    bg: "#DBEAFE",
+    text: "#2563EB",
+    label: "Processing",
+    icon: "gearshape.fill",
+  },
+  shipping: {
+    bg: "#93C5FD",
+    text: "#1D4ED8",
+    label: "Shipping",
+    icon: "shippingbox.fill",
+  },
+  delivered: {
+    bg: "#D1FAE5",
+    text: "#059669",
+    label: "Delivered",
+    icon: "checkmark.circle.fill",
   },
   completed: {
     bg: "#D1FAE5",
@@ -114,11 +139,14 @@ const STATUS_CONFIG = {
     label: "Refunded",
     icon: "arrow.uturn.left.circle.fill",
   },
-} as const;
+};
 
-// ============================================================================
-// SUB-COMPONENTS
-// ============================================================================
+const DEFAULT_STATUS = {
+  bg: "#F3F4F6",
+  text: "#6B7280",
+  label: "Unknown",
+  icon: "questionmark.circle.fill",
+};
 
 function Section({
   title,
@@ -228,37 +256,65 @@ function Timeline({
   const orderDate = dayjs(createdAt);
   const updateDate = dayjs(updatedAt);
 
+  // Status progression: pending → processing → shipping → delivered → completed
+  const isProcessingOrBeyond = [
+    "processing",
+    "shipping",
+    "delivered",
+    "completed",
+  ].includes(status);
+  const isShippingOrBeyond = ["shipping", "delivered", "completed"].includes(
+    status
+  );
+  const isDeliveredOrBeyond = ["delivered", "completed"].includes(status);
+  const isCompleted = status === "completed";
+
   const steps = [
     {
-      id: "placed",
+      id: "pending",
       title: "Order Placed",
+      description: "Customer has placed the order",
       done: true,
+      current: status === "pending",
       date: orderDate.format("DD MMM • h:mm A"),
-    },
-    {
-      id: "confirmed",
-      title: "Confirmed",
-      done: true,
-      date: orderDate.add(1, "minute").format("DD MMM • h:mm A"),
     },
     {
       id: "processing",
       title: "Processing",
-      done: status !== "pending",
-      current: status === "pending",
-      date:
-        status !== "pending"
-          ? orderDate.add(1, "hour").format("DD MMM • h:mm A")
-          : undefined,
+      description: "Seller confirmed & submitted shipping details",
+      done: isProcessingOrBeyond,
+      current: status === "processing",
+      date: isProcessingOrBeyond
+        ? updateDate.format("DD MMM • h:mm A")
+        : undefined,
+    },
+    {
+      id: "shipping",
+      title: "Shipping",
+      description: "Package is on the way to buyer",
+      done: isShippingOrBeyond,
+      current: status === "shipping",
+      date: isShippingOrBeyond
+        ? updateDate.format("DD MMM • h:mm A")
+        : undefined,
     },
     {
       id: "delivered",
       title: "Delivered",
-      done: status === "completed",
-      date:
-        status === "completed"
-          ? updateDate.format("DD MMM • h:mm A")
-          : undefined,
+      description: "Buyer has received the order",
+      done: isDeliveredOrBeyond,
+      current: status === "delivered",
+      date: isDeliveredOrBeyond
+        ? updateDate.format("DD MMM • h:mm A")
+        : undefined,
+    },
+    {
+      id: "completed",
+      title: "Completed",
+      description: "Refund period ended, payment released",
+      done: isCompleted,
+      current: false,
+      date: isCompleted ? updateDate.format("DD MMM • h:mm A") : undefined,
     },
   ];
 
@@ -300,6 +356,8 @@ function Timeline({
             >
               {step.done ? (
                 <IconSymbol name="checkmark" size={14} color="#FFFFFF" />
+              ) : step.current ? (
+                <View className="w-3 h-3 rounded-full bg-white" />
               ) : (
                 <View className="w-2 h-2 rounded-full bg-white" />
               )}
@@ -308,24 +366,39 @@ function Timeline({
               <View
                 style={{
                   width: 2,
-                  height: 28,
+                  height: step.done || step.current ? 44 : 36,
                   backgroundColor: step.done ? "#059669" : "#E5E7EB",
                 }}
               />
             )}
           </View>
-          <View className="ml-3 pb-4 flex-1">
+          <View className="ml-3 pb-5 flex-1">
             <BodySemiboldText
               style={{
-                fontSize: 13,
+                fontSize: 14,
                 color: step.done || step.current ? "#1F2937" : "#9CA3AF",
               }}
             >
               {step.title}
             </BodySemiboldText>
+            <CaptionText
+              style={{
+                color: step.done || step.current ? "#6B7280" : "#D1D5DB",
+                marginTop: 2,
+                fontSize: 11,
+                lineHeight: 15,
+              }}
+            >
+              {step.description}
+            </CaptionText>
             {step.date && (
               <CaptionText
-                style={{ color: "#9CA3AF", marginTop: 2, fontSize: 11 }}
+                style={{
+                  color: "#059669",
+                  marginTop: 4,
+                  fontSize: 11,
+                  fontWeight: "600",
+                }}
               >
                 {step.date}
               </CaptionText>
@@ -336,10 +409,6 @@ function Timeline({
     </View>
   );
 }
-
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
 
 export default function SingleOrderScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -352,6 +421,12 @@ export default function SingleOrderScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [updating, setUpdating] = useState(false);
 
+  // Shipping confirmation modal state
+  const [showShippingModal, setShowShippingModal] = useState(false);
+  const [shippingId, setShippingId] = useState("");
+  const [billImageUri, setBillImageUri] = useState<string | null>(null);
+  const [uploadingBill, setUploadingBill] = useState(false);
+
   // Load data
   const loadOrder = useCallback(async () => {
     if (!id) return;
@@ -362,6 +437,10 @@ export default function SingleOrderScreen() {
 
       if (result.success && result.data) {
         const o = result.data as any;
+        // Use order amount for price calculation (not product price which could be updated)
+        const shippingFee = o.shipping_fee || 0;
+        const productPrice = (o.amount || 0) - shippingFee;
+
         setOrder({
           id: o.id,
           type: "order",
@@ -371,7 +450,7 @@ export default function SingleOrderScreen() {
             id: o.product_id,
             title: o.product?.title || "Order Item",
             image: o.product?.cover_image || null,
-            price: o.product?.price || o.amount,
+            price: productPrice, // Use price from order, not from product table
             category: o.product?.category || "Product",
           },
           quantity: o.quantity || 1,
@@ -382,7 +461,7 @@ export default function SingleOrderScreen() {
           },
           shipping: {
             method: o.shipping_option || "Standard Delivery",
-            fee: o.shipping_fee || 0,
+            fee: shippingFee,
             address: o.shipping_address
               ? {
                   street: o.shipping_address.street,
@@ -396,7 +475,7 @@ export default function SingleOrderScreen() {
           payment: {
             method: o.payment_method,
             transactionCode: o.transaction_code || "N/A",
-            subtotal: o.amount - (o.shipping_fee || 0),
+            subtotal: productPrice,
             total: o.amount,
           },
           sellerId: o.seller_id,
@@ -477,33 +556,103 @@ export default function SingleOrderScreen() {
       );
       return;
     }
+    // Open the shipping confirmation modal
+    setShowShippingModal(true);
+  };
 
-    Alert.alert(
-      "Confirm Delivery",
-      "Mark this order as delivered to the delivery store?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Confirm",
-          onPress: async () => {
-            setUpdating(true);
-            try {
-              const result = await updateOrderStatus(order.id, "completed");
-              if (result.success) {
-                loadOrder();
-                toast.success("Order marked as delivered");
-              } else {
-                Alert.alert("Error", "Could not update status.");
-              }
-            } catch {
-              Alert.alert("Error", "Something went wrong.");
-            } finally {
-              setUpdating(false);
-            }
-          },
+  const handlePickBillImage = () => {
+    Alert.alert("Select Bill Image", "Choose an option", [
+      {
+        text: "Take Photo",
+        onPress: async () => {
+          const result = await takePhoto();
+          if (result.success && result.uri) {
+            setBillImageUri(result.uri);
+          }
         },
-      ]
-    );
+      },
+      {
+        text: "Choose from Library",
+        onPress: async () => {
+          const result = await pickImage();
+          if (result.success && result.uri) {
+            setBillImageUri(result.uri);
+          }
+        },
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
+
+  const handleConfirmShipping = async () => {
+    if (!order) return;
+
+    // Validate inputs
+    if (!shippingId.trim()) {
+      Alert.alert("Error", "Please enter the Shipping ID from your bill.");
+      return;
+    }
+
+    if (!billImageUri) {
+      Alert.alert("Error", "Please upload a photo of your shipping bill.");
+      return;
+    }
+
+    setUploadingBill(true);
+
+    try {
+      // Upload bill image to "bill" bucket
+      const uploadResult = await uploadImageToStorage(
+        billImageUri,
+        "bill",
+        "shipping-bills"
+      );
+
+      if (!uploadResult.success) {
+        Alert.alert(
+          "Error",
+          uploadResult.error || "Failed to upload bill image."
+        );
+        setUploadingBill(false);
+        return;
+      }
+
+      // Update order with shipping info and change status to "processing"
+      const { error } = await supabase
+        .from("orders")
+        .update({
+          shipping_id: shippingId.trim(),
+          shipping_bill_image: uploadResult.path,
+          status: "processing",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", order.id);
+
+      if (error) {
+        console.error("Error updating order:", error);
+        Alert.alert("Error", "Failed to update order status.");
+        setUploadingBill(false);
+        return;
+      }
+
+      // Success!
+      toast.success("Order is now processing!");
+      setShowShippingModal(false);
+      setShippingId("");
+      setBillImageUri(null);
+      loadOrder();
+    } catch (err) {
+      console.error("Error confirming shipping:", err);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setUploadingBill(false);
+    }
+  };
+
+  const handleCloseShippingModal = () => {
+    setShowShippingModal(false);
+    setShippingId("");
+    setBillImageUri(null);
   };
 
   const handleContact = (type: "email" | "phone") => {
@@ -560,7 +709,7 @@ export default function SingleOrderScreen() {
     );
   }
 
-  const statusStyle = STATUS_CONFIG[order.status];
+  const statusStyle = STATUS_CONFIG[order.status] || DEFAULT_STATUS;
   const isSeller = user?.id === order.sellerId;
   const canMarkDelivered =
     isSeller && order.status === "pending" && order.type === "order";
@@ -754,16 +903,13 @@ export default function SingleOrderScreen() {
             value={dayjs(order.createdAt).format("DD MMM, YYYY • h:mm A")}
             icon="calendar"
           />
-          <Row label="Subtotal" value={formatPrice(order.payment.subtotal)} />
-          {order.shipping.fee > 0 && (
-            <Row label="Shipping" value={formatPrice(order.shipping.fee)} />
-          )}
-          <View className="px-4 py-4 bg-[#F9FAFB] flex-row items-center justify-between">
-            <BodyBoldText style={{ fontSize: 15, color: "#374151" }}>
-              Total
+          {/* Your Earnings - Main Price */}
+          <View className="px-4 py-4 bg-[#D1FAE5] flex-row items-center justify-between">
+            <BodyBoldText style={{ fontSize: 15, color: "#065F46" }}>
+              Your Earnings
             </BodyBoldText>
             <HeadingBoldText style={{ fontSize: 20, color: "#059669" }}>
-              {formatPrice(order.payment.total)}
+              {formatPrice(order.payment.subtotal)}
             </HeadingBoldText>
           </View>
         </Section>
@@ -838,6 +984,163 @@ export default function SingleOrderScreen() {
           </CaptionText>
         </View>
       )}
+
+      {/* Shipping Confirmation Modal */}
+      <Modal
+        visible={showShippingModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleCloseShippingModal}
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl px-4 pt-6 pb-10">
+            {/* Header */}
+            <View className="flex-row items-center justify-between mb-6">
+              <HeadingBoldText style={{ fontSize: 20 }}>
+                Confirm Shipping
+              </HeadingBoldText>
+              <TouchableOpacity
+                onPress={handleCloseShippingModal}
+                className="w-8 h-8 rounded-full bg-[#F3F4F6] items-center justify-center"
+              >
+                <IconSymbol name="xmark" size={16} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Instructions */}
+            <View className="bg-[#FEF3C7] rounded-xl p-4 mb-6">
+              <BodyMediumText
+                style={{ color: "#92400E", fontSize: 13, lineHeight: 20 }}
+              >
+                Please enter the Shipping ID from your bill and upload a photo
+                of the bill as proof of delivery to our shipping office.
+              </BodyMediumText>
+            </View>
+
+            {/* Shipping ID Input */}
+            <View className="mb-4">
+              <BodySemiboldText
+                style={{ fontSize: 14, marginBottom: 8, color: "#374151" }}
+              >
+                Shipping ID *
+              </BodySemiboldText>
+              <TextInput
+                value={shippingId}
+                onChangeText={setShippingId}
+                placeholder="Enter Shipping ID from bill"
+                placeholderTextColor="#9CA3AF"
+                className="bg-[#F3F4F6] rounded-xl px-4 py-3.5"
+                style={{ fontSize: 15, color: "#1F2937" }}
+              />
+            </View>
+
+            {/* Bill Image Upload */}
+            <View className="mb-6">
+              <BodySemiboldText
+                style={{ fontSize: 14, marginBottom: 8, color: "#374151" }}
+              >
+                Bill Image *
+              </BodySemiboldText>
+              <TouchableOpacity
+                onPress={handlePickBillImage}
+                activeOpacity={0.7}
+                className="bg-[#F3F4F6] rounded-xl overflow-hidden"
+                style={{ height: billImageUri ? 200 : 120 }}
+              >
+                {billImageUri ? (
+                  <View className="flex-1">
+                    <Image
+                      source={{ uri: billImageUri }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+                    <View className="absolute bottom-2 right-2 bg-black/60 px-3 py-1.5 rounded-full flex-row items-center">
+                      <IconSymbol name="pencil" size={12} color="#FFFFFF" />
+                      <CaptionText
+                        style={{
+                          color: "#FFFFFF",
+                          marginLeft: 4,
+                          fontSize: 11,
+                        }}
+                      >
+                        Change
+                      </CaptionText>
+                    </View>
+                  </View>
+                ) : (
+                  <View className="flex-1 items-center justify-center">
+                    <View className="w-12 h-12 rounded-full bg-[#E5E7EB] items-center justify-center mb-2">
+                      <IconSymbol
+                        name="camera.fill"
+                        size={24}
+                        color="#9CA3AF"
+                      />
+                    </View>
+                    <BodyMediumText style={{ color: "#6B7280", fontSize: 14 }}>
+                      Tap to upload bill photo
+                    </BodyMediumText>
+                    <CaptionText style={{ color: "#9CA3AF", marginTop: 4 }}>
+                      Take photo or choose from library
+                    </CaptionText>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Confirm Button */}
+            <TouchableOpacity
+              onPress={handleConfirmShipping}
+              disabled={uploadingBill || !shippingId.trim() || !billImageUri}
+              className="bg-[#3B2F2F] rounded-xl py-4 flex-row items-center justify-center"
+              style={{
+                opacity:
+                  uploadingBill || !shippingId.trim() || !billImageUri
+                    ? 0.5
+                    : 1,
+              }}
+              activeOpacity={0.8}
+            >
+              {uploadingBill ? (
+                <>
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <BodyBoldText
+                    style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}
+                  >
+                    Uploading...
+                  </BodyBoldText>
+                </>
+              ) : (
+                <>
+                  <IconSymbol
+                    name="checkmark.circle.fill"
+                    size={20}
+                    color="#FFFFFF"
+                  />
+                  <BodyBoldText
+                    style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}
+                  >
+                    Confirm Shipment
+                  </BodyBoldText>
+                </>
+              )}
+            </TouchableOpacity>
+
+            {/* Cancel Button */}
+            <TouchableOpacity
+              onPress={handleCloseShippingModal}
+              disabled={uploadingBill}
+              className="mt-3 py-3"
+              activeOpacity={0.7}
+            >
+              <BodyMediumText
+                style={{ color: "#6B7280", fontSize: 15, textAlign: "center" }}
+              >
+                Cancel
+              </BodyMediumText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
