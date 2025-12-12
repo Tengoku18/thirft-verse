@@ -32,7 +32,9 @@ interface OrderItem {
   product_title: string;
   product_image: string | null;
   buyer_name: string;
-  amount: number;
+  amount: number; // Total amount (product + shipping)
+  earnings: number; // Store owner earnings (amount - shipping_fee)
+  shipping_fee: number;
   status: string;
   created_at: string;
 }
@@ -41,14 +43,14 @@ interface TopProduct {
   id: string;
   title: string;
   image: string | null;
-  totalSales: number;
+  totalEarnings: number;
   orderCount: number;
 }
 
-type TimePeriod = "1D" | "1W" | "1M" | "3M" | "6M" | "1Y";
+type TimePeriod = "3D" | "1W" | "1M" | "3M" | "6M" | "1Y";
 
 const TIME_PERIODS: { key: TimePeriod; label: string; days: number }[] = [
-  { key: "1D", label: "1D", days: 1 },
+  { key: "3D", label: "3D", days: 3 },
   { key: "1W", label: "1W", days: 7 },
   { key: "1M", label: "1M", days: 30 },
   { key: "3M", label: "3M", days: 90 },
@@ -87,16 +89,22 @@ export default function AnalyticsScreen() {
       let orderItems: OrderItem[] = [];
 
       if (ordersResult.success && ordersResult.data.length > 0) {
-        orderItems = ordersResult.data.map((order: any) => ({
-          id: order.id,
-          product_id: order.product_id || order.product?.id,
-          product_title: order.product?.title || "Order Item",
-          product_image: order.product?.cover_image || null,
-          buyer_name: order.buyer_name,
-          amount: order.amount,
-          status: order.status,
-          created_at: order.created_at,
-        }));
+        orderItems = ordersResult.data.map((order: any) => {
+          const shippingFee = order.shipping_fee || 0;
+          const earnings = (order.amount || 0) - shippingFee;
+          return {
+            id: order.id,
+            product_id: order.product_id || order.product?.id,
+            product_title: order.product?.title || "Order Item",
+            product_image: order.product?.cover_image || null,
+            buyer_name: order.buyer_name,
+            amount: order.amount || 0,
+            earnings,
+            shipping_fee: shippingFee,
+            status: order.status,
+            created_at: order.created_at,
+          };
+        });
       } else {
         const { data: soldProducts } = await getProductsByStoreId({
           storeId: user.id,
@@ -112,6 +120,8 @@ export default function AnalyticsScreen() {
             product_image: product.cover_image,
             buyer_name: "Customer",
             amount: product.price,
+            earnings: product.price, // For sold products, earnings = price
+            shipping_fee: 0,
             status: dayjs().diff(dayjs(product.updated_at || product.created_at), "day") > 7 ? "completed" : "pending",
             created_at: product.updated_at || product.created_at,
           }));
@@ -169,18 +179,19 @@ export default function AnalyticsScreen() {
     let labels: string[] = [];
     let data: number[] = [];
 
-    if (selectedPeriod === "1D") {
-      // Hourly data for today
-      for (let i = 23; i >= 0; i -= 4) {
-        const hour = now.subtract(i, "hour");
-        labels.push(hour.format("ha"));
-        const hourOrders = filteredOrders.filter(o =>
-          dayjs(o.created_at).isSame(hour, "hour")
+    if (selectedPeriod === "3D") {
+      // Daily data for last 3 days - use earnings
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      for (let i = 2; i >= 0; i--) {
+        const date = now.subtract(i, "day");
+        labels.push(days[date.day()]);
+        const dayOrders = filteredOrders.filter(o =>
+          dayjs(o.created_at).isSame(date, "day")
         );
-        data.push(hourOrders.reduce((sum, o) => sum + o.amount, 0));
+        data.push(dayOrders.reduce((sum, o) => sum + o.earnings, 0));
       }
     } else if (selectedPeriod === "1W") {
-      // Daily data for last 7 days
+      // Daily data for last 7 days - use earnings
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       for (let i = 6; i >= 0; i--) {
         const date = now.subtract(i, "day");
@@ -188,10 +199,10 @@ export default function AnalyticsScreen() {
         const dayOrders = filteredOrders.filter(o =>
           dayjs(o.created_at).isSame(date, "day")
         );
-        data.push(dayOrders.reduce((sum, o) => sum + o.amount, 0));
+        data.push(dayOrders.reduce((sum, o) => sum + o.earnings, 0));
       }
     } else if (selectedPeriod === "1M") {
-      // Weekly data for last month
+      // Weekly data for last month - use earnings
       for (let i = 3; i >= 0; i--) {
         const weekStart = now.subtract(i * 7, "day");
         labels.push(`W${4 - i}`);
@@ -199,10 +210,10 @@ export default function AnalyticsScreen() {
           const orderDate = dayjs(o.created_at);
           return orderDate.isAfter(weekStart.subtract(7, "day")) && orderDate.isBefore(weekStart.add(1, "day"));
         });
-        data.push(weekOrders.reduce((sum, o) => sum + o.amount, 0));
+        data.push(weekOrders.reduce((sum, o) => sum + o.earnings, 0));
       }
     } else {
-      // Monthly data for longer periods
+      // Monthly data for longer periods - use earnings
       const months = selectedPeriod === "3M" ? 3 : selectedPeriod === "6M" ? 6 : 12;
       for (let i = months - 1; i >= 0; i--) {
         const month = now.subtract(i, "month");
@@ -210,14 +221,14 @@ export default function AnalyticsScreen() {
         const monthOrders = filteredOrders.filter(o =>
           dayjs(o.created_at).isSame(month, "month")
         );
-        data.push(monthOrders.reduce((sum, o) => sum + o.amount, 0));
+        data.push(monthOrders.reduce((sum, o) => sum + o.earnings, 0));
       }
     }
 
     return { labels, data: data.length > 0 ? data : [0] };
   };
 
-  // Calculate top products
+  // Calculate top products by earnings
   const getTopProducts = (): TopProduct[] => {
     const filteredOrders = getFilteredOrders();
     const productMap = new Map<string, TopProduct>();
@@ -225,21 +236,21 @@ export default function AnalyticsScreen() {
     filteredOrders.forEach(order => {
       const existing = productMap.get(order.product_id);
       if (existing) {
-        existing.totalSales += order.amount;
+        existing.totalEarnings += order.earnings;
         existing.orderCount += 1;
       } else {
         productMap.set(order.product_id, {
           id: order.product_id,
           title: order.product_title,
           image: order.product_image,
-          totalSales: order.amount,
+          totalEarnings: order.earnings,
           orderCount: 1,
         });
       }
     });
 
     return Array.from(productMap.values())
-      .sort((a, b) => b.totalSales - a.totalSales)
+      .sort((a, b) => b.totalEarnings - a.totalEarnings)
       .slice(0, 5);
   };
 
@@ -248,11 +259,11 @@ export default function AnalyticsScreen() {
   const chartData = getChartData();
   const topProducts = getTopProducts();
 
-  // Calculate stats
-  const totalRevenue = filteredOrders.reduce((sum, o) => sum + o.amount, 0);
-  const previousRevenue = previousOrders.reduce((sum, o) => sum + o.amount, 0);
-  const revenueGrowth = previousRevenue > 0 ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 : 0;
-  const avgOrderValue = filteredOrders.length > 0 ? totalRevenue / filteredOrders.length : 0;
+  // Calculate stats using earnings (amount - shipping_fee)
+  const totalEarnings = filteredOrders.reduce((sum, o) => sum + o.earnings, 0);
+  const previousEarnings = previousOrders.reduce((sum, o) => sum + o.earnings, 0);
+  const earningsGrowth = previousEarnings > 0 ? ((totalEarnings - previousEarnings) / previousEarnings) * 100 : 0;
+  const avgOrderEarnings = filteredOrders.length > 0 ? totalEarnings / filteredOrders.length : 0;
   const completedOrders = filteredOrders.filter(o => o.status === "completed").length;
   const pendingOrders = filteredOrders.filter(o => o.status === "pending").length;
 
@@ -302,20 +313,20 @@ export default function AnalyticsScreen() {
           ))}
         </View>
 
-        {/* Revenue Chart */}
+        {/* Earnings Chart */}
         <View className="bg-white rounded-2xl p-4 mx-4 mt-4" style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3 }}>
           <View className="flex-row items-center justify-between mb-2">
             <View>
-              <CaptionText style={{ color: "#6B7280" }}>Revenue ({periodLabel})</CaptionText>
+              <CaptionText style={{ color: "#6B7280" }}>Your Earnings ({periodLabel})</CaptionText>
               <HeadingBoldText style={{ fontSize: 28, marginTop: 4 }}>
-                {formatCompactPrice(totalRevenue)}
+                {formatCompactPrice(totalEarnings)}
               </HeadingBoldText>
             </View>
-            {revenueGrowth !== 0 && (
-              <View className="flex-row items-center px-3 py-1.5 rounded-full" style={{ backgroundColor: revenueGrowth > 0 ? "rgba(34, 197, 94, 0.1)" : "rgba(239, 68, 68, 0.1)" }}>
-                <IconSymbol name={revenueGrowth > 0 ? "arrow.up.right" : "arrow.down.right"} size={14} color={revenueGrowth > 0 ? "#22C55E" : "#EF4444"} />
-                <BodySemiboldText style={{ color: revenueGrowth > 0 ? "#22C55E" : "#EF4444", fontSize: 12, marginLeft: 4 }}>
-                  {Math.abs(revenueGrowth).toFixed(1)}%
+            {earningsGrowth !== 0 && (
+              <View className="flex-row items-center px-3 py-1.5 rounded-full" style={{ backgroundColor: earningsGrowth > 0 ? "rgba(34, 197, 94, 0.1)" : "rgba(239, 68, 68, 0.1)" }}>
+                <IconSymbol name={earningsGrowth > 0 ? "arrow.up.right" : "arrow.down.right"} size={14} color={earningsGrowth > 0 ? "#22C55E" : "#EF4444"} />
+                <BodySemiboldText style={{ color: earningsGrowth > 0 ? "#22C55E" : "#EF4444", fontSize: 12, marginLeft: 4 }}>
+                  {Math.abs(earningsGrowth).toFixed(1)}%
                 </BodySemiboldText>
               </View>
             )}
@@ -362,8 +373,8 @@ export default function AnalyticsScreen() {
             <View className="w-10 h-10 rounded-xl items-center justify-center mb-2" style={{ backgroundColor: "rgba(139, 92, 246, 0.1)" }}>
               <IconSymbol name="chart.bar.fill" size={18} color="#8B5CF6" />
             </View>
-            <CaptionText style={{ color: "#6B7280" }}>Avg. Order</CaptionText>
-            <HeadingBoldText style={{ fontSize: 20, marginTop: 2 }}>{formatCompactPrice(avgOrderValue)}</HeadingBoldText>
+            <CaptionText style={{ color: "#6B7280" }}>Avg. Earnings</CaptionText>
+            <HeadingBoldText style={{ fontSize: 20, marginTop: 2 }}>{formatCompactPrice(avgOrderEarnings)}</HeadingBoldText>
           </View>
         </View>
 
@@ -411,7 +422,7 @@ export default function AnalyticsScreen() {
                       <CaptionText style={{ color: "#6B7280", marginTop: 2 }}>{product.orderCount} orders</CaptionText>
                     </View>
                     <View className="items-end">
-                      <BodyBoldText style={{ fontSize: 15, color: "#059669" }}>{formatCompactPrice(product.totalSales)}</BodyBoldText>
+                      <BodyBoldText style={{ fontSize: 15, color: "#059669" }}>{formatCompactPrice(product.totalEarnings)}</BodyBoldText>
                     </View>
                   </View>
                   {index < topProducts.length - 1 && <View className="h-px bg-[#F3F4F6] ml-[76px]" />}
@@ -465,7 +476,7 @@ export default function AnalyticsScreen() {
                       </CaptionText>
                     </View>
                     <View className="items-end">
-                      <BodyBoldText style={{ fontSize: 15, color: "#059669" }}>{formatPrice(order.amount)}</BodyBoldText>
+                      <BodyBoldText style={{ fontSize: 15, color: "#059669" }}>{formatPrice(order.earnings)}</BodyBoldText>
                       <View className="px-2 py-1 rounded-full mt-1" style={{ backgroundColor: order.status === "completed" ? "#D1FAE5" : "#FEF3C7" }}>
                         <CaptionText style={{ color: order.status === "completed" ? "#059669" : "#D97706", fontSize: 10, fontWeight: "600" }}>
                           {order.status === "completed" ? "Completed" : "Pending"}

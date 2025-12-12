@@ -9,9 +9,8 @@ import {
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
-import { getOrdersBySeller, getProductsByStoreId } from "@/lib/database-helpers";
+import { getOrdersBySeller } from "@/lib/database-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
-import { Product } from "@/lib/types/database";
 import dayjs from "dayjs";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
@@ -24,7 +23,7 @@ import {
   View,
 } from "react-native";
 
-type StatusFilter = "all" | "pending" | "completed";
+type StatusFilter = "all" | "pending" | "processing" | "shipping" | "delivered" | "completed";
 
 // Unified item type that works for both orders and sold products
 interface OrderItem {
@@ -35,8 +34,9 @@ interface OrderItem {
   product_image: string | null;
   buyer_name: string;
   amount: number;
+  shipping_fee: number;
   payment_method: string;
-  status: "pending" | "completed";
+  status: string; // Can be: pending, shipped, completed, cancelled, refunded
   created_at: string;
   // Original data for navigation
   originalId: string;
@@ -51,14 +51,21 @@ const formatPrice = (amount: number) => {
   return `Rs. ${amount.toLocaleString()}`;
 };
 
-const statusConfig = {
+const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
   pending: { bg: "#FEF3C7", text: "#D97706", label: "Pending" },
+  processing: { bg: "#DBEAFE", text: "#2563EB", label: "Processing" },
+  shipping: { bg: "#93C5FD", text: "#1D4ED8", label: "Shipping" },
+  delivered: { bg: "#D1FAE5", text: "#059669", label: "Delivered" },
   completed: { bg: "#D1FAE5", text: "#059669", label: "Completed" },
+  cancelled: { bg: "#FEE2E2", text: "#DC2626", label: "Cancelled" },
+  refunded: { bg: "#E9D5FF", text: "#7C3AED", label: "Refunded" },
 };
+
+const defaultStatus = { bg: "#F3F4F6", text: "#6B7280", label: "Unknown" };
 
 function OrderCard({ item, onPress }: OrderCardProps) {
   const itemDate = dayjs(item.created_at);
-  const currentStatus = statusConfig[item.status];
+  const currentStatus = statusConfig[item.status] || defaultStatus;
 
   return (
     <TouchableOpacity
@@ -194,63 +201,40 @@ export default function OrdersScreen() {
     }
 
     try {
-      console.log("📦 Loading orders for user:", user.id);
+      console.log("📦 Loading orders for user ID:", user.id);
 
       // First, try to get actual orders from the orders table
       const ordersResult = await getOrdersBySeller(user.id);
 
+      console.log("📦 Orders result:", JSON.stringify(ordersResult, null, 2));
+
       let orderItems: OrderItem[] = [];
 
-      if (ordersResult.success && ordersResult.data.length > 0) {
-        // We have real orders - use them
-        console.log("✅ Found real orders:", ordersResult.data.length);
-        orderItems = ordersResult.data.map((order: any) => ({
-          id: order.id,
-          type: "order" as const,
-          order_code: order.order_code,
-          product_title: order.product?.title || "Order Item",
-          product_image: order.product?.cover_image || null,
-          buyer_name: order.buyer_name,
-          amount: order.amount,
-          payment_method: order.payment_method,
-          status: order.status as "pending" | "completed",
-          created_at: order.created_at,
-          originalId: order.id,
-        }));
-      } else {
-        // No real orders - fall back to sold products
-        console.log("📋 No orders found, checking sold products...");
-
-        const { data: soldProducts } = await getProductsByStoreId({
-          storeId: user.id,
-          status: "out_of_stock",
-          limit: 100,
-        });
-
-        if (soldProducts && soldProducts.length > 0) {
-          console.log("✅ Found sold products:", soldProducts.length);
-
-          // Convert sold products to order items
-          orderItems = soldProducts.map((product: Product) => {
-            const soldDate = dayjs(product.updated_at || product.created_at);
-            const daysSinceSold = dayjs().diff(soldDate, "day");
-
-            return {
-              id: product.id,
-              type: "sold_product" as const,
-              order_code: null,
-              product_title: product.title,
-              product_image: product.cover_image,
-              buyer_name: "Customer", // No buyer info for products
-              amount: product.price,
-              payment_method: "Sale",
-              // Auto-complete after 7 days
-              status: (daysSinceSold > 7 ? "completed" : "pending") as "pending" | "completed",
-              created_at: product.updated_at || product.created_at,
-              originalId: product.id,
-            };
-          });
+      if (ordersResult.success) {
+        console.log("✅ Found orders:", ordersResult.data.length);
+        if (ordersResult.data.length > 0) {
+          console.log("📦 First order:", JSON.stringify(ordersResult.data[0], null, 2));
         }
+        orderItems = ordersResult.data.map((order: any) => {
+          const shippingFee = order.shipping_fee || 0;
+          const productPrice = (order.amount || 0) - shippingFee;
+          return {
+            id: order.id,
+            type: "order" as const,
+            order_code: order.order_code || order.transaction_code || null,
+            product_title: order.product?.title || "Order Item",
+            product_image: order.product?.cover_image || null,
+            buyer_name: order.buyer_name || "Customer",
+            amount: productPrice,
+            shipping_fee: shippingFee,
+            payment_method: order.payment_method || "eSewa",
+            status: order.status || "pending",
+            created_at: order.created_at || new Date().toISOString(),
+            originalId: order.id,
+          };
+        });
+      } else {
+        console.log("❌ Failed to fetch orders:", ordersResult.error);
       }
 
       setItems(orderItems);
@@ -287,6 +271,9 @@ export default function OrdersScreen() {
   const statusCounts = {
     all: items.length,
     pending: items.filter((i) => i.status === "pending").length,
+    processing: items.filter((i) => i.status === "processing").length,
+    shipping: items.filter((i) => i.status === "shipping").length,
+    delivered: items.filter((i) => i.status === "delivered").length,
     completed: items.filter((i) => i.status === "completed").length,
   };
 
@@ -309,6 +296,9 @@ export default function OrdersScreen() {
   const filterOptions: { key: StatusFilter; label: string }[] = [
     { key: "all", label: "All" },
     { key: "pending", label: "Pending" },
+    { key: "processing", label: "Processing" },
+    { key: "shipping", label: "Shipping" },
+    { key: "delivered", label: "Delivered" },
     { key: "completed", label: "Completed" },
   ];
 

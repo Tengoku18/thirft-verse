@@ -45,7 +45,7 @@ export const RevenueCard: React.FC<RevenueCardProps> = ({
             <BodyMediumText
               style={{ color: "rgba(255,255,255,0.6)", fontSize: 13 }}
             >
-              Total Revenue
+              Your Earnings
             </BodyMediumText>
             <HeadingBoldText
               style={{ color: "#FFFFFF", fontSize: 32, marginTop: 4 }}

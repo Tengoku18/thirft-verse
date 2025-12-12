@@ -36,7 +36,9 @@ interface Stats {
 interface OrderData {
   id: string;
   buyer_name: string;
-  amount: number;
+  amount: number; // Total amount (product + shipping)
+  earnings: number; // Store owner earnings (amount - shipping_fee)
+  shipping_fee: number;
   status: string;
   created_at: string;
   product?: {
@@ -117,9 +119,13 @@ export default function DashboardScreen() {
       let orderItems: OrderData[] = [];
 
       if (realOrders.length > 0) {
-        // Use real orders
+        // Use real orders - calculate earnings (amount - shipping_fee)
         totalRevenue = realOrders.reduce(
-          (sum: number, order: any) => sum + (order.amount || 0),
+          (sum: number, order: any) => {
+            const shippingFee = order.shipping_fee || 0;
+            const earnings = (order.amount || 0) - shippingFee;
+            return sum + earnings;
+          },
           0
         );
         pendingOrders = realOrders.filter(
@@ -129,7 +135,21 @@ export default function DashboardScreen() {
           (o: any) => o.status === "completed"
         ).length;
         totalOrders = realOrders.length;
-        orderItems = realOrders;
+        // Map orders with earnings calculation
+        orderItems = realOrders.map((order: any) => {
+          const shippingFee = order.shipping_fee || 0;
+          const earnings = (order.amount || 0) - shippingFee;
+          return {
+            id: order.id,
+            buyer_name: order.buyer_name,
+            amount: order.amount || 0,
+            earnings,
+            shipping_fee: shippingFee,
+            status: order.status,
+            created_at: order.created_at,
+            product: order.product,
+          };
+        });
       } else {
         // Fallback to sold products (same as orders screen)
         const { data: soldProducts } = await getProductsByStoreId({
@@ -139,6 +159,7 @@ export default function DashboardScreen() {
         });
 
         if (soldProducts && soldProducts.length > 0) {
+          // For sold products, earnings = price (no shipping fee)
           totalRevenue = soldProducts.reduce(
             (sum: number, product: any) => sum + (product.price || 0),
             0
@@ -159,6 +180,8 @@ export default function DashboardScreen() {
             id: product.id,
             buyer_name: "Customer",
             amount: product.price,
+            earnings: product.price, // For sold products, earnings = price
+            shipping_fee: 0,
             status: dayjs().diff(dayjs(product.updated_at || product.created_at), "day") > 7 ? "completed" : "pending",
             created_at: product.updated_at || product.created_at,
             product: {
@@ -193,7 +216,7 @@ export default function DashboardScreen() {
     }
   };
 
-  const calculateWeeklyData = (orders: any[]): WeeklyData => {
+  const calculateWeeklyData = (orders: OrderData[]): WeeklyData => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const today = dayjs();
     const labels: string[] = [];
@@ -205,12 +228,13 @@ export default function DashboardScreen() {
       const date = today.subtract(i, "day");
       labels.push(days[date.day()]);
 
-      const dayOrders = orders.filter((order: any) =>
+      const dayOrders = orders.filter((order) =>
         dayjs(order.created_at).isSame(date, "day")
       );
 
+      // Use earnings (amount - shipping_fee) instead of total amount
       const dayRevenue = dayOrders.reduce(
-        (sum: number, order: any) => sum + (order.amount || 0),
+        (sum: number, order) => sum + (order.earnings || 0),
         0
       );
       data.push(dayRevenue);

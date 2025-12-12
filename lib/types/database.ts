@@ -3,7 +3,7 @@
 
 export type UserRole = 'ADMIN' | 'USER';
 export type SubscriptionPlan = 'BASIC' | 'SILVER' | 'GOLD';
-export type OrderStatus = 'pending' | 'completed' | 'cancelled' | 'refunded';
+export type OrderStatus = 'pending' | 'processing' | 'shipping' | 'delivered' | 'completed' | 'cancelled' | 'refunded';
 export type ProductStatus = 'available' | 'out_of_stock';
 export type ProfileStatus = 'active' | 'suspended' | 'deleted';
 export type DeletionRequestStatus = 'pending' | 'approved' | 'rejected' | 'completed';

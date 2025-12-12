@@ -12,6 +12,8 @@ interface OrderData {
   id: string;
   buyer_name: string;
   amount: number;
+  earnings: number;
+  shipping_fee: number;
   status: string;
   created_at: string;
   product?: {

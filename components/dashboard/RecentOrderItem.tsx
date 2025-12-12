@@ -16,7 +16,9 @@ interface RecentOrderItemProps {
   order: {
     id: string;
     buyer_name: string;
-    amount: number;
+    amount: number; // Total amount
+    earnings: number; // Store owner earnings (amount - shipping_fee)
+    shipping_fee: number;
     status: string;
     created_at: string;
     product?: {
@@ -103,10 +105,10 @@ export const RecentOrderItem: React.FC<RecentOrderItemProps> = ({
         </View>
       </View>
 
-      {/* Amount & Status */}
+      {/* Earnings & Status */}
       <View className="items-end">
-        <BodySemiboldText style={{ fontSize: 14 }}>
-          Rs. {order.amount.toLocaleString()}
+        <BodySemiboldText style={{ fontSize: 14, color: "#059669" }}>
+          Rs. {order.earnings.toLocaleString()}
         </BodySemiboldText>
         <View
           className="flex-row items-center px-2 py-0.5 rounded-full mt-1"
