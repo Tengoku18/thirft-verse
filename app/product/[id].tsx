@@ -79,7 +79,11 @@ export default function ProductDetailScreen() {
     try {
       const productUrl = `https://thriftverse.app/product/${product.id}`;
       await Share.share({
-        message: `Check out "${product.title}" on Thriftverse!\n\nPrice: ${formatPrice(product.price)}\n\n${productUrl}`,
+        message: `Check out "${
+          product.title
+        }" on Thriftverse!\n\nPrice: ${formatPrice(
+          product.price
+        )}\n\n${productUrl}`,
         url: productUrl,
         title: product.title,
       });
@@ -91,7 +95,7 @@ export default function ProductDetailScreen() {
   const handleViewInWebsite = async () => {
     if (!product) return;
 
-    const url = `https://thriftverse.app/product/${product.id}`;
+    const url = `https://thriftverse.shop/product/${product.id}`;
     try {
       await Linking.openURL(url);
     } catch (error) {
@@ -121,7 +125,10 @@ export default function ProductDetailScreen() {
       router.back();
     } catch (error: any) {
       setShowDeleteModal(false);
-      Alert.alert("Error", error || "Failed to delete product. Please try again.");
+      Alert.alert(
+        "Error",
+        error || "Failed to delete product. Please try again."
+      );
     }
   };
 
@@ -156,14 +163,19 @@ export default function ProductDetailScreen() {
         <HeadingBoldText className="mt-4 text-center">
           Product Not Found
         </HeadingBoldText>
-        <BodyRegularText className="mt-2 text-center" style={{ color: "#6B7280" }}>
+        <BodyRegularText
+          className="mt-2 text-center"
+          style={{ color: "#6B7280" }}
+        >
           This product may have been removed or is no longer available.
         </BodyRegularText>
         <TouchableOpacity
           onPress={() => router.back()}
           className="mt-6 bg-[#3B2F2F] px-6 py-3 rounded-full"
         >
-          <BodySemiboldText style={{ color: "#FFFFFF" }}>Go Back</BodySemiboldText>
+          <BodySemiboldText style={{ color: "#FFFFFF" }}>
+            Go Back
+          </BodySemiboldText>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -194,7 +206,9 @@ export default function ProductDetailScreen() {
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onScroll={(e) => {
-              const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+              const index = Math.round(
+                e.nativeEvent.contentOffset.x / SCREEN_WIDTH
+              );
               setActiveImageIndex(index);
             }}
             scrollEventThrottle={16}
@@ -224,7 +238,9 @@ export default function ProductDetailScreen() {
                     width: activeImageIndex === index ? 24 : 8,
                     height: 8,
                     backgroundColor:
-                      activeImageIndex === index ? "#3B2F2F" : "rgba(59, 47, 47, 0.3)",
+                      activeImageIndex === index
+                        ? "#3B2F2F"
+                        : "rgba(59, 47, 47, 0.3)",
                   }}
                 />
               ))}
@@ -239,16 +255,22 @@ export default function ProductDetailScreen() {
             className="self-start px-3 py-1.5 rounded-full mb-4"
             style={{ backgroundColor: currentStatus.bg }}
           >
-            <CaptionText style={{ color: currentStatus.text, fontWeight: "700" }}>
+            <CaptionText
+              style={{ color: currentStatus.text, fontWeight: "700" }}
+            >
               {currentStatus.label}
             </CaptionText>
           </View>
 
           {/* Title */}
-          <HeadingBoldText style={{ fontSize: 24 }}>{product.title}</HeadingBoldText>
+          <HeadingBoldText style={{ fontSize: 24 }}>
+            {product.title}
+          </HeadingBoldText>
 
           {/* Price */}
-          <HeadingBoldText style={{ fontSize: 28, color: "#3B2F2F", marginTop: 8 }}>
+          <HeadingBoldText
+            style={{ fontSize: 28, color: "#3B2F2F", marginTop: 8 }}
+          >
             {formatPrice(product.price)}
           </HeadingBoldText>
 
@@ -280,34 +302,24 @@ export default function ProductDetailScreen() {
             </View>
           )}
 
-          {/* Product ID */}
-          <View className="mt-6 p-4 bg-[#F9FAFB] rounded-xl">
-            <CaptionText style={{ color: "#9CA3AF", marginBottom: 4 }}>
-              Product ID
-            </CaptionText>
-            <BodyMediumText style={{ color: "#6B7280", fontSize: 12 }}>
-              {product.id}
-            </BodyMediumText>
-          </View>
-
           {/* Owner Actions */}
           {isOwner && (
-            <View className="mt-6 gap-3">
+            <View className="mt-6 flex-row gap-3">
               <TouchableOpacity
                 onPress={handleEdit}
-                className="flex-row items-center justify-center bg-[#F3F4F6] py-4 rounded-xl"
+                className="flex-1 flex-row items-center justify-center bg-[#F3F4F6] py-4 rounded-xl"
                 activeOpacity={0.7}
               >
                 <IconSymbol name="pencil" size={18} color="#3B2F2F" />
                 <BodySemiboldText style={{ color: "#3B2F2F", marginLeft: 8 }}>
-                  Edit Product
+                  Edit
                 </BodySemiboldText>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={handleDeletePress}
                 disabled={deleting}
-                className="flex-row items-center justify-center bg-[#FEE2E2] py-4 rounded-xl"
+                className="flex-1 flex-row items-center justify-center bg-[#FEE2E2] py-4 rounded-xl"
                 activeOpacity={0.7}
               >
                 {deleting ? (
@@ -315,8 +327,10 @@ export default function ProductDetailScreen() {
                 ) : (
                   <>
                     <IconSymbol name="trash" size={18} color="#DC2626" />
-                    <BodySemiboldText style={{ color: "#DC2626", marginLeft: 8 }}>
-                      Delete Product
+                    <BodySemiboldText
+                      style={{ color: "#DC2626", marginLeft: 8 }}
+                    >
+                      Delete
                     </BodySemiboldText>
                   </>
                 )}

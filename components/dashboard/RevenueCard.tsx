@@ -4,7 +4,7 @@ import {
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import React from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 interface RevenueCardProps {
   totalRevenue: number;
@@ -57,11 +57,9 @@ export const RevenueCard: React.FC<RevenueCardProps> = ({
             className="w-14 h-14 rounded-2xl items-center justify-center"
             style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
           >
-            <IconSymbol
-              name="indianrupeesign.circle.fill"
-              size={28}
-              color="#FFFFFF"
-            />
+            <Text style={{ color: "#FFFFFF", fontSize: 24, fontWeight: "700" }}>
+              रु
+            </Text>
           </View>
         </View>
 

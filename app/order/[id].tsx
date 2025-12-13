@@ -916,16 +916,8 @@ export default function SingleOrderScreen() {
 
         {/* Order Meta */}
         <Section title="Order Information">
-          <Row
-            label="Order ID"
-            value={order.id.slice(0, 16) + "..."}
-            icon="doc.text.fill"
-          />
+          <Row label="Order ID" value={order.id.slice(0, 16) + "..."} />
           <Row label="Order Code" value={order.orderCode} />
-          <Row
-            label="Source"
-            value={order.type === "order" ? "Order Record" : "Sold Product"}
-          />
           <Row
             label="Last Updated"
             value={dayjs(order.updatedAt).format("DD MMM, YYYY • h:mm A")}

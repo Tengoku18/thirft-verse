@@ -128,9 +128,11 @@ export default function DashboardScreen() {
           },
           0
         );
+        // Pending = only pending status (matches Orders screen filter)
         pendingOrders = realOrders.filter(
           (o: any) => o.status === "pending"
         ).length;
+        // Completed = only completed status (matches Orders screen filter)
         completedOrders = realOrders.filter(
           (o: any) => o.status === "completed"
         ).length;

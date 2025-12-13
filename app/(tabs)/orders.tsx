@@ -325,7 +325,7 @@ export default function OrdersScreen() {
               </View>
               <View className="items-end">
                 <CaptionText style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
-                  {statusFilter === "all" ? "Total Sales" : statusFilter === "pending" ? "Pending" : "Completed"}
+                  {statusFilter === "all" ? "Total Sales" : filterOptions.find(f => f.key === statusFilter)?.label || "Orders"}
                 </CaptionText>
                 <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 24, marginTop: 4 }}>
                   {filteredItems.length}
