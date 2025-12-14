@@ -87,6 +87,7 @@ export interface Order {
   shipping_option: 'home' | 'branch' | null
   payment_method: string
   status: OrderStatus
+  sellers_earning: number
   created_at: string
   updated_at: string
 }

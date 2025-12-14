@@ -47,6 +47,10 @@ export async function createOrder(
     // Generate unique order code from transaction UUID with date component
     const orderCode = generateOrderCodeWithDate(params.transaction_uuid);
 
+    // Calculate seller's earning: (amount - shipping_fee) * 0.95 (5% platform fee), rounded
+    const shippingFee = params.shipping_fee || 0;
+    const sellersEarning = Math.round((params.amount - shippingFee) * 0.95);
+
     const { data, error } = await supabase
       .from('orders')
       .insert({
@@ -59,11 +63,12 @@ export async function createOrder(
         transaction_code: params.transaction_code,
         transaction_uuid: params.transaction_uuid,
         amount: params.amount,
-        shipping_fee: params.shipping_fee || 0,
+        shipping_fee: shippingFee,
         shipping_option: params.shipping_option || null,
         payment_method: params.payment_method || 'eSewa',
         status: params.status || 'pending',
         order_code: orderCode,
+        sellers_earning: sellersEarning,
       })
       .select()
       .single();
