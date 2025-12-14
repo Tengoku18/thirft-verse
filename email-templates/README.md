@@ -39,13 +39,15 @@ This will generate static HTML files in the `out` directory.
 Sent to new users when they sign up.
 
 **Props:**
+
 - `username`: User's display name
 
 **Usage:**
-```tsx
-import { WelcomeEmail } from './emails/welcome';
 
-<WelcomeEmail username="John Doe" />
+```tsx
+import { WelcomeEmail } from "./emails/welcome";
+
+<WelcomeEmail username="John Doe" />;
 ```
 
 ### 2. Order Confirmation (`order-confirmation.tsx`)
@@ -53,6 +55,7 @@ import { WelcomeEmail } from './emails/welcome';
 Sent when a customer completes a purchase from a store.
 
 **Props:**
+
 - `customerName`: Customer's name
 - `orderId`: Order identifier
 - `orderDate`: Date of order
@@ -60,16 +63,17 @@ Sent when a customer completes a purchase from a store.
 - `total`: Total order amount
 
 **Usage:**
+
 ```tsx
-import { OrderConfirmationEmail } from './emails/order-confirmation';
+import { OrderConfirmationEmail } from "./emails/order-confirmation";
 
 <OrderConfirmationEmail
   customerName="John Doe"
   orderId="#12345"
   orderDate="11/1/2025"
   storeName="Vintage Finds Shop"
-  total={45.00}
-/>
+  total={45.0}
+/>;
 ```
 
 ### 3. Password Reset (`password-reset.tsx`)
@@ -77,19 +81,21 @@ import { OrderConfirmationEmail } from './emails/order-confirmation';
 Sent when a user requests a password reset.
 
 **Props:**
+
 - `username`: User's name
 - `resetLink`: Password reset URL
 - `expiryTime`: Link expiry duration
 
 **Usage:**
+
 ```tsx
-import { PasswordResetEmail } from './emails/password-reset';
+import { PasswordResetEmail } from "./emails/password-reset";
 
 <PasswordResetEmail
   username="John Doe"
-  resetLink="https://thriftverse.com/reset?token=..."
+  resetLink="https://thriftverse.shop/reset?token=..."
   expiryTime="1 hour"
-/>
+/>;
 ```
 
 ### 4. Item Sold (`item-sold.tsx`)
@@ -97,6 +103,7 @@ import { PasswordResetEmail } from './emails/password-reset';
 Sent to sellers when their item is purchased.
 
 **Props:**
+
 - `sellerName`: Seller's name
 - `itemName`: Name of sold item
 - `itemImage`: Item image URL
@@ -107,15 +114,16 @@ Sent to sellers when their item is purchased.
 - `shippingDeadline`: Deadline for shipping
 
 **Usage:**
+
 ```tsx
-import { ItemSoldEmail } from './emails/item-sold';
+import { ItemSoldEmail } from "./emails/item-sold";
 
 <ItemSoldEmail
   sellerName="Jane Doe"
   itemName="Vintage Jacket"
-  salePrice={45.00}
+  salePrice={45.0}
   orderId="#12345"
-/>
+/>;
 ```
 
 ## Creating New Templates
@@ -137,15 +145,15 @@ To use these templates in your application:
 Example with SendGrid:
 
 ```typescript
-import { render } from '@react-email/render';
-import { WelcomeEmail } from './emails/welcome';
+import { render } from "@react-email/render";
+import { WelcomeEmail } from "./emails/welcome";
 
 const emailHtml = render(<WelcomeEmail username="John Doe" />);
 
 // Send with your email service
 await sendEmail({
-  to: 'user@example.com',
-  subject: 'Welcome to ThriftVerse',
+  to: "user@example.com",
+  subject: "Welcome to ThriftVerse",
   html: emailHtml,
 });
 ```

@@ -34,6 +34,7 @@ import { Controller, FieldError, useForm } from "react-hook-form";
 import {
   Alert,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -53,6 +54,27 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
   const toast = useToast();
   const profile = useAppSelector((state) => state.profile.profile);
   const [loading, setLoading] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  // Track keyboard visibility
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const keyboardShow = Keyboard.addListener(showEvent, () =>
+      setIsKeyboardVisible(true)
+    );
+    const keyboardHide = Keyboard.addListener(hideEvent, () =>
+      setIsKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardShow.remove();
+      keyboardHide.remove();
+    };
+  }, []);
 
   // For create mode: store local URIs
   // For edit mode: can be local URI (new image) or existing URL
@@ -215,8 +237,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
     const newUris = otherImageUris.filter((_, i) => i !== index);
     setOtherImageUris(newUris);
     setValue("other_images", newUris);
-
-    // Update indices
     const newIndices = new Set<number>();
     newOtherImageIndices.forEach((i) => {
       if (i < index) newIndices.add(i);
@@ -240,7 +260,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
     setCoverImageUri(null);
     setOtherImageUris([]);
     setCreatedProduct(null);
-    router.push("/(tabs)");
+    router.push("/(tabs)/product");
   };
 
   // Helper to check if URI is a local file
@@ -450,18 +470,19 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
   return (
     <>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 20}
       >
         <ScrollView
           className="flex-1 bg-white"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={{
+            paddingBottom: isKeyboardVisible ? 40 : 120,
+          }}
           keyboardShouldPersistTaps="handled"
         >
           <View className="px-6 pt-4">
-            {/* Cover Image Section */}
             <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
               Cover Photo
             </BodySemiboldText>

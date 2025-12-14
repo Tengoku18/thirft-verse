@@ -23,7 +23,13 @@ import {
   View,
 } from "react-native";
 
-type StatusFilter = "all" | "pending" | "processing" | "shipping" | "delivered" | "completed";
+type StatusFilter =
+  | "all"
+  | "pending"
+  | "processing"
+  | "shipping"
+  | "delivered"
+  | "completed";
 
 // Unified item type that works for both orders and sold products
 interface OrderItem {
@@ -51,7 +57,10 @@ const formatPrice = (amount: number) => {
   return `Rs. ${amount.toLocaleString()}`;
 };
 
-const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
+const statusConfig: Record<
+  string,
+  { bg: string; text: string; label: string }
+> = {
   pending: { bg: "#FEF3C7", text: "#D97706", label: "Pending" },
   processing: { bg: "#DBEAFE", text: "#2563EB", label: "Processing" },
   shipping: { bg: "#93C5FD", text: "#1D4ED8", label: "Shipping" },
@@ -90,7 +99,13 @@ function OrderCard({ item, onPress }: OrderCardProps) {
             className="w-2 h-2 rounded-full mr-2"
             style={{ backgroundColor: currentStatus.text }}
           />
-          <CaptionText style={{ color: currentStatus.text, fontWeight: "700", fontSize: 12 }}>
+          <CaptionText
+            style={{
+              color: currentStatus.text,
+              fontWeight: "700",
+              fontSize: 12,
+            }}
+          >
             {currentStatus.label}
           </CaptionText>
         </View>
@@ -131,7 +146,9 @@ function OrderCard({ item, onPress }: OrderCardProps) {
               </BodyMediumText>
             </View>
 
-            <HeadingBoldText style={{ fontSize: 18, color: "#3B2F2F", marginTop: 8 }}>
+            <HeadingBoldText
+              style={{ fontSize: 18, color: "#3B2F2F", marginTop: 8 }}
+            >
               {formatPrice(item.amount)}
             </HeadingBoldText>
           </View>
@@ -141,14 +158,18 @@ function OrderCard({ item, onPress }: OrderCardProps) {
         <View className="mt-4 pt-3 border-t border-[#F3F4F6] flex-row items-center justify-between">
           <View className="flex-row items-center">
             <IconSymbol name="calendar" size={14} color="#9CA3AF" />
-            <CaptionText style={{ color: "#9CA3AF", marginLeft: 4, fontSize: 12 }}>
+            <CaptionText
+              style={{ color: "#9CA3AF", marginLeft: 4, fontSize: 12 }}
+            >
               {itemDate.format("DD MMM, YYYY")}
             </CaptionText>
           </View>
 
           <View className="flex-row items-center bg-[#F3F4F6] px-2 py-1 rounded-md">
             <IconSymbol name="tag.fill" size={12} color="#6B7280" />
-            <CaptionText style={{ color: "#6B7280", marginLeft: 4, fontSize: 11 }}>
+            <CaptionText
+              style={{ color: "#6B7280", marginLeft: 4, fontSize: 11 }}
+            >
               {item.payment_method}
             </CaptionText>
           </View>
@@ -171,7 +192,8 @@ function EmptyState() {
         className="text-center leading-relaxed"
         style={{ color: "#6B7280" }}
       >
-        When customers purchase your products, their orders will appear here for you to manage and track.
+        When customers purchase your products, their orders will appear here for
+        you to manage and track.
       </BodyRegularText>
     </View>
   );
@@ -213,7 +235,10 @@ export default function OrdersScreen() {
       if (ordersResult.success) {
         console.log("✅ Found orders:", ordersResult.data.length);
         if (ordersResult.data.length > 0) {
-          console.log("📦 First order:", JSON.stringify(ordersResult.data[0], null, 2));
+          console.log(
+            "📦 First order:",
+            JSON.stringify(ordersResult.data[0], null, 2)
+          );
         }
         orderItems = ordersResult.data.map((order: any) => {
           const shippingFee = order.shipping_fee || 0;
@@ -311,30 +336,6 @@ export default function OrdersScreen() {
   return (
     <TabScreenLayout title="Orders">
       <View className="flex-1 bg-[#FAFAFA]">
-        {/* Summary Card */}
-        {items.length > 0 && (
-          <View className="mx-4 mt-4 p-4 bg-[#3B2F2F] rounded-2xl">
-            <View className="flex-row justify-between items-center">
-              <View>
-                <CaptionText style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
-                  Total Revenue
-                </CaptionText>
-                <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 24, marginTop: 4 }}>
-                  {formatPrice(totalRevenue)}
-                </HeadingBoldText>
-              </View>
-              <View className="items-end">
-                <CaptionText style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
-                  {statusFilter === "all" ? "Total Sales" : filterOptions.find(f => f.key === statusFilter)?.label || "Orders"}
-                </CaptionText>
-                <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 24, marginTop: 4 }}>
-                  {filteredItems.length}
-                </HeadingBoldText>
-              </View>
-            </View>
-          </View>
-        )}
-
         {/* Status Filter Tabs */}
         <View className="px-4 pt-4 pb-2">
           <ScrollView
@@ -369,7 +370,9 @@ export default function OrdersScreen() {
                   <View
                     className="ml-2 px-2 py-0.5 rounded-full"
                     style={{
-                      backgroundColor: isActive ? "rgba(255,255,255,0.2)" : "#F3F4F6",
+                      backgroundColor: isActive
+                        ? "rgba(255,255,255,0.2)"
+                        : "#F3F4F6",
                     }}
                   >
                     <CaptionText

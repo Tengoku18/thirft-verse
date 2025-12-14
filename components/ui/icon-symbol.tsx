@@ -18,6 +18,8 @@ const MAPPING: IconMapping = {
   'house.fill': 'home',
   'chevron.left': 'chevron-back',
   'chevron.right': 'chevron-forward',
+  'chevron.down': 'chevron-down',
+  'chevron.up': 'chevron-up',
   'chevron.left.forwardslash.chevron.right': 'code-slash',
 
   // Actions
@@ -27,7 +29,8 @@ const MAPPING: IconMapping = {
   'checkmark.circle.fill': 'checkmark-circle',
   'plus': 'add',
   'plus.circle.fill': 'add-circle',
-  'pencil': 'pencil',
+  'pencil': 'create-outline',
+  'square.and.pencil': 'create',
   'trash': 'trash',
   'trash.fill': 'trash',
   'paperplane.fill': 'send',
@@ -61,8 +64,12 @@ const MAPPING: IconMapping = {
   'calendar': 'calendar',
   'exclamationmark.triangle': 'warning-outline',
   'exclamationmark.triangle.fill': 'warning',
+  'exclamationmark.circle': 'alert-circle-outline',
+  'exclamationmark.circle.fill': 'alert-circle',
   'info.circle.fill': 'information-circle',
+  'questionmark.circle': 'help-circle-outline',
   'questionmark.circle.fill': 'help-circle',
+  'checkmark.circle': 'checkmark-circle-outline',
   'bell.fill': 'notifications',
 
   // User

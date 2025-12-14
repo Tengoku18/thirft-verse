@@ -10,14 +10,11 @@ import {
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { Product } from "@/lib/types/database";
-import { useToast } from "@/contexts/ToastContext";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  deleteProduct,
-  fetchUserProducts,
-} from "@/store/productsSlice";
+import { deleteProduct, fetchUserProducts } from "@/store/productsSlice";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -74,7 +71,13 @@ function ProductCard({ product, onPress, onEdit, onDelete }: ProductCardProps) {
             className="w-2 h-2 rounded-full mr-2"
             style={{ backgroundColor: currentStatus.text }}
           />
-          <CaptionText style={{ color: currentStatus.text, fontWeight: "700", fontSize: 12 }}>
+          <CaptionText
+            style={{
+              color: currentStatus.text,
+              fontWeight: "700",
+              fontSize: 12,
+            }}
+          >
             {currentStatus.label}
           </CaptionText>
         </View>
@@ -115,7 +118,9 @@ function ProductCard({ product, onPress, onEdit, onDelete }: ProductCardProps) {
               </BodyMediumText>
             </View>
 
-            <HeadingBoldText style={{ fontSize: 18, color: "#3B2F2F", marginTop: 8 }}>
+            <HeadingBoldText
+              style={{ fontSize: 18, color: "#3B2F2F", marginTop: 8 }}
+            >
               {formatPrice(product.price)}
             </HeadingBoldText>
           </View>
@@ -129,7 +134,9 @@ function ProductCard({ product, onPress, onEdit, onDelete }: ProductCardProps) {
             activeOpacity={0.7}
           >
             <IconSymbol name="pencil" size={14} color="#3B2F2F" />
-            <BodySemiboldText style={{ color: "#3B2F2F", marginLeft: 6, fontSize: 13 }}>
+            <BodySemiboldText
+              style={{ color: "#3B2F2F", marginLeft: 6, fontSize: 13 }}
+            >
               Edit
             </BodySemiboldText>
           </TouchableOpacity>
@@ -140,7 +147,9 @@ function ProductCard({ product, onPress, onEdit, onDelete }: ProductCardProps) {
             activeOpacity={0.7}
           >
             <IconSymbol name="trash" size={14} color="#DC2626" />
-            <BodySemiboldText style={{ color: "#DC2626", marginLeft: 6, fontSize: 13 }}>
+            <BodySemiboldText
+              style={{ color: "#DC2626", marginLeft: 6, fontSize: 13 }}
+            >
               Delete
             </BodySemiboldText>
           </TouchableOpacity>
@@ -163,7 +172,8 @@ function EmptyState({ onAddProduct }: { onAddProduct: () => void }) {
         className="text-center leading-relaxed mb-6"
         style={{ color: "#6B7280" }}
       >
-        Start selling by adding your first product. Your listed products will appear here.
+        Start selling by adding your first product. Your listed products will
+        appear here.
       </BodyRegularText>
       <TouchableOpacity
         onPress={onAddProduct}
@@ -240,7 +250,10 @@ export default function MyProductsScreen() {
     } catch (error: any) {
       setShowDeleteModal(false);
       setProductToDelete(null);
-      Alert.alert("Error", error || "Failed to delete product. Please try again.");
+      Alert.alert(
+        "Error",
+        error || "Failed to delete product. Please try again."
+      );
     }
   };
 
@@ -271,7 +284,10 @@ export default function MyProductsScreen() {
   };
 
   // Calculate total value
-  const totalValue = filteredProducts.reduce((sum, p) => sum + p.price * p.availability_count, 0);
+  const totalValue = filteredProducts.reduce(
+    (sum, p) => sum + p.price * p.availability_count,
+    0
+  );
 
   if (loading) {
     return (
@@ -295,30 +311,6 @@ export default function MyProductsScreen() {
   return (
     <TabScreenLayout title="My Products">
       <View className="flex-1 bg-[#FAFAFA]">
-        {/* Summary Card */}
-        {products.length > 0 && (
-          <View className="mx-4 mt-4 p-4 bg-[#3B2F2F] rounded-2xl">
-            <View className="flex-row justify-between items-center">
-              <View>
-                <CaptionText style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
-                  Inventory Value
-                </CaptionText>
-                <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 24, marginTop: 4 }}>
-                  {formatPrice(totalValue)}
-                </HeadingBoldText>
-              </View>
-              <View className="items-end">
-                <CaptionText style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
-                  Total Products
-                </CaptionText>
-                <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 24, marginTop: 4 }}>
-                  {filteredProducts.length}
-                </HeadingBoldText>
-              </View>
-            </View>
-          </View>
-        )}
-
         {/* Status Filter Tabs */}
         {products.length > 0 && (
           <View className="px-4 pt-4 pb-2">
@@ -354,7 +346,9 @@ export default function MyProductsScreen() {
                     <View
                       className="ml-2 px-2 py-0.5 rounded-full"
                       style={{
-                        backgroundColor: isActive ? "rgba(255,255,255,0.2)" : "#F3F4F6",
+                        backgroundColor: isActive
+                          ? "rgba(255,255,255,0.2)"
+                          : "#F3F4F6",
                       }}
                     >
                       <CaptionText

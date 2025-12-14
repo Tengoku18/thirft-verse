@@ -77,7 +77,7 @@ export default function ProductDetailScreen() {
     if (!product) return;
 
     try {
-      const productUrl = `https://thriftverse.app/product/${product.id}`;
+      const productUrl = `https://thriftverse.shop/product/${product.id}`;
       await Share.share({
         message: `Check out "${
           product.title

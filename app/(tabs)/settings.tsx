@@ -127,11 +127,11 @@ export default function SettingsScreen() {
   };
 
   const handlePrivacyPolicy = () => {
-    Linking.openURL("https://thriftverse.com/privacy");
+    Linking.openURL("https://thriftverse.shop/privacy");
   };
 
   const handleTermsOfService = () => {
-    Linking.openURL("https://thriftverse.com/terms");
+    Linking.openURL("https://thriftverse.shop/terms");
   };
 
   const handleHelpSupport = () => {
@@ -162,10 +162,7 @@ export default function SettingsScreen() {
 
   const confirmDeleteAccount = () => {
     setShowDeleteModal(false);
-    Alert.alert(
-      "Contact Support",
-      "To delete your account, please contact support@thriftverse.com"
-    );
+    Linking.openURL("https://www.thriftverse.shop/delete-account");
   };
 
   if (profileLoading) {

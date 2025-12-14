@@ -42,6 +42,7 @@ export const fetchUserProducts = createAsyncThunk(
         .from("products")
         .select("*")
         .eq("store_id", storeId)
+        .eq("is_active", true)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -115,7 +116,7 @@ export const updateProduct = createAsyncThunk(
   }
 );
 
-// Delete product
+// Delete product (soft delete - sets is_active to false)
 export const deleteProduct = createAsyncThunk(
   "products/deleteProduct",
   async (
@@ -123,27 +124,29 @@ export const deleteProduct = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      // Check if there are any pending orders for this product
-      const { data: pendingOrders, error: ordersError } = await supabase
+      // Check if there are any active (non-completed) orders for this product
+      // Only allow deletion if there are no orders OR all orders are in terminal states (completed, cancelled, refunded)
+      const { data: activeOrders, error: ordersError } = await supabase
         .from("orders")
         .select("id")
         .eq("product_id", productId)
-        .eq("status", "pending")
+        .not("status", "in", '("completed","cancelled","refunded")')
         .limit(1);
 
       if (ordersError) {
         return rejectWithValue(ordersError.message);
       }
 
-      if (pendingOrders && pendingOrders.length > 0) {
+      if (activeOrders && activeOrders.length > 0) {
         return rejectWithValue(
-          "Cannot delete this product. It has pending orders that need to be completed or cancelled first."
+          "Cannot delete this product. It has active orders that need to be completed or cancelled first."
         );
       }
 
+      // Soft delete: set is_active to false instead of deleting
       const { error } = await supabase
         .from("products")
-        .delete()
+        .update({ is_active: false, updated_at: new Date().toISOString() })
         .eq("id", productId)
         .eq("store_id", storeId);
 

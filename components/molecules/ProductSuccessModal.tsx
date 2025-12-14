@@ -38,7 +38,7 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
     if (!product) return;
 
     try {
-      const productUrl = `https://thriftverse.app/product/${product.id}`;
+      const productUrl = `https://thriftverse.shop/product/${product.id}`;
       await Share.share({
         message: `Check out "${product.title}" on Thriftverse!\n\n${productUrl}`,
         url: productUrl,
@@ -94,13 +94,19 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
               </View>
             </View>
 
-            <HeadingBoldText className="text-center mb-2" style={{ fontSize: 20 }}>
+            <HeadingBoldText
+              className="text-center mb-2"
+              style={{ fontSize: 20 }}
+            >
               Product Listed!
             </HeadingBoldText>
 
             {product && (
               <View className="items-center mb-4">
-                <BodySemiboldText className="text-center" style={{ color: "#3B2F2F" }}>
+                <BodySemiboldText
+                  className="text-center"
+                  style={{ color: "#3B2F2F" }}
+                >
                   {product.title}
                 </BodySemiboldText>
                 <BodyRegularText style={{ color: "#6B7280", marginTop: 4 }}>
@@ -109,8 +115,12 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
               </View>
             )}
 
-            <BodyRegularText className="text-center mb-6" style={{ color: "#6B7280" }}>
-              Your product has been listed successfully and is now visible to buyers.
+            <BodyRegularText
+              className="text-center mb-6"
+              style={{ color: "#6B7280" }}
+            >
+              Your product has been listed successfully and is now visible to
+              buyers.
             </BodyRegularText>
 
             {/* Action Buttons */}
@@ -129,7 +139,11 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
                 }}
                 activeOpacity={0.8}
               >
-                <IconSymbol name="square.and.arrow.up" size={18} color="#FFFFFF" />
+                <IconSymbol
+                  name="square.and.arrow.up"
+                  size={18}
+                  color="#FFFFFF"
+                />
                 <BodySemiboldText style={{ color: "#FFFFFF" }}>
                   Share Product
                 </BodySemiboldText>
