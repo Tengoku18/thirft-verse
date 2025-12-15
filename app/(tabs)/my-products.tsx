@@ -133,7 +133,7 @@ function ProductCard({ product, onPress, onEdit, onDelete }: ProductCardProps) {
             className="flex-row items-center bg-[#F3F4F6] px-4 py-2 rounded-lg"
             activeOpacity={0.7}
           >
-            <IconSymbol name="pencil" size={14} color="#3B2F2F" />
+            <IconSymbol name="square.and.pencil" size={14} color="#3B2F2F" />
             <BodySemiboldText
               style={{ color: "#3B2F2F", marginLeft: 6, fontSize: 13 }}
             >

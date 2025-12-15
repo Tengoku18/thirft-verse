@@ -802,7 +802,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
           }}
           loading={loading}
           variant="default"
-          icon="pencil"
+          icon="square.and.pencil"
         />
       )}
 

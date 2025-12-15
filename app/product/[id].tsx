@@ -310,7 +310,7 @@ export default function ProductDetailScreen() {
                 className="flex-1 flex-row items-center justify-center bg-[#F3F4F6] py-4 rounded-xl"
                 activeOpacity={0.7}
               >
-                <IconSymbol name="pencil" size={18} color="#3B2F2F" />
+                <IconSymbol name="square.and.pencil" size={18} color="#3B2F2F" />
                 <BodySemiboldText style={{ color: "#3B2F2F", marginLeft: 8 }}>
                   Edit
                 </BodySemiboldText>

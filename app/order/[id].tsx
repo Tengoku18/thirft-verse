@@ -79,6 +79,7 @@ interface OrderDetail {
     transactionCode: string;
     subtotal: number;
     total: number;
+    sellersEarning: number;
   };
 
   // Meta
@@ -477,6 +478,7 @@ export default function SingleOrderScreen() {
             transactionCode: o.transaction_code || "N/A",
             subtotal: productPrice,
             total: o.amount,
+            sellersEarning: o.sellers_earning || productPrice,
           },
           sellerId: o.seller_id,
           createdAt: o.created_at,
@@ -523,6 +525,7 @@ export default function SingleOrderScreen() {
               transactionCode: "N/A",
               subtotal: p.price,
               total: p.price,
+              sellersEarning: p.price,
             },
             sellerId: p.store_id,
             createdAt: p.created_at,
@@ -903,15 +906,24 @@ export default function SingleOrderScreen() {
             value={dayjs(order.createdAt).format("DD MMM, YYYY • h:mm A")}
             icon="calendar"
           />
-          {/* Your Earnings - Main Price */}
-          <View className="px-4 py-4 bg-[#D1FAE5] flex-row items-center justify-between">
-            <BodyBoldText style={{ fontSize: 15, color: "#065F46" }}>
-              Your Earnings
-            </BodyBoldText>
-            <HeadingBoldText style={{ fontSize: 20, color: "#059669" }}>
-              {formatPrice(order.payment.subtotal)}
-            </HeadingBoldText>
-          </View>
+          <Row
+            label="Total Payment"
+            value={formatPrice(order.payment.total)}
+          />
+          <Row
+            label="eSewa Charge (2%)"
+            value={`- ${formatPrice(Math.round(order.payment.total * 0.02))}`}
+          />
+          <Row
+            label="Thriftverse Charge (3%)"
+            value={`- ${formatPrice(Math.round(order.payment.total * 0.03))}`}
+          />
+          <Row
+            label="Your Earnings"
+            value={formatPrice(order.payment.sellersEarning)}
+            highlight
+            last
+          />
         </Section>
 
         {/* Order Meta */}
@@ -1019,7 +1031,7 @@ export default function SingleOrderScreen() {
               <TextInput
                 value={shippingId}
                 onChangeText={setShippingId}
-                placeholder="Enter Shipping ID from bill"
+                placeholder="Enter Shipping ID from receipt"
                 placeholderTextColor="#9CA3AF"
                 className="bg-[#F3F4F6] rounded-xl px-4 py-3.5"
                 style={{ fontSize: 15, color: "#1F2937" }}
@@ -1047,7 +1059,11 @@ export default function SingleOrderScreen() {
                       resizeMode="cover"
                     />
                     <View className="absolute bottom-2 right-2 bg-black/60 px-3 py-1.5 rounded-full flex-row items-center">
-                      <IconSymbol name="pencil" size={12} color="#FFFFFF" />
+                      <IconSymbol
+                        name="square.and.pencil"
+                        size={12}
+                        color="#FFFFFF"
+                      />
                       <CaptionText
                         style={{
                           color: "#FFFFFF",

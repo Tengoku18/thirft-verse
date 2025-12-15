@@ -233,7 +233,7 @@ export default function SignupStep3Screen() {
                       elevation: 3,
                     }}
                   >
-                    <IconSymbol name="pencil" size={16} color="#3B2F2F" />
+                    <IconSymbol name="square.and.pencil" size={16} color="#3B2F2F" />
                   </View>
                 </View>
               ) : (
