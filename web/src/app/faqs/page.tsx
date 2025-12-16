@@ -12,12 +12,12 @@ const faqCategories = [
       {
         question: 'How do I create my thrift store on ThriftVerse?',
         answer:
-          "Simply sign up for a free account, choose your unique subdomain (e.g., yourname.thriftverse.com), and start adding products. The entire setup takes less than 10 minutes!",
+          'Simply sign up for a free account, choose your unique subdomain (e.g., yourname.thriftverse.shop), and start adding products. The entire setup takes less than 10 minutes!',
       },
       {
         question: 'What is a subdomain and how does it work?',
         answer:
-          'Your subdomain is your unique store URL on ThriftVerse. For example, if you choose "vintage", your store will be accessible at vintage.thriftverse.com. This becomes your personal brand identity.',
+          'Your subdomain is your unique store URL on ThriftVerse. For example, if you choose "vintage", your store will be accessible at vintage.thriftverse.shop. This becomes your personal brand identity.',
       },
       {
         question: 'Is there a limit to how many products I can add?',
@@ -108,26 +108,20 @@ const faqCategories = [
   },
 ];
 
-function FAQItem({
-  question,
-  answer,
-}: {
-  question: string;
-  answer: string;
-}) {
+function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="rounded-lg border border-border bg-surface transition-all hover:shadow-md">
+    <div className="border-border bg-surface rounded-lg border transition-all hover:shadow-md">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex w-full items-center justify-between p-6 text-left"
       >
-        <h3 className="font-heading text-lg font-semibold text-primary pr-4">
+        <h3 className="font-heading text-primary pr-4 text-lg font-semibold">
           {question}
         </h3>
         <ChevronDown
-          className={`h-5 w-5 shrink-0 text-secondary transition-transform duration-200 ${
+          className={`text-secondary h-5 w-5 shrink-0 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
@@ -137,7 +131,7 @@ function FAQItem({
           isOpen ? 'max-h-96' : 'max-h-0'
         }`}
       >
-        <p className="px-6 pb-6 text-primary/70 leading-relaxed">{answer}</p>
+        <p className="text-primary/70 px-6 pb-6 leading-relaxed">{answer}</p>
       </div>
     </div>
   );
@@ -153,7 +147,7 @@ export default function FAQsPage() {
         <div className="mx-auto max-w-4xl space-y-12">
           {faqCategories.map((category, index) => (
             <div key={index}>
-              <h2 className="font-heading mb-6 text-2xl font-bold text-primary">
+              <h2 className="font-heading text-primary mb-6 text-2xl font-bold">
                 {category.category}
               </h2>
               <div className="space-y-4">
@@ -170,16 +164,16 @@ export default function FAQsPage() {
         </div>
 
         {/* Still have questions CTA */}
-        <div className="mt-16 rounded-2xl border border-border bg-surface p-8 text-center">
-          <h2 className="font-heading mb-4 text-2xl font-bold text-primary">
+        <div className="border-border bg-surface mt-16 rounded-2xl border p-8 text-center">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             Still have questions?
           </h2>
-          <p className="mb-6 text-primary/70">
+          <p className="text-primary/70 mb-6">
             Our support team is here to help you succeed
           </p>
           <Link
             href="/contact"
-            className="inline-block rounded-lg bg-secondary cursor-pointer px-6 py-3 font-semibold text-primary transition-all hover:scale-105 hover:shadow-lg"
+            className="bg-secondary text-primary inline-block cursor-pointer rounded-lg px-6 py-3 font-semibold transition-all hover:scale-105 hover:shadow-lg"
           >
             Contact Support
           </Link>

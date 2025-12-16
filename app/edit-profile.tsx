@@ -11,10 +11,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { updateUserProfile } from "@/lib/database-helpers";
-import {
-  uploadPaymentQRImage,
-  uploadProfileImage,
-} from "@/lib/storage-helpers";
+import { uploadProfileImage } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -35,8 +32,6 @@ interface ProfileData {
   bio: string;
   address: string;
   profile_image: string | null;
-  payment_username: string;
-  payment_qr_image: string | null;
 }
 
 export default function EditProfileScreen() {
@@ -50,17 +45,12 @@ export default function EditProfileScreen() {
     bio: "",
     address: "",
     profile_image: null,
-    payment_username: "",
-    payment_qr_image: null,
   });
   const [newImageUri, setNewImageUri] = useState<string | null>(null);
-  const [newPaymentQRUri, setNewPaymentQRUri] = useState<string | null>(null);
   const [errors, setErrors] = useState<{
     name?: string;
     bio?: string;
     address?: string;
-    payment_username?: string;
-    payment_qr_image?: string;
   }>({});
 
   useEffect(() => {
@@ -86,8 +76,6 @@ export default function EditProfileScreen() {
           bio: fetchedProfile.bio || "",
           address: fetchedProfile.address || "",
           profile_image: fetchedProfile.profile_image || null,
-          payment_username: fetchedProfile.payment_username || "",
-          payment_qr_image: fetchedProfile.payment_qr_image || null,
         });
       } else {
         // Fallback to user metadata
@@ -96,8 +84,6 @@ export default function EditProfileScreen() {
           bio: "",
           address: user.user_metadata?.address || "",
           profile_image: user.user_metadata?.profile_image || null,
-          payment_username: "",
-          payment_qr_image: null,
         });
       }
     } catch (error) {
@@ -112,8 +98,6 @@ export default function EditProfileScreen() {
       name?: string;
       bio?: string;
       address?: string;
-      payment_username?: string;
-      payment_qr_image?: string;
     } = {};
 
     if (!profileData.name.trim()) {
@@ -132,18 +116,6 @@ export default function EditProfileScreen() {
       newErrors.address = "Address is required";
     } else if (profileData.address.length > 255) {
       newErrors.address = "Address must be less than 255 characters";
-    }
-
-    // Payment details validation
-    if (!profileData.payment_username?.trim()) {
-      newErrors.payment_username = "Payment account holder name is required";
-    }
-
-    // Check if payment QR image exists (either from profile or newly selected)
-    const hasPaymentQRImage =
-      profileData.payment_qr_image || newPaymentQRUri;
-    if (!hasPaymentQRImage) {
-      newErrors.payment_qr_image = "Payment QR code image is required";
     }
 
     setErrors(newErrors);
@@ -189,7 +161,6 @@ export default function EditProfileScreen() {
 
     try {
       let imageUrl = profileData.profile_image;
-      let paymentQRUrl = profileData.payment_qr_image;
 
       // Upload new profile image if selected
       if (newImageUri) {
@@ -206,24 +177,6 @@ export default function EditProfileScreen() {
         }
       }
 
-      // Upload new payment QR code if selected
-      if (newPaymentQRUri) {
-        const uploadResult = await uploadPaymentQRImage(
-          user.id,
-          newPaymentQRUri
-        );
-        if (uploadResult.success && uploadResult.url) {
-          paymentQRUrl = uploadResult.url;
-        } else {
-          Alert.alert(
-            "Error",
-            "Failed to upload payment QR code. Please try again."
-          );
-          setSaving(false);
-          return;
-        }
-      }
-
       // Update profile in database
       const result = await updateUserProfile({
         userId: user.id,
@@ -231,8 +184,6 @@ export default function EditProfileScreen() {
         bio: profileData.bio.trim(),
         address: profileData.address.trim(),
         profile_image: imageUrl || undefined,
-        payment_username: profileData.payment_username.trim(),
-        payment_qr_image: paymentQRUrl || undefined,
       });
 
       if (result.success) {
@@ -257,42 +208,6 @@ export default function EditProfileScreen() {
       return profileData.profile_image;
     }
     return null;
-  };
-
-  const getDisplayPaymentQRUri = () => {
-    if (newPaymentQRUri) return newPaymentQRUri;
-    if (profileData.payment_qr_image) {
-      return profileData.payment_qr_image;
-    }
-    return null;
-  };
-
-  const handlePaymentQRSelect = async () => {
-    try {
-      const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (!permissionResult.granted) {
-        Alert.alert(
-          "Permission Required",
-          "Please allow access to your photos to upload a QR code."
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: false,
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setNewPaymentQRUri(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error("Error picking QR image:", error);
-      Alert.alert("Error", "Failed to pick QR code image. Please try again.");
-    }
   };
 
   if (loading) {
@@ -476,102 +391,6 @@ export default function EditProfileScreen() {
               <CaptionText className="mt-2" style={{ color: "#9CA3AF" }}>
                 Email cannot be changed from here
               </CaptionText>
-            </View>
-
-            {/* Payment Section Divider */}
-            <View className="mb-6 mt-2">
-              <View className="flex-row items-center">
-                <View className="flex-1 h-px bg-[#E5E7EB]" />
-                <BodySemiboldText
-                  className="mx-4"
-                  style={{ color: "#6B7280", fontSize: 12 }}
-                >
-                  PAYMENT DETAILS
-                </BodySemiboldText>
-                <View className="flex-1 h-px bg-[#E5E7EB]" />
-              </View>
-            </View>
-
-            {/* Payment Account Name */}
-            <FormInput
-              label="Payment Account Holder Name"
-              placeholder="e.g., eSewa: 9812345678 or Bank: John Doe"
-              value={profileData.payment_username}
-              onChangeText={(text) =>
-                setProfileData((prev) => ({ ...prev, payment_username: text }))
-              }
-              autoCapitalize="none"
-              required
-              error={errors.payment_username}
-            />
-            <CaptionText className="mb-6 -mt-2" style={{ color: "#6B7280" }}>
-              Enter your eSewa name, bank account name, or payment identifier
-            </CaptionText>
-
-            {/* Payment QR Code */}
-            <View className="mb-6">
-              <View className="flex-row items-center mb-3">
-                <BodySemiboldText style={{ fontSize: 13 }}>
-                  Payment QR Code
-                </BodySemiboldText>
-                <BodySemiboldText style={{ color: "#EF4444", fontSize: 13 }}>
-                  {" "}
-                  *
-                </BodySemiboldText>
-              </View>
-
-              <TouchableOpacity
-                onPress={handlePaymentQRSelect}
-                activeOpacity={0.8}
-                className="rounded-2xl overflow-hidden"
-                style={{
-                  height: 180,
-                  borderWidth: 2,
-                  borderStyle: "dashed",
-                  borderColor: errors.payment_qr_image ? "#EF4444" : "#E5E7EB",
-                }}
-              >
-                {getDisplayPaymentQRUri() ? (
-                  <View className="flex-1 relative">
-                    <Image
-                      source={{ uri: getDisplayPaymentQRUri()! }}
-                      style={{ width: "100%", height: "100%" }}
-                      resizeMode="contain"
-                    />
-                    <View
-                      className="absolute top-2 right-2 bg-white rounded-full p-2"
-                      style={{
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 4,
-                        elevation: 3,
-                      }}
-                    >
-                      <IconSymbol name="square.and.pencil" size={16} color="#3B2F2F" />
-                    </View>
-                  </View>
-                ) : (
-                  <View className="flex-1 justify-center items-center bg-[#FAFAFA]">
-                    <View className="w-14 h-14 rounded-full bg-[#F3F4F6] justify-center items-center mb-3">
-                      <IconSymbol name="qrcode" size={24} color="#9CA3AF" />
-                    </View>
-                    <BodySemiboldText
-                      style={{ color: "#6B7280", fontSize: 14 }}
-                    >
-                      Upload QR Code
-                    </BodySemiboldText>
-                    <CaptionText style={{ color: "#9CA3AF" }} className="mt-1">
-                      Tap to add your payment QR
-                    </CaptionText>
-                  </View>
-                )}
-              </TouchableOpacity>
-              {errors.payment_qr_image && (
-                <CaptionText className="mt-2" style={{ color: "#EF4444" }}>
-                  {errors.payment_qr_image}
-                </CaptionText>
-              )}
             </View>
           </View>
 

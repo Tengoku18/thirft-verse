@@ -1,7 +1,14 @@
 'use client';
 
 import PageLayout from '@/_components/common/PageLayout';
-import { CheckCircle, Camera, Tag, Share2, TrendingUp, Heart } from 'lucide-react';
+import {
+  Camera,
+  CheckCircle,
+  Heart,
+  Share2,
+  Tag,
+  TrendingUp,
+} from 'lucide-react';
 import Link from 'next/link';
 
 const guideSteps = [
@@ -11,7 +18,7 @@ const guideSteps = [
     icon: CheckCircle,
     content: [
       'Sign up with your email and create a secure password',
-      'Choose a unique subdomain that represents your brand (e.g., vintagestyle.thriftverse.com)',
+      'Choose a unique subdomain that represents your brand (e.g., vintagestyle.thriftverse.shop)',
       'Complete your profile with a profile picture and bio',
       'Connect your eSewa account for payments',
     ],
@@ -115,11 +122,11 @@ export default function SellerGuidePage() {
     >
       <div className="py-12">
         {/* Introduction */}
-        <div className="mb-16 rounded-2xl border border-border bg-gradient-to-br from-secondary/5 to-accent-2/5 p-8">
-          <h2 className="font-heading mb-4 text-2xl font-bold text-primary">
+        <div className="border-border from-secondary/5 to-accent-2/5 mb-16 rounded-2xl border bg-gradient-to-br p-8">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             Welcome to Your Thrift Journey!
           </h2>
-          <p className="mb-4 text-lg leading-relaxed text-primary/80">
+          <p className="text-primary/80 mb-4 text-lg leading-relaxed">
             This guide will walk you through everything you need to know to
             start, run, and grow a successful thrift store on ThriftVerse.
             Whether you're selling a few items from your closet or building a
@@ -132,7 +139,7 @@ export default function SellerGuidePage() {
 
         {/* Step-by-Step Guide */}
         <div className="mb-16">
-          <h2 className="font-heading mb-8 text-3xl font-bold text-primary">
+          <h2 className="font-heading text-primary mb-8 text-3xl font-bold">
             Getting Started: Step by Step
           </h2>
           <div className="space-y-12">
@@ -141,15 +148,15 @@ export default function SellerGuidePage() {
               return (
                 <div
                   key={step.step}
-                  className="rounded-2xl border border-border bg-surface p-8"
+                  className="border-border bg-surface rounded-2xl border p-8"
                 >
                   <div className="mb-4 flex items-center gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-secondary text-surface">
+                    <div className="bg-secondary text-surface flex h-12 w-12 shrink-0 items-center justify-center rounded-full">
                       <span className="font-heading text-xl font-bold">
                         {step.step}
                       </span>
                     </div>
-                    <h3 className="font-heading text-2xl font-bold text-primary">
+                    <h3 className="font-heading text-primary text-2xl font-bold">
                       {step.title}
                     </h3>
                   </div>
@@ -157,13 +164,13 @@ export default function SellerGuidePage() {
                   <ul className="mb-6 space-y-3">
                     {step.content.map((item, index) => (
                       <li key={index} className="flex items-start gap-3">
-                        <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
+                        <CheckCircle className="text-secondary mt-0.5 h-5 w-5 shrink-0" />
                         <span className="text-primary/80">{item}</span>
                       </li>
                     ))}
                   </ul>
 
-                  <div className="rounded-lg bg-accent-1/5 p-4">
+                  <div className="bg-accent-1/5 rounded-lg p-4">
                     <div className="flex items-start gap-2">
                       <span className="text-xl">💡</span>
                       <div>
@@ -180,23 +187,23 @@ export default function SellerGuidePage() {
 
         {/* Best Practices */}
         <div className="mb-16">
-          <h2 className="font-heading mb-8 text-3xl font-bold text-primary">
+          <h2 className="font-heading text-primary mb-8 text-3xl font-bold">
             Best Practices for Success
           </h2>
           <div className="grid gap-6 md:grid-cols-3">
             {bestPractices.map((practice, index) => (
               <div
                 key={index}
-                className="rounded-xl border border-border bg-surface p-6"
+                className="border-border bg-surface rounded-xl border p-6"
               >
-                <h3 className="font-heading mb-4 text-xl font-bold text-primary">
+                <h3 className="font-heading text-primary mb-4 text-xl font-bold">
                   {practice.title}
                 </h3>
                 <ul className="space-y-3">
                   {practice.tips.map((tip, tipIndex) => (
                     <li key={tipIndex} className="flex items-start gap-2">
-                      <span className="mt-1 text-secondary">•</span>
-                      <span className="text-sm text-primary/70">{tip}</span>
+                      <span className="text-secondary mt-1">•</span>
+                      <span className="text-primary/70 text-sm">{tip}</span>
                     </li>
                   ))}
                 </ul>
@@ -207,14 +214,15 @@ export default function SellerGuidePage() {
 
         {/* Common Mistakes to Avoid */}
         <div className="mb-16">
-          <h2 className="font-heading mb-8 text-3xl font-bold text-primary">
+          <h2 className="font-heading text-primary mb-8 text-3xl font-bold">
             Common Mistakes to Avoid
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
             {[
               {
                 mistake: 'Poor Quality Photos',
-                solution: 'Invest time in good photography with proper lighting',
+                solution:
+                  'Invest time in good photography with proper lighting',
               },
               {
                 mistake: 'Vague Descriptions',
@@ -231,22 +239,22 @@ export default function SellerGuidePage() {
               },
               {
                 mistake: 'Not Marketing',
-                solution:
-                  'Actively share your store on social media platforms',
+                solution: 'Actively share your store on social media platforms',
               },
               {
                 mistake: 'Inconsistent Inventory',
-                solution: 'Add new items regularly to keep customers coming back',
+                solution:
+                  'Add new items regularly to keep customers coming back',
               },
             ].map((item, index) => (
               <div
                 key={index}
-                className="rounded-lg border border-border bg-surface p-6"
+                className="border-border bg-surface rounded-lg border p-6"
               >
-                <h4 className="mb-2 font-semibold text-primary">
+                <h4 className="text-primary mb-2 font-semibold">
                   ❌ {item.mistake}
                 </h4>
-                <p className="text-sm text-primary/70">
+                <p className="text-primary/70 text-sm">
                   ✅ <strong>Instead:</strong> {item.solution}
                 </p>
               </div>
@@ -255,19 +263,19 @@ export default function SellerGuidePage() {
         </div>
 
         {/* Inspiration Section */}
-        <div className="rounded-2xl bg-gradient-to-br from-primary to-accent-1 p-12 text-center text-surface">
+        <div className="from-primary to-accent-1 text-surface rounded-2xl bg-gradient-to-br p-12 text-center">
           <Heart className="mx-auto mb-6 h-12 w-12" />
           <h2 className="font-heading mb-4 text-3xl font-bold">
             You're Ready to Start!
           </h2>
-          <p className="mx-auto mb-8 max-w-2xl text-lg text-surface/90">
+          <p className="text-surface/90 mx-auto mb-8 max-w-2xl text-lg">
             Remember, every successful seller started exactly where you are now.
             With dedication, great products, and excellent customer service,
             you'll build a thriving business. We're here to support you every
             step of the way!
           </p>
           <Link href="/start-selling">
-            <button className="rounded-lg bg-secondary px-8 py-4 font-semibold text-primary transition-all hover:scale-105 hover:shadow-lg">
+            <button className="bg-secondary text-primary rounded-lg px-8 py-4 font-semibold transition-all hover:scale-105 hover:shadow-lg">
               Create Your Store Now
             </button>
           </Link>

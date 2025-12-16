@@ -94,7 +94,7 @@ export function TabHeader({
                 <IconSymbol name="magnifyingglass" size={24} color="#FFFFFF" />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => router.push("/(tabs)/settings")}
+                onPress={() => router.push("/settings")}
                 className="rounded-full items-center justify-center"
                 style={{
                   shadowColor: "#000",

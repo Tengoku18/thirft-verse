@@ -59,7 +59,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </View>
         </View>
         <TouchableOpacity
-          onPress={() => router.push("/(tabs)/settings")}
+          onPress={() => router.push("/settings")}
           className="w-10 h-10 rounded-full bg-white items-center justify-center"
           style={{
             shadowColor: "#000",

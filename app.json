@@ -4,7 +4,7 @@
     "slug": "thrift-verse",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo/fav-icon.png",
+    "icon": "./assets/logo/splash-screen.png",
     "scheme": "thriftverse",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -15,25 +15,25 @@
       "package": "com.thriftverse.app",
       "versionCode": 2,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo/fav-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "foregroundImage": "./assets/logo/splash-screen.png",
+        "backgroundColor": "#C08B7B"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/logo/fav-icon.png"
+      "favicon": "./assets/logo/splash-screen.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/logo/fav-icon.png",
-          "imageWidth": 150,
+          "image": "./assets/logo/splash-screen.png",
+          "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#C08B7B"
         }
       ],
       "expo-web-browser"
