@@ -34,6 +34,7 @@ interface CodOrderParams {
   buyer_name: string;
   buyer_email: string;
   shipping_address: ShippingAddress;
+  buyer_notes?: string;
 }
 
 interface CodOrderResult {
@@ -120,6 +121,7 @@ export async function initiateEsewaPayment(
         amount: totalAmount,
         quantity: params.quantity,
         shipping_option: params.shippingOption || null,
+        buyer_notes: params.buyer_notes || null,
       });
 
     if (metadataError) {
@@ -369,6 +371,7 @@ export async function createOrderFromPayment(
       shipping_fee: shippingFee,
       shipping_option: metadata.shipping_option || null,
       payment_method: metadata.payment_method || 'eSewa',
+      buyer_notes: metadata.buyer_notes || null,
     });
 
     if (!orderResult.success) {
@@ -499,6 +502,7 @@ export async function createCodOrder(
       transaction_uuid: transactionUuid,
       payment_method: 'Cash on Delivery',
       status: 'pending',
+      buyer_notes: params.buyer_notes,
     });
 
     if (!orderResult.success || !orderResult.order) {
@@ -623,6 +627,7 @@ export async function initiateFonepayPayment(
         quantity: params.quantity,
         payment_method: 'FonePay',
         shipping_option: params.shippingOption || null,
+        buyer_notes: params.buyer_notes || null,
       });
 
     if (metadataError) {

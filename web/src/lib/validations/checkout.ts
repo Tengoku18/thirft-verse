@@ -55,6 +55,13 @@ export const checkoutSchema = yup.object().shape({
     .trim(),
 
   country: yup.string().required('Country is required').default('Nepal'),
+
+  // Optional buyer notes for shopkeeper
+  buyer_notes: yup
+    .string()
+    .max(500, 'Notes must not exceed 500 characters')
+    .trim()
+    .default(''),
 })
 
 export type CheckoutFormData = yup.InferType<typeof checkoutSchema>

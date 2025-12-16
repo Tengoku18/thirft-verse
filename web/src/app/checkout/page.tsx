@@ -4,7 +4,7 @@ import { createCodOrder, initiateEsewaPayment, initiateFonepayPayment } from '@/
 import { getProductById } from '@/actions/products'
 import Button from '@/_components/common/Button'
 import CheckoutStepper, { Step } from '@/_components/CheckoutStepper'
-import { FormInput, FormSelect } from '@/_components/forms'
+import { FormInput, FormSelect, FormTextarea } from '@/_components/forms'
 import PaymentMethodSelector, { PaymentMethod } from '@/_components/PaymentMethodSelector'
 import ShippingOptionSelector, { ShippingOption, getShippingFee } from '@/_components/ShippingOptionSelector'
 import { CheckoutFormData, checkoutSchema } from '@/lib/validations/checkout'
@@ -59,6 +59,7 @@ function CheckoutContent() {
       state: 'Bagmati',
       postal_code: '',
       country: 'Nepal',
+      buyer_notes: '',
     },
   })
 
@@ -180,6 +181,7 @@ function CheckoutContent() {
           buyer_email: data.buyer_email,
           shipping_address: shippingAddress,
           shippingOption: shippingOption,
+          buyer_notes: data.buyer_notes,
         })
 
         if (result.success && result.formHtml) {
@@ -203,6 +205,7 @@ function CheckoutContent() {
           shipping_address: shippingAddress,
           shippingFee: shippingFee,
           shippingOption: shippingOption,
+          buyer_notes: data.buyer_notes,
         })
 
         if (result.success && result.formHtml) {
@@ -226,6 +229,7 @@ function CheckoutContent() {
           buyer_name: data.buyer_name,
           buyer_email: data.buyer_email,
           shipping_address: shippingAddress,
+          buyer_notes: data.buyer_notes,
         })
 
         if (result.success && result.orderId) {
@@ -376,6 +380,20 @@ function CheckoutContent() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Additional Notes */}
+            <div>
+              <h3 className="mb-4 font-heading text-lg font-semibold text-primary">
+                Additional Notes (Optional)
+              </h3>
+              <FormTextarea
+                {...register('buyer_notes')}
+                label="Notes for Shopkeeper"
+                placeholder="Any special instructions or requests for the seller..."
+                error={errors.buyer_notes?.message}
+                rows={3}
+              />
             </div>
           </div>
         )

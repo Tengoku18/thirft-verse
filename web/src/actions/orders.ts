@@ -26,6 +26,7 @@ interface CreateOrderParams {
   shipping_option?: 'home' | 'branch' | null;
   payment_method?: string;
   status?: 'pending' | 'completed' | 'cancelled' | 'refunded';
+  buyer_notes?: string | null;
 }
 
 interface GetOrdersParams {
@@ -69,6 +70,7 @@ export async function createOrder(
         status: params.status || 'pending',
         order_code: orderCode,
         sellers_earning: sellersEarning,
+        buyer_notes: params.buyer_notes || null,
       })
       .select()
       .single();
