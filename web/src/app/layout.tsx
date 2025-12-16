@@ -1,10 +1,10 @@
+import ProgressBar from "@/_components/common/ProgressBar";
 import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import Head from "next/head";
 import { Suspense } from "react";
 import { Toaster } from 'react-hot-toast';
-import ProgressBar from "@/_components/common/ProgressBar";
 import "./globals.css";
 
 const nunitoSans = Nunito_Sans({
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     siteName: "ThriftVerse",
     images: [
       {
-        url: "https://www.thriftverse.shop/images/og.png",
+        url: "https://www.thriftverse.shop/images/horizontal-logo.png",
         width: 1200,
         height: 630,
         alt: "ThriftVerse — Reuse. Resell. Renew."
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     description: "Create your own thrift store and give every item a second life.",
     images: [
       {
-        url: "https://www.thriftverse.shop/images/og.png",
+        url: "https://www.thriftverse.shop/images/horizontal-logo.png",
         alt: "ThriftVerse — Reuse. Resell. Renew."
       }
     ]
@@ -88,13 +88,13 @@ export default function RootLayout({
         {/* Explicit OG meta tags for scrapers */}
         <meta property="og:title" content="ThriftVerse — Your Finds. Your Store. Your Story." />
         <meta property="og:description" content="Create your own thrift store and give every item a second life." />
-        <meta property="og:image" content="https://www.thriftverse.shop/images/og.png" />
+        <meta property="og:image" content="https://www.thriftverse.shop/images/horizontal-logo.png" />
         <meta property="og:url" content="https://www.thriftverse.shop" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="ThriftVerse — Your Finds. Your Store. Your Story." />
         <meta name="twitter:description" content="Create your own thrift store and give every item a second life." />
-        <meta name="twitter:image" content="https://www.thriftverse.shop/images/og.png" />
+        <meta name="twitter:image" content="https://www.thriftverse.shop/images/horizontal-logo.png" />
       </Head>
       <body
         className={`${nunitoSans.variable} ${folito.variable} antialiased`}
