@@ -136,7 +136,7 @@ export default async function Home() {
             <p className="text-base text-primary/60 sm:text-lg">No products available yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-8">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 lg:gap-8">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
