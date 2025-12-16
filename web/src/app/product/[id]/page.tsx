@@ -2,6 +2,7 @@ import { getProductById, getProductsByStoreId } from '@/actions'
 import ProductPurchaseSection from '@/_components/ProductPurchaseSection'
 import ImageGallery from '@/_components/ImageGallery'
 import ProductCard from '@/_components/ProductCard'
+import ExpandableDescription from '@/_components/ExpandableDescription'
 import { ArrowLeft, Store } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -100,12 +101,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {/* Description */}
             {product.description && (
               <div className="mb-6">
-                <h2 className="font-heading mb-2 text-lg font-semibold text-primary">
-                  Description
-                </h2>
-                <p className="leading-relaxed text-primary/80">
-                  {product.description}
-                </p>
+                <ExpandableDescription description={product.description} />
               </div>
             )}
 
@@ -154,7 +150,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
               {relatedProducts.map((relatedProduct) => (
                 <ProductCard
                   key={relatedProduct.id}
