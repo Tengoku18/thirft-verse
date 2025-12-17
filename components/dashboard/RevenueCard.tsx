@@ -7,15 +7,15 @@ import React from "react";
 import { Text, View } from "react-native";
 
 interface RevenueCardProps {
-  totalRevenue: number;
-  completedOrders: number;
-  pendingOrders: number;
+  availableBalance: number;
+  pendingAmount: number;
+  withdrawnAmount: number;
 }
 
 export const RevenueCard: React.FC<RevenueCardProps> = ({
-  totalRevenue,
-  completedOrders,
-  pendingOrders,
+  availableBalance,
+  pendingAmount,
+  withdrawnAmount,
 }) => {
   const formatCurrency = (amount: number): string => {
     if (amount >= 1000000) {
@@ -45,12 +45,12 @@ export const RevenueCard: React.FC<RevenueCardProps> = ({
             <BodyMediumText
               style={{ color: "rgba(255,255,255,0.6)", fontSize: 13 }}
             >
-              Your Earnings
+              Available Balance
             </BodyMediumText>
             <HeadingBoldText
               style={{ color: "#FFFFFF", fontSize: 32, marginTop: 4 }}
             >
-              {formatCurrency(totalRevenue)}
+              {formatCurrency(availableBalance)}
             </HeadingBoldText>
           </View>
           <View
@@ -67,22 +67,18 @@ export const RevenueCard: React.FC<RevenueCardProps> = ({
           <View className="flex-1 flex-row items-center">
             <View
               className="w-8 h-8 rounded-lg items-center justify-center mr-2"
-              style={{ backgroundColor: "rgba(34, 197, 94, 0.2)" }}
+              style={{ backgroundColor: "rgba(245, 158, 11, 0.2)" }}
             >
-              <IconSymbol
-                name="checkmark.circle.fill"
-                size={16}
-                color="#22C55E"
-              />
+              <IconSymbol name="clock.fill" size={16} color="#F59E0B" />
             </View>
             <View>
               <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 16 }}>
-                {completedOrders}
+                {formatCurrency(pendingAmount)}
               </HeadingBoldText>
               <BodyMediumText
                 style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}
               >
-                Completed
+                Pending
               </BodyMediumText>
             </View>
           </View>
@@ -92,18 +88,18 @@ export const RevenueCard: React.FC<RevenueCardProps> = ({
           <View className="flex-1 flex-row items-center">
             <View
               className="w-8 h-8 rounded-lg items-center justify-center mr-2"
-              style={{ backgroundColor: "rgba(245, 158, 11, 0.2)" }}
+              style={{ backgroundColor: "rgba(139, 92, 246, 0.2)" }}
             >
-              <IconSymbol name="clock.fill" size={16} color="#F59E0B" />
+              <IconSymbol name="arrow.up.circle.fill" size={16} color="#A78BFA" />
             </View>
             <View>
               <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 16 }}>
-                {pendingOrders}
+                {formatCurrency(withdrawnAmount)}
               </HeadingBoldText>
               <BodyMediumText
                 style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}
               >
-                Pending
+                Withdrawn
               </BodyMediumText>
             </View>
           </View>

@@ -32,12 +32,18 @@ interface PaymentData {
   payment_qr_image: string | null;
 }
 
+interface WithdrawalRecord {
+  amount: number;
+  settledBy: string;
+  transactionId: string;
+  settlementDate: string;
+}
+
 interface RevenueData {
-  total_earnings?: number;
-  pending_amount?: number;
-  completed_orders?: number;
-  pending_orders?: number;
-  [key: string]: any;
+  pendingAmount: number;
+  confirmedAmount: number;
+  withdrawnAmount: number;
+  withdrawalHistory: WithdrawalRecord[];
 }
 
 const formatPrice = (amount: number) => `Rs. ${amount.toLocaleString()}`;
@@ -81,12 +87,8 @@ export default function EarningsScreen() {
         .single();
 
       if (profile) {
-        if (profile.revenue) {
-          if (typeof profile.revenue === "object") {
-            setRevenue(profile.revenue);
-          } else {
-            setRevenue({ total_earnings: profile.revenue });
-          }
+        if (profile.revenue && typeof profile.revenue === "object") {
+          setRevenue(profile.revenue as RevenueData);
         } else {
           setRevenue(null);
         }
@@ -502,7 +504,7 @@ export default function EarningsScreen() {
           </View>
         </View>
 
-        {/* Total Earnings Card */}
+        {/* Available Balance Card */}
         <View
           className="mx-4 mt-4 bg-white rounded-2xl p-5"
           style={{
@@ -522,10 +524,10 @@ export default function EarningsScreen() {
             </View>
             <View className="flex-1">
               <CaptionText style={{ color: "#6B7280" }}>
-                Total Earnings
+                Available Balance
               </CaptionText>
               <HeadingBoldText style={{ fontSize: 28, color: "#059669" }}>
-                {formatPrice(revenue?.total_earnings || 0)}
+                {formatPrice(revenue?.confirmedAmount || 0)}
               </HeadingBoldText>
             </View>
           </View>
@@ -553,58 +555,7 @@ export default function EarningsScreen() {
             <HeadingBoldText
               style={{ fontSize: 18, marginTop: 2, color: "#F59E0B" }}
             >
-              {formatPrice(revenue?.pending_amount || 0)}
-            </HeadingBoldText>
-          </View>
-          <View
-            className="flex-1 bg-white rounded-2xl p-4"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-              elevation: 3,
-            }}
-          >
-            <View
-              className="w-10 h-10 rounded-xl items-center justify-center mb-2"
-              style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
-            >
-              <IconSymbol
-                name="checkmark.circle.fill"
-                size={18}
-                color="#22C55E"
-              />
-            </View>
-            <CaptionText style={{ color: "#6B7280" }}>Completed</CaptionText>
-            <HeadingBoldText style={{ fontSize: 18, marginTop: 2 }}>
-              {revenue?.completed_orders || 0} orders
-            </HeadingBoldText>
-          </View>
-        </View>
-
-        <View className="flex-row mx-4 mt-3" style={{ gap: 12 }}>
-          <View
-            className="flex-1 bg-white rounded-2xl p-4"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-              elevation: 3,
-            }}
-          >
-            <View
-              className="w-10 h-10 rounded-xl items-center justify-center mb-2"
-              style={{ backgroundColor: "rgba(59, 130, 246, 0.1)" }}
-            >
-              <IconSymbol name="bag.fill" size={18} color="#3B82F6" />
-            </View>
-            <CaptionText style={{ color: "#6B7280" }}>
-              Pending Orders
-            </CaptionText>
-            <HeadingBoldText style={{ fontSize: 18, marginTop: 2 }}>
-              {revenue?.pending_orders || 0}
+              {formatPrice(revenue?.pendingAmount || 0)}
             </HeadingBoldText>
           </View>
           <View
@@ -621,20 +572,109 @@ export default function EarningsScreen() {
               className="w-10 h-10 rounded-xl items-center justify-center mb-2"
               style={{ backgroundColor: "rgba(139, 92, 246, 0.1)" }}
             >
-              <IconSymbol name="chart.bar.fill" size={18} color="#8B5CF6" />
+              <IconSymbol
+                name="arrow.up.circle.fill"
+                size={18}
+                color="#8B5CF6"
+              />
             </View>
-            <CaptionText style={{ color: "#6B7280" }}>Avg. Order</CaptionText>
-            <HeadingBoldText style={{ fontSize: 18, marginTop: 2 }}>
-              {formatPrice(
-                revenue?.completed_orders && revenue?.total_earnings
-                  ? Math.round(
-                      revenue.total_earnings / revenue.completed_orders
-                    )
-                  : 0
-              )}
+            <CaptionText style={{ color: "#6B7280" }}>Withdrawn</CaptionText>
+            <HeadingBoldText style={{ fontSize: 18, marginTop: 2, color: "#8B5CF6" }}>
+              {formatPrice(revenue?.withdrawnAmount || 0)}
             </HeadingBoldText>
           </View>
         </View>
+
+        {/* Withdrawal History Section */}
+        {revenue?.withdrawalHistory && revenue.withdrawalHistory.length > 0 && (
+          <View className="mx-4 mt-6">
+            <BodySemiboldText style={{ fontSize: 16, marginBottom: 12 }}>
+              Withdrawal History
+            </BodySemiboldText>
+            {revenue.withdrawalHistory.map((withdrawal, index) => (
+              <View
+                key={`${withdrawal.transactionId}-${index}`}
+                className="bg-white rounded-2xl p-4 mb-3"
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.06,
+                  shadowRadius: 8,
+                  elevation: 3,
+                }}
+              >
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center flex-1">
+                    <View
+                      className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                      style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
+                    >
+                      <IconSymbol
+                        name="checkmark.circle.fill"
+                        size={20}
+                        color="#22C55E"
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <BodySemiboldText style={{ fontSize: 15 }}>
+                        {formatPrice(withdrawal.amount)}
+                      </BodySemiboldText>
+                      <CaptionText style={{ color: "#6B7280", marginTop: 2 }}>
+                        {withdrawal.transactionId}
+                      </CaptionText>
+                    </View>
+                  </View>
+                  <View className="items-end">
+                    <View className="px-2 py-1 bg-[#D1FAE5] rounded-full">
+                      <CaptionText style={{ color: "#059669", fontWeight: "600", fontSize: 11 }}>
+                        Settled
+                      </CaptionText>
+                    </View>
+                    <CaptionText style={{ color: "#9CA3AF", marginTop: 4, fontSize: 11 }}>
+                      {new Date(withdrawal.settlementDate).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </CaptionText>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Empty Withdrawal History State */}
+        {(!revenue?.withdrawalHistory || revenue.withdrawalHistory.length === 0) && (
+          <View className="mx-4 mt-6">
+            <BodySemiboldText style={{ fontSize: 16, marginBottom: 12 }}>
+              Withdrawal History
+            </BodySemiboldText>
+            <View
+              className="bg-white rounded-2xl p-6 items-center"
+              style={{
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 8,
+                elevation: 3,
+              }}
+            >
+              <View
+                className="w-14 h-14 rounded-full items-center justify-center mb-3"
+                style={{ backgroundColor: "#F3F4F6" }}
+              >
+                <IconSymbol name="clock.arrow.circlepath" size={24} color="#9CA3AF" />
+              </View>
+              <BodyMediumText style={{ color: "#6B7280", textAlign: "center" }}>
+                No withdrawals yet
+              </BodyMediumText>
+              <CaptionText style={{ color: "#9CA3AF", textAlign: "center", marginTop: 4 }}>
+                Your withdrawal history will appear here
+              </CaptionText>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </TabScreenLayout>
   );

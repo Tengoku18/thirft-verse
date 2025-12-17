@@ -23,8 +23,14 @@ import {
   View,
 } from "react-native";
 
+interface ProfileRevenue {
+  pendingAmount: number;
+  confirmedAmount: number;
+  withdrawnAmount: number;
+  withdrawalHistory: any[];
+}
+
 interface Stats {
-  totalRevenue: number;
   totalOrders: number;
   pendingOrders: number;
   completedOrders: number;
@@ -58,7 +64,6 @@ export default function DashboardScreen() {
   const { user } = useAuth();
   const profile = useAppSelector((state) => state.profile.profile);
   const [stats, setStats] = useState<Stats>({
-    totalRevenue: 0,
     totalOrders: 0,
     pendingOrders: 0,
     completedOrders: 0,
@@ -112,22 +117,12 @@ export default function DashboardScreen() {
       const ordersResult = await getOrdersBySeller(user.id);
       const realOrders = ordersResult.success ? ordersResult.data : [];
 
-      let totalRevenue = 0;
       let pendingOrders = 0;
       let completedOrders = 0;
       let totalOrders = 0;
       let orderItems: OrderData[] = [];
 
       if (realOrders.length > 0) {
-        // Use real orders - calculate earnings (amount - shipping_fee)
-        totalRevenue = realOrders.reduce(
-          (sum: number, order: any) => {
-            const shippingFee = order.shipping_fee || 0;
-            const earnings = (order.amount || 0) - shippingFee;
-            return sum + earnings;
-          },
-          0
-        );
         // Pending = only pending status (matches Orders screen filter)
         pendingOrders = realOrders.filter(
           (o: any) => o.status === "pending"
@@ -161,11 +156,6 @@ export default function DashboardScreen() {
         });
 
         if (soldProducts && soldProducts.length > 0) {
-          // For sold products, earnings = price (no shipping fee)
-          totalRevenue = soldProducts.reduce(
-            (sum: number, product: any) => sum + (product.price || 0),
-            0
-          );
           // Calculate pending/completed based on days since sold (7 day threshold)
           soldProducts.forEach((product: any) => {
             const soldDate = dayjs(product.updated_at || product.created_at);
@@ -196,7 +186,6 @@ export default function DashboardScreen() {
       }
 
       setStats({
-        totalRevenue,
         totalOrders,
         pendingOrders,
         completedOrders,
@@ -276,9 +265,9 @@ export default function DashboardScreen() {
         }
       >
         <RevenueCard
-          totalRevenue={stats.totalRevenue}
-          completedOrders={stats.completedOrders}
-          pendingOrders={stats.pendingOrders}
+          availableBalance={(profile?.revenue as ProfileRevenue)?.confirmedAmount || 0}
+          pendingAmount={(profile?.revenue as ProfileRevenue)?.pendingAmount || 0}
+          withdrawnAmount={(profile?.revenue as ProfileRevenue)?.withdrawnAmount || 0}
         />
 
         <QuickActionsSection

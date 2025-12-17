@@ -13,6 +13,20 @@ export interface ProfileConfig {
   requestedForDeletion: boolean;
 }
 
+export interface WithdrawalRecord {
+  amount: number;
+  settledBy: string;
+  transactionId: string;
+  settlementDate: string;
+}
+
+export interface ProfileRevenue {
+  pendingAmount: number;
+  confirmedAmount: number;
+  withdrawnAmount: number;
+  withdrawalHistory: WithdrawalRecord[];
+}
+
 export interface Profile {
   id: string;
   name: string;
@@ -26,6 +40,7 @@ export interface Profile {
   config: ProfileConfig;
   payment_username: string | null;
   payment_qr_image: string | null;
+  revenue: ProfileRevenue | null;
   created_at: string;
   updated_at: string;
 }
