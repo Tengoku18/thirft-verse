@@ -3,15 +3,81 @@ import ProductPurchaseSection from '@/_components/ProductPurchaseSection'
 import ImageGallery from '@/_components/ImageGallery'
 import ProductCard from '@/_components/ProductCard'
 import ExpandableDescription from '@/_components/ExpandableDescription'
+import { formatProductPrice } from '@/utils/formatPrice'
 import { ArrowLeft, Store } from 'lucide-react'
+import { Metadata } from 'next'
+import { headers } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { formatProductPrice } from '@/utils/formatPrice'
 
 interface ProductPageProps {
   params: Promise<{
     id: string
   }>
+}
+
+export async function generateMetadata({
+  params,
+}: ProductPageProps): Promise<Metadata> {
+  const { id } = await params
+  const product = await getProductById({ id })
+
+  if (!product) {
+    return {
+      title: 'Product Not Found | ThriftVerse',
+      description: 'This product does not exist.',
+    }
+  }
+
+  // Get current host to build the URL
+  const headersList = await headers()
+  const host = headersList.get('host') || 'thriftverse.shop'
+  const protocol = host.includes('localhost') ? 'http' : 'https'
+  const productUrl = `${protocol}://${host}/product/${id}`
+
+  const currency = product.store?.currency || 'NPR'
+  const formattedPrice = formatProductPrice(product.price, currency)
+  const title = `${product.title} - ${formattedPrice} | ${product.store?.name || 'ThriftVerse'}`
+  const description =
+    product.description?.slice(0, 160) ||
+    `${product.title} available for ${formattedPrice} at ${product.store?.name || 'ThriftVerse'}.`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: productUrl,
+      siteName: 'ThriftVerse',
+      images: product.cover_image
+        ? [
+            {
+              url: product.cover_image,
+              width: 800,
+              height: 800,
+              alt: product.title,
+            },
+          ]
+        : [
+            {
+              url: 'https://www.thriftverse.shop/images/horizontal-logo.png',
+              width: 1200,
+              height: 630,
+              alt: 'ThriftVerse',
+            },
+          ],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: product.cover_image
+        ? [product.cover_image]
+        : ['https://www.thriftverse.shop/images/horizontal-logo.png'],
+    },
+  }
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {

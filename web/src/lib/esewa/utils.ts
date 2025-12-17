@@ -12,6 +12,7 @@ export interface EsewaPaymentParams {
   buyer_name: string;
   buyer_email: string;
   shipping_address: ShippingAddress;
+  buyer_notes?: string;
 }
 
 export interface EsewaConfig {

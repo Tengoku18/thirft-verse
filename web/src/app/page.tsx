@@ -8,9 +8,76 @@ import {
 import { getSubDomain } from '@/utils/domainHelpers'
 import { pluralize } from '@/utils/textHelpers'
 import { Compass, MapPin, Store } from 'lucide-react'
+import { Metadata } from 'next'
 import { headers } from 'next/headers'
 import Image from 'next/image'
 import Link from 'next/link'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers()
+  const host = headersList.get('host') || ''
+  const hostname = host.split(':')[0]
+  const subdomain = getSubDomain(hostname)
+
+  // Return default metadata for main domain
+  if (subdomain === process.env.NEXT_PUBLIC_DOMAINNAME || subdomain === 'www' || subdomain === '') {
+    return {
+      title: 'ThriftVerse — Your Finds. Your Store. Your Story.',
+      description: 'Create your own thrift store and give every item a second life.',
+    }
+  }
+
+  // Fetch store profile for subdomain
+  const profile = await getProfileByStoreUsername({ storeUsername: subdomain })
+
+  if (!profile) {
+    return {
+      title: 'Store Not Found | ThriftVerse',
+      description: 'This store does not exist.',
+    }
+  }
+
+  const storeUrl = `https://${subdomain}.thriftverse.shop`
+  const title = `${profile.name} | ThriftVerse`
+  const description = profile.bio || `Shop unique thrift finds at ${profile.name}'s store on ThriftVerse.`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: storeUrl,
+      siteName: 'ThriftVerse',
+      images: profile.profile_image
+        ? [
+            {
+              url: profile.profile_image,
+              width: 800,
+              height: 800,
+              alt: profile.name,
+            },
+          ]
+        : [
+            {
+              url: 'https://www.thriftverse.shop/images/horizontal-logo.png',
+              width: 1200,
+              height: 630,
+              alt: 'ThriftVerse',
+            },
+          ],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: profile.profile_image
+        ? [profile.profile_image]
+        : ['https://www.thriftverse.shop/images/horizontal-logo.png'],
+    },
+  }
+}
 
 export default async function Home() {
   const headersList = await headers()

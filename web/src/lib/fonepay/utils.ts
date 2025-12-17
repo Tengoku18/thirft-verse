@@ -12,6 +12,7 @@ export interface FonepayPaymentParams {
   buyer_email: string;
   shipping_address: ShippingAddress;
   remarks?: string;
+  buyer_notes?: string;
 }
 
 export interface FonepayConfig {
