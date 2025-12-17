@@ -14,8 +14,10 @@ import { getOrderById } from "@/lib/database-helpers";
 import { pickImage, takePhoto } from "@/lib/image-picker-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
-import { Product } from "@/lib/types/database";
+import { Product, ProfileRevenue } from "@/lib/types/database";
 import { uploadImageToStorage } from "@/lib/upload-helpers";
+import { useAppDispatch } from "@/store/hooks";
+import { fetchUserProfile } from "@/store/profileSlice";
 import dayjs from "dayjs";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
@@ -416,6 +418,7 @@ export default function SingleOrderScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const toast = useToast();
+  const dispatch = useAppDispatch();
 
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -636,6 +639,49 @@ export default function SingleOrderScreen() {
         Alert.alert("Error", "Failed to update order status.");
         setUploadingBill(false);
         return;
+      }
+
+      // Calculate seller's earnings (95% of product price)
+      const sellerEarnings = Math.round(order.payment.subtotal * 0.95);
+
+      // Fetch current profile revenue and update pendingAmount
+      const { data: profileData, error: profileFetchError } = await supabase
+        .from("profiles")
+        .select("revenue")
+        .eq("id", order.sellerId)
+        .single();
+
+      if (!profileFetchError && profileData) {
+        const currentRevenue = (profileData.revenue as ProfileRevenue) || {
+          pendingAmount: 0,
+          confirmedAmount: 0,
+          withdrawnAmount: 0,
+          withdrawalHistory: [],
+        };
+
+        const updatedRevenue: ProfileRevenue = {
+          ...currentRevenue,
+          pendingAmount: (currentRevenue.pendingAmount || 0) + sellerEarnings,
+        };
+
+        // Update profile with new revenue
+        const { error: revenueUpdateError } = await supabase
+          .from("profiles")
+          .update({
+            revenue: updatedRevenue,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", order.sellerId);
+
+        if (revenueUpdateError) {
+          console.error("Error updating revenue:", revenueUpdateError);
+          // Don't block the flow, just log the error
+        } else {
+          // Refresh profile in Redux store to reflect changes across the app
+          if (user?.id) {
+            dispatch(fetchUserProfile(user.id));
+          }
+        }
       }
 
       // Success!
@@ -907,23 +953,33 @@ export default function SingleOrderScreen() {
             icon="calendar"
           />
           <Row
-            label="Total Payment"
-            value={formatPrice(order.payment.total)}
+            label="Product Price"
+            value={formatPrice(order.payment.subtotal)}
           />
           <Row
-            label="eSewa Charge (2%)"
-            value={`- ${formatPrice(Math.round(order.payment.total * 0.02))}`}
+            label="Service Charge (5%)"
+            value={`- ${formatPrice(Math.round(order.payment.subtotal * 0.05))}`}
           />
-          <Row
-            label="Thriftverse Charge (3%)"
-            value={`- ${formatPrice(Math.round(order.payment.total * 0.03))}`}
-          />
-          <Row
-            label="Your Earnings"
-            value={formatPrice(order.payment.sellersEarning)}
-            highlight
-            last
-          />
+          {/* Earnings Row with green background */}
+          <View
+            className="flex-row items-center justify-between px-4 py-4"
+            style={{ backgroundColor: "#ECFDF5" }}
+          >
+            <View className="flex-row items-center flex-1 mr-3">
+              <IconSymbol
+                name="banknote.fill"
+                size={16}
+                color="#059669"
+                style={{ marginRight: 10 }}
+              />
+              <BodySemiboldText style={{ color: "#059669", fontSize: 14 }}>
+                Your Earnings
+              </BodySemiboldText>
+            </View>
+            <HeadingBoldText style={{ fontSize: 18, color: "#059669" }}>
+              {formatPrice(Math.round(order.payment.subtotal * 0.95))}
+            </HeadingBoldText>
+          </View>
         </Section>
 
         {/* Order Meta */}

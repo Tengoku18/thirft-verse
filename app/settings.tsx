@@ -1,5 +1,5 @@
-import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import { ConfirmModal } from "@/components/molecules/ConfirmModal";
+import { CustomHeader } from "@/components/navigation/CustomHeader";
 import {
   BodyRegularText,
   BodySemiboldText,
@@ -10,7 +10,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { getProfileImageUrl } from "@/lib/storage-helpers";
 import { useAppSelector } from "@/store/hooks";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -105,12 +105,11 @@ function Divider() {
 }
 
 export default function SettingsScreen() {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const router = useRouter();
   // Use Redux store for profile - consistent with AuthContext
   const profile = useAppSelector((state) => state.profile.profile);
   const profileLoading = useAppSelector((state) => state.profile.loading);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -167,16 +166,20 @@ export default function SettingsScreen() {
 
   if (profileLoading) {
     return (
-      <TabScreenLayout title="Settings">
-        <View className="flex-1 bg-[#FAFAFA] justify-center items-center">
+      <View className="flex-1 bg-[#FAFAFA]">
+        <Stack.Screen options={{ headerShown: false }} />
+        <CustomHeader title="Settings" showBackButton />
+        <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#3B2F2F" />
         </View>
-      </TabScreenLayout>
+      </View>
     );
   }
 
   return (
-    <TabScreenLayout title="Settings">
+    <View className="flex-1 bg-[#FAFAFA]">
+      <Stack.Screen options={{ headerShown: false }} />
+      <CustomHeader title="Settings" showBackButton />
       <ScrollView
         className="flex-1 bg-[#FAFAFA]"
         contentContainerStyle={{ paddingBottom: 120, paddingTop: 16 }}
@@ -335,6 +338,6 @@ export default function SettingsScreen() {
         variant="danger"
         icon="trash.fill"
       />
-    </TabScreenLayout>
+    </View>
   );
 }
