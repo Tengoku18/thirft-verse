@@ -958,7 +958,9 @@ export default function SingleOrderScreen() {
           />
           <Row
             label="Service Charge (5%)"
-            value={`- ${formatPrice(Math.round(order.payment.subtotal * 0.05))}`}
+            value={`- ${formatPrice(
+              Math.round(order.payment.subtotal * 0.05)
+            )}`}
           />
           {/* Earnings Row with green background */}
           <View
@@ -1027,7 +1029,7 @@ export default function SingleOrderScreen() {
                 <BodyBoldText
                   style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}
                 >
-                  Mark as Delivered to Store
+                  Mark as Delivered to Courier
                 </BodyBoldText>
               </>
             )}
