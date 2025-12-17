@@ -48,9 +48,18 @@ export async function createOrder(
     // Generate unique order code from transaction UUID with date component
     const orderCode = generateOrderCodeWithDate(params.transaction_uuid);
 
-    // Calculate seller's earning: (amount - shipping_fee) * 0.95 (5% platform fee), rounded
+    // Calculate product cost (amount - shipping_fee)
     const shippingFee = params.shipping_fee || 0;
-    const sellersEarning = Math.round((params.amount - shippingFee) * 0.95);
+    const productCost = params.amount - shippingFee;
+    const paymentMethod = params.payment_method || 'eSewa';
+
+    // Calculate seller's earning (always 95% of product cost)
+    const sellersEarning = Math.round(productCost * 0.95);
+
+    // Calculate platform earnings based on payment method
+    // eSewa: 3% platform fee, COD: 5% platform fee
+    const platformFeeRate = paymentMethod === 'eSewa' ? 0.03 : 0.05;
+    const platformEarnings = Math.round(productCost * platformFeeRate * 100) / 100;
 
     const { data, error } = await supabase
       .from('orders')
@@ -66,10 +75,11 @@ export async function createOrder(
         amount: params.amount,
         shipping_fee: shippingFee,
         shipping_option: params.shipping_option || null,
-        payment_method: params.payment_method || 'eSewa',
+        payment_method: paymentMethod,
         status: params.status || 'pending',
         order_code: orderCode,
         sellers_earning: sellersEarning,
+        platform_earnings: platformEarnings,
         buyer_notes: params.buyer_notes || null,
       })
       .select()

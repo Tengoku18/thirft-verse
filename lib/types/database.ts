@@ -91,14 +91,19 @@ export interface Order {
   order_code: string | null;
   seller_id: string;
   product_id: string;
+  quantity: number;
   buyer_email: string;
   buyer_name: string;
   shipping_address: ShippingAddress;
   transaction_code: string;
   transaction_uuid: string;
   amount: number;
+  shipping_fee: number;
+  shipping_option: 'home' | 'branch' | null;
   payment_method: string;
   status: OrderStatus;
+  sellers_earning: number;
+  platform_earnings: number;
   created_at: string;
   updated_at: string;
 }

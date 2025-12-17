@@ -88,6 +88,7 @@ export interface Order {
   payment_method: string
   status: OrderStatus
   sellers_earning: number
+  platform_earnings: number
   created_at: string
   updated_at: string
 }
