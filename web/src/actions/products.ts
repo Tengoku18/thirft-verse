@@ -37,6 +37,7 @@ export async function getProducts(
     let query = supabase
       .from('products')
       .select('*', { count: 'exact' })
+      .eq('is_active', true)
       .order('created_at', { ascending: false });
 
     // Filter by store ID
@@ -126,6 +127,7 @@ export async function getProductsByStoreUsername(
       .from('products')
       .select('*', { count: 'exact' })
       .eq('store_id', store.id)
+      .eq('is_active', true)
       .order('created_at', { ascending: false });
 
     // Filter by status
@@ -179,6 +181,7 @@ export async function getProductById({
       .from('products')
       .select('*')
       .eq('id', id)
+      .eq('is_active', true)
       .maybeSingle();
 
     if (productError || !product) {
@@ -230,7 +233,8 @@ export async function getProductsCountByStore(
     const { count, error } = await supabase
       .from('products')
       .select('*', { count: 'exact', head: true })
-      .eq('store_id', storeId);
+      .eq('store_id', storeId)
+      .eq('is_active', true);
 
     if (error) {
       console.error('Error fetching products count:', error);
@@ -278,6 +282,7 @@ export async function getProductsByStoreId(
       .from('products')
       .select('*', { count: 'exact' })
       .eq('store_id', storeId)
+      .eq('is_active', true)
       .order('created_at', { ascending: false });
 
     // Filter by status if provided
