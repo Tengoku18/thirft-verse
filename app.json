@@ -2,7 +2,7 @@
   "expo": {
     "name": "ThriftVerse",
     "slug": "thrift-verse",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/logo/splash-screen.png",
     "scheme": "thriftverse",
