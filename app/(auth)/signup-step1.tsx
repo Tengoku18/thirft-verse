@@ -8,7 +8,7 @@ import {
   CaptionText,
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { checkUsernameExists, createUserProfile } from "@/lib/database-helpers";
+import { checkUsernameExists } from "@/lib/database-helpers";
 import { supabase } from "@/lib/supabase";
 import {
   UserDetailsFormData,
@@ -154,18 +154,8 @@ export default function SignupStep1Screen() {
       }
 
       if (authData.user) {
-        // Create profile in database
-        const profileResult = await createUserProfile({
-          userId: authData.user.id,
-          name: data.name,
-          store_username: data.username,
-          profile_image: profileImage || null,
-          address: data.address,
-        });
-
-        if (!profileResult.success) {
-          console.error("Failed to create profile:", profileResult.error);
-        }
+        // Profile is automatically created by database trigger (on_auth_user_created)
+        // using the metadata passed in signUp options above
 
         // Save form data to Redux and persist
         const formData = {

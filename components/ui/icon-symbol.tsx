@@ -38,6 +38,7 @@ const MAPPING: IconMapping = {
   "square.and.arrow.up": "share-outline",
   link: "link",
   eye: "eye",
+  "eye.slash": "eye-off",
   globe: "globe",
   "rectangle.portrait.and.arrow.right.fill": "log-out",
   "arrow.uturn.left.circle.fill": "arrow-undo-circle",

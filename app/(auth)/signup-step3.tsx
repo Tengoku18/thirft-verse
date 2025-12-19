@@ -8,7 +8,7 @@ import {
   HeadingBoldText,
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { updateUserProfile } from "@/lib/database-helpers";
+import { createMissingProfile, updateUserProfile } from "@/lib/database-helpers";
 import { showImagePickerOptions } from "@/lib/image-picker-helpers";
 import { uploadPaymentQRImage } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
@@ -72,6 +72,15 @@ export default function SignupStep3Screen() {
 
       if (!user) {
         setError("User not found. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Ensure profile exists (safety net if database trigger failed)
+      const profileResult = await createMissingProfile();
+      if (!profileResult.success) {
+        console.error("Failed to ensure profile exists:", profileResult.error);
+        setError("Failed to set up your profile. Please try again.");
         setLoading(false);
         return;
       }

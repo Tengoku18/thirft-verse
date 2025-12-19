@@ -124,7 +124,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
                   style={{ marginRight: 8 }}
                 />
                 <BodySemiboldText style={{ color: "#FFFFFF" }}>
-                  Go to Edit Profile
+                  Complete your payment profile
                 </BodySemiboldText>
               </TouchableOpacity>
 

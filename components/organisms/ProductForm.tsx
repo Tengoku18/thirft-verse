@@ -281,8 +281,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
 
   const handleGoToEditProfile = () => {
     setShowCompleteProfileModal(false);
-    // router.push("/edit-profile");
-    router.push("/edit-profile");
+    router.push("/(tabs)/earnings");
   };
 
   const onSubmit = async (data: ProductFormData) => {
