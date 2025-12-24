@@ -11,7 +11,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          position: "absolute",
+          backgroundColor: "transparent",
         },
       }}
     >
@@ -56,7 +56,11 @@ export default function TabLayout() {
         options={{
           title: "Earnings",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color={color} />
+            <IconSymbol
+              size={28}
+              name="chart.line.uptrend.xyaxis"
+              color={color}
+            />
           ),
         }}
       />

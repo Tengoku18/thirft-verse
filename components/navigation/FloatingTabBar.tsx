@@ -89,18 +89,31 @@ export function FloatingTabBar({
         styles.container,
         {
           paddingBottom: Platform.OS === "ios" ? insets.bottom : 16,
+          backgroundColor: Platform.OS === "android" ? "#FAFAFA" : "transparent",
         },
       ]}
     >
       {/* Shadow wrapper (separate from overflow:hidden) */}
-      <View style={styles.shadowWrapper}>
+      <View
+        style={[
+          styles.shadowWrapper,
+          Platform.OS === "android" && styles.androidShadowWrapper,
+        ]}
+      >
         {/* Clipped content wrapper */}
-        <View style={styles.tabBarWrapper}>
-          {/* Blur Background */}
-          <BlurView intensity={60} tint="light" style={styles.blurView} />
+        <View
+          style={[
+            styles.tabBarWrapper,
+            Platform.OS === "android" && styles.androidTabBarWrapper,
+          ]}
+        >
+          {/* Blur Background - iOS only */}
+          {Platform.OS === "ios" && (
+            <BlurView intensity={60} tint="light" style={styles.blurView} />
+          )}
 
-          {/* Glass overlay for better effect */}
-          <View style={styles.glassOverlay} />
+          {/* Glass overlay for iOS */}
+          {Platform.OS === "ios" && <View style={styles.glassOverlay} />}
 
           {/* Tab buttons */}
           <View style={styles.tabBar}>
@@ -181,6 +194,13 @@ const styles = StyleSheet.create({
   tabBarWrapper: {
     borderRadius: 30,
     overflow: "hidden",
+  },
+  androidShadowWrapper: {
+    backgroundColor: "#FFFFFF",
+    elevation: 8,
+  },
+  androidTabBarWrapper: {
+    backgroundColor: "#FFFFFF",
   },
   blurView: {
     ...StyleSheet.absoluteFillObject,

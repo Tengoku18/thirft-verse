@@ -711,7 +711,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
                   value={value?.toString()}
                   onBlur={onBlur}
                   onChangeText={(text) => {
-                    const numValue = parseFloat(text) || 0;
+                    const numValue = parseFloat(text);
                     onChange(numValue);
                   }}
                   error={errors.price?.message}

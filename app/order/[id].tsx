@@ -628,7 +628,7 @@ export default function SingleOrderScreen() {
         .from("orders")
         .update({
           shipping_id: shippingId.trim(),
-          shipping_bill_image: uploadResult.path,
+          shipping_bill_image: uploadResult.url,
           status: "processing",
           updated_at: new Date().toISOString(),
         })
