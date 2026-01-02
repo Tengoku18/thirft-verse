@@ -313,7 +313,8 @@ export async function verifyEsewaPayment(
  * This should be called after payment verification is successful
  */
 export async function createOrderFromPayment(
-  transactionUuid: string
+  transactionUuid: string,
+  transactionCode?: string
 ): Promise<CreateOrderFromPaymentResult> {
   try {
     console.log('Creating order for transaction:', transactionUuid);
@@ -358,6 +359,9 @@ export async function createOrderFromPayment(
     }
 
     // Create order from payment metadata (idempotent - will return existing order if it exists)
+    // Use passed transactionCode first, then metadata, then fallback to transactionUuid
+    const finalTransactionCode = transactionCode || metadata.transaction_code || transactionUuid;
+
     const orderResult = await createOrder({
       seller_id: metadata.seller_id,
       product_id: metadata.product_id,
@@ -365,7 +369,7 @@ export async function createOrderFromPayment(
       buyer_email: metadata.buyer_email,
       buyer_name: metadata.buyer_name,
       shipping_address: metadata.shipping_address,
-      transaction_code: metadata.transaction_code || transactionUuid,
+      transaction_code: finalTransactionCode,
       transaction_uuid: transactionUuid,
       amount: parseFloat(metadata.amount),
       shipping_fee: shippingFee,
@@ -480,14 +484,10 @@ export async function createCodOrder(
       };
     }
 
-    // Generate a unique transaction code for COD
-    const transactionCode = `COD-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
-    const transactionUuid = generateTransactionUuid();
-
     // Calculate total amount (base amount + shipping fee)
     const totalAmount = params.amount + params.shippingFee;
 
-    // Create order directly
+    // Create order directly (no transaction code/uuid needed for COD)
     const orderResult = await createOrder({
       product_id: params.productId,
       seller_id: product.store_id,
@@ -498,8 +498,6 @@ export async function createCodOrder(
       shipping_fee: params.shippingFee,
       shipping_option: params.shippingOption,
       quantity: params.quantity,
-      transaction_code: transactionCode,
-      transaction_uuid: transactionUuid,
       payment_method: 'Cash on Delivery',
       status: 'pending',
       buyer_notes: params.buyer_notes,

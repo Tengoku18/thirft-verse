@@ -84,7 +84,7 @@ export default async function PaymentSuccessPage({
   // Create order and send emails only if payment is verified and not already processed
   let orderCreationError = false
   if (metadata && !metadata.is_processed) {
-    const orderResult = await createOrderFromPayment(transactionUuid)
+    const orderResult = await createOrderFromPayment(transactionUuid, transactionCode)
 
     if (!orderResult.success) {
       console.error('Failed to create order after payment verification:', orderResult.error)
