@@ -4,7 +4,6 @@ import ImageGallery from '@/_components/ImageGallery'
 import ProductCard from '@/_components/ProductCard'
 import ExpandableDescription from '@/_components/ExpandableDescription'
 import { formatProductPrice } from '@/utils/formatPrice'
-import { REVALIDATE_PRODUCT } from '@/lib/constants/cache'
 import { ArrowLeft, Store } from 'lucide-react'
 import { Metadata } from 'next'
 import { headers } from 'next/headers'
@@ -13,10 +12,11 @@ import { notFound } from 'next/navigation'
 
 /**
  * ISR Configuration
- * Revalidate product pages frequently to ensure accurate
+ * Revalidate product pages every 30 seconds to ensure accurate
  * availability and pricing information.
+ * @see /src/lib/constants/cache.ts for documentation
  */
-export const revalidate = REVALIDATE_PRODUCT
+export const revalidate = 30
 
 interface ProductPageProps {
   params: Promise<{

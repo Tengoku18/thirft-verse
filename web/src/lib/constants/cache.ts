@@ -1,43 +1,32 @@
 /**
- * Cache Configuration Constants
+ * Cache Configuration Reference
  *
- * Centralized configuration for Next.js ISR (Incremental Static Regeneration)
- * revalidation times. This allows for consistent cache behavior across the
- * application and easy adjustments in one place.
+ * Documentation for Next.js ISR (Incremental Static Regeneration) revalidation
+ * times used across the application.
+ *
+ * IMPORTANT: Next.js requires `revalidate` exports to be literal number values,
+ * not imported constants. This file serves as documentation and reference.
+ * When updating revalidation times, update both this file AND the page files.
  *
  * @see https://nextjs.org/docs/app/building-your-application/data-fetching/incremental-static-regeneration
+ *
+ * Current Configuration:
+ * ----------------------
+ * | Page Type      | Value | Files                                    |
+ * |----------------|-------|------------------------------------------|
+ * | Listing pages  | 60s   | /explore/page.tsx, /page.tsx             |
+ * | Product pages  | 30s   | /product/[id]/page.tsx                   |
+ * | Static pages   | 3600s | /faqs, /terms, /privacy, etc.            |
  */
 
-/**
- * Revalidation time in seconds for listing pages (explore, store pages).
- * These pages show multiple products and benefit from frequent updates
- * while still maintaining good performance through caching.
- *
- * Default: 60 seconds (1 minute)
- */
+/** Listing pages: 60 seconds */
 export const REVALIDATE_LISTING = 60
 
-/**
- * Revalidation time in seconds for product detail pages.
- * Product details (price, availability) need relatively fresh data
- * to avoid displaying sold-out items as available.
- *
- * Default: 30 seconds
- */
+/** Product detail pages: 30 seconds */
 export const REVALIDATE_PRODUCT = 30
 
-/**
- * Revalidation time in seconds for store/profile pages.
- * Store information changes less frequently than product listings.
- *
- * Default: 60 seconds (1 minute)
- */
+/** Store/profile pages: 60 seconds */
 export const REVALIDATE_STORE = 60
 
-/**
- * Revalidation time in seconds for static content pages
- * (FAQs, Terms, Privacy Policy, etc.)
- *
- * Default: 3600 seconds (1 hour)
- */
+/** Static content pages: 1 hour */
 export const REVALIDATE_STATIC = 3600
