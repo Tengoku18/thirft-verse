@@ -7,11 +7,19 @@ import {
 } from '@/actions'
 import { getSubDomain } from '@/utils/domainHelpers'
 import { pluralize } from '@/utils/textHelpers'
+import { REVALIDATE_STORE } from '@/lib/constants/cache'
 import { Compass, MapPin, Store } from 'lucide-react'
 import { Metadata } from 'next'
 import { headers } from 'next/headers'
 import Image from 'next/image'
 import Link from 'next/link'
+
+/**
+ * ISR Configuration
+ * Revalidate store pages to show fresh product listings
+ * while maintaining good performance through edge caching.
+ */
+export const revalidate = REVALIDATE_STORE
 
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers()

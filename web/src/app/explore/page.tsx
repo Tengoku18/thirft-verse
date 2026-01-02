@@ -1,6 +1,14 @@
 import { getProfiles } from '@/actions'
 import { getAvailableProducts } from '@/actions/products'
 import ExploreContent from '@/_components/explore/ExploreContent'
+import { REVALIDATE_LISTING } from '@/lib/constants/cache'
+
+/**
+ * ISR Configuration
+ * Revalidate this page periodically to ensure fresh product listings
+ * while maintaining good performance through edge caching.
+ */
+export const revalidate = REVALIDATE_LISTING
 
 export default async function ExplorePage() {
   // Fetch all available products and stores in parallel

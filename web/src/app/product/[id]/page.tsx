@@ -4,11 +4,19 @@ import ImageGallery from '@/_components/ImageGallery'
 import ProductCard from '@/_components/ProductCard'
 import ExpandableDescription from '@/_components/ExpandableDescription'
 import { formatProductPrice } from '@/utils/formatPrice'
+import { REVALIDATE_PRODUCT } from '@/lib/constants/cache'
 import { ArrowLeft, Store } from 'lucide-react'
 import { Metadata } from 'next'
 import { headers } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+
+/**
+ * ISR Configuration
+ * Revalidate product pages frequently to ensure accurate
+ * availability and pricing information.
+ */
+export const revalidate = REVALIDATE_PRODUCT
 
 interface ProductPageProps {
   params: Promise<{
