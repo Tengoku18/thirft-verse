@@ -19,8 +19,8 @@ interface CreateOrderParams {
   buyer_email: string;
   buyer_name: string;
   shipping_address: ShippingAddress;
-  transaction_code: string;
-  transaction_uuid: string;
+  transaction_code?: string | null;
+  transaction_uuid?: string | null;
   amount: number;
   shipping_fee?: number;
   shipping_option?: 'home' | 'branch' | null;
@@ -45,8 +45,9 @@ export async function createOrder(
   try {
     const supabase = createServiceRoleClient();
 
-    // Generate unique order code from transaction UUID with date component
-    const orderCode = generateOrderCodeWithDate(params.transaction_uuid);
+    // Generate unique order code - use transaction_uuid if available, otherwise generate random string
+    const orderCodeSeed = params.transaction_uuid || `cod-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const orderCode = generateOrderCodeWithDate(orderCodeSeed);
 
     // Calculate product cost (amount - shipping_fee)
     const shippingFee = params.shipping_fee || 0;
@@ -70,8 +71,8 @@ export async function createOrder(
         buyer_email: params.buyer_email,
         buyer_name: params.buyer_name,
         shipping_address: params.shipping_address,
-        transaction_code: params.transaction_code,
-        transaction_uuid: params.transaction_uuid,
+        transaction_code: params.transaction_code || null,
+        transaction_uuid: params.transaction_uuid || null,
         amount: params.amount,
         shipping_fee: shippingFee,
         shipping_option: params.shipping_option || null,

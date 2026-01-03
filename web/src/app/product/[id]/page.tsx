@@ -10,6 +10,14 @@ import { headers } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+/**
+ * ISR Configuration
+ * Revalidate product pages every 30 seconds to ensure accurate
+ * availability and pricing information.
+ * @see /src/lib/constants/cache.ts for documentation
+ */
+export const revalidate = 30
+
 interface ProductPageProps {
   params: Promise<{
     id: string

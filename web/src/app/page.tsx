@@ -13,6 +13,14 @@ import { headers } from 'next/headers'
 import Image from 'next/image'
 import Link from 'next/link'
 
+/**
+ * ISR Configuration
+ * Revalidate store pages every 60 seconds to show fresh product listings
+ * while maintaining good performance through edge caching.
+ * @see /src/lib/constants/cache.ts for documentation
+ */
+export const revalidate = 60
+
 export async function generateMetadata(): Promise<Metadata> {
   const headersList = await headers()
   const host = headersList.get('host') || ''
