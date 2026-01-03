@@ -2,15 +2,31 @@ import { supabase } from "./supabase";
 import { PaginatedResponse, Product, ProductStatus } from "./types/database";
 
 /**
- * Check if email already exists
- * Note: Client-side email checking is not possible with Supabase auth.
- * Supabase auth handles email uniqueness automatically during signUp.
- * We return false here and let Supabase handle duplicate email errors.
+ * Check if email already exists in auth.users table
+ * Uses RPC function 'check_email_exists' which must be created in Supabase
  */
-export const checkEmailExists = async (email: string): Promise<boolean> => {
-  // Email uniqueness is enforced by Supabase auth during signUp
-  // If a duplicate email is used, signUp will return an error
-  return false;
+export const checkEmailExists = async (
+  email: string
+): Promise<{ exists: boolean; error?: string }> => {
+  try {
+    const { data, error } = await supabase.rpc("check_email_exists", {
+      email_to_check: email.toLowerCase().trim(),
+    });
+
+    if (error) {
+      console.error("Error checking email:", error);
+      // If RPC doesn't exist, fall back to assuming email might exist
+      if (error.code === "PGRST202") {
+        return { exists: true, error: "Email check unavailable" };
+      }
+      return { exists: false, error: error.message };
+    }
+
+    return { exists: !!data };
+  } catch (error) {
+    console.error("Unexpected error checking email:", error);
+    return { exists: false, error: "Failed to check email" };
+  }
 };
 
 /**

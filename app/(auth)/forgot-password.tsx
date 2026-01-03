@@ -8,6 +8,7 @@ import {
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
+import { checkEmailExists } from "@/lib/database-helpers";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -110,6 +111,18 @@ export default function ForgotPasswordScreen() {
     setEmail(data.email);
 
     try {
+      // First check if email exists in the database
+      const emailCheck = await checkEmailExists(data.email);
+
+      if (!emailCheck.exists) {
+        Alert.alert(
+          "Email Not Found",
+          "No account found with this email address. Please check and try again, or create a new account."
+        );
+        setLoading(false);
+        return;
+      }
+
       const { error } = await resetPasswordForEmail(data.email);
 
       if (error) {
