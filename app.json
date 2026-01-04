@@ -2,9 +2,9 @@
   "expo": {
     "name": "ThriftVerse",
     "slug": "thrift-verse",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
-    "icon": "./assets/logo/playstore.png",
+    "icon": "./assets/logo/front-logo.png",
     "scheme": "thriftverse",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -15,8 +15,8 @@
       "package": "com.thriftverse.app",
       "versionCode": 2,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo/transparent-splash-screen.png",
-        "backgroundColor": "#C08B7B"
+        "foregroundImage": "./assets/logo/front-logo.png",
+        "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "resize",
