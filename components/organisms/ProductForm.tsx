@@ -115,7 +115,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
     defaultValues: {
       title: "",
       description: "",
-      price: 0,
+      price: undefined,
       category: "",
       availability_count: undefined,
       cover_image: "",
@@ -706,16 +706,24 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
               render={({ field: { onChange, onBlur, value } }) => (
                 <FormInput
                   label="Pricing"
-                  placeholder="NPR"
+                  placeholder="Enter price in NPR"
                   required
-                  value={value?.toString()}
+                  value={value ? value.toString() : ""}
                   onBlur={onBlur}
                   onChangeText={(text) => {
-                    const numValue = parseFloat(text);
-                    onChange(numValue);
+                    // Only allow numbers and decimal point
+                    const cleanedText = text.replace(/[^0-9.]/g, "");
+                    // Prevent multiple decimal points
+                    const parts = cleanedText.split(".");
+                    const sanitizedText =
+                      parts.length > 2
+                        ? parts[0] + "." + parts.slice(1).join("")
+                        : cleanedText;
+                    const numValue = parseFloat(sanitizedText);
+                    onChange(isNaN(numValue) ? undefined : numValue);
                   }}
                   error={errors.price?.message}
-                  keyboardType="decimal-pad"
+                  keyboardType="numeric"
                 />
               )}
             />
@@ -727,11 +735,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
               render={({ field: { onChange, onBlur, value } }) => (
                 <FormInput
                   label="Quantity"
+                  placeholder="Enter available quantity"
                   required
-                  value={value?.toString()}
+                  value={value ? value.toString() : ""}
                   onBlur={onBlur}
                   onChangeText={(text) => {
-                    const numValue = parseInt(text);
+                    // Only allow whole numbers
+                    const cleanedText = text.replace(/[^0-9]/g, "");
+                    const numValue = parseInt(cleanedText);
                     onChange(isNaN(numValue) ? undefined : numValue);
                   }}
                   error={errors.availability_count?.message}

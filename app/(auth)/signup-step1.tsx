@@ -190,13 +190,19 @@ export default function SignupStep1Screen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior="padding"
       className="flex-1 bg-white"
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
       <View className="flex-1 px-6 pt-12 pb-8">
         <AuthHeader title="Create Account" onBack={() => router.back()} />
 
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View>
             <Controller
               control={control}

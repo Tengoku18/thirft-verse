@@ -83,12 +83,20 @@ export function FloatingTabBar({
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
+  // Calculate bottom padding based on system navigation bar
+  // Use insets.bottom for both platforms, with a minimum padding for aesthetics
+  const minBottomPadding = 12;
+  const bottomPadding = Math.max(insets.bottom, minBottomPadding);
+
+  // Debug: Log insets to understand the values on different devices
+  console.log("Safe Area Insets:", { bottom: insets.bottom, top: insets.top });
+
   return (
     <View
       style={[
         styles.container,
         {
-          paddingBottom: Platform.OS === "ios" ? insets.bottom : 16,
+          paddingBottom: bottomPadding,
           backgroundColor: Platform.OS === "android" ? "#FAFAFA" : "transparent",
         },
       ]}

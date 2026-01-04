@@ -92,9 +92,15 @@ const MAPPING: IconMapping = {
 
   // Analytics
   "chart.bar.fill": "bar-chart",
+  "chart.line.uptrend.xyaxis": "trending-up",
   "arrow.up.right": "trending-up",
   "arrow.down.right": "trending-down",
   "arrow.triangle.2.circlepath": "sync",
+  "arrow.up.circle.fill": "arrow-up-circle",
+
+  // Finance
+  "banknote.fill": "cash-outline",
+  "clock.arrow.circlepath": "time-outline",
 
   // Search
   magnifyingglass: "search",

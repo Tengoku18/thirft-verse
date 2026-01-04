@@ -26,6 +26,7 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { store } from "@/store";
 import { Provider } from "react-redux";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Prevent auto-hiding the splash screen
 SplashScreen.preventAutoHideAsync();
@@ -68,13 +69,14 @@ export default function RootLayout() {
   }
 
   return (
-    <Provider store={store}>
-      <AuthProvider>
-        <ToastProvider>
-          <ThemeProvider
-            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-          >
-            <Stack>
+    <SafeAreaProvider>
+      <Provider store={store}>
+        <AuthProvider>
+          <ToastProvider>
+            <ThemeProvider
+              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -106,11 +108,12 @@ export default function RootLayout() {
               name="edit-product/[id]"
               options={{ headerShown: false }}
             />
-          </Stack>
-            <StatusBar style="dark" />
-          </ThemeProvider>
-        </ToastProvider>
-      </AuthProvider>
-    </Provider>
+              </Stack>
+              <StatusBar style="dark" />
+            </ThemeProvider>
+          </ToastProvider>
+        </AuthProvider>
+      </Provider>
+    </SafeAreaProvider>
   );
 }
