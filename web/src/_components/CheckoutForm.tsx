@@ -52,7 +52,6 @@ export default function CheckoutForm({
       street: '',
       city: '',
       state: 'Bagmati',
-      postal_code: '',
       country: 'Nepal',
     },
   })
@@ -65,7 +64,6 @@ export default function CheckoutForm({
         street: data.street,
         city: data.city,
         state: data.state,
-        postal_code: data.postal_code,
         country: data.country,
         phone: data.phone,
       },
@@ -251,24 +249,14 @@ export default function CheckoutForm({
               />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormInput
-                {...register('postal_code')}
-                label="Postal Code"
-                placeholder="44600"
-                error={errors.postal_code?.message}
-                required
-              />
-
-              <FormInput
-                {...register('country')}
-                label="Country"
-                error={errors.country?.message}
-                required
-                disabled
-                readOnly
-              />
-            </div>
+            <FormInput
+              {...register('country')}
+              label="Country"
+              error={errors.country?.message}
+              required
+              disabled
+              readOnly
+            />
           </div>
         </div>
 

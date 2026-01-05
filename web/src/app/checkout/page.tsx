@@ -57,7 +57,6 @@ function CheckoutContent() {
       street: '',
       city: '',
       state: 'Bagmati',
-      postal_code: '',
       country: 'Nepal',
       buyer_notes: '',
     },
@@ -121,7 +120,7 @@ function CheckoutContent() {
       setCurrentStep(2)
     } else if (currentStep === 2) {
       // Validate form fields
-      const isValid = await trigger(['buyer_name', 'buyer_email', 'phone', 'street', 'city', 'state', 'postal_code'])
+      const isValid = await trigger(['buyer_name', 'buyer_email', 'phone', 'street', 'city', 'state'])
       if (!isValid) {
         toast.error('Please fill in all required fields')
         return
@@ -161,7 +160,6 @@ function CheckoutContent() {
       street: data.street,
       city: data.city,
       state: data.state,
-      postal_code: data.postal_code,
       country: data.country,
       phone: data.phone,
     }
@@ -362,23 +360,14 @@ function CheckoutContent() {
                     ]}
                   />
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <FormInput
-                    {...register('postal_code')}
-                    label="Postal Code"
-                    placeholder="44600"
-                    error={errors.postal_code?.message}
-                    required
-                  />
-                  <FormInput
-                    {...register('country')}
-                    label="Country"
-                    error={errors.country?.message}
-                    required
-                    disabled
-                    readOnly
-                  />
-                </div>
+                <FormInput
+                  {...register('country')}
+                  label="Country"
+                  error={errors.country?.message}
+                  required
+                  disabled
+                  readOnly
+                />
               </div>
             </div>
 
@@ -477,7 +466,7 @@ function CheckoutContent() {
                   <p className="text-primary/70">{getValues('buyer_email')}</p>
                   <p className="text-primary/70">{getValues('phone')}</p>
                   <p className="text-primary/70">
-                    {getValues('street')}, {getValues('city')}, {getValues('state')} {getValues('postal_code')}
+                    {getValues('street')}, {getValues('city')}, {getValues('state')}
                   </p>
                 </div>
               </div>

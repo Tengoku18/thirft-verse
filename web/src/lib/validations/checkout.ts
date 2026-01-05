@@ -47,13 +47,6 @@ export const checkoutSchema = yup.object().shape({
       'Please select a valid province'
     ),
 
-  postal_code: yup
-    .string()
-    .required('Postal code is required')
-    .min(3, 'Postal code must be at least 3 characters')
-    .max(20, 'Postal code must not exceed 20 characters')
-    .trim(),
-
   country: yup.string().required('Country is required').default('Nepal'),
 
   // Optional buyer notes for shopkeeper

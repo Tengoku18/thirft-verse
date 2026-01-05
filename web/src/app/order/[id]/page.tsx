@@ -91,7 +91,7 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
   }
 
   const formatAddress = (address: typeof order.shipping_address) => {
-    return `${address.street}, ${address.city}, ${address.state} ${address.postal_code}, ${address.country}`
+    return `${address.street}, ${address.city}, ${address.state}, ${address.country}`
   }
 
   return (
