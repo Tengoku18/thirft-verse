@@ -4,7 +4,8 @@ import { createCodOrder, initiateEsewaPayment, initiateFonepayPayment } from '@/
 import { getProductById } from '@/actions/products'
 import Button from '@/_components/common/Button'
 import CheckoutStepper, { Step } from '@/_components/CheckoutStepper'
-import { FormInput, FormSelect, FormTextarea } from '@/_components/forms'
+import { FormInput, FormTextarea, FormCombobox } from '@/_components/forms'
+import { districtsOfNepal } from '@/lib/constants/districts'
 import PaymentMethodSelector, { PaymentMethod } from '@/_components/PaymentMethodSelector'
 import ShippingOptionSelector, { ShippingOption, getShippingFee } from '@/_components/ShippingOptionSelector'
 import { CheckoutFormData, checkoutSchema } from '@/lib/validations/checkout'
@@ -47,7 +48,9 @@ function CheckoutContent() {
     register,
     formState: { errors },
     getValues,
+    setValue,
     trigger,
+    watch,
   } = useForm<CheckoutFormData>({
     resolver: yupResolver(checkoutSchema),
     defaultValues: {
@@ -56,7 +59,7 @@ function CheckoutContent() {
       phone: '',
       street: '',
       city: '',
-      state: 'Bagmati',
+      district: '',
       country: 'Nepal',
       buyer_notes: '',
     },
@@ -120,7 +123,7 @@ function CheckoutContent() {
       setCurrentStep(2)
     } else if (currentStep === 2) {
       // Validate form fields
-      const isValid = await trigger(['buyer_name', 'buyer_email', 'phone', 'street', 'city', 'state'])
+      const isValid = await trigger(['buyer_name', 'buyer_email', 'phone', 'street', 'city', 'district'])
       if (!isValid) {
         toast.error('Please fill in all required fields')
         return
@@ -159,7 +162,7 @@ function CheckoutContent() {
     const shippingAddress: ShippingAddress = {
       street: data.street,
       city: data.city,
-      state: data.state,
+      district: data.district,
       country: data.country,
       phone: data.phone,
     }
@@ -344,20 +347,16 @@ function CheckoutContent() {
                     error={errors.city?.message}
                     required
                   />
-                  <FormSelect
-                    {...register('state')}
-                    label="Province"
-                    error={errors.state?.message}
+                  <FormCombobox
+                    label="District"
+                    placeholder="Search district..."
+                    error={errors.district?.message}
                     required
-                    options={[
-                      { value: 'Bagmati', label: 'Bagmati' },
-                      { value: 'Gandaki', label: 'Gandaki' },
-                      { value: 'Karnali', label: 'Karnali' },
-                      { value: 'Koshi', label: 'Koshi' },
-                      { value: 'Lumbini', label: 'Lumbini' },
-                      { value: 'Madhesh', label: 'Madhesh' },
-                      { value: 'Sudurpaschim', label: 'Sudurpaschim' },
-                    ]}
+                    options={[...districtsOfNepal]}
+                    value={watch('district')}
+                    onChange={(value) => {
+                      setValue('district', value, { shouldValidate: true })
+                    }}
                   />
                 </div>
                 <FormInput
@@ -466,7 +465,7 @@ function CheckoutContent() {
                   <p className="text-primary/70">{getValues('buyer_email')}</p>
                   <p className="text-primary/70">{getValues('phone')}</p>
                   <p className="text-primary/70">
-                    {getValues('street')}, {getValues('city')}, {getValues('state')}
+                    {getValues('street')}, {getValues('city')}, {getValues('district')}
                   </p>
                 </div>
               </div>

@@ -1,3 +1,5 @@
 export { FormInput } from './FormInput'
 export { FormSelect } from './FormSelect'
 export { FormTextarea } from './FormTextarea'
+export { FormCombobox } from './FormCombobox'
+export type { FormComboboxRef } from './FormCombobox'

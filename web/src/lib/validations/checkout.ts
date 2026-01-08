@@ -1,4 +1,5 @@
 import * as yup from 'yup'
+import { districtsOfNepal } from '@/lib/constants/districts'
 
 export const checkoutSchema = yup.object().shape({
   // Contact Information
@@ -39,12 +40,12 @@ export const checkoutSchema = yup.object().shape({
     .max(100, 'City must not exceed 100 characters')
     .trim(),
 
-  state: yup
+  district: yup
     .string()
-    .required('Province is required')
+    .required('District is required')
     .oneOf(
-      ['Koshi', 'Madhesh', 'Bagmati', 'Gandaki', 'Lumbini', 'Karnali', 'Sudurpaschim'],
-      'Please select a valid province'
+      districtsOfNepal as unknown as string[],
+      'Please select a valid district'
     ),
 
   country: yup.string().required('Country is required').default('Nepal'),

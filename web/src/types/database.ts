@@ -14,7 +14,7 @@ export interface ProfileConfig {
 export interface ShippingAddress {
   street: string
   city: string
-  state: string
+  district: string
   country: string
   phone: string
 }

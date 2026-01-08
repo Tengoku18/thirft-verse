@@ -1,8 +1,9 @@
 'use client'
 
 import Button from '@/_components/common/Button'
-import { FormInput, FormSelect } from '@/_components/forms'
+import { FormInput, FormCombobox } from '@/_components/forms'
 import { CheckoutFormData, checkoutSchema } from '@/lib/validations/checkout'
+import { districtsOfNepal } from '@/lib/constants/districts'
 import { Product, ShippingAddress } from '@/types/database'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
@@ -43,6 +44,8 @@ export default function CheckoutForm({
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setValue,
+    watch,
   } = useForm<CheckoutFormData>({
     resolver: yupResolver(checkoutSchema),
     defaultValues: {
@@ -51,7 +54,7 @@ export default function CheckoutForm({
       phone: '',
       street: '',
       city: '',
-      state: 'Bagmati',
+      district: '',
       country: 'Nepal',
     },
   })
@@ -63,7 +66,7 @@ export default function CheckoutForm({
       shipping_address: {
         street: data.street,
         city: data.city,
-        state: data.state,
+        district: data.district,
         country: data.country,
         phone: data.phone,
       },
@@ -232,20 +235,16 @@ export default function CheckoutForm({
                 required
               />
 
-              <FormSelect
-                {...register('state')}
-                label="Province"
-                error={errors.state?.message}
+              <FormCombobox
+                label="District"
+                placeholder="Search district..."
+                error={errors.district?.message}
                 required
-                options={[
-                  { value: 'Bagmati', label: 'Bagmati' },
-                  { value: 'Gandaki', label: 'Gandaki' },
-                  { value: 'Karnali', label: 'Karnali' },
-                  { value: 'Koshi', label: 'Koshi' },
-                  { value: 'Lumbini', label: 'Lumbini' },
-                  { value: 'Madhesh', label: 'Madhesh' },
-                  { value: 'Sudurpaschim', label: 'Sudurpaschim' },
-                ]}
+                options={[...districtsOfNepal]}
+                value={watch('district')}
+                onChange={(value) => {
+                  setValue('district', value, { shouldValidate: true })
+                }}
               />
             </div>
 
