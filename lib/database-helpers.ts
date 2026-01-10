@@ -760,3 +760,171 @@ export const createProduct = async (data: CreateProductData) => {
     return { success: false, error };
   }
 };
+
+/**
+ * Get available products for order creation (seller's products)
+ */
+export const getAvailableProductsForOrder = async (sellerId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, title, price, availability_count, cover_image, category")
+      .eq("store_id", sellerId)
+      .eq("status", "available")
+      .gt("availability_count", 0)
+      .order("title", { ascending: true });
+
+    if (error) {
+      console.error("❌ Error fetching products for order:", error);
+      return { success: false, data: [], error };
+    }
+
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error("💥 Error in getAvailableProductsForOrder:", error);
+    return { success: false, data: [], error };
+  }
+};
+
+/**
+ * Create a manual order (seller-initiated)
+ */
+interface CreateManualOrderParams {
+  seller_id: string;
+  product_id: string;
+  quantity: number;
+  buyer_name: string;
+  buyer_email: string;
+  buyer_phone: string;
+  street: string;
+  city: string;
+  district: string;
+  country: string;
+  shipping_fee: number;
+  shipping_option: "home" | "branch";
+  payment_method: "COD" | "Online" | "Manual/Cash Received";
+  buyer_notes?: string;
+  product_price: number;
+}
+
+export const createManualOrder = async (params: CreateManualOrderParams) => {
+  try {
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+      return {
+        success: false,
+        error: { message: "You must be logged in to create an order." },
+      };
+    }
+
+    // Verify seller matches authenticated user
+    if (session.user.id !== params.seller_id) {
+      return {
+        success: false,
+        error: { message: "Cannot create order for another user." },
+      };
+    }
+
+    // Generate order code (format: #TV-YYMMDD-HHMMSS-XXXX)
+    const now = new Date();
+    const timestamp = Date.now();
+    const year = now.getFullYear().toString().substring(2);
+    const month = (now.getMonth() + 1).toString().padStart(2, "0");
+    const day = now.getDate().toString().padStart(2, "0");
+    const hours = now.getHours().toString().padStart(2, "0");
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    const seconds = now.getSeconds().toString().padStart(2, "0");
+    const randomStr = Math.random().toString(36).substring(2, 9);
+    const hash = Math.abs(
+      `${timestamp}-${randomStr}`.split("").reduce((acc, char) => {
+        return (acc << 5) - acc + char.charCodeAt(0);
+      }, 0)
+    );
+    const code = hash
+      .toString(36)
+      .toUpperCase()
+      .substring(0, 4)
+      .padStart(4, "0");
+    const orderCode = `#TV-${year}${month}${day}-${hours}${minutes}${seconds}-${code}`;
+
+    // Calculate amounts
+    const productCost = params.product_price * params.quantity;
+    const totalAmount = productCost + params.shipping_fee;
+
+    // Manual orders always use 5% platform fee (like COD)
+    const platformFee = Math.round(productCost * 0.05);
+    const sellersEarning = productCost - platformFee;
+
+    // Create shipping address object
+    const shippingAddress = {
+      city: params.city,
+      phone: params.buyer_phone,
+      street: params.street,
+      country: params.country,
+      district: params.district,
+    };
+
+    // Insert order
+    const { data: order, error } = await supabase
+      .from("orders")
+      .insert({
+        seller_id: params.seller_id,
+        product_id: params.product_id,
+        quantity: params.quantity,
+        buyer_email: params.buyer_email,
+        buyer_name: params.buyer_name,
+        shipping_address: shippingAddress,
+        transaction_code: null,
+        transaction_uuid: null,
+        amount: totalAmount,
+        shipping_fee: params.shipping_fee,
+        shipping_option: params.shipping_option,
+        payment_method: params.payment_method,
+        status: "pending",
+        order_code: orderCode,
+        sellers_earning: sellersEarning,
+        platform_earnings: platformFee,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("❌ Error creating manual order:", error);
+      return { success: false, error: { message: error.message } };
+    }
+
+    // Update product availability - first check if it's still available
+    const { data: product } = await supabase
+      .from("products")
+      .select("availability_count")
+      .eq("id", params.product_id)
+      .single();
+
+    if (product && product.availability_count >= params.quantity) {
+      const { error: updateError } = await supabase
+        .from("products")
+        .update({
+          availability_count: product.availability_count - params.quantity,
+        })
+        .eq("id", params.product_id);
+
+      if (updateError) {
+        console.warn("⚠️  Failed to update product availability:", updateError);
+        // Don't fail the order, just log the warning
+      }
+    } else {
+      console.warn(
+        "⚠️  Product availability insufficient or not found. Order created but inventory not updated."
+      );
+    }
+
+    return { success: true, data: order };
+  } catch (error) {
+    console.error("💥 Error in createManualOrder:", error);
+    return { success: false, error };
+  }
+};

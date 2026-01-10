@@ -17,7 +17,7 @@ export const StoreLinkCard: React.FC<StoreLinkCardProps> = ({
   };
 
   return (
-    <View className="px-4 mb-4">
+    <View className="px-4 mb-4 mt-2">
       <TouchableOpacity
         onPress={handleOpenStore}
         activeOpacity={0.8}

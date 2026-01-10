@@ -12,6 +12,7 @@ import {
   Modal,
   ScrollView,
   Pressable,
+  TextInput,
 } from "react-native";
 
 export interface PickerOption {
@@ -41,12 +42,24 @@ export const FormPicker: React.FC<FormPickerProps> = ({
   required = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const selectedOption = options.find((opt) => opt.value === value);
 
   const handleSelect = (optionValue: string) => {
     onChange(optionValue);
     setIsOpen(false);
+    setSearchQuery("");
   };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setSearchQuery("");
+  };
+
+  // Filter options based on search query
+  const filteredOptions = options.filter((option) =>
+    option.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <View className="mb-6">
@@ -96,34 +109,61 @@ export const FormPicker: React.FC<FormPickerProps> = ({
         visible={isOpen}
         transparent
         animationType="slide"
-        onRequestClose={() => setIsOpen(false)}
+        onRequestClose={handleClose}
       >
         <Pressable
           className="flex-1 bg-black/50 justify-end"
-          onPress={() => setIsOpen(false)}
+          onPress={handleClose}
         >
           <Pressable
             className="bg-white rounded-t-3xl max-h-[70%]"
             onPress={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <View className="border-b border-[#E5E7EB] px-6 py-5">
-              <View className="flex-row items-center justify-between">
+            <View className="border-b border-[#E5E7EB] px-6 py-4">
+              <View className="flex-row items-center justify-between mb-3">
                 <HeadingBoldText style={{ fontSize: 18 }}>
                   {label || 'Select an option'}
                 </HeadingBoldText>
                 <TouchableOpacity
-                  onPress={() => setIsOpen(false)}
+                  onPress={handleClose}
                   className="w-8 h-8 items-center justify-center"
                 >
                   <IconSymbol name="xmark" size={20} color="#6B7280" />
                 </TouchableOpacity>
               </View>
+
+              {/* Search Input */}
+              {options.length > 5 && (
+                <View className="flex-row items-center bg-[#F3F4F6] rounded-xl px-4 py-2">
+                  <IconSymbol name="magnifyingglass" size={18} color="#6B7280" />
+                  <TextInput
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder="Search..."
+                    placeholderTextColor="#9CA3AF"
+                    className="flex-1 ml-2 text-[#3B2F2F]"
+                    style={{ fontSize: 15, fontFamily: 'NunitoSans_400Regular' }}
+                  />
+                  {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearchQuery("")}>
+                      <IconSymbol name="xmark.circle.fill" size={18} color="#9CA3AF" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
             </View>
 
             {/* Options List */}
             <ScrollView className="px-4 py-2">
-              {options.map((option) => {
+              {filteredOptions.length === 0 ? (
+                <View className="py-8 items-center">
+                  <BodyRegularText style={{ color: "#9CA3AF" }}>
+                    No results found
+                  </BodyRegularText>
+                </View>
+              ) : (
+                filteredOptions.map((option) => {
                 const isSelected = option.value === value;
                 return (
                   <TouchableOpacity
@@ -144,7 +184,7 @@ export const FormPicker: React.FC<FormPickerProps> = ({
                     )}
                   </TouchableOpacity>
                 );
-              })}
+              }))}
             </ScrollView>
           </Pressable>
         </Pressable>

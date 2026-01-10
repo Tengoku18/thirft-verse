@@ -304,37 +304,61 @@ export default function ProductDetailScreen() {
 
           {/* Owner Actions */}
           {isOwner && (
-            <View className="mt-6 flex-row gap-3">
+            <View className="mt-6 gap-3">
+              {/* Create Order Button */}
               <TouchableOpacity
-                onPress={handleEdit}
-                className="flex-1 flex-row items-center justify-center bg-[#F3F4F6] py-4 rounded-xl"
+                onPress={() =>
+                  router.push({
+                    pathname: "/create-order",
+                    params: { productId: product.id },
+                  } as any)
+                }
+                className="flex-row items-center justify-center bg-[#D4A373] py-4 rounded-xl"
                 activeOpacity={0.7}
               >
-                <IconSymbol name="square.and.pencil" size={18} color="#3B2F2F" />
-                <BodySemiboldText style={{ color: "#3B2F2F", marginLeft: 8 }}>
-                  Edit
+                <IconSymbol name="plus.circle" size={18} color="#FFFFFF" />
+                <BodySemiboldText style={{ color: "#FFFFFF", marginLeft: 8 }}>
+                  Create Order
                 </BodySemiboldText>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={handleDeletePress}
-                disabled={deleting}
-                className="flex-1 flex-row items-center justify-center bg-[#FEE2E2] py-4 rounded-xl"
-                activeOpacity={0.7}
-              >
-                {deleting ? (
-                  <ActivityIndicator size="small" color="#DC2626" />
-                ) : (
-                  <>
-                    <IconSymbol name="trash" size={18} color="#DC2626" />
-                    <BodySemiboldText
-                      style={{ color: "#DC2626", marginLeft: 8 }}
-                    >
-                      Delete
-                    </BodySemiboldText>
-                  </>
-                )}
-              </TouchableOpacity>
+              {/* Edit and Delete Row */}
+              <View className="flex-row gap-3">
+                <TouchableOpacity
+                  onPress={handleEdit}
+                  className="flex-1 flex-row items-center justify-center bg-[#F3F4F6] py-4 rounded-xl"
+                  activeOpacity={0.7}
+                >
+                  <IconSymbol
+                    name="square.and.pencil"
+                    size={18}
+                    color="#3B2F2F"
+                  />
+                  <BodySemiboldText style={{ color: "#3B2F2F", marginLeft: 8 }}>
+                    Edit
+                  </BodySemiboldText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleDeletePress}
+                  disabled={deleting}
+                  className="flex-1 flex-row items-center justify-center bg-[#FEE2E2] py-4 rounded-xl"
+                  activeOpacity={0.7}
+                >
+                  {deleting ? (
+                    <ActivityIndicator size="small" color="#DC2626" />
+                  ) : (
+                    <>
+                      <IconSymbol name="trash" size={18} color="#DC2626" />
+                      <BodySemiboldText
+                        style={{ color: "#DC2626", marginLeft: 8 }}
+                      >
+                        Delete
+                      </BodySemiboldText>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </View>

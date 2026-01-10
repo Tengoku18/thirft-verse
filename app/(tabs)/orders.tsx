@@ -336,8 +336,26 @@ export default function OrdersScreen() {
   return (
     <TabScreenLayout title="Orders">
       <View className="flex-1 bg-[#FAFAFA]">
-        {/* Status Filter Tabs */}
+        {/* Status Filter Tabs with Create Button */}
         <View className="px-4 pt-4 pb-2">
+          <View className="flex-row items-center justify-between mb-3">
+            <BodySemiboldText style={{ fontSize: 16 }}>
+              Filter Orders
+            </BodySemiboldText>
+            <TouchableOpacity
+              onPress={() => router.push("/create-order")}
+              className="flex-row items-center bg-[#3B2F2F] px-4 py-2 rounded-full"
+              activeOpacity={0.7}
+            >
+              <IconSymbol name="plus" size={16} color="#FFFFFF" />
+              <BodySemiboldText
+                style={{ color: "#FFFFFF", fontSize: 13, marginLeft: 6 }}
+              >
+                Create Order
+              </BodySemiboldText>
+            </TouchableOpacity>
+          </View>
+
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}

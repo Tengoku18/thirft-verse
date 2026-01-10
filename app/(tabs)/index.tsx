@@ -174,7 +174,13 @@ export default function DashboardScreen() {
             amount: product.price,
             earnings: product.price, // For sold products, earnings = price
             shipping_fee: 0,
-            status: dayjs().diff(dayjs(product.updated_at || product.created_at), "day") > 7 ? "completed" : "pending",
+            status:
+              dayjs().diff(
+                dayjs(product.updated_at || product.created_at),
+                "day"
+              ) > 7
+                ? "completed"
+                : "pending",
             created_at: product.updated_at || product.created_at,
             product: {
               id: product.id,
@@ -251,6 +257,9 @@ export default function DashboardScreen() {
 
   return (
     <TabScreenLayout showTextLogo>
+      {profile?.store_username && (
+        <StoreLinkCard storeUsername={profile.store_username} />
+      )}
       <ScrollView
         className="flex-1 bg-[#FAFAFA]"
         showsVerticalScrollIndicator={false}
@@ -265,9 +274,15 @@ export default function DashboardScreen() {
         }
       >
         <RevenueCard
-          availableBalance={(profile?.revenue as ProfileRevenue)?.confirmedAmount || 0}
-          pendingAmount={(profile?.revenue as ProfileRevenue)?.pendingAmount || 0}
-          withdrawnAmount={(profile?.revenue as ProfileRevenue)?.withdrawnAmount || 0}
+          availableBalance={
+            (profile?.revenue as ProfileRevenue)?.confirmedAmount || 0
+          }
+          pendingAmount={
+            (profile?.revenue as ProfileRevenue)?.pendingAmount || 0
+          }
+          withdrawnAmount={
+            (profile?.revenue as ProfileRevenue)?.withdrawnAmount || 0
+          }
         />
 
         <QuickActionsSection
@@ -290,10 +305,6 @@ export default function DashboardScreen() {
         />
 
         <RecentOrdersSection orders={recentOrders} />
-
-        {profile?.store_username && (
-          <StoreLinkCard storeUsername={profile.store_username} />
-        )}
       </ScrollView>
     </TabScreenLayout>
   );
