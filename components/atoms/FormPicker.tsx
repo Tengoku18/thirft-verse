@@ -18,6 +18,8 @@ import {
 export interface PickerOption {
   label: string;
   value: string;
+  description?: string; // Optional description shown below label
+  searchableText?: string; // Additional text to search through (not displayed)
 }
 
 export interface FormPickerProps {
@@ -56,10 +58,14 @@ export const FormPicker: React.FC<FormPickerProps> = ({
     setSearchQuery("");
   };
 
-  // Filter options based on search query
-  const filteredOptions = options.filter((option) =>
-    option.label.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter options based on search query (search in label, description, and searchableText)
+  const filteredOptions = options.filter((option) => {
+    const query = searchQuery.toLowerCase();
+    const matchesLabel = option.label.toLowerCase().includes(query);
+    const matchesDescription = option.description?.toLowerCase().includes(query);
+    const matchesSearchable = option.searchableText?.toLowerCase().includes(query);
+    return matchesLabel || matchesDescription || matchesSearchable;
+  });
 
   return (
     <View className="mb-6">
@@ -78,15 +84,17 @@ export const FormPicker: React.FC<FormPickerProps> = ({
         className={`h-[58px] px-4 rounded-2xl border-[2px] flex-row items-center justify-between ${
           error
             ? "border-[#EF4444] bg-[#FEF2F2]"
-            : isOpen || selectedOption
-              ? "border-[#3B2F2F] bg-white"
-              : "border-[#E5E7EB] bg-white"
-        } ${disabled ? 'opacity-50' : ''}`}
+            : disabled
+              ? "border-[#E5E7EB] bg-[#F9FAFB]"
+              : isOpen || selectedOption
+                ? "border-[#3B2F2F] bg-white"
+                : "border-[#E5E7EB] bg-white"
+        }`}
         activeOpacity={0.7}
       >
         <BodyRegularText
           className="flex-1"
-          style={{ color: selectedOption ? '#3B2F2F' : '#9CA3AF', fontSize: 15 }}
+          style={{ color: disabled ? '#6B7280' : (selectedOption ? '#3B2F2F' : '#9CA3AF'), fontSize: 15 }}
         >
           {selectedOption?.label || placeholder}
         </BodyRegularText>
@@ -174,11 +182,25 @@ export const FormPicker: React.FC<FormPickerProps> = ({
                     }`}
                     activeOpacity={0.7}
                   >
-                    <BodyRegularText
-                      style={{ color: isSelected ? '#FFFFFF' : '#3B2F2F', fontSize: 16 }}
-                    >
-                      {option.label}
-                    </BodyRegularText>
+                    <View className="flex-1 mr-2">
+                      <BodyRegularText
+                        style={{ color: isSelected ? '#FFFFFF' : '#3B2F2F', fontSize: 16 }}
+                      >
+                        {option.label}
+                      </BodyRegularText>
+                      {option.description && (
+                        <BodyRegularText
+                          style={{
+                            color: isSelected ? '#E5E7EB' : '#6B7280',
+                            fontSize: 13,
+                            marginTop: 4,
+                            lineHeight: 18
+                          }}
+                        >
+                          {option.description}
+                        </BodyRegularText>
+                      )}
+                    </View>
                     {isSelected && (
                       <IconSymbol name="checkmark" size={20} color="#FFFFFF" />
                     )}

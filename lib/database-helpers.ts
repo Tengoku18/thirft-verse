@@ -928,3 +928,31 @@ export const createManualOrder = async (params: CreateManualOrderParams) => {
     return { success: false, error };
   }
 };
+
+/**
+ * Update order with NCM tracking information
+ */
+export const updateOrderWithNCM = async (
+  orderId: string,
+  ncmOrderId: number
+) => {
+  try {
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        ncm_order_id: ncmOrderId,
+        ncm_status: "sent_to_ncm",
+      })
+      .eq("id", orderId);
+
+    if (error) {
+      console.error("❌ Error updating order with NCM info:", error);
+      return { success: false, error };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("💥 Error in updateOrderWithNCM:", error);
+    return { success: false, error };
+  }
+};

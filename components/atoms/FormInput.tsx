@@ -48,12 +48,14 @@ export const FormInput = React.forwardRef<TextInput, FormInputProps>(
             } px-4 ${isPasswordField ? "pr-12" : ""} rounded-2xl border-[2px] text-[15px] font-[NunitoSans_400Regular] ${
               error
                 ? "border-[#EF4444] bg-[#FEF2F2]"
-                : isFocused
-                  ? "border-[#3B2F2F] bg-white"
-                  : "border-[#E5E7EB] bg-white"
+                : props.editable === false
+                  ? "border-[#E5E7EB] bg-[#F9FAFB]"
+                  : isFocused
+                    ? "border-[#3B2F2F] bg-white"
+                    : "border-[#E5E7EB] bg-white"
             } ${className || ""}`}
             style={{
-              color: textColor,
+              color: props.editable === false ? '#6B7280' : textColor,
               textAlignVertical: props.multiline ? 'top' : 'center',
             }}
             placeholderTextColor="#9CA3AF"

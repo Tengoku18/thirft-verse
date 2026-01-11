@@ -8,9 +8,10 @@ import {
   HeadingBoldText,
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { NCMOrderModal } from "@/components/modals/NCMOrderModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
-import { getOrderById } from "@/lib/database-helpers";
+import { getOrderById, updateOrderWithNCM } from "@/lib/database-helpers";
 import { pickImage, takePhoto } from "@/lib/image-picker-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
@@ -69,8 +70,7 @@ interface OrderDetail {
     address: {
       street: string;
       city: string;
-      state: string;
-      postalCode: string;
+      district: string;
       country: string;
     } | null;
   };
@@ -431,6 +431,9 @@ export default function SingleOrderScreen() {
   const [billImageUri, setBillImageUri] = useState<string | null>(null);
   const [uploadingBill, setUploadingBill] = useState(false);
 
+  // NCM modal state
+  const [showNCMModal, setShowNCMModal] = useState(false);
+
   // Load data
   const loadOrder = useCallback(async () => {
     if (!id) return;
@@ -470,8 +473,7 @@ export default function SingleOrderScreen() {
               ? {
                   street: o.shipping_address.street,
                   city: o.shipping_address.city,
-                  state: o.shipping_address.state,
-                  postalCode: o.shipping_address.postal_code,
+                  district: o.shipping_address.district,
                   country: o.shipping_address.country,
                 }
               : null,
@@ -554,18 +556,6 @@ export default function SingleOrderScreen() {
   }, [loadOrder]);
 
   // Actions
-  const handleMarkDelivered = () => {
-    if (!order || order.type !== "order") {
-      Alert.alert(
-        "Info",
-        "Status can only be updated for orders with full details."
-      );
-      return;
-    }
-    // Open the shipping confirmation modal
-    setShowShippingModal(true);
-  };
-
   const handlePickBillImage = () => {
     Alert.alert("Select Bill Image", "Choose an option", [
       {
@@ -702,6 +692,26 @@ export default function SingleOrderScreen() {
     setShowShippingModal(false);
     setShippingId("");
     setBillImageUri(null);
+  };
+
+  const handleNCMOrderSuccess = async (ncmOrderId: number) => {
+    if (!order) return;
+
+    try {
+      const result = await updateOrderWithNCM(order.id, ncmOrderId);
+      if (result.success) {
+        toast.success("Order successfully moved to NCM!");
+        loadOrder(); // Reload order data
+      } else {
+        Alert.alert(
+          "Warning",
+          "NCM order created but failed to update local record. Please note the NCM Order ID: " +
+            ncmOrderId
+        );
+      }
+    } catch (error) {
+      console.error("Error updating order with NCM:", error);
+    }
   };
 
   const handleContact = (type: "email" | "phone") => {
@@ -926,11 +936,7 @@ export default function SingleOrderScreen() {
             />
             <Row label="Street" value={order.shipping.address.street} />
             <Row label="City" value={order.shipping.address.city} />
-            <Row label="State" value={order.shipping.address.state} />
-            <Row
-              label="Postal Code"
-              value={order.shipping.address.postalCode}
-            />
+            <Row label="District" value={order.shipping.address.district} />
             <Row label="Country" value={order.shipping.address.country} last />
           </Section>
         )}
@@ -996,7 +1002,7 @@ export default function SingleOrderScreen() {
         </Section>
       </ScrollView>
 
-      {/* Action Button */}
+      {/* Action Buttons */}
       {canMarkDelivered && (
         <View
           className="absolute bottom-0 left-0 right-0 bg-white px-4 pt-4 pb-8"
@@ -1010,40 +1016,25 @@ export default function SingleOrderScreen() {
             elevation: 10,
           }}
         >
+          {/* Move to NCM Button */}
           <TouchableOpacity
-            onPress={handleMarkDelivered}
+            onPress={() => setShowNCMModal(true)}
             disabled={updating}
-            className="bg-[#3B2F2F] rounded-xl py-4 flex-row items-center justify-center"
+            className="bg-[#D4A373] rounded-xl py-4 flex-row items-center justify-center"
             style={{ opacity: updating ? 0.7 : 1 }}
             activeOpacity={0.8}
           >
-            {updating ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <>
-                <IconSymbol
-                  name="checkmark.circle.fill"
-                  size={20}
-                  color="#FFFFFF"
-                />
-                <BodyBoldText
-                  style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}
-                >
-                  Mark as Delivered to Courier
-                </BodyBoldText>
-              </>
-            )}
+            <IconSymbol
+              name="paperplane.fill"
+              size={20}
+              color="#FFFFFF"
+            />
+            <BodyBoldText
+              style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}
+            >
+              Move to NCM
+            </BodyBoldText>
           </TouchableOpacity>
-          <CaptionText
-            style={{
-              color: "#9CA3AF",
-              textAlign: "center",
-              marginTop: 8,
-              fontSize: 12,
-            }}
-          >
-            Confirm when item is handed to delivery partner
-          </CaptionText>
         </View>
       )}
 
@@ -1207,6 +1198,32 @@ export default function SingleOrderScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* NCM Order Modal */}
+      {order && (
+        <NCMOrderModal
+          visible={showNCMModal}
+          onClose={() => setShowNCMModal(false)}
+          onSuccess={handleNCMOrderSuccess}
+          orderData={{
+            orderId: order.id,
+            orderCode: order.orderCode,
+            buyerName: order.buyer.name,
+            buyerPhone: order.buyer.phone,
+            shippingAddress: order.shipping.address || {
+              street: "",
+              city: "",
+              district: "",
+              country: "Nepal",
+              phone: order.buyer.phone,
+            },
+            productTitle: order.product.title,
+            totalAmount: order.payment.total,
+            shippingFee: order.shipping.fee,
+            notes: "",
+          }}
+        />
+      )}
     </View>
   );
 }
