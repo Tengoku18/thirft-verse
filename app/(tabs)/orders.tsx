@@ -210,7 +210,7 @@ export default function OrdersScreen() {
 
   // Set filter from query params
   useEffect(() => {
-    if (filter === "pending" || filter === "completed") {
+    if (filter === "pending" || filter === "processing" || filter === "completed") {
       setStatusFilter(filter);
     }
   }, [filter]);

@@ -942,6 +942,8 @@ export const updateOrderWithNCM = async (
       .update({
         ncm_order_id: ncmOrderId,
         ncm_status: "sent_to_ncm",
+        status: "processing",
+        updated_at: new Date().toISOString(),
       })
       .eq("id", orderId);
 

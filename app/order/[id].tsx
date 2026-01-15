@@ -701,7 +701,7 @@ export default function SingleOrderScreen() {
       const result = await updateOrderWithNCM(order.id, ncmOrderId);
       if (result.success) {
         toast.success("Order successfully moved to NCM!");
-        loadOrder(); // Reload order data
+        router.replace("/orders?filter=processing");
       } else {
         Alert.alert(
           "Warning",

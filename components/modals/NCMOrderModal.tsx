@@ -1,10 +1,8 @@
 import {
   BodyBoldText,
   BodyMediumText,
-  BodyRegularText,
-  BodySemiboldText,
   CaptionText,
-  HeadingBoldText,
+  HeadingBoldText
 } from "@/components/Typography";
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
@@ -23,10 +21,9 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  Pressable,
   ScrollView,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 interface NCMOrderModalProps {
@@ -53,9 +50,9 @@ interface NCMOrderModalProps {
 }
 
 const deliveryTypeOptions: PickerOption[] = [
-  { label: "Door to Door (NCM Pickup & Delivery)", value: "Door2Door" },
+  // { label: "Door to Door (NCM Pickup & Delivery)", value: "Door2Door" },
   { label: "Branch to Door (Drop at Branch, NCM Delivers)", value: "Branch2Door" },
-  { label: "Door to Branch (NCM Pickup, Collect at Branch)", value: "Door2Branch" },
+  // { label: "Door to Branch (NCM Pickup, Collect at Branch)", value: "Door2Branch" },
   {
     label: "Branch to Branch (Drop & Collect at Branch)",
     value: "Branch2Branch",
@@ -88,7 +85,7 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
   const [fromBranch, setFromBranch] = useState("");
   const [destinationBranch, setDestinationBranch] = useState("");
   const [packageName, setPackageName] = useState(orderData.productTitle);
-  const [deliveryType, setDeliveryType] = useState<string>("Door2Door");
+  const [deliveryType, setDeliveryType] = useState<string>("Branch2Door");
   const [weight, setWeight] = useState("1");
   const [instruction, setInstruction] = useState(orderData.notes || "");
   const [codCharge, setCodCharge] = useState(orderData.totalAmount.toString());
@@ -159,7 +156,6 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
         fbranch: fromBranch,
         branch: destinationBranch,
         package: packageName.trim() || undefined,
-        vref_id: orderData.orderCode, // Use our order code as vendor reference
         instruction: instruction.trim() || undefined,
         delivery_type: deliveryType as any,
         weight: weight || undefined,
@@ -330,7 +326,6 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
                   options={deliveryTypeOptions}
                   placeholder="Select delivery type"
                   required
-                  disabled={true}
                 />
 
                 <FormInput

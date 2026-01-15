@@ -1,8 +1,25 @@
 // NCM (Nepal Can Move) API Integration
 // API Documentation: https://demo.nepalcanmove.com/api/v2/
 
+import axios, { AxiosError } from "axios";
+
 const NCM_API_BASE_URL = "https://demo.nepalcanmove.com/api";
-const NCM_API_TOKEN = process.env.EXPO_PUBLIC_NCM_API_TOKEN || "009d25035b2da1b4533b0f2cbfe1877d510aaa7e";
+const NCM_API_TOKEN = process.env.EXPO_PUBLIC_NCM_API_TOKEN;
+
+// Create axios instance with default config
+const ncmApi = axios.create({
+  baseURL: NCM_API_BASE_URL,
+  headers: {
+    Authorization: `Token ${NCM_API_TOKEN}`,
+  },
+});
+
+const ncmApiForBranches = axios.create({
+  baseURL: NCM_API_BASE_URL,
+  headers: {
+    Authorization: `Bearer ${NCM_API_TOKEN}`,
+  },
+});
 
 export interface NCMBranch {
   pk: number;
@@ -37,29 +54,43 @@ export interface NCMCreateOrderParams {
 export interface NCMOrderResponse {
   Message: string;
   orderid: number;
+  weight: number;
+  delivery_charge: number;
+  delivery_type: string;
 }
+
+export interface NCMErrorResponse {
+  Error?: Record<string, string[]>;
+  detail?: string;
+  message?: string;
+}
+
+const parseNCMError = (error: AxiosError<NCMErrorResponse>): string => {
+  const errorData = error.response?.data;
+  if (errorData?.Error) {
+    return Object.entries(errorData.Error)
+      .map(([key, values]) =>
+        `${key}: ${Array.isArray(values) ? values.join(", ") : values}`
+      )
+      .join("; ");
+  }
+  return errorData?.detail || errorData?.message || error.message;
+};
 
 /**
  * Fetch all NCM branches
  */
 export const fetchNCMBranches = async () => {
   try {
-    const response = await fetch(`${NCM_API_BASE_URL}/v2/branches`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${NCM_API_TOKEN}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return { success: true, data: data as NCMBranch[] };
+    const { data } = await ncmApiForBranches.get<NCMBranch[]>("/v2/branches");
+    return { success: true, data };
   } catch (error) {
     console.error("Error fetching NCM branches:", error);
-    return { success: false, error, data: [] };
+    const message =
+      error instanceof AxiosError
+        ? parseNCMError(error)
+        : "Failed to fetch branches";
+    return { success: false, error: message, data: [] };
   }
 };
 
@@ -68,35 +99,19 @@ export const fetchNCMBranches = async () => {
  */
 export const createNCMOrder = async (params: NCMCreateOrderParams) => {
   try {
-    const response = await fetch(`${NCM_API_BASE_URL}/v1/order/create`, {
-      method: "POST",
-      headers: {
-        Authorization: `Token ${NCM_API_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(params),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      // Handle validation errors
-      if (response.status === 400 && data.Error) {
-        const errors = Object.entries(data.Error)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(", ");
-        throw new Error(errors);
-      }
-      throw new Error(data.detail || `HTTP error! status: ${response.status}`);
-    }
-
-    return { success: true, data: data as NCMOrderResponse };
+    const { data } = await ncmApi.post<NCMOrderResponse>(
+      "/v1/order/create",
+      params
+    );
+    console.log("Response from NCM create order:", data);
+    return { success: true, data };
   } catch (error) {
     console.error("Error creating NCM order:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to create NCM order",
-    };
+    const message =
+      error instanceof AxiosError
+        ? parseNCMError(error)
+        : "Failed to create NCM order";
+    return { success: false, error: message };
   }
 };
 
@@ -109,24 +124,16 @@ export const getNCMDeliveryCharges = async (
   type: "Door2Door" | "Branch2Door" | "Branch2Branch" | "Door2Branch" = "Door2Door"
 ) => {
   try {
-    const response = await fetch(
-      `${NCM_API_BASE_URL}/v1/shipping-rate?creation=${creation}&destination=${destination}&type=${type}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${NCM_API_TOKEN}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const { data } = await ncmApi.get("/v1/shipping-rate", {
+      params: { creation, destination, type },
+    });
     return { success: true, data };
   } catch (error) {
     console.error("Error fetching delivery charges:", error);
-    return { success: false, error };
+    const message =
+      error instanceof AxiosError
+        ? parseNCMError(error)
+        : "Failed to fetch delivery charges";
+    return { success: false, error: message };
   }
 };
