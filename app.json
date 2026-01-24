@@ -4,7 +4,7 @@
     "slug": "thrift-verse",
     "version": "1.0.3",
     "orientation": "portrait",
-    "icon": "./assets/logo/front-logo.png",
+    "icon": "./assets/logo/ios-app-icon.png",
     "scheme": "thriftverse",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -15,7 +15,8 @@
       "package": "com.thriftverse.app",
       "versionCode": 2,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo/front-logo.png",
+        "foregroundImage": "./assets/logo/android-icon1.png",
+        "backgroundImage": "./assets/logo/android-base1.png",
         "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true,
@@ -24,7 +25,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/logo/splash-screen.png"
+      "favicon": "./assets/logo/fav-icon.png"
     },
     "plugins": [
       "expo-router",
