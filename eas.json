@@ -37,8 +37,7 @@
         "track": "production"
       },
       "ios": {
-        "appleId": "your-apple-id@email.com",
-        "ascAppId": "your-app-store-connect-app-id"
+        "ascAppId": "6758267809"
       }
     }
   }

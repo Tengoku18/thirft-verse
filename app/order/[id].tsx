@@ -1,3 +1,4 @@
+import { NCMOrderModal } from "@/components/modals/NCMOrderModal";
 import { CustomHeader } from "@/components/navigation/CustomHeader";
 import {
   BodyBoldText,
@@ -8,7 +9,6 @@ import {
   HeadingBoldText,
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { NCMOrderModal } from "@/components/modals/NCMOrderModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { getOrderById, updateOrderWithNCM } from "@/lib/database-helpers";
@@ -34,6 +34,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // ============================================================================
 // TYPES
@@ -419,6 +420,7 @@ export default function SingleOrderScreen() {
   const router = useRouter();
   const toast = useToast();
   const dispatch = useAppDispatch();
+  const insets = useSafeAreaInsets();
 
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -781,7 +783,11 @@ export default function SingleOrderScreen() {
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: canMarkDelivered ? 140 : 40 }}
+        contentContainerStyle={{
+          paddingBottom: canMarkDelivered
+            ? 100 + Math.max(insets.bottom, 16)
+            : 40 + insets.bottom,
+        }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -1005,8 +1011,11 @@ export default function SingleOrderScreen() {
       {/* Action Buttons */}
       {canMarkDelivered && (
         <View
-          className="absolute bottom-0 left-0 right-0 bg-white px-4 pt-4 pb-8"
+          className="absolute bottom-0 left-0 right-0 bg-white px-4 pt-4"
           style={{
+            // Calculate bottom padding based on system navigation bar
+            // Use insets.bottom with a minimum padding for aesthetics
+            paddingBottom: Math.max(insets.bottom, 16),
             borderTopWidth: 1,
             borderTopColor: "#F3F4F6",
             shadowColor: "#000",
@@ -1210,13 +1219,18 @@ export default function SingleOrderScreen() {
             orderCode: order.orderCode,
             buyerName: order.buyer.name,
             buyerPhone: order.buyer.phone,
-            shippingAddress: order.shipping.address || {
-              street: "",
-              city: "",
-              district: "",
-              country: "Nepal",
-              phone: order.buyer.phone,
-            },
+            shippingAddress: order.shipping.address
+              ? {
+                  ...order.shipping.address,
+                  phone: order.buyer.phone,
+                }
+              : {
+                  street: "",
+                  city: "",
+                  district: "",
+                  country: "Nepal",
+                  phone: order.buyer.phone,
+                },
             productTitle: order.product.title,
             totalAmount: order.payment.total,
             shippingFee: order.shipping.fee,

@@ -164,15 +164,6 @@ export default function SignInScreen() {
           </View>
 
           <View className="flex-1">
-            {/* Error message */}
-            {errorMessage && (
-              <View className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
-                <BodyRegularText style={{ color: "#EF4444", fontSize: 14 }}>
-                  {errorMessage}
-                </BodyRegularText>
-              </View>
-            )}
-
             {/* Email */}
             <Controller
               control={control}
@@ -225,6 +216,15 @@ export default function SignInScreen() {
                 <BodySemiboldText>Forgot Password?</BodySemiboldText>
               </TouchableOpacity>
             </Link>
+
+            {/* Error message */}
+            {errorMessage && (
+              <View className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
+                <BodyRegularText style={{ color: "#EF4444", fontSize: 14 }}>
+                  {errorMessage}
+                </BodyRegularText>
+              </View>
+            )}
 
             {/* Sign In Button */}
             <FormButton

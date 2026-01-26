@@ -8,8 +8,11 @@
     "scheme": "thriftverse",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.thriftverse.app"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.thriftverse.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.thriftverse.app",
