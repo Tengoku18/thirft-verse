@@ -28,6 +28,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  Platform,
   RefreshControl,
   ScrollView,
   TextInput,
@@ -211,10 +212,19 @@ export default function ExploreScreen() {
       >
         <IconSymbol name="chevron.left" size={20} color="#3B2F2F" />
       </TouchableOpacity>
-      <View className="flex-1 flex-row items-center bg-[#F5F5F5] rounded-xl px-4 py-3">
+      <View
+        className="flex-1 flex-row items-center bg-[#F5F5F5] rounded-xl px-4"
+        style={{ height: 48 }}
+      >
         <Ionicons name="search" size={20} color="#9CA3AF" />
         <TextInput
-          className="flex-1 text-[15px] text-[#3B2F2F] ml-2"
+          className="flex-1 ml-3"
+          style={{
+            fontSize: 15,
+            color: "#3B2F2F",
+            height: Platform.OS === "android" ? 48 : "100%",
+            paddingVertical: Platform.OS === "android" ? 0 : undefined,
+          }}
           placeholder={`Search ${activeTab}...`}
           value={searchQuery}
           onChangeText={setSearchQuery}

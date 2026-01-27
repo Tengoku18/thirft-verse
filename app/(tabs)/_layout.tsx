@@ -29,7 +29,7 @@ export default function TabLayout() {
         options={{
           title: "My Products",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="bag.fill" color={color} />
+            <IconSymbol size={28} name="shippingbox.fill" color={color} />
           ),
         }}
       />
@@ -47,7 +47,7 @@ export default function TabLayout() {
         options={{
           title: "Orders",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="shippingbox.fill" color={color} />
+            <IconSymbol size={28} name="bag.fill" color={color} />
           ),
         }}
       />
