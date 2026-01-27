@@ -1,4 +1,4 @@
-import { HeadingSemiboldText } from "@/components/Typography";
+import { BodyMediumText, HeadingSemiboldText } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -13,6 +13,12 @@ interface CustomHeaderProps {
     name: string;
     onPress: () => void;
   };
+  rightAction?: {
+    label: string;
+    icon?: string;
+    onPress: () => void;
+    color?: string;
+  };
 }
 
 export function CustomHeader({
@@ -20,6 +26,7 @@ export function CustomHeader({
   showBackButton = false,
   backRoute,
   rightIcon,
+  rightAction,
 }: CustomHeaderProps) {
   const router = useRouter();
 
@@ -52,9 +59,33 @@ export function CustomHeader({
             </HeadingSemiboldText>
           </View>
 
-          {/* Right Section - Icon or Empty Space */}
+          {/* Right Section - Text Action, Icon, or Empty Space */}
           <View className="flex-1 items-end">
-            {rightIcon ? (
+            {rightAction ? (
+              <TouchableOpacity
+                onPress={rightAction.onPress}
+                className="flex-row items-center px-3 py-1.5 rounded-full"
+                style={{ backgroundColor: rightAction.color ? `${rightAction.color}15` : "#3B2F2F15" }}
+                activeOpacity={0.7}
+              >
+                {rightAction.icon && (
+                  <IconSymbol
+                    name={rightAction.icon as any}
+                    size={14}
+                    color={rightAction.color || "#3B2F2F"}
+                    style={{ marginRight: 4 }}
+                  />
+                )}
+                <BodyMediumText
+                  style={{
+                    fontSize: 13,
+                    color: rightAction.color || "#3B2F2F",
+                  }}
+                >
+                  {rightAction.label}
+                </BodyMediumText>
+              </TouchableOpacity>
+            ) : rightIcon ? (
               <TouchableOpacity
                 onPress={rightIcon.onPress}
                 className="w-10 h-10 justify-center items-end"

@@ -591,6 +591,87 @@ export const updateOrderStatus = async (
   }
 };
 
+/**
+ * Update order details (buyer info, shipping address)
+ * Only allowed for pending orders that haven't been sent to NCM yet
+ */
+export interface UpdateOrderDetailsParams {
+  orderId: string;
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone: string;
+  shippingAddress: {
+    street: string;
+    city: string;
+    district: string;
+    country?: string;
+    phone?: string;
+  };
+  buyerNotes?: string;
+}
+
+export const updateOrderDetails = async (params: UpdateOrderDetailsParams) => {
+  try {
+    // First, verify the order exists and is still pending (not sent to NCM)
+    const { data: existingOrder, error: fetchError } = await supabase
+      .from("orders")
+      .select("id, status, ncm_order_id")
+      .eq("id", params.orderId)
+      .single();
+
+    if (fetchError || !existingOrder) {
+      console.error("❌ Error fetching order:", fetchError);
+      return { success: false, error: "Order not found" };
+    }
+
+    // Check if order is still editable (pending and not sent to NCM)
+    if (existingOrder.status !== "pending") {
+      return {
+        success: false,
+        error: "Only pending orders can be edited",
+      };
+    }
+
+    if (existingOrder.ncm_order_id) {
+      return {
+        success: false,
+        error: "Order has already been sent to NCM and cannot be edited",
+      };
+    }
+
+    // Build shipping address object (phone is stored inside shipping_address)
+    const shippingAddress = {
+      street: params.shippingAddress.street,
+      city: params.shippingAddress.city,
+      district: params.shippingAddress.district,
+      country: params.shippingAddress.country || "Nepal",
+      phone: params.buyerPhone,
+    };
+
+    // Update the order (note: phone is stored in shipping_address, not as separate column)
+    const { error: updateError } = await supabase
+      .from("orders")
+      .update({
+        buyer_name: params.buyerName,
+        buyer_email: params.buyerEmail.toLowerCase(),
+        shipping_address: shippingAddress,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", params.orderId);
+
+    if (updateError) {
+      console.error("❌ Error updating order details:", updateError);
+      return { success: false, error: updateError.message };
+    }
+
+    console.log(`✅ Order ${params.orderId} details updated successfully`);
+    return { success: true };
+  } catch (error) {
+    console.error("💥 Error in updateOrderDetails:", error);
+    return { success: false, error: "Failed to update order" };
+  }
+};
+
 export const createProduct = async (data: CreateProductData) => {
   try {
     // IMPORTANT: Verify the user session before creating product
@@ -956,5 +1037,98 @@ export const updateOrderWithNCM = async (
   } catch (error) {
     console.error("💥 Error in updateOrderWithNCM:", error);
     return { success: false, error };
+  }
+};
+
+/**
+ * Sync order status from NCM
+ * Fetches latest status from NCM API and updates local database
+ * Note: If NCM API fails, we still return success with null data
+ * so the UI can continue to work with cached data
+ */
+export const syncNCMOrderStatus = async (orderId: string, ncmOrderId: number) => {
+  try {
+    // Import NCM helpers dynamically to avoid circular dependency
+    const { getNCMOrderDetails } = await import("./ncm-helpers");
+
+    // Fetch order details from NCM
+    const detailsResult = await getNCMOrderDetails(ncmOrderId);
+
+    if (!detailsResult.success || !detailsResult.data) {
+      // Log the error but don't fail - the order was created successfully
+      // The NCM portal may have different permissions for read vs write
+      console.warn("⚠️ Could not fetch NCM order details (API may have limited read access):", detailsResult.error);
+
+      // Just update the last synced timestamp so user knows we tried
+      await supabase
+        .from("orders")
+        .update({
+          ncm_last_synced_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", orderId);
+
+      return {
+        success: true,
+        data: null,
+        warning: "NCM status sync not available. Please check the NCM portal for updates."
+      };
+    }
+
+    const ncmDetails = detailsResult.data;
+
+    // Determine if order should be marked as completed based on NCM status
+    // NCM "Delivered" status means the order is complete
+    const isDelivered = ncmDetails.last_delivery_status === "Delivered";
+    const isReturned = ncmDetails.last_delivery_status === "Returned";
+    const isCancelled = ncmDetails.last_delivery_status === "Cancelled";
+
+    // Build update object
+    const updateData: Record<string, any> = {
+      ncm_delivery_status: ncmDetails.last_delivery_status,
+      ncm_payment_status: ncmDetails.payment_status,
+      ncm_delivery_charge: parseFloat(ncmDetails.delivery_charge) || null,
+      ncm_last_synced_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Update main order status based on NCM delivery status
+    if (isDelivered) {
+      updateData.status = "completed";
+      console.log("📦 NCM marked as Delivered → Order status set to 'completed'");
+    } else if (isCancelled) {
+      updateData.status = "cancelled";
+      console.log("❌ NCM marked as Cancelled → Order status set to 'cancelled'");
+    } else if (isReturned) {
+      updateData.status = "refunded";
+      console.log("↩️ NCM marked as Returned → Order status set to 'refunded'");
+    }
+
+    // Update local database with NCM data
+    const { error } = await supabase
+      .from("orders")
+      .update(updateData)
+      .eq("id", orderId);
+
+    if (error) {
+      console.error("❌ Error updating order with NCM sync data:", error);
+      return { success: false, error };
+    }
+
+    console.log(`✅ NCM status synced for order ${orderId}: ${ncmDetails.last_delivery_status}`);
+
+    return {
+      success: true,
+      data: {
+        delivery_status: ncmDetails.last_delivery_status,
+        payment_status: ncmDetails.payment_status,
+        delivery_charge: ncmDetails.delivery_charge,
+        cod_charge: ncmDetails.cod_charge,
+      },
+    };
+  } catch (error) {
+    console.error("💥 Error in syncNCMOrderStatus:", error);
+    // Still return success so UI doesn't show error
+    return { success: true, data: null, warning: "Could not connect to NCM" };
   }
 };

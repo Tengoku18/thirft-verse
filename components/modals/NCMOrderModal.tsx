@@ -14,6 +14,10 @@ import {
   NCMBranch,
   NCMCreateOrderParams,
 } from "@/lib/ncm-helpers";
+import {
+  cleanNepaliPhone,
+  isValidNepaliPhone,
+} from "@/lib/validations/create-order";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -127,6 +131,17 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
       Alert.alert("Error", "Customer phone is required");
       return;
     }
+
+    // Clean and validate phone number using centralized validation
+    const cleanedPhone = cleanNepaliPhone(phone);
+    if (!isValidNepaliPhone(cleanedPhone)) {
+      Alert.alert(
+        "Invalid Phone Number",
+        "Please enter a valid 10-digit Nepali mobile number (e.g., 98XXXXXXXX, 97XXXXXXXX, or 96XXXXXXXX)"
+      );
+      return;
+    }
+
     if (!address.trim()) {
       Alert.alert("Error", "Delivery address is required");
       return;
@@ -146,11 +161,14 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
 
     setSubmitting(true);
 
+    // Clean phone2 if provided
+    const cleanedPhone2 = phone2.trim() ? cleanNepaliPhone(phone2) : undefined;
+
     try {
       const params: NCMCreateOrderParams = {
         name: name.trim(),
-        phone: phone.trim(),
-        phone2: phone2.trim() || undefined,
+        phone: cleanedPhone,
+        phone2: cleanedPhone2,
         cod_charge: parseFloat(codCharge).toFixed(2),
         address: address.trim(),
         fbranch: fromBranch,

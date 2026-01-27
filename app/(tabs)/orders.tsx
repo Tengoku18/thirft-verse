@@ -23,13 +23,7 @@ import {
   View,
 } from "react-native";
 
-type StatusFilter =
-  | "all"
-  | "pending"
-  | "processing"
-  | "shipping"
-  | "delivered"
-  | "completed";
+type StatusFilter = "all" | "pending" | "processing" | "completed";
 
 // Unified item type that works for both orders and sold products
 interface OrderItem {
@@ -63,8 +57,6 @@ const statusConfig: Record<
 > = {
   pending: { bg: "#FEF3C7", text: "#D97706", label: "Pending" },
   processing: { bg: "#DBEAFE", text: "#2563EB", label: "Processing" },
-  shipping: { bg: "#93C5FD", text: "#1D4ED8", label: "Shipping" },
-  delivered: { bg: "#D1FAE5", text: "#059669", label: "Delivered" },
   completed: { bg: "#D1FAE5", text: "#059669", label: "Completed" },
   cancelled: { bg: "#FEE2E2", text: "#DC2626", label: "Cancelled" },
   refunded: { bg: "#E9D5FF", text: "#7C3AED", label: "Refunded" },
@@ -208,10 +200,10 @@ export default function OrdersScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
-  // Set filter from query params
+  // Set filter from query params (only accept valid filters)
   useEffect(() => {
     if (filter === "pending" || filter === "processing" || filter === "completed") {
-      setStatusFilter(filter);
+      setStatusFilter(filter as StatusFilter);
     }
   }, [filter]);
 
@@ -292,13 +284,11 @@ export default function OrdersScreen() {
     return item.status === statusFilter;
   });
 
-  // Count by status
+  // Count by status (simplified to 3 main statuses)
   const statusCounts = {
     all: items.length,
     pending: items.filter((i) => i.status === "pending").length,
     processing: items.filter((i) => i.status === "processing").length,
-    shipping: items.filter((i) => i.status === "shipping").length,
-    delivered: items.filter((i) => i.status === "delivered").length,
     completed: items.filter((i) => i.status === "completed").length,
   };
 
@@ -322,8 +312,6 @@ export default function OrdersScreen() {
     { key: "all", label: "All" },
     { key: "pending", label: "Pending" },
     { key: "processing", label: "Processing" },
-    { key: "shipping", label: "Shipping" },
-    { key: "delivered", label: "Delivered" },
     { key: "completed", label: "Completed" },
   ];
 

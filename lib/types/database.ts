@@ -106,6 +106,13 @@ export interface Order {
   platform_earnings: number;
   created_at: string;
   updated_at: string;
+  // NCM (Nepal Can Move) tracking fields
+  ncm_order_id: number | null;
+  ncm_status: string | null; // "sent_to_ncm", etc.
+  ncm_delivery_status: string | null; // Last delivery status from NCM (e.g., "Delivered", "Sent for Pickup")
+  ncm_payment_status: string | null; // Payment status from NCM (e.g., "Pending", "Completed")
+  ncm_delivery_charge: number | null; // Actual delivery charge from NCM
+  ncm_last_synced_at: string | null; // When we last fetched status from NCM
 }
 
 export interface OrderWithDetails extends Order {

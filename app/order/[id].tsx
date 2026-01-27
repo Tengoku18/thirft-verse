@@ -1,5 +1,7 @@
+import { EditOrderModal } from "@/components/modals/EditOrderModal";
 import { NCMOrderModal } from "@/components/modals/NCMOrderModal";
 import { CustomHeader } from "@/components/navigation/CustomHeader";
+import { NCMCommentsSection, NCMTrackingSection } from "@/components/order";
 import {
   BodyBoldText,
   BodyMediumText,
@@ -11,12 +13,13 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
-import { getOrderById, updateOrderWithNCM } from "@/lib/database-helpers";
+import { getOrderById, syncNCMOrderStatus, updateOrderWithNCM } from "@/lib/database-helpers";
 import { pickImage, takePhoto } from "@/lib/image-picker-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import { Product, ProfileRevenue } from "@/lib/types/database";
 import { uploadImageToStorage } from "@/lib/upload-helpers";
+import { isValidNepaliPhone } from "@/lib/validations/create-order";
 import { useAppDispatch } from "@/store/hooks";
 import { fetchUserProfile } from "@/store/profileSlice";
 import dayjs from "dayjs";
@@ -85,6 +88,16 @@ interface OrderDetail {
     sellersEarning: number;
   };
 
+  // NCM (Nepal Can Move) Tracking
+  ncm: {
+    orderId: number | null;
+    status: string | null;
+    deliveryStatus: string | null;
+    paymentStatus: string | null;
+    deliveryCharge: number | null;
+    lastSyncedAt: string | null;
+  } | null;
+
   // Meta
   sellerId: string;
   createdAt: string;
@@ -97,6 +110,7 @@ interface OrderDetail {
 
 const formatPrice = (amount: number) => `Rs. ${amount.toLocaleString()}`;
 
+// Simplified status config - only 3 main statuses + cancelled/refunded
 const STATUS_CONFIG: Record<
   string,
   { bg: string; text: string; label: string; icon: string }
@@ -111,19 +125,7 @@ const STATUS_CONFIG: Record<
     bg: "#DBEAFE",
     text: "#2563EB",
     label: "Processing",
-    icon: "gearshape.fill",
-  },
-  shipping: {
-    bg: "#93C5FD",
-    text: "#1D4ED8",
-    label: "Shipping",
     icon: "shippingbox.fill",
-  },
-  delivered: {
-    bg: "#D1FAE5",
-    text: "#059669",
-    label: "Delivered",
-    icon: "checkmark.circle.fill",
   },
   completed: {
     bg: "#D1FAE5",
@@ -248,7 +250,9 @@ function Row({
   );
 }
 
-function Timeline({
+// Simple timeline for pending orders (before NCM)
+// For NCM orders, the NCMTrackingSection component handles the detailed timeline
+function SimpleTimeline({
   status,
   createdAt,
   updatedAt,
@@ -259,68 +263,6 @@ function Timeline({
 }) {
   const orderDate = dayjs(createdAt);
   const updateDate = dayjs(updatedAt);
-
-  // Status progression: pending → processing → shipping → delivered → completed
-  const isProcessingOrBeyond = [
-    "processing",
-    "shipping",
-    "delivered",
-    "completed",
-  ].includes(status);
-  const isShippingOrBeyond = ["shipping", "delivered", "completed"].includes(
-    status
-  );
-  const isDeliveredOrBeyond = ["delivered", "completed"].includes(status);
-  const isCompleted = status === "completed";
-
-  const steps = [
-    {
-      id: "pending",
-      title: "Order Placed",
-      description: "Customer has placed the order",
-      done: true,
-      current: status === "pending",
-      date: orderDate.format("DD MMM • h:mm A"),
-    },
-    {
-      id: "processing",
-      title: "Processing",
-      description: "Seller confirmed & submitted shipping details",
-      done: isProcessingOrBeyond,
-      current: status === "processing",
-      date: isProcessingOrBeyond
-        ? updateDate.format("DD MMM • h:mm A")
-        : undefined,
-    },
-    {
-      id: "shipping",
-      title: "Shipping",
-      description: "Package is on the way to buyer",
-      done: isShippingOrBeyond,
-      current: status === "shipping",
-      date: isShippingOrBeyond
-        ? updateDate.format("DD MMM • h:mm A")
-        : undefined,
-    },
-    {
-      id: "delivered",
-      title: "Delivered",
-      description: "Buyer has received the order",
-      done: isDeliveredOrBeyond,
-      current: status === "delivered",
-      date: isDeliveredOrBeyond
-        ? updateDate.format("DD MMM • h:mm A")
-        : undefined,
-    },
-    {
-      id: "completed",
-      title: "Completed",
-      description: "Refund period ended, payment released",
-      done: isCompleted,
-      current: false,
-      date: isCompleted ? updateDate.format("DD MMM • h:mm A") : undefined,
-    },
-  ];
 
   // Handle cancelled/refunded
   if (status === "cancelled" || status === "refunded") {
@@ -342,6 +284,37 @@ function Timeline({
       </View>
     );
   }
+
+  // Simplified 3-step flow: Order Placed → Sent to NCM → Completed
+  const isProcessingOrBeyond = ["processing", "completed"].includes(status);
+  const isCompleted = status === "completed";
+
+  const steps = [
+    {
+      id: "placed",
+      title: "Order Placed",
+      description: "Customer has placed the order",
+      done: true,
+      current: status === "pending",
+      date: orderDate.format("DD MMM • h:mm A"),
+    },
+    {
+      id: "processing",
+      title: "Sent to NCM",
+      description: "Order sent to Nepal Can Move for delivery",
+      done: isProcessingOrBeyond,
+      current: status === "processing",
+      date: isProcessingOrBeyond ? updateDate.format("DD MMM • h:mm A") : undefined,
+    },
+    {
+      id: "completed",
+      title: "Completed",
+      description: "Delivered & payment settled",
+      done: isCompleted,
+      current: false,
+      date: isCompleted ? updateDate.format("DD MMM • h:mm A") : undefined,
+    },
+  ];
 
   return (
     <View className="px-4 py-3">
@@ -426,6 +399,7 @@ export default function SingleOrderScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Shipping confirmation modal state
   const [showShippingModal, setShowShippingModal] = useState(false);
@@ -435,6 +409,9 @@ export default function SingleOrderScreen() {
 
   // NCM modal state
   const [showNCMModal, setShowNCMModal] = useState(false);
+
+  // Edit order modal state
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Load data
   const loadOrder = useCallback(async () => {
@@ -449,6 +426,13 @@ export default function SingleOrderScreen() {
         // Use order amount for price calculation (not product price which could be updated)
         const shippingFee = o.shipping_fee || 0;
         const productPrice = (o.amount || 0) - shippingFee;
+
+        // Debug: Log NCM data from database
+        console.log("📦 Order NCM Data from DB:", {
+          ncm_order_id: o.ncm_order_id,
+          ncm_status: o.ncm_status,
+          ncm_delivery_status: o.ncm_delivery_status,
+        });
 
         setOrder({
           id: o.id,
@@ -487,6 +471,17 @@ export default function SingleOrderScreen() {
             total: o.amount,
             sellersEarning: o.sellers_earning || productPrice,
           },
+          // NCM tracking data
+          ncm: o.ncm_order_id
+            ? {
+                orderId: o.ncm_order_id,
+                status: o.ncm_status || null,
+                deliveryStatus: o.ncm_delivery_status || null,
+                paymentStatus: o.ncm_payment_status || null,
+                deliveryCharge: o.ncm_delivery_charge || null,
+                lastSyncedAt: o.ncm_last_synced_at || null,
+              }
+            : null,
           sellerId: o.seller_id,
           createdAt: o.created_at,
           updatedAt: o.updated_at,
@@ -534,6 +529,7 @@ export default function SingleOrderScreen() {
               total: p.price,
               sellersEarning: p.price,
             },
+            ncm: null, // Direct sales don't go through NCM
             sellerId: p.store_id,
             createdAt: p.created_at,
             updatedAt: p.updated_at,
@@ -554,6 +550,7 @@ export default function SingleOrderScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
+    setRefreshTrigger(prev => prev + 1); // Trigger refresh in child components
     loadOrder();
   }, [loadOrder]);
 
@@ -716,11 +713,44 @@ export default function SingleOrderScreen() {
     }
   };
 
+  // Sync NCM order status
+  const handleNCMSync = async () => {
+    if (!order || !order.ncm?.orderId) return;
+
+    try {
+      const result = await syncNCMOrderStatus(order.id, order.ncm.orderId);
+      if (result.success) {
+        if (result.data) {
+          toast.success("NCM status synced!");
+        } else if ((result as any).warning) {
+          // API couldn't be reached but that's OK
+          toast.info("Check NCM portal for latest status");
+        }
+        // Reload order to get updated data
+        await loadOrder();
+      } else {
+        toast.error("Failed to sync NCM status");
+      }
+    } catch (error) {
+      console.error("Error syncing NCM status:", error);
+      // Don't show error - the tracking section handles this gracefully
+    }
+  };
+
   const handleContact = (type: "email" | "phone") => {
     if (!order) return;
     if (type === "email" && order.buyer.email !== "Not available") {
       Linking.openURL(`mailto:${order.buyer.email}`);
     } else if (type === "phone" && order.buyer.phone !== "Not available") {
+      // Validate phone number before trying to open
+      if (!isValidNepaliPhone(order.buyer.phone)) {
+        Alert.alert(
+          "Invalid Phone Number",
+          "This phone number doesn't appear to be valid. Please edit the order to fix it.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
       Linking.openURL(`tel:${order.buyer.phone}`);
     }
   };
@@ -770,15 +800,50 @@ export default function SingleOrderScreen() {
     );
   }
 
-  const statusStyle = STATUS_CONFIG[order.status] || DEFAULT_STATUS;
+  // NCM delivery status config (maps NCM statuses to colors)
+  const NCM_STATUS_DISPLAY: Record<string, { bg: string; text: string; label: string; icon: string }> = {
+    "Pickup Order Created": { bg: "#FEF3C7", text: "#D97706", label: "Pickup Created", icon: "doc.text.fill" },
+    "Drop off Order Created": { bg: "#FEF3C7", text: "#D97706", label: "Order Created", icon: "doc.text.fill" },
+    "Sent for Pickup": { bg: "#DBEAFE", text: "#2563EB", label: "Sent for Pickup", icon: "shippingbox.fill" },
+    "Pickup Complete": { bg: "#DBEAFE", text: "#2563EB", label: "Picked Up", icon: "checkmark.circle.fill" },
+    "In Transit": { bg: "#E0E7FF", text: "#4F46E5", label: "In Transit", icon: "arrow.right.circle.fill" },
+    "Arrived": { bg: "#DBEAFE", text: "#2563EB", label: "Arrived at Branch", icon: "mappin.circle.fill" },
+    "Sent for Delivery": { bg: "#DBEAFE", text: "#2563EB", label: "Out for Delivery", icon: "paperplane.fill" },
+    "Delivered": { bg: "#D1FAE5", text: "#059669", label: "Delivered", icon: "checkmark.seal.fill" },
+    "Returned": { bg: "#FEE2E2", text: "#DC2626", label: "Returned", icon: "arrow.uturn.backward.circle.fill" },
+    "Cancelled": { bg: "#FEE2E2", text: "#DC2626", label: "Cancelled", icon: "xmark.circle.fill" },
+  };
+
+  // Use NCM status display if order has NCM data, otherwise use order status
+  const statusStyle = order.ncm?.deliveryStatus
+    ? (NCM_STATUS_DISPLAY[order.ncm.deliveryStatus] || STATUS_CONFIG[order.status] || DEFAULT_STATUS)
+    : (STATUS_CONFIG[order.status] || DEFAULT_STATUS);
+
   const isSeller = user?.id === order.sellerId;
   const canMarkDelivered =
     isSeller && order.status === "pending" && order.type === "order";
 
+  // Order is editable only if it's pending and hasn't been sent to NCM
+  const isEditable =
+    isSeller && order.status === "pending" && !order.ncm?.orderId && order.type === "order";
+
   return (
     <View className="flex-1 bg-[#FAFAFA]">
       <Stack.Screen options={{ headerShown: false }} />
-      <CustomHeader title="Order Details" showBackButton />
+      <CustomHeader
+        title="Order Details"
+        showBackButton
+        rightAction={
+          isEditable
+            ? {
+                label: "Edit",
+                icon: "pencil",
+                onPress: () => setShowEditModal(true),
+                color: "#3B82F6",
+              }
+            : undefined
+        }
+      />
 
       <ScrollView
         className="flex-1"
@@ -893,14 +958,33 @@ export default function SingleOrderScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Timeline */}
-        <Section title="Order Timeline">
-          <Timeline
-            status={order.status}
-            createdAt={order.createdAt}
-            updatedAt={order.updatedAt}
-          />
-        </Section>
+        {/* Order Timeline - Show simple timeline for non-NCM orders, NCM tracking for NCM orders */}
+        {order.ncm?.orderId ? (
+          <>
+            {/* NCM Tracking Section - Primary tracking for NCM orders */}
+            <NCMTrackingSection
+              ncmOrderId={order.ncm.orderId}
+              deliveryStatus={order.ncm.deliveryStatus}
+              paymentStatus={order.ncm.paymentStatus}
+              deliveryCharge={order.ncm.deliveryCharge}
+              lastSyncedAt={order.ncm.lastSyncedAt}
+              onSync={handleNCMSync}
+              refreshTrigger={refreshTrigger}
+            />
+
+            {/* NCM Comments Section */}
+            <NCMCommentsSection ncmOrderId={order.ncm.orderId} refreshTrigger={refreshTrigger} />
+          </>
+        ) : (
+          /* Simple timeline for pending orders (before NCM) */
+          <Section title="Order Timeline">
+            <SimpleTimeline
+              status={order.status}
+              createdAt={order.createdAt}
+              updatedAt={order.updatedAt}
+            />
+          </Section>
+        )}
 
         {/* Buyer Info */}
         <Section title="Buyer Information">
@@ -918,10 +1002,18 @@ export default function SingleOrderScreen() {
           />
           <Row
             label="Phone"
-            value={order.buyer.phone || "Not provided"}
+            value={
+              order.buyer.phone
+                ? isValidNepaliPhone(order.buyer.phone)
+                  ? order.buyer.phone
+                  : `${order.buyer.phone} (Invalid)`
+                : "Not provided"
+            }
             icon="phone.fill"
             highlight={
-              order.buyer.phone !== "" && order.buyer.phone !== "Not available"
+              order.buyer.phone !== "" &&
+              order.buyer.phone !== "Not available" &&
+              isValidNepaliPhone(order.buyer.phone)
             }
             onPress={
               order.buyer.phone && order.buyer.phone !== "Not available"
@@ -1235,6 +1327,26 @@ export default function SingleOrderScreen() {
             totalAmount: order.payment.total,
             shippingFee: order.shipping.fee,
             notes: "",
+          }}
+        />
+      )}
+
+      {/* Edit Order Modal */}
+      {order && isEditable && (
+        <EditOrderModal
+          visible={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={() => {
+            toast.success("Order details updated!");
+            loadOrder(); // Refresh order data
+          }}
+          orderData={{
+            orderId: order.id,
+            buyerName: order.buyer.name,
+            buyerEmail: order.buyer.email,
+            buyerPhone: order.buyer.phone,
+            shippingAddress: order.shipping.address,
+            buyerNotes: "",
           }}
         />
       )}
