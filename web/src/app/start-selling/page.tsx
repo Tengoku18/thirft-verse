@@ -1,7 +1,8 @@
-import { Smartphone, Download, Store, Package, TrendingUp, Shield, QrCode, Apple, MonitorSmartphone } from 'lucide-react'
+import { Smartphone, Download, Store, Package, TrendingUp, Shield, Apple, MonitorSmartphone } from 'lucide-react'
 import Link from 'next/link'
 import Header from '@/_components/common/Header'
 import Footer from '@/_components/landing/Footer'
+import AppDownloadQR from '@/_components/AppDownloadQR'
 
 export const metadata = {
   title: 'Start Your Store | ThriftVerse',
@@ -44,7 +45,7 @@ export default function StartSellingPage() {
             {/* App Download Badges */}
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-8">
               <a
-                href="https://apps.apple.com/"
+                href="https://apps.apple.com/np/app/thriftverse/id6758267809"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center gap-3 rounded-2xl bg-primary px-6 py-4 text-surface shadow-lg transition-all hover:scale-105 hover:shadow-xl"
@@ -81,14 +82,7 @@ export default function StartSellingPage() {
       <div className="border-y border-border/50 bg-surface/30 py-12">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-8 sm:flex-row sm:justify-center">
-            <div className="flex flex-col items-center">
-              <div className="mb-4 flex h-48 w-48 items-center justify-center rounded-2xl bg-white p-4 shadow-lg">
-                <QrCode className="h-full w-full text-primary" />
-                {/* Replace with actual QR code */}
-                <div className="absolute text-xs text-primary/40">QR Code Here</div>
-              </div>
-              <p className="text-sm font-medium text-primary">Scan to Download</p>
-            </div>
+            <AppDownloadQR />
 
             <div className="text-center sm:text-left">
               <h3 className="font-heading mb-2 text-2xl font-bold text-primary">
@@ -294,7 +288,7 @@ export default function StartSellingPage() {
           {/* App Download Badges */}
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-8">
             <a
-              href="https://apps.apple.com/"
+              href="https://apps.apple.com/np/app/thriftverse/id6758267809"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center gap-3 rounded-2xl bg-primary px-6 py-4 text-surface shadow-lg transition-all hover:scale-105 hover:shadow-xl"
