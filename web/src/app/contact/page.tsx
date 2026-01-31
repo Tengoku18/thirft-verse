@@ -1,9 +1,9 @@
 'use client';
 
-import { createTicket } from '@/actions/tickets';
 import Button from '@/_components/common/Button';
 import PageLayout from '@/_components/common/PageLayout';
 import { FormInput, FormTextarea } from '@/_components/forms';
+import { createTicket } from '@/actions/tickets';
 import { uploadTicketAttachments } from '@/lib/storage/tickets';
 import { ContactFormData, contactSchema } from '@/lib/validations/contact';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -142,7 +142,7 @@ export default function ContactPage() {
         <div className="grid gap-12 lg:grid-cols-2">
           {/* Contact Form */}
           <div>
-            <h2 className="font-heading mb-6 text-2xl font-bold text-primary">
+            <h2 className="font-heading text-primary mb-6 text-2xl font-bold">
               Send us a message
             </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -191,9 +191,11 @@ export default function ContactPage() {
 
               {/* File Attachments */}
               <div>
-                <label className="mb-2 block text-sm font-medium text-primary">
+                <label className="text-primary mb-2 block text-sm font-medium">
                   Attachments{' '}
-                  <span className="text-primary/50">(Optional, max 3 images)</span>
+                  <span className="text-primary/50">
+                    (Optional, max 3 images)
+                  </span>
                 </label>
 
                 {/* Attachment Preview */}
@@ -202,15 +204,15 @@ export default function ContactPage() {
                     {attachments.map((file, index) => (
                       <div
                         key={index}
-                        className="group relative flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2"
+                        className="group border-border bg-surface relative flex items-center gap-2 rounded-lg border px-3 py-2"
                       >
-                        <span className="max-w-[150px] truncate text-sm text-primary">
+                        <span className="text-primary max-w-[150px] truncate text-sm">
                           {file.name}
                         </span>
                         <button
                           type="button"
                           onClick={() => removeAttachment(index)}
-                          className="rounded-full p-0.5 text-primary/50 transition-colors hover:bg-red-100 hover:text-red-500"
+                          className="text-primary/50 rounded-full p-0.5 transition-colors hover:bg-red-100 hover:text-red-500"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -231,8 +233,10 @@ export default function ContactPage() {
                 />
                 <label
                   htmlFor="attachments"
-                  className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-surface/50 px-4 py-4 text-sm text-primary/70 transition-colors hover:border-secondary hover:bg-surface ${
-                    attachments.length >= 3 ? 'cursor-not-allowed opacity-50' : ''
+                  className={`border-border bg-surface/50 text-primary/70 hover:border-secondary hover:bg-surface flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-4 text-sm transition-colors ${
+                    attachments.length >= 3
+                      ? 'cursor-not-allowed opacity-50'
+                      : ''
                   }`}
                 >
                   <Paperclip className="h-5 w-5" />
@@ -258,42 +262,42 @@ export default function ContactPage() {
 
           {/* Contact Information */}
           <div>
-            <h2 className="font-heading mb-6 text-2xl font-bold text-primary">
+            <h2 className="font-heading text-primary mb-6 text-2xl font-bold">
               Other ways to reach us
             </h2>
 
             <div className="space-y-6">
               {/* Email */}
-              <div className="flex items-start gap-4 rounded-xl border border-border bg-surface p-6 transition-all hover:shadow-lg">
-                <div className="rounded-full bg-secondary/10 p-3">
-                  <Mail className="h-6 w-6 text-secondary" />
+              <div className="border-border bg-surface flex items-start gap-4 rounded-xl border p-6 transition-all hover:shadow-lg">
+                <div className="bg-secondary/10 rounded-full p-3">
+                  <Mail className="text-secondary h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="font-heading mb-1 text-lg font-bold text-primary">
+                  <h3 className="font-heading text-primary mb-1 text-lg font-bold">
                     Email Support
                   </h3>
-                  <p className="mb-2 text-sm text-primary/70">
+                  <p className="text-primary/70 mb-2 text-sm">
                     We&apos;ll respond within 24 hours
                   </p>
                   <a
-                    href="mailto:thriftverse.shop@gmail.com"
+                    href="mailto:thriiftverse.shop@gmail.com"
                     className="text-secondary hover:underline"
                   >
-                    thriftverse.shop@gmail.com
+                    thriiftverse.shop@gmail.com
                   </a>
                 </div>
               </div>
 
               {/* Phone */}
-              <div className="flex items-start gap-4 rounded-xl border border-border bg-surface p-6 transition-all hover:shadow-lg">
-                <div className="rounded-full bg-accent-2/10 p-3">
-                  <Phone className="h-6 w-6 text-accent-2" />
+              <div className="border-border bg-surface flex items-start gap-4 rounded-xl border p-6 transition-all hover:shadow-lg">
+                <div className="bg-accent-2/10 rounded-full p-3">
+                  <Phone className="text-accent-2 h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="font-heading mb-1 text-lg font-bold text-primary">
+                  <h3 className="font-heading text-primary mb-1 text-lg font-bold">
                     Phone Support
                   </h3>
-                  <p className="mb-2 text-sm text-primary/70">
+                  <p className="text-primary/70 mb-2 text-sm">
                     Mon-Fri, 9am-6pm NPT
                   </p>
                   <a
@@ -306,23 +310,23 @@ export default function ContactPage() {
               </div>
 
               {/* Live Chat - Coming Soon */}
-              <div className="relative overflow-hidden rounded-xl border border-border bg-surface">
-                <div className="pointer-events-none flex select-none items-start gap-4 p-6 blur-[2px]">
-                  <div className="rounded-full bg-accent-1/10 p-3">
-                    <MessageCircle className="h-6 w-6 text-accent-1" />
+              <div className="border-border bg-surface relative overflow-hidden rounded-xl border">
+                <div className="pointer-events-none flex items-start gap-4 p-6 blur-[2px] select-none">
+                  <div className="bg-accent-1/10 rounded-full p-3">
+                    <MessageCircle className="text-accent-1 h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="font-heading mb-1 text-lg font-bold text-primary">
+                    <h3 className="font-heading text-primary mb-1 text-lg font-bold">
                       Live Chat
                     </h3>
-                    <p className="mb-2 text-sm text-primary/70">
+                    <p className="text-primary/70 mb-2 text-sm">
                       Chat with our team in real-time
                     </p>
                     <span className="text-secondary">Start a conversation</span>
                   </div>
                 </div>
-                <div className="absolute inset-0 flex items-center justify-center bg-background/30">
-                  <span className="rounded-full bg-primary/90 px-4 py-1.5 text-sm font-semibold text-white">
+                <div className="bg-background/30 absolute inset-0 flex items-center justify-center">
+                  <span className="bg-primary/90 rounded-full px-4 py-1.5 text-sm font-semibold text-white">
                     Coming Soon
                   </span>
                 </div>
@@ -330,11 +334,11 @@ export default function ContactPage() {
             </div>
 
             {/* Response Time */}
-            <div className="mt-8 rounded-xl bg-gradient-to-br from-secondary/10 to-accent-2/10 p-6">
-              <h3 className="font-heading mb-2 text-lg font-bold text-primary">
+            <div className="from-secondary/10 to-accent-2/10 mt-8 rounded-xl bg-gradient-to-br p-6">
+              <h3 className="font-heading text-primary mb-2 text-lg font-bold">
                 Average Response Time
               </h3>
-              <p className="text-sm text-primary/70">
+              <p className="text-primary/70 text-sm">
                 We typically respond to all inquiries within 24 hours. For
                 urgent matters, please call us directly during business hours.
               </p>

@@ -29,12 +29,14 @@ interface ItemSoldEmailProps {
 export const ItemSoldEmail = ({
   sellerName = 'Seller',
   itemName = 'Vintage Denim Jacket',
-  salePrice = 45.00,
+  salePrice = 45.0,
   currency = 'USD',
   buyerName = 'John D.',
   orderId = '#12345',
   saleDate = new Date().toLocaleDateString(),
-  shippingDeadline = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+  shippingDeadline = new Date(
+    Date.now() + 3 * 24 * 60 * 60 * 1000
+  ).toLocaleDateString(),
   orderDetailsUrl = 'https://www.thriftverse.shop/seller/orders',
 }: ItemSoldEmailProps) => (
   <Html>
@@ -52,12 +54,15 @@ export const ItemSoldEmail = ({
 
         <Heading style={h1}>🎉 Congratulations, {sellerName}!</Heading>
         <Text style={text}>
-          Great news! Your item <strong>{itemName}</strong> has been purchased and is ready to be shipped.
+          Great news! Your item <strong>{itemName}</strong> has been purchased
+          and is ready to be shipped.
         </Text>
 
         <Section style={priceContainer}>
           <Text style={priceLabel}>Sale Amount</Text>
-          <Text style={priceValue}>{formatCheckoutPrice(salePrice, currency)}</Text>
+          <Text style={priceValue}>
+            {formatCheckoutPrice(salePrice, currency)}
+          </Text>
         </Section>
 
         <Section style={infoContainer}>
@@ -89,13 +94,13 @@ export const ItemSoldEmail = ({
             <strong>1.</strong> Package your item securely
           </Text>
           <Text style={stepText}>
-            <strong>2.</strong> Print the shipping label from your dashboard
+            <strong>2.</strong> Click "Move to NCM" button in your dashboard to
+            create an order ID in Nepal Can Move (NCM) system. Write this order
+            ID on your package label.
           </Text>
           <Text style={stepText}>
-            <strong>3.</strong> Ship by the deadline shown above
-          </Text>
-          <Text style={stepText}>
-            <strong>4.</strong> Mark as shipped in your seller dashboard
+            <strong>3.</strong> Send your package to the nearest NCM branch with
+            the order ID clearly mentioned on the label
           </Text>
         </Section>
 
@@ -113,16 +118,19 @@ export const ItemSoldEmail = ({
             • Include a thank you note for a personal touch
             <br />
             • Take photos of the packaged item before shipping
-            <br />
-            • Keep your tracking number handy
+            <br />• Keep your tracking number handy
           </Text>
         </Section>
 
         <Text style={footer}>
-          Your earnings will be available in your account after the buyer confirms delivery.
+          Your earnings will be available in your account after the buyer
+          confirms delivery.
           <br />
           <br />
-          If you have any questions, please contact our seller support team through the help center.
+          If you have any questions, please contact our seller support team at{' '}
+          <Link href="https://www.thriftverse.shop/contact" style={footerLink}>
+            www.thriftverse.shop/contact
+          </Link>
           <br />
           <br />
           Happy selling!
@@ -304,4 +312,9 @@ const footer = {
   textAlign: 'center' as const,
   borderTop: '1px solid #e5e7eb',
   marginTop: '24px',
+};
+
+const footerLink = {
+  color: '#10b981',
+  textDecoration: 'none',
 };

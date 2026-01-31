@@ -88,7 +88,10 @@ export const OrderConfirmationEmail = ({
           You can view your order details and track your shipment anytime by clicking the button above.
           <br />
           <br />
-          If you have any questions, please contact the seller directly through ThriftVerse.
+          If you have any questions, please contact us at{' '}
+          <Link href="https://www.thriftverse.shop/contact" style={footerLink}>
+            www.thriftverse.shop/contact
+          </Link>
           <br />
           <br />
           Happy thrifting!
@@ -199,4 +202,9 @@ const footer = {
   textAlign: 'center' as const,
   borderTop: '1px solid #e5e7eb',
   marginTop: '24px',
+};
+
+const footerLink = {
+  color: '#10b981',
+  textDecoration: 'none',
 };
