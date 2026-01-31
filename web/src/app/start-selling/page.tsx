@@ -288,7 +288,7 @@ export default function StartSellingPage() {
           {/* App Download Badges */}
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-8">
             <a
-              href="https://apps.apple.com/"
+              href="https://apps.apple.com/np/app/thriftverse/id6758267809"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center gap-3 rounded-2xl bg-primary px-6 py-4 text-surface shadow-lg transition-all hover:scale-105 hover:shadow-xl"
