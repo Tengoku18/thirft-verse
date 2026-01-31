@@ -334,7 +334,7 @@ export default function ContactPage() {
             </div>
 
             {/* Response Time */}
-            <div className="from-secondary/10 to-accent-2/10 mt-8 rounded-xl bg-gradient-to-br p-6">
+            <div className="from-secondary/10 to-accent-2/10 mt-8 rounded-xl bg-linear-to-br p-6">
               <h3 className="font-heading text-primary mb-2 text-lg font-bold">
                 Average Response Time
               </h3>
