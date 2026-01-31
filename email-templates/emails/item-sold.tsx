@@ -11,8 +11,8 @@ import {
   Row,
   Section,
   Text,
-} from '@react-email/components';
-import * as React from 'react';
+} from "@react-email/components";
+import * as React from "react";
 
 interface ItemSoldEmailProps {
   sellerName?: string;
@@ -26,14 +26,16 @@ interface ItemSoldEmailProps {
 }
 
 export const ItemSoldEmail = ({
-  sellerName = 'Seller',
-  itemName = 'Vintage Denim Jacket',
-  salePrice = 45.00,
-  buyerName = 'John D.',
-  orderId = '#12345',
+  sellerName = "Seller",
+  itemName = "Vintage Denim Jacket",
+  salePrice = 45.0,
+  buyerName = "John D.",
+  orderId = "#12345",
   saleDate = new Date().toLocaleDateString(),
-  shippingDeadline = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-  orderDetailsUrl = 'https://www.thriftverse.shop/seller/orders',
+  shippingDeadline = new Date(
+    Date.now() + 3 * 24 * 60 * 60 * 1000,
+  ).toLocaleDateString(),
+  orderDetailsUrl = "https://www.thriftverse.shop/seller/orders",
 }: ItemSoldEmailProps) => (
   <Html>
     <Head />
@@ -50,7 +52,8 @@ export const ItemSoldEmail = ({
 
         <Heading style={h1}>🎉 Congratulations, {sellerName}!</Heading>
         <Text style={text}>
-          Great news! Your item <strong>{itemName}</strong> has been purchased and is ready to be shipped.
+          Great news! Your item <strong>{itemName}</strong> has been purchased
+          and is ready to be shipped.
         </Text>
 
         <Section style={priceContainer}>
@@ -69,7 +72,7 @@ export const ItemSoldEmail = ({
               <Text style={infoValue}>{orderId}</Text>
             </Column>
           </Row>
-          <Row style={{ marginTop: '16px' }}>
+          <Row style={{ marginTop: "16px" }}>
             <Column>
               <Text style={infoLabel}>Sale Date</Text>
               <Text style={infoValue}>{saleDate}</Text>
@@ -87,13 +90,13 @@ export const ItemSoldEmail = ({
             <strong>1.</strong> Package your item securely
           </Text>
           <Text style={stepText}>
-            <strong>2.</strong> Print the shipping label from your dashboard
+            <strong>2.</strong> Click "Move to NCM" button in your dashboard to
+            create an order ID in Nepal Can Move (NCM) system. Write this order
+            ID on your package label.
           </Text>
           <Text style={stepText}>
-            <strong>3.</strong> Ship by the deadline shown above
-          </Text>
-          <Text style={stepText}>
-            <strong>4.</strong> Mark as shipped in your seller dashboard
+            <strong>3.</strong> Send your package to the nearest NCM branch with
+            the order ID clearly mentioned on the label
           </Text>
         </Section>
 
@@ -111,16 +114,19 @@ export const ItemSoldEmail = ({
             • Include a thank you note for a personal touch
             <br />
             • Take photos of the packaged item before shipping
-            <br />
-            • Keep your tracking number handy
+            <br />• Keep your tracking number handy
           </Text>
         </Section>
 
         <Text style={footer}>
-          Your earnings will be available in your account after the buyer confirms delivery.
+          Your earnings will be available in your account after the buyer
+          confirms delivery.
           <br />
           <br />
-          If you have any questions, please contact our seller support team through the help center.
+          If you have any questions, please contact our seller support team at{" "}
+          <Link href="https://www.thriftverse.shop/contact" style={footerLink}>
+            www.thriftverse.shop/contact
+          </Link>
           <br />
           <br />
           Happy selling!
@@ -135,171 +141,176 @@ export const ItemSoldEmail = ({
 export default ItemSoldEmail;
 
 const main = {
-  backgroundColor: '#f9fafb',
+  backgroundColor: "#f9fafb",
   fontFamily:
     '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
 };
 
 const container = {
-  backgroundColor: '#ffffff',
-  margin: '0 auto',
-  padding: '0',
-  marginBottom: '40px',
-  maxWidth: '600px',
-  borderRadius: '16px',
-  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-  overflow: 'hidden',
+  backgroundColor: "#ffffff",
+  margin: "0 auto",
+  padding: "0",
+  marginBottom: "40px",
+  maxWidth: "600px",
+  borderRadius: "16px",
+  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.05)",
+  overflow: "hidden",
 };
 
 const logoContainer = {
-  textAlign: 'center' as const,
-  padding: '48px 0 24px',
-  backgroundColor: '#ffffff',
+  textAlign: "center" as const,
+  padding: "48px 0 24px",
+  backgroundColor: "#ffffff",
 };
 
 const logo = {
-  width: '100px',
-  height: '100px',
-  margin: '0 auto',
+  width: "100px",
+  height: "100px",
+  margin: "0 auto",
 };
 
 const h1 = {
-  color: '#1f2937',
-  fontSize: '28px',
-  fontWeight: 'bold',
-  margin: '30px 0 20px',
-  padding: '0 48px',
-  textAlign: 'center' as const,
+  color: "#1f2937",
+  fontSize: "28px",
+  fontWeight: "bold",
+  margin: "30px 0 20px",
+  padding: "0 48px",
+  textAlign: "center" as const,
 };
 
 const h2 = {
-  color: '#1f2937',
-  fontSize: '22px',
-  fontWeight: '600' as const,
-  margin: '32px 0 16px',
-  padding: '0 48px',
+  color: "#1f2937",
+  fontSize: "22px",
+  fontWeight: "600" as const,
+  margin: "32px 0 16px",
+  padding: "0 48px",
 };
 
 const text = {
-  color: '#4b5563',
-  fontSize: '16px',
-  lineHeight: '26px',
-  padding: '0 48px',
-  marginBottom: '16px',
+  color: "#4b5563",
+  fontSize: "16px",
+  lineHeight: "26px",
+  padding: "0 48px",
+  marginBottom: "16px",
 };
 
 const priceContainer = {
-  padding: '24px',
-  backgroundColor: '#ecfdf5',
-  margin: '24px auto',
-  borderRadius: '12px',
-  border: '2px solid #10b981',
-  maxWidth: '400px',
-  textAlign: 'center' as const,
+  padding: "24px",
+  backgroundColor: "#ecfdf5",
+  margin: "24px auto",
+  borderRadius: "12px",
+  border: "2px solid #10b981",
+  maxWidth: "400px",
+  textAlign: "center" as const,
 };
 
 const priceLabel = {
-  color: '#065f46',
-  fontSize: '14px',
-  fontWeight: '600' as const,
-  margin: '0 0 8px',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.5px',
+  color: "#065f46",
+  fontSize: "14px",
+  fontWeight: "600" as const,
+  margin: "0 0 8px",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.5px",
 };
 
 const priceValue = {
-  color: '#10b981',
-  fontSize: '36px',
-  fontWeight: '700' as const,
-  margin: '0',
+  color: "#10b981",
+  fontSize: "36px",
+  fontWeight: "700" as const,
+  margin: "0",
 };
 
 const infoContainer = {
-  padding: '24px',
-  backgroundColor: '#f3f4f6',
-  margin: '24px auto',
-  borderRadius: '12px',
-  border: '1px solid #e5e7eb',
-  maxWidth: '500px',
+  padding: "24px",
+  backgroundColor: "#f3f4f6",
+  margin: "24px auto",
+  borderRadius: "12px",
+  border: "1px solid #e5e7eb",
+  maxWidth: "500px",
 };
 
 const infoLabel = {
-  color: '#6b7280',
-  fontSize: '13px',
-  fontWeight: '500' as const,
-  margin: '0 0 6px',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.5px',
+  color: "#6b7280",
+  fontSize: "13px",
+  fontWeight: "500" as const,
+  margin: "0 0 6px",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.5px",
 };
 
 const infoValue = {
-  color: '#111827',
-  fontSize: '16px',
-  fontWeight: '600' as const,
-  margin: '0',
+  color: "#111827",
+  fontSize: "16px",
+  fontWeight: "600" as const,
+  margin: "0",
 };
 
 const stepsContainer = {
-  padding: '0 48px',
-  marginTop: '20px',
-  marginBottom: '24px',
+  padding: "0 48px",
+  marginTop: "20px",
+  marginBottom: "24px",
 };
 
 const stepText = {
-  color: '#4b5563',
-  fontSize: '15px',
-  lineHeight: '28px',
-  margin: '10px 0',
+  color: "#4b5563",
+  fontSize: "15px",
+  lineHeight: "28px",
+  margin: "10px 0",
 };
 
 const buttonContainer = {
-  padding: '32px 48px',
-  textAlign: 'center' as const,
+  padding: "32px 48px",
+  textAlign: "center" as const,
 };
 
 const button = {
-  backgroundColor: '#10b981',
-  borderRadius: '10px',
-  color: '#ffffff',
-  fontSize: '16px',
-  fontWeight: '600' as const,
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'inline-block',
-  padding: '14px 32px',
-  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
+  backgroundColor: "#10b981",
+  borderRadius: "10px",
+  color: "#ffffff",
+  fontSize: "16px",
+  fontWeight: "600" as const,
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "inline-block",
+  padding: "14px 32px",
+  boxShadow: "0 2px 8px rgba(16, 185, 129, 0.25)",
 };
 
 const tipContainer = {
-  backgroundColor: '#ecfdf5',
-  borderLeft: '4px solid #10b981',
-  padding: '24px 32px',
-  margin: '24px auto',
-  borderRadius: '8px',
-  maxWidth: '500px',
+  backgroundColor: "#ecfdf5",
+  borderLeft: "4px solid #10b981",
+  padding: "24px 32px",
+  margin: "24px auto",
+  borderRadius: "8px",
+  maxWidth: "500px",
 };
 
 const tipTitle = {
-  color: '#065f46',
-  fontSize: '16px',
-  fontWeight: '600' as const,
-  margin: '0 0 12px',
-  textAlign: 'center' as const,
+  color: "#065f46",
+  fontSize: "16px",
+  fontWeight: "600" as const,
+  margin: "0 0 12px",
+  textAlign: "center" as const,
 };
 
 const tipText = {
-  color: '#047857',
-  fontSize: '14px',
-  lineHeight: '22px',
-  margin: '0',
+  color: "#047857",
+  fontSize: "14px",
+  lineHeight: "22px",
+  margin: "0",
 };
 
 const footer = {
-  color: '#6b7280',
-  fontSize: '14px',
-  lineHeight: '22px',
-  padding: '24px 48px',
-  textAlign: 'center' as const,
-  borderTop: '1px solid #e5e7eb',
-  marginTop: '24px',
+  color: "#6b7280",
+  fontSize: "14px",
+  lineHeight: "22px",
+  padding: "24px 48px",
+  textAlign: "center" as const,
+  borderTop: "1px solid #e5e7eb",
+  marginTop: "24px",
+};
+
+const footerLink = {
+  color: "#10b981",
+  textDecoration: "none",
 };

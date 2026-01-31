@@ -115,6 +115,7 @@ export async function sendOrderEmails(params: {
     itemName: string;
     storeName: string;
     currency?: string;
+    shippingFee?: number;
   };
 }) {
   const { buyer, seller, order } = params;
@@ -126,6 +127,10 @@ export async function sendOrderEmails(params: {
   // Calculate shipping deadline (e.g., 3 days from now)
   const shippingDeadline = new Date();
   shippingDeadline.setDate(shippingDeadline.getDate() + 3);
+
+  // Calculate product price without shipping for seller email
+  const shippingFee = order.shippingFee || 0;
+  const productPrice = order.total - shippingFee;
 
   // Send emails in parallel
   const [buyerEmailResult, sellerEmailResult] = await Promise.allSettled([
@@ -143,7 +148,7 @@ export async function sendOrderEmails(params: {
       to: seller.email,
       sellerName: seller.name,
       itemName: order.itemName,
-      salePrice: order.total,
+      salePrice: productPrice,
       currency: order.currency,
       buyerName: buyer.name,
       orderId: order.orderCode,
