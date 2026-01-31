@@ -437,6 +437,7 @@ export async function createOrderFromPayment(
               storeName:
                 seller.store_username || seller.name || 'ThriftVerse Store',
               currency: seller.currency || 'NPR',
+              shippingFee: shippingFee,
             },
           });
           console.log('Order confirmation emails sent successfully');
@@ -540,6 +541,7 @@ export async function createCodOrder(
             itemName: product.title,
             storeName: seller.store_username || seller.name || 'ThriftVerse Store',
             currency: seller.currency || 'NPR',
+            shippingFee: params.shippingFee,
           },
         });
         console.log('COD order confirmation emails sent successfully');
