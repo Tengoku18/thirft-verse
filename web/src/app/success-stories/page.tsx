@@ -1,6 +1,7 @@
 'use client';
 
 import PageLayout from '@/_components/common/PageLayout';
+import Link from 'next/link';
 import { Quote, TrendingUp, Users, Package } from 'lucide-react';
 
 const stories = [
@@ -162,9 +163,12 @@ export default function SuccessStoriesPage() {
             Join hundreds of sellers building sustainable businesses on
             ThriftVerse
           </p>
-          <button className="rounded-lg bg-secondary px-8 py-4 font-semibold text-primary transition-all hover:scale-105 hover:shadow-lg">
+          <Link
+            href="/start-selling"
+            className="inline-block rounded-lg bg-secondary px-8 py-4 font-semibold text-primary transition-all hover:scale-105 hover:shadow-lg"
+          >
             Start Your Store Today
-          </button>
+          </Link>
         </div>
       </div>
     </PageLayout>

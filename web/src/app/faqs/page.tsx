@@ -112,12 +112,13 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border-border bg-surface rounded-lg border transition-all hover:shadow-md">
+    <div className="border-border bg-surface mb-3 rounded-lg border">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between p-6 text-left"
+        className="flex w-full items-center justify-between gap-4 p-4 text-left transition-colors hover:bg-surface/80"
+        aria-expanded={isOpen}
       >
-        <h3 className="font-heading text-primary pr-4 text-lg font-semibold">
+        <h3 className="font-heading text-primary text-base font-semibold">
           {question}
         </h3>
         <ChevronDown
@@ -126,13 +127,11 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
           }`}
         />
       </button>
-      <div
-        className={`overflow-hidden transition-all duration-200 ${
-          isOpen ? 'max-h-96' : 'max-h-0'
-        }`}
-      >
-        <p className="text-primary/70 px-6 pb-6 leading-relaxed">{answer}</p>
-      </div>
+      {isOpen && (
+        <div className="border-border border-t px-4 pb-4 pt-3">
+          <p className="text-primary/70 leading-relaxed">{answer}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -143,14 +142,14 @@ export default function FAQsPage() {
       title="Frequently Asked Questions"
       description="Find answers to common questions about ThriftVerse"
     >
-      <div className="py-12">
-        <div className="mx-auto max-w-4xl space-y-12">
+      <div className="pb-16">
+        <div className="mx-auto max-w-3xl space-y-12">
           {faqCategories.map((category, index) => (
             <div key={index}>
-              <h2 className="font-heading text-primary mb-6 text-2xl font-bold">
+              <h2 className="font-heading text-primary mb-4 text-xl font-bold">
                 {category.category}
               </h2>
-              <div className="space-y-4">
+              <div>
                 {category.questions.map((faq, faqIndex) => (
                   <FAQItem
                     key={faqIndex}
@@ -163,17 +162,17 @@ export default function FAQsPage() {
           ))}
         </div>
 
-        {/* Still have questions CTA */}
-        <div className="border-border bg-surface mt-16 rounded-2xl border p-8 text-center">
+        {/* Contact CTA */}
+        <div className="mx-auto mt-16 max-w-3xl text-center">
           <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             Still have questions?
           </h2>
           <p className="text-primary/70 mb-6">
-            Our support team is here to help you succeed
+            Our support team is here to help you succeed on your thrift journey
           </p>
           <Link
             href="/contact"
-            className="bg-secondary text-primary inline-block cursor-pointer rounded-lg px-6 py-3 font-semibold transition-all hover:scale-105 hover:shadow-lg"
+            className="bg-secondary text-surface hover:bg-secondary/90 inline-flex items-center gap-2 rounded-lg px-6 py-3 font-semibold transition-colors"
           >
             Contact Support
           </Link>
