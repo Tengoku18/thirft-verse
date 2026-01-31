@@ -1,14 +1,17 @@
+import { getFullUrl } from '@/utils/env';
+import LinkButton from './common/LinkButton';
+
 interface UserNotFoundProps {
   instagramHandle: string | null;
 }
 
 const UserNotFound = (props: UserNotFoundProps) => {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
+    <div className="bg-background flex min-h-screen flex-col items-center justify-center px-4">
       <div className="text-center">
         <div className="mb-6">
           <svg
-            className="mx-auto h-24 w-24 text-muted"
+            className="text-muted mx-auto h-24 w-24"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -21,15 +24,24 @@ const UserNotFound = (props: UserNotFoundProps) => {
             />
           </svg>
         </div>
-        <h1 className="font-heading mb-3 text-3xl font-bold text-primary">
+        <h1 className="font-heading text-primary mb-3 text-3xl font-bold">
           User Not Found
         </h1>
-        <p className="mb-2 text-lg text-primary/60">
+        <p className="text-primary/60 mb-2 text-lg">
           The profile &quot;{props?.instagramHandle}&quot; does not exist.
         </p>
-        <p className="text-muted">
+        <p className="text-muted mb-8">
           Please check the store URL and try again.
         </p>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <LinkButton href={getFullUrl('/')} variant="primary">
+            Go to Home
+          </LinkButton>
+          <LinkButton href={getFullUrl('/explore')} variant="outline">
+            Explore Products
+          </LinkButton>
+        </div>
       </div>
     </div>
   );
