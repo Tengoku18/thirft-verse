@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "ThriftVerse",
+    "name": "thriftverse",
     "slug": "thrift-verse",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/logo/ios-app-icon.png",
     "scheme": "thriftverse",
