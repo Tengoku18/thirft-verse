@@ -21,6 +21,7 @@ import {
   ProductFormData,
   productSchema,
 } from "@/lib/validations/product";
+import { fetchUserProfile } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   createProduct as createProductAction,
@@ -28,8 +29,8 @@ import {
 } from "@/store/productsSlice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import { Controller, FieldError, useForm } from "react-hook-form";
 import {
   Alert,
@@ -64,10 +65,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
 
     const keyboardShow = Keyboard.addListener(showEvent, () =>
-      setIsKeyboardVisible(true)
+      setIsKeyboardVisible(true),
     );
     const keyboardHide = Keyboard.addListener(hideEvent, () =>
-      setIsKeyboardVisible(false)
+      setIsKeyboardVisible(false),
     );
 
     return () => {
@@ -75,6 +76,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       keyboardHide.remove();
     };
   }, []);
+
+  // Refresh profile when screen comes into focus (e.g., after updating payment details)
+  useFocusEffect(
+    useCallback(() => {
+      if (user?.id && mode === "create") {
+        dispatch(fetchUserProfile(user.id));
+      }
+    }, [user?.id, mode, dispatch]),
+  );
 
   // For create mode: store local URIs
   // For edit mode: can be local URI (new image) or existing URL
@@ -84,7 +94,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
   // Track which images are new (local) vs existing (URLs)
   const [isNewCoverImage, setIsNewCoverImage] = useState(false);
   const [newOtherImageIndices, setNewOtherImageIndices] = useState<Set<number>>(
-    new Set()
+    new Set(),
   );
 
   // Success modal state (for create mode)
@@ -123,6 +133,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
     },
   });
 
+  console.log("user", user);
+
   // Initialize form with product data in edit mode
   useEffect(() => {
     if (mode === "edit" && product) {
@@ -155,7 +167,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       if (status !== "granted") {
         Alert.alert(
           "Permission Required",
-          "Please allow access to your photo library to upload images."
+          "Please allow access to your photo library to upload images.",
         );
         return;
       }
@@ -184,7 +196,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
     if (remainingSlots <= 0) {
       Alert.alert(
         "Limit Reached",
-        "You can only add up to 5 additional images."
+        "You can only add up to 5 additional images.",
       );
       return;
     }
@@ -196,7 +208,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       if (status !== "granted") {
         Alert.alert(
           "Permission Required",
-          "Please allow access to your photo library to upload images."
+          "Please allow access to your photo library to upload images.",
         );
         return;
       }
@@ -320,13 +332,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       const coverUploadResult = await uploadImageToStorage(
         data.cover_image,
         "products",
-        "products"
+        "products",
       );
 
       if (!coverUploadResult.success || !coverUploadResult.url) {
         Alert.alert(
           "Upload Error",
-          "Failed to upload cover image. Please try again."
+          "Failed to upload cover image. Please try again.",
         );
         setLoading(false);
         return;
@@ -339,7 +351,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
           const uploadResult = await uploadImageToStorage(
             uri,
             "products",
-            "products"
+            "products",
           );
           if (uploadResult.success && uploadResult.url) {
             uploadedOtherImages.push(uploadResult.url);
@@ -360,7 +372,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
 
       // Use Redux action to create product
       const createdProductResult = await dispatch(
-        createProductAction(productData)
+        createProductAction(productData),
       ).unwrap();
 
       setCreatedProduct({
@@ -374,7 +386,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       console.error("Error creating product:", error);
       Alert.alert(
         "Error",
-        error?.message || "Failed to create product. Please try again."
+        error?.message || "Failed to create product. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -394,7 +406,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
         const uploadResult = await uploadImageToStorage(
           pendingData.cover_image,
           "products",
-          "products"
+          "products",
         );
         if (uploadResult.success && uploadResult.url) {
           finalCoverImage = uploadResult.url;
@@ -414,7 +426,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
           const uploadResult = await uploadImageToStorage(
             uri,
             "products",
-            "products"
+            "products",
           );
           if (uploadResult.success && uploadResult.url) {
             finalOtherImages.push(uploadResult.url);
@@ -440,7 +452,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
             status:
               pendingData.availability_count > 0 ? "available" : "out_of_stock",
           },
-        })
+        }),
       ).unwrap();
 
       setShowConfirmModal(false);
@@ -451,7 +463,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       setShowConfirmModal(false);
       Alert.alert(
         "Error",
-        error?.message || "Failed to update product. Please try again."
+        error?.message || "Failed to update product. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -776,8 +788,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
                     ? "Updating..."
                     : "Posting..."
                   : mode === "edit"
-                  ? "Update Product"
-                  : "Post"
+                    ? "Update Product"
+                    : "Post"
               }
               onPress={handleSubmit(onSubmit)}
               loading={loading}
