@@ -25,8 +25,27 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { store } from "@/store";
-import { Provider } from "react-redux";
+import * as Sentry from "@sentry/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Provider } from "react-redux";
+
+Sentry.init({
+  dsn: "https://ab2b2f8db939702cd141915db19a54eb@o4510834233114624.ingest.us.sentry.io/4510834234425344",
+
+  // Only enable Sentry in production
+  enabled: !__DEV__,
+
+  sendDefaultPii: true,
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [
+    Sentry.mobileReplayIntegration(),
+    Sentry.feedbackIntegration(),
+  ],
+});
 
 // Prevent auto-hiding the splash screen
 SplashScreen.preventAutoHideAsync();
@@ -35,7 +54,7 @@ export const unstable_settings = {
   initialRouteName: "index",
 };
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
 
   const [fontsLoaded] = useFonts({
@@ -77,37 +96,43 @@ export default function RootLayout() {
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
               <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="explore" options={{ headerShown: false }} />
-            <Stack.Screen name="profile" options={{ headerShown: false }} />
-            <Stack.Screen name="settings" options={{ headerShown: false }} />
-            <Stack.Screen name="policies" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="edit-profile"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="change-password"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="modal"
-              options={{ presentation: "modal", title: "Modal" }}
-            />
-            <Stack.Screen
-              name="sold-item/[id]"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="product/[id]"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="edit-product/[id]"
-              options={{ headerShown: false }}
-            />
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="explore" options={{ headerShown: false }} />
+                <Stack.Screen name="profile" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="settings"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="policies"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="edit-profile"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="change-password"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="modal"
+                  options={{ presentation: "modal", title: "Modal" }}
+                />
+                <Stack.Screen
+                  name="sold-item/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="product/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="edit-product/[id]"
+                  options={{ headerShown: false }}
+                />
               </Stack>
               <StatusBar style="dark" />
             </ThemeProvider>
@@ -116,4 +141,4 @@ export default function RootLayout() {
       </Provider>
     </SafeAreaProvider>
   );
-}
+});

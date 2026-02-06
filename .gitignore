@@ -56,3 +56,4 @@ app-example
 
 thrift-verse-6c479761f3e0.json
 google-service-account.json
+.env.local
