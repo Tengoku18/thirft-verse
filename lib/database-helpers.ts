@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { PaginatedResponse, Product, ProductStatus } from "./types/database";
+import { AppNotification, PaginatedResponse, Product, ProductStatus } from "./types/database";
 
 /**
  * Check if email already exists in auth.users table
@@ -1122,5 +1122,110 @@ export const syncNCMOrderStatus = async (
     console.error("💥 Error in syncNCMOrderStatus:", error);
     // Still return success so UI doesn't show error
     return { success: true, data: null, warning: "Could not connect to NCM" };
+  }
+};
+
+// ============================================================
+// Notification Helpers
+// ============================================================
+
+export const getNotifications = async (
+  userId: string,
+  limit = 20,
+  offset = 0
+): Promise<{ success: boolean; data: AppNotification[]; count: number }> => {
+  try {
+    const { data, error, count } = await supabase
+      .from("notifications")
+      .select("*", { count: "exact" })
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching notifications:", JSON.stringify(error));
+      return { success: false, data: [], count: 0 };
+    }
+
+    return { success: true, data: data || [], count: count || 0 };
+  } catch (error) {
+    console.error("Error in getNotifications:", error);
+    return { success: false, data: [], count: 0 };
+  }
+};
+
+export const getUnreadNotificationCount = async (
+  userId: string
+): Promise<number> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return 0;
+
+    const { data, error } = await supabase
+      .from("notifications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("is_read", false);
+
+    if (error) {
+      console.error("Error fetching unread count:", JSON.stringify(error));
+      return 0;
+    }
+
+    return data?.length || 0;
+  } catch (error) {
+    console.error("Error in getUnreadNotificationCount:", error);
+    return 0;
+  }
+};
+
+export const markNotificationAsRead = async (
+  notificationId: string
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", notificationId)
+      .select("id");
+
+    if (error) {
+      console.error("Error marking notification as read:", error);
+      return false;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn("markNotificationAsRead: no rows updated for id:", notificationId);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error in markNotificationAsRead:", error);
+    return false;
+  }
+};
+
+export const markAllNotificationsAsRead = async (
+  userId: string
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", userId)
+      .eq("is_read", false)
+      .select("id");
+
+    if (error) {
+      console.error("Error marking all notifications as read:", error);
+      return false;
+    }
+
+    console.log("Marked", data?.length || 0, "notifications as read");
+    return true;
+  } catch (error) {
+    console.error("Error in markAllNotificationsAsRead:", error);
+    return false;
   }
 };

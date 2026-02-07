@@ -98,21 +98,23 @@ export async function POST(request: NextRequest) {
         .single(),
     ]);
 
-    // Check if seller has muted notifications
+    const message = NOTIFICATION_MESSAGES[status];
+    const productName = product?.title || "Unknown product";
+    const orderCode = order.order_code || order.id.slice(0, 8);
+    const notificationBody = `"${productName}" - Rs.${order.amount} (Order #${orderCode})`;
+    const notificationType = status === "cancelled" ? "order_cancelled" : "order_refunded";
+
+    // Send push notification if not muted
     if (seller?.config?.notifications_muted) {
-      console.log("Seller has muted notifications, skipping");
+      console.log("Seller has muted notifications, skipping push");
     } else {
       const tokens: string[] = seller?.expo_push_tokens ?? [];
 
       if (tokens.length > 0) {
-        const message = NOTIFICATION_MESSAGES[status];
-        const productName = product?.title || "Unknown product";
-        const orderCode = order.order_code || order.id.slice(0, 8);
-
         await sendPushNotification({
           to: tokens,
           title: message.title,
-          body: `"${productName}" - Rs.${order.amount} (Order #${orderCode})`,
+          body: notificationBody,
           data: {
             order_id: order.id,
             status,
@@ -123,9 +125,23 @@ export async function POST(request: NextRequest) {
         });
         console.log(`Push notification sent to ${tokens.length} device(s) for seller:`, order.seller_id);
       } else {
-        console.log("Seller has no push tokens, skipping notification");
+        console.log("Seller has no push tokens, skipping push");
       }
     }
+
+    // Insert in-app notification (always, regardless of mute)
+    await supabase.from("notifications").insert({
+      user_id: order.seller_id,
+      title: message.title,
+      body: notificationBody,
+      type: notificationType,
+      data: {
+        order_id: order.id,
+        status,
+        product_title: productName,
+        amount: String(order.amount),
+      },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

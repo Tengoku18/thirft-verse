@@ -7,6 +7,18 @@ export type OrderStatus = 'pending' | 'processing' | 'shipping' | 'delivered' | 
 export type ProductStatus = 'available' | 'out_of_stock';
 export type ProfileStatus = 'active' | 'suspended' | 'deleted';
 export type DeletionRequestStatus = 'pending' | 'approved' | 'rejected' | 'completed';
+export type NotificationType = 'new_order' | 'order_cancelled' | 'order_refunded';
+
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  title: string;
+  body: string;
+  type: NotificationType;
+  data: Record<string, string>;
+  is_read: boolean;
+  created_at: string;
+}
 
 export interface ProfileConfig {
   status: ProfileStatus;

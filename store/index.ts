@@ -44,3 +44,12 @@ export {
 } from './signupSlice';
 
 export type { SignupFormData, SignupPaymentData } from './signupSlice';
+
+// Export notifications slice
+export {
+  fetchNotifications,
+  fetchUnreadCount,
+  markAsRead,
+  markAllAsRead,
+  clearNotifications,
+} from './notificationsSlice';

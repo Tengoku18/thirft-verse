@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
+import notificationsReducer from './notificationsSlice';
 import productsReducer from './productsSlice';
 import profileReducer from './profileSlice';
 import signupReducer from './signupSlice';
@@ -10,6 +11,7 @@ export const store = configureStore({
     profile: profileReducer,
     signup: signupReducer,
     products: productsReducer,
+    notifications: notificationsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -26,7 +26,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { initializePushNotifications } from "@/lib/push-notifications";
-import { store } from "@/store";
+import { fetchNotifications, fetchUnreadCount, store } from "@/store";
 import * as Sentry from "@sentry/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
@@ -71,10 +71,16 @@ export default Sentry.wrap(function RootLayout() {
 
   // Handle notification interactions (foreground, background, quit)
   useEffect(() => {
-    // Foreground: when notification arrives while app is open
+    // Foreground: when notification arrives while app is open — refresh unread count
     const notificationSub = Notifications.addNotificationReceivedListener(
       (notification) => {
         console.log("Notification received (foreground):", notification);
+        // Refresh unread badge and notification list when a push arrives
+        const userId = store.getState().auth.user?.id;
+        if (userId) {
+          store.dispatch(fetchUnreadCount(userId));
+          store.dispatch(fetchNotifications(userId));
+        }
       }
     );
 
@@ -172,6 +178,10 @@ export default Sentry.wrap(function RootLayout() {
                 />
                 <Stack.Screen
                   name="order/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="notifications"
                   options={{ headerShown: false }}
                 />
               </Stack>

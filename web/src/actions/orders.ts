@@ -1,6 +1,7 @@
 'use server';
 
 import { sendProductNotReceivedEmail } from '@/lib/email/send';
+import { sendPushNotification } from '@/lib/expo-push';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { generateOrderCodeWithDate } from '@/lib/utils/order-code';
 import {
@@ -102,9 +103,62 @@ export async function createOrder(
 
     if (!inventoryResult.success) {
       console.error('Failed to update inventory:', inventoryResult.error);
-      // Don't fail the order creation if inventory update fails
-      // The order is already created and payment is done
-      // Log it for manual intervention if needed
+    }
+
+    // Send push notification to seller (non-blocking)
+    try {
+      const [{ data: seller }, { data: product }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('expo_push_tokens, config')
+          .eq('id', params.seller_id)
+          .single(),
+        supabase
+          .from('products')
+          .select('title')
+          .eq('id', params.product_id)
+          .single(),
+      ]);
+
+      const productName = product?.title || 'Unknown product';
+      const notifTitle = 'New Order Received';
+      const notifBody = `"${productName}" - Rs.${params.amount} (Order #${orderCode})`;
+
+      // Send push notification if not muted
+      if (!seller?.config?.notifications_muted) {
+        const tokens: string[] = seller?.expo_push_tokens ?? [];
+        if (tokens.length > 0) {
+          await sendPushNotification({
+            to: tokens,
+            title: notifTitle,
+            body: notifBody,
+            data: {
+              order_id: data.id,
+              status: 'pending',
+              product_title: productName,
+              amount: String(params.amount),
+            },
+          });
+          console.log('New order notification sent to seller:', params.seller_id);
+        }
+      }
+
+      // Insert in-app notification (always, regardless of mute)
+      await supabase.from('notifications').insert({
+        user_id: params.seller_id,
+        title: notifTitle,
+        body: notifBody,
+        type: 'new_order',
+        data: {
+          order_id: data.id,
+          status: 'pending',
+          product_title: productName,
+          amount: String(params.amount),
+        },
+      });
+    } catch (notifError) {
+      // Don't fail order creation if notification fails
+      console.error('Failed to send new order notification:', notifError);
     }
 
     return {
