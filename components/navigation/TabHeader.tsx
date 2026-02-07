@@ -1,3 +1,4 @@
+import { BodyMediumText } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { LOGOS } from "@/constants/logos";
 import { useAppSelector } from "@/store/hooks";
@@ -25,6 +26,9 @@ export function TabHeader({
 }: TabHeaderProps) {
   const router = useRouter();
   const profile = useAppSelector((state) => state.profile.profile);
+  const unreadCount = useAppSelector(
+    (state) => state.notifications.unreadCount
+  );
 
   const handleBack = () => {
     if (onBack) {
@@ -92,6 +96,37 @@ export function TabHeader({
                 activeOpacity={0.7}
               >
                 <IconSymbol name="magnifyingglass" size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/notifications" as never)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                activeOpacity={0.7}
+              >
+                <View>
+                  <IconSymbol name="bell.fill" size={24} color="#FFFFFF" />
+                  {unreadCount > 0 && (
+                    <View
+                      style={{
+                        position: "absolute",
+                        top: -6,
+                        right: -8,
+                        minWidth: 18,
+                        height: 18,
+                        borderRadius: 9,
+                        backgroundColor: "#EF4444",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingHorizontal: 4,
+                      }}
+                    >
+                      <BodyMediumText
+                        style={{ color: "#FFFFFF", fontSize: 10, lineHeight: 14 }}
+                      >
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </BodyMediumText>
+                    </View>
+                  )}
+                </View>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => router.push("/settings")}

@@ -1,9 +1,15 @@
+import {
+  savePushTokenToProfile,
+  unregisterPushToken,
+} from "@/lib/push-notifications";
 import { supabase } from "@/lib/supabase";
 import {
   clearAuth,
   clearProfile,
+  clearNotifications,
   clearPersistedSignupState,
   fetchCurrentSession,
+  fetchUnreadCount,
   fetchUserProfile,
   setSession,
   setUser,
@@ -47,6 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (result) {
           // Fetch user profile data
           await dispatch(fetchUserProfile(result.user.id));
+          // Fetch unread notification count for badge
+          dispatch(fetchUnreadCount(result.user.id));
+          // Save push token to profile (awaits token initialization if needed)
+          await savePushTokenToProfile(result.user.id);
         } else {
           console.log("ℹ️  No active session found - user is not logged in");
         }
@@ -101,6 +111,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data.user) {
         await dispatch(fetchUserProfile(data.user.id));
+        // Fetch unread notification count for badge
+        dispatch(fetchUnreadCount(data.user.id));
+        // Save push token to profile (awaits token initialization if needed)
+        await savePushTokenToProfile(data.user.id);
       }
     }
 
@@ -116,10 +130,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    // Unregister push token before signing out
+    if (user?.id) {
+      await unregisterPushToken(user.id);
+    }
     await supabase.auth.signOut();
     // Clear Redux store
     dispatch(clearAuth());
     dispatch(clearProfile());
+    dispatch(clearNotifications());
     // Clear persisted signup state
     dispatch(clearPersistedSignupState());
   };

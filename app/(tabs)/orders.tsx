@@ -202,7 +202,11 @@ export default function OrdersScreen() {
 
   // Set filter from query params (only accept valid filters)
   useEffect(() => {
-    if (filter === "pending" || filter === "processing" || filter === "completed") {
+    if (
+      filter === "pending" ||
+      filter === "processing" ||
+      filter === "completed"
+    ) {
       setStatusFilter(filter as StatusFilter);
     }
   }, [filter]);
@@ -215,23 +219,12 @@ export default function OrdersScreen() {
     }
 
     try {
-      console.log("📦 Loading orders for user ID:", user.id);
-
       // First, try to get actual orders from the orders table
       const ordersResult = await getOrdersBySeller(user.id);
-
-      console.log("📦 Orders result:", JSON.stringify(ordersResult, null, 2));
 
       let orderItems: OrderItem[] = [];
 
       if (ordersResult.success) {
-        console.log("✅ Found orders:", ordersResult.data.length);
-        if (ordersResult.data.length > 0) {
-          console.log(
-            "📦 First order:",
-            JSON.stringify(ordersResult.data[0], null, 2)
-          );
-        }
         orderItems = ordersResult.data.map((order: any) => {
           const shippingFee = order.shipping_fee || 0;
           const productPrice = (order.amount || 0) - shippingFee;
@@ -268,7 +261,7 @@ export default function OrdersScreen() {
       setLoading(true);
       loadData();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user])
+    }, [user]),
   );
 
   const onRefresh = useCallback(async () => {

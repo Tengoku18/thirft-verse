@@ -110,15 +110,13 @@ export default function SignupStep2Screen() {
         setErrorMessage(
           isExpiredError
             ? "Your verification code has expired or is invalid. Please tap 'Resend Code' to get a new one."
-            : error.message || "Invalid or expired code. Please try again."
+            : error.message || "Invalid or expired code. Please try again.",
         );
         setLoading(false);
         return;
       }
 
       if (data.user) {
-        console.log("Email verified successfully for user:", data.user.id);
-
         // Check if user has completed step 3 (payment setup)
         // If payment_username exists in profile, they've completed step 3
         const hasCompletedPaymentStep = profile?.payment_username;
@@ -134,7 +132,7 @@ export default function SignupStep2Screen() {
             persistSignupState({
               currentStep: 3,
               isSignupInProgress: true,
-            })
+            }),
           );
           router.push("/(auth)/signup-step3");
         }
@@ -167,7 +165,7 @@ export default function SignupStep2Screen() {
       if (error) {
         console.error("Resend error:", error);
         setErrorMessage(
-          error.message || "Failed to resend code. Please try again."
+          error.message || "Failed to resend code. Please try again.",
         );
         setResendLoading(false);
         return;
@@ -175,7 +173,7 @@ export default function SignupStep2Screen() {
 
       Alert.alert(
         "Code Sent",
-        "A new verification code has been sent to your email."
+        "A new verification code has been sent to your email.",
       );
 
       setTimer(60);

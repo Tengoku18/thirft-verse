@@ -93,7 +93,7 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
           "Verification Failed",
           isExpiredError
             ? "Your verification code has expired or is invalid. Please tap 'Resend Code' to get a new one."
-            : error.message || "Invalid or expired code. Please try again."
+            : error.message || "Invalid or expired code. Please try again.",
         );
         setLoading(false);
         return;
@@ -105,12 +105,17 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
         // Upload profile image if provided
         if (profileImage) {
           try {
-            const uploadResult = await uploadProfileImage(data.user.id, profileImage);
+            const uploadResult = await uploadProfileImage(
+              data.user.id,
+              profileImage,
+            );
             if (uploadResult.success && uploadResult.url) {
               profile_image_path = uploadResult.url;
-              console.log("✅ Profile image uploaded:", profile_image_path);
             } else {
-              console.error("Failed to upload profile image:", uploadResult.error);
+              console.error(
+                "Failed to upload profile image:",
+                uploadResult.error,
+              );
               // Continue without profile image - user can update later
             }
           } catch (uploadError) {
@@ -145,7 +150,7 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
             console.error("❌ Failed to create profile:", profileResult.error);
             console.error("⚠️  Profiles table not found!");
             console.error(
-              "📝 ACTION REQUIRED: Run the SQL migration in Supabase Dashboard → SQL Editor"
+              "📝 ACTION REQUIRED: Run the SQL migration in Supabase Dashboard → SQL Editor",
             );
             Alert.alert(
               "Database Setup Required",
@@ -157,13 +162,13 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
                     setLoading(false);
                   },
                 },
-              ]
+              ],
             );
             return;
           } else {
             console.error(
               "❌ CRITICAL: Failed to create profile:",
-              profileResult.error
+              profileResult.error,
             );
             Alert.alert(
               "Profile Creation Failed",
@@ -175,14 +180,14 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
                     setLoading(false);
                   },
                 },
-              ]
+              ],
             );
             return; // STOP - Don't proceed without profile
           }
         } else {
           console.log(
             "✅ Profile created successfully for user:",
-            data.user.id
+            data.user.id,
           );
         }
 
@@ -215,7 +220,7 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
         console.error("❌ Resend error:", error);
         Alert.alert(
           "Error",
-          error.message || "Failed to resend code. Please try again."
+          error.message || "Failed to resend code. Please try again.",
         );
         setResendLoading(false);
         return;
@@ -223,7 +228,7 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
 
       Alert.alert(
         "Code Sent",
-        "A new verification code has been sent to your email."
+        "A new verification code has been sent to your email.",
       );
 
       // Reset timer and clear inputs
