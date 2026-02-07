@@ -49,6 +49,13 @@
           "project": "react-native",
           "organization": "thriiftverse"
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo/android-icon1.png",
+          "color": "#C08B7B"
+        }
       ]
     ],
     "experiments": {

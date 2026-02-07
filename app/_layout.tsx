@@ -14,7 +14,8 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import * as Notifications from "expo-notifications";
+import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -24,6 +25,7 @@ import "../global.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { initializePushNotifications } from "@/lib/push-notifications";
 import { store } from "@/store";
 import * as Sentry from "@sentry/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -54,8 +56,43 @@ export const unstable_settings = {
   initialRouteName: "index",
 };
 
+function handleNotificationNavigation(data: Record<string, string>) {
+  if (data?.order_id) {
+    router.push(`/order/${data.order_id}` as never);
+  }
+}
+
 export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
+  // Initialize push notifications on app launch (request permission + get token)
+  useEffect(() => {
+    initializePushNotifications();
+  }, []);
+
+  // Handle notification interactions (foreground, background, quit)
+  useEffect(() => {
+    // Foreground: when notification arrives while app is open
+    const notificationSub = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log("Notification received (foreground):", notification);
+      }
+    );
+
+    // Background & Quit: when user taps on a notification
+    const responseSub =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        const data = response.notification.request.content.data as Record<
+          string,
+          string
+        >;
+        handleNotificationNavigation(data);
+      });
+
+    return () => {
+      notificationSub.remove();
+      responseSub.remove();
+    };
+  }, []);
 
   const [fontsLoaded] = useFonts({
     // Folito fonts for headings (loaded from local assets)
@@ -131,6 +168,10 @@ export default Sentry.wrap(function RootLayout() {
                 />
                 <Stack.Screen
                   name="edit-product/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="order/[id]"
                   options={{ headerShown: false }}
                 />
               </Stack>

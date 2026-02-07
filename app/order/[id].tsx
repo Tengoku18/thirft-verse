@@ -13,7 +13,11 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
-import { getOrderById, syncNCMOrderStatus, updateOrderWithNCM } from "@/lib/database-helpers";
+import {
+  getOrderById,
+  syncNCMOrderStatus,
+  updateOrderWithNCM,
+} from "@/lib/database-helpers";
 import { pickImage, takePhoto } from "@/lib/image-picker-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
@@ -304,7 +308,9 @@ function SimpleTimeline({
       description: "Order sent to Nepal Can Move for delivery",
       done: isProcessingOrBeyond,
       current: status === "processing",
-      date: isProcessingOrBeyond ? updateDate.format("DD MMM • h:mm A") : undefined,
+      date: isProcessingOrBeyond
+        ? updateDate.format("DD MMM • h:mm A")
+        : undefined,
     },
     {
       id: "completed",
@@ -327,8 +333,8 @@ function SimpleTimeline({
                 backgroundColor: step.done
                   ? "#059669"
                   : step.current
-                  ? "#3B82F6"
-                  : "#E5E7EB",
+                    ? "#3B82F6"
+                    : "#E5E7EB",
               }}
             >
               {step.done ? (
@@ -426,13 +432,6 @@ export default function SingleOrderScreen() {
         // Use order amount for price calculation (not product price which could be updated)
         const shippingFee = o.shipping_fee || 0;
         const productPrice = (o.amount || 0) - shippingFee;
-
-        // Debug: Log NCM data from database
-        console.log("📦 Order NCM Data from DB:", {
-          ncm_order_id: o.ncm_order_id,
-          ncm_status: o.ncm_status,
-          ncm_delivery_status: o.ncm_delivery_status,
-        });
 
         setOrder({
           id: o.id,
@@ -550,7 +549,7 @@ export default function SingleOrderScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    setRefreshTrigger(prev => prev + 1); // Trigger refresh in child components
+    setRefreshTrigger((prev) => prev + 1); // Trigger refresh in child components
     loadOrder();
   }, [loadOrder]);
 
@@ -600,13 +599,13 @@ export default function SingleOrderScreen() {
       const uploadResult = await uploadImageToStorage(
         billImageUri,
         "bill",
-        "shipping-bills"
+        "shipping-bills",
       );
 
       if (!uploadResult.success) {
         Alert.alert(
           "Error",
-          uploadResult.error || "Failed to upload bill image."
+          uploadResult.error || "Failed to upload bill image.",
         );
         setUploadingBill(false);
         return;
@@ -705,7 +704,7 @@ export default function SingleOrderScreen() {
         Alert.alert(
           "Warning",
           "NCM order created but failed to update local record. Please note the NCM Order ID: " +
-            ncmOrderId
+            ncmOrderId,
         );
       }
     } catch (error) {
@@ -747,7 +746,7 @@ export default function SingleOrderScreen() {
         Alert.alert(
           "Invalid Phone Number",
           "This phone number doesn't appear to be valid. Please edit the order to fix it.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
         return;
       }
@@ -801,23 +800,78 @@ export default function SingleOrderScreen() {
   }
 
   // NCM delivery status config (maps NCM statuses to colors)
-  const NCM_STATUS_DISPLAY: Record<string, { bg: string; text: string; label: string; icon: string }> = {
-    "Pickup Order Created": { bg: "#FEF3C7", text: "#D97706", label: "Pickup Created", icon: "doc.text.fill" },
-    "Drop off Order Created": { bg: "#FEF3C7", text: "#D97706", label: "Order Created", icon: "doc.text.fill" },
-    "Sent for Pickup": { bg: "#DBEAFE", text: "#2563EB", label: "Sent for Pickup", icon: "shippingbox.fill" },
-    "Pickup Complete": { bg: "#DBEAFE", text: "#2563EB", label: "Picked Up", icon: "checkmark.circle.fill" },
-    "In Transit": { bg: "#E0E7FF", text: "#4F46E5", label: "In Transit", icon: "arrow.right.circle.fill" },
-    "Arrived": { bg: "#DBEAFE", text: "#2563EB", label: "Arrived at Branch", icon: "mappin.circle.fill" },
-    "Sent for Delivery": { bg: "#DBEAFE", text: "#2563EB", label: "Out for Delivery", icon: "paperplane.fill" },
-    "Delivered": { bg: "#D1FAE5", text: "#059669", label: "Delivered", icon: "checkmark.seal.fill" },
-    "Returned": { bg: "#FEE2E2", text: "#DC2626", label: "Returned", icon: "arrow.uturn.backward.circle.fill" },
-    "Cancelled": { bg: "#FEE2E2", text: "#DC2626", label: "Cancelled", icon: "xmark.circle.fill" },
+  const NCM_STATUS_DISPLAY: Record<
+    string,
+    { bg: string; text: string; label: string; icon: string }
+  > = {
+    "Pickup Order Created": {
+      bg: "#FEF3C7",
+      text: "#D97706",
+      label: "Pickup Created",
+      icon: "doc.text.fill",
+    },
+    "Drop off Order Created": {
+      bg: "#FEF3C7",
+      text: "#D97706",
+      label: "Order Created",
+      icon: "doc.text.fill",
+    },
+    "Sent for Pickup": {
+      bg: "#DBEAFE",
+      text: "#2563EB",
+      label: "Sent for Pickup",
+      icon: "shippingbox.fill",
+    },
+    "Pickup Complete": {
+      bg: "#DBEAFE",
+      text: "#2563EB",
+      label: "Picked Up",
+      icon: "checkmark.circle.fill",
+    },
+    "In Transit": {
+      bg: "#E0E7FF",
+      text: "#4F46E5",
+      label: "In Transit",
+      icon: "arrow.right.circle.fill",
+    },
+    Arrived: {
+      bg: "#DBEAFE",
+      text: "#2563EB",
+      label: "Arrived at Branch",
+      icon: "mappin.circle.fill",
+    },
+    "Sent for Delivery": {
+      bg: "#DBEAFE",
+      text: "#2563EB",
+      label: "Out for Delivery",
+      icon: "paperplane.fill",
+    },
+    Delivered: {
+      bg: "#D1FAE5",
+      text: "#059669",
+      label: "Delivered",
+      icon: "checkmark.seal.fill",
+    },
+    Returned: {
+      bg: "#FEE2E2",
+      text: "#DC2626",
+      label: "Returned",
+      icon: "arrow.uturn.backward.circle.fill",
+    },
+    Cancelled: {
+      bg: "#FEE2E2",
+      text: "#DC2626",
+      label: "Cancelled",
+      icon: "xmark.circle.fill",
+    },
   };
 
   // Use NCM status display if order has NCM data, otherwise use order status
   const statusStyle = order.ncm?.deliveryStatus
-    ? (NCM_STATUS_DISPLAY[order.ncm.deliveryStatus] || STATUS_CONFIG[order.status] || DEFAULT_STATUS)
-    : (STATUS_CONFIG[order.status] || DEFAULT_STATUS);
+    ? NCM_STATUS_DISPLAY[order.ncm.deliveryStatus] ||
+      STATUS_CONFIG[order.status] ||
+      DEFAULT_STATUS
+    : STATUS_CONFIG[order.status] || DEFAULT_STATUS;
 
   const isSeller = user?.id === order.sellerId;
   const canMarkDelivered =
@@ -825,7 +879,10 @@ export default function SingleOrderScreen() {
 
   // Order is editable only if it's pending and hasn't been sent to NCM
   const isEditable =
-    isSeller && order.status === "pending" && !order.ncm?.orderId && order.type === "order";
+    isSeller &&
+    order.status === "pending" &&
+    !order.ncm?.orderId &&
+    order.type === "order";
 
   return (
     <View className="flex-1 bg-[#FAFAFA]">
@@ -973,7 +1030,10 @@ export default function SingleOrderScreen() {
             />
 
             {/* NCM Comments Section */}
-            <NCMCommentsSection ncmOrderId={order.ncm.orderId} refreshTrigger={refreshTrigger} />
+            <NCMCommentsSection
+              ncmOrderId={order.ncm.orderId}
+              refreshTrigger={refreshTrigger}
+            />
           </>
         ) : (
           /* Simple timeline for pending orders (before NCM) */
@@ -1063,7 +1123,7 @@ export default function SingleOrderScreen() {
           <Row
             label="Service Charge (5%)"
             value={`- ${formatPrice(
-              Math.round(order.payment.subtotal * 0.05)
+              Math.round(order.payment.subtotal * 0.05),
             )}`}
           />
           {/* Earnings Row with green background */}
@@ -1125,11 +1185,7 @@ export default function SingleOrderScreen() {
             style={{ opacity: updating ? 0.7 : 1 }}
             activeOpacity={0.8}
           >
-            <IconSymbol
-              name="paperplane.fill"
-              size={20}
-              color="#FFFFFF"
-            />
+            <IconSymbol name="paperplane.fill" size={20} color="#FFFFFF" />
             <BodyBoldText
               style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}
             >

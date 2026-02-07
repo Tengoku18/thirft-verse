@@ -11,6 +11,7 @@ export type DeletionRequestStatus = 'pending' | 'approved' | 'rejected' | 'compl
 export interface ProfileConfig {
   status: ProfileStatus;
   requestedForDeletion: boolean;
+  notifications_muted?: boolean;
 }
 
 export interface WithdrawalRecord {
@@ -41,6 +42,7 @@ export interface Profile {
   payment_username: string | null;
   payment_qr_image: string | null;
   revenue: ProfileRevenue | null;
+  expo_push_tokens: string[];
   created_at: string;
   updated_at: string;
 }

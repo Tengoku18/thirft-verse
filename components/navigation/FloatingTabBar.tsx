@@ -88,16 +88,14 @@ export function FloatingTabBar({
   const minBottomPadding = 12;
   const bottomPadding = Math.max(insets.bottom, minBottomPadding);
 
-  // Debug: Log insets to understand the values on different devices
-  console.log("Safe Area Insets:", { bottom: insets.bottom, top: insets.top });
-
   return (
     <View
       style={[
         styles.container,
         {
           paddingBottom: bottomPadding,
-          backgroundColor: Platform.OS === "android" ? "#FAFAFA" : "transparent",
+          backgroundColor:
+            Platform.OS === "android" ? "#FAFAFA" : "transparent",
         },
       ]}
     >
