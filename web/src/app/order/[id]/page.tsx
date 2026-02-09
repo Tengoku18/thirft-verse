@@ -1,4 +1,4 @@
-import { getOrderById } from '@/actions/orders'
+import { getOrderById, getOrderWithItems } from '@/actions/orders'
 import { getProductById } from '@/actions/products'
 import { getProfileById } from '@/actions'
 import Image from 'next/image'
@@ -66,15 +66,21 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
   const { id } = await params
   const { view } = await searchParams
 
-  // Fetch order details
-  const order = await getOrderById(id)
+  // Fetch order details with items (for multi-product orders)
+  const orderWithItems = await getOrderWithItems(id)
 
-  if (!order) {
+  if (!orderWithItems) {
     notFound()
   }
 
+  const order = orderWithItems
+
   // Determine if viewer is the buyer based on searchParams
   const isBuyer = view === 'buyer'
+
+  // Check if this is a multi-product order
+  const isMultiProduct = order.order_items && order.order_items.length > 0
+  const hasMultipleItems = isMultiProduct && order.order_items.length > 1
 
   // Fetch full product and seller details
   const product = order.product_id ? await getProductById({ id: order.product_id }) : null
@@ -146,47 +152,74 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
           <div className="flex items-center gap-2 mb-6">
             <Package className="h-5 w-5 text-primary/50" />
             <h2 className="font-heading text-lg font-semibold text-primary">
-              Product Information
+              {hasMultipleItems ? 'Order Items' : 'Product Information'}
             </h2>
           </div>
 
-          <div className="flex flex-col gap-6 sm:flex-row">
-            {/* Product Image */}
-            <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-lg bg-surface/50 sm:h-40 sm:w-40">
-              {product?.cover_image ? (
-                <Image
-                  src={product.cover_image}
-                  alt={order.product?.title || 'Product'}
-                  fill
-                  className="object-cover"
-                  sizes="160px"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <Package className="h-12 w-12 text-primary/20" />
-                </div>
-              )}
-            </div>
+          {isMultiProduct ? (
+            /* Multi-Product Order */
+            <div className="space-y-4">
+              {order.order_items.map((item, index) => (
+                <div key={item.id} className="flex flex-col gap-4 sm:flex-row p-4 rounded-lg bg-surface/30">
+                  {/* Product Image */}
+                  <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-surface/50">
+                    {item.cover_image ? (
+                      <Image
+                        src={item.cover_image}
+                        alt={item.product_name}
+                        fill
+                        className="object-cover"
+                        sizes="96px"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Package className="h-8 w-8 text-primary/20" />
+                      </div>
+                    )}
+                  </div>
 
-            {/* Product Details */}
-            <div className="flex-1 min-w-0">
-              <h3 className="font-heading text-xl font-bold text-primary sm:text-2xl leading-tight">
-                {order.product?.title || 'Product'}
-              </h3>
+                  {/* Product Details */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-heading text-lg font-bold text-primary leading-tight">
+                      {item.product_name}
+                    </h3>
 
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-primary/50">Quantity</span>
-                  <span className="font-semibold text-primary">{order.quantity}x</span>
+                    <div className="mt-3 flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-4">
+                        <div>
+                          <span className="text-primary/50">Qty: </span>
+                          <span className="font-semibold text-primary">{item.quantity}x</span>
+                        </div>
+                        <div>
+                          <span className="text-primary/50">Price: </span>
+                          <span className="font-semibold text-primary">
+                            {formatProductPrice(item.price, seller?.currency || 'NPR', false)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-heading text-lg font-bold text-[#e8b647]">
+                          {formatCheckoutPrice(item.price * item.quantity, seller?.currency || 'NPR')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-primary/50">Unit Price</span>
+              ))}
+
+              {/* Order Summary */}
+              <div className="mt-4 space-y-2 rounded-lg bg-surface/30 p-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-primary/50">Subtotal ({order.order_items.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
                   <span className="font-semibold text-primary">
-                    {formatProductPrice(order.product?.price || 0, seller?.currency || 'USD', false)}
+                    {formatCheckoutPrice(
+                      order.order_items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                      seller?.currency || 'NPR'
+                    )}
                   </span>
                 </div>
                 {order.shipping_fee > 0 && (
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between text-sm">
                     <span className="text-primary/50">Shipping</span>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-amber-600">
@@ -199,14 +232,73 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
                   </div>
                 )}
                 <div className="flex items-center justify-between pt-2 border-t border-primary/10">
-                  <span className="text-primary/50">Total</span>
+                  <span className="font-semibold text-primary">Total</span>
                   <span className="font-heading text-2xl font-bold text-[#e8b647]">
                     {formatCheckoutPrice(order.amount, seller?.currency || 'NPR')}
                   </span>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            /* Single Product Order (Legacy) */
+            <div className="flex flex-col gap-6 sm:flex-row">
+              {/* Product Image */}
+              <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-lg bg-surface/50 sm:h-40 sm:w-40">
+                {product?.cover_image ? (
+                  <Image
+                    src={product.cover_image}
+                    alt={product?.title || 'Product'}
+                    fill
+                    className="object-cover"
+                    sizes="160px"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Package className="h-12 w-12 text-primary/20" />
+                  </div>
+                )}
+              </div>
+
+              {/* Product Details */}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-heading text-xl font-bold text-primary sm:text-2xl leading-tight">
+                  {product?.title || 'Product'}
+                </h3>
+
+                <div className="mt-4 space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-primary/50">Quantity</span>
+                    <span className="font-semibold text-primary">{order.quantity}x</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-primary/50">Unit Price</span>
+                    <span className="font-semibold text-primary">
+                      {formatProductPrice(product?.price || 0, seller?.currency || 'USD', false)}
+                    </span>
+                  </div>
+                  {order.shipping_fee > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-primary/50">Shipping</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-amber-600">
+                          +{formatCheckoutPrice(order.shipping_fee, seller?.currency || 'NPR')}
+                        </span>
+                        <span className="text-xs text-primary/40">
+                          ({order.shipping_option === 'home' ? 'Home Delivery' : 'Branch Pickup'})
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between pt-2 border-t border-primary/10">
+                    <span className="text-primary/50">Total</span>
+                    <span className="font-heading text-2xl font-bold text-[#e8b647]">
+                      {formatCheckoutPrice(order.amount, seller?.currency || 'NPR')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Divider */}

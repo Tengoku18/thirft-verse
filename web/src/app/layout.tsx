@@ -1,4 +1,5 @@
 import ProgressBar from "@/_components/common/ProgressBar";
+import { CartProvider } from "@/contexts/CartContext";
 import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
 import localFont from "next/font/local";
@@ -125,7 +126,9 @@ export default function RootLayout({
             },
           }}
         />
-        {children}
+        <CartProvider>
+          {children}
+        </CartProvider>
       </body>
     </html>
   );

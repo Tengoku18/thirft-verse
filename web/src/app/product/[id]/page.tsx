@@ -3,6 +3,7 @@ import ProductPurchaseSection from '@/_components/ProductPurchaseSection'
 import ImageGallery from '@/_components/ImageGallery'
 import ProductCard from '@/_components/ProductCard'
 import ExpandableDescription from '@/_components/ExpandableDescription'
+import CartButton from '@/_components/cart/CartButton'
 import { formatProductPrice } from '@/utils/formatPrice'
 import { ArrowLeft, Store } from 'lucide-react'
 import { Metadata } from 'next'
@@ -202,6 +203,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 currency={currency}
                 availabilityCount={product.availability_count}
                 isOutOfStock={product.status === 'out_of_stock' || product.availability_count === 0}
+                storeId={product.store_id}
+                storeName={product.store?.name || product.store?.store_username || 'Store'}
+                coverImage={product.cover_image}
               />
             </div>
           </div>
@@ -236,6 +240,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       )}
+
+      {/* Floating Cart Button */}
+      <CartButton storeId={product.store_id} />
     </div>
   )
 }
