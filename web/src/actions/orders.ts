@@ -6,7 +6,9 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { generateOrderCodeWithDate } from '@/lib/utils/order-code';
 import {
   Order,
+  OrderItem,
   OrderWithDetails,
+  OrderWithItems,
   PaginatedResponse,
   ShippingAddress,
 } from '@/types/database';
@@ -23,6 +25,30 @@ interface CreateOrderParams {
   transaction_code?: string | null;
   transaction_uuid?: string | null;
   amount: number;
+  shipping_fee?: number;
+  shipping_option?: 'home' | 'branch' | null;
+  payment_method?: string;
+  status?: 'pending' | 'completed' | 'cancelled' | 'refunded';
+  buyer_notes?: string | null;
+}
+
+interface OrderItemInput {
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  price: number;
+  cover_image?: string | null;
+}
+
+interface CreateMultiProductOrderParams {
+  seller_id: string;
+  items: OrderItemInput[];
+  buyer_email: string;
+  buyer_name: string;
+  shipping_address: ShippingAddress;
+  transaction_code?: string | null;
+  transaction_uuid?: string | null;
+  total_amount: number; // Total including all items + shipping
   shipping_fee?: number;
   shipping_option?: 'home' | 'branch' | null;
   payment_method?: string;
@@ -175,6 +201,184 @@ export async function createOrder(
 }
 
 /**
+ * Create a new multi-product order after successful payment
+ * This supports multiple products in a single order
+ */
+export async function createMultiProductOrder(
+  params: CreateMultiProductOrderParams
+): Promise<{ success: boolean; order?: Order; error?: string }> {
+  try {
+    const supabase = createServiceRoleClient();
+
+    // Generate unique order code
+    const orderCodeSeed = params.transaction_uuid || `cod-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const orderCode = generateOrderCodeWithDate(orderCodeSeed);
+
+    // Calculate totals
+    const shippingFee = params.shipping_fee || 0;
+    const itemsTotal = params.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const paymentMethod = params.payment_method || 'eSewa';
+
+    // Verify total_amount matches calculated total
+    if (Math.abs(params.total_amount - (itemsTotal + shippingFee)) > 0.01) {
+      console.error('Amount mismatch:', {
+        provided: params.total_amount,
+        calculated: itemsTotal + shippingFee,
+      });
+    }
+
+    // Calculate seller's earning (always 95% of items total)
+    const sellersEarning = Math.round(itemsTotal * 0.95);
+
+    // Calculate platform earnings based on payment method
+    const platformFeeRate = paymentMethod === 'eSewa' ? 0.03 : 0.05;
+    const platformEarnings = Math.round(itemsTotal * platformFeeRate * 100) / 100;
+
+    // Create order (product_id is NULL for multi-product orders)
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        seller_id: params.seller_id,
+        product_id: null, // NULL indicates multi-product order
+        quantity: params.items.reduce((sum, item) => sum + item.quantity, 0), // Total quantity
+        buyer_email: params.buyer_email,
+        buyer_name: params.buyer_name,
+        shipping_address: params.shipping_address,
+        transaction_code: params.transaction_code || null,
+        transaction_uuid: params.transaction_uuid || null,
+        amount: params.total_amount,
+        shipping_fee: shippingFee,
+        shipping_option: params.shipping_option || null,
+        payment_method: paymentMethod,
+        status: params.status || 'pending',
+        order_code: orderCode,
+        sellers_earning: sellersEarning,
+        platform_earnings: platformEarnings,
+        buyer_notes: params.buyer_notes || null,
+      })
+      .select()
+      .single();
+
+    if (orderError || !order) {
+      console.error('Error creating order:', orderError);
+      return {
+        success: false,
+        error: orderError?.message || 'Failed to create order',
+      };
+    }
+
+    // Create order items
+    const orderItems = params.items.map((item) => ({
+      order_id: order.id,
+      product_id: item.product_id,
+      product_name: item.product_name,
+      quantity: item.quantity,
+      price: item.price,
+      cover_image: item.cover_image || null,
+    }));
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems);
+
+    if (itemsError) {
+      console.error('Error creating order items:', itemsError);
+      // Rollback: delete the order
+      await supabase.from('orders').delete().eq('id', order.id);
+      return {
+        success: false,
+        error: 'Failed to create order items',
+      };
+    }
+
+    // Decrement product availability for each item
+    for (const item of params.items) {
+      const inventoryResult = await decrementProductAvailability(
+        item.product_id,
+        item.quantity
+      );
+
+      if (!inventoryResult.success) {
+        console.error('Failed to update inventory for product:', item.product_id);
+      }
+    }
+
+    // Send push notification to seller (non-blocking)
+    try {
+      const [{ data: seller }, { data: firstProduct }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('expo_push_tokens, config')
+          .eq('id', params.seller_id)
+          .single(),
+        supabase
+          .from('products')
+          .select('title')
+          .eq('id', params.items[0].product_id)
+          .single(),
+      ]);
+
+      const itemsCount = params.items.length;
+      const productName = itemsCount > 1
+        ? `${firstProduct?.title || 'Product'} and ${itemsCount - 1} more item${itemsCount > 2 ? 's' : ''}`
+        : params.items[0].product_name;
+
+      const notifTitle = 'New Order Received';
+      const notifBody = `"${productName}" - Rs.${params.total_amount} (Order #${orderCode})`;
+
+      // Send push notification if not muted
+      if (!seller?.config?.notifications_muted) {
+        const tokens: string[] = seller?.expo_push_tokens ?? [];
+        if (tokens.length > 0) {
+          await sendPushNotification({
+            to: tokens,
+            title: notifTitle,
+            body: notifBody,
+            data: {
+              order_id: order.id,
+              status: 'pending',
+              product_title: productName,
+              amount: String(params.total_amount),
+            },
+          });
+          console.log('New order notification sent to seller:', params.seller_id);
+        }
+      }
+
+      // Insert in-app notification
+      await supabase.from('notifications').insert({
+        user_id: params.seller_id,
+        title: notifTitle,
+        body: notifBody,
+        type: 'new_order',
+        data: {
+          order_id: order.id,
+          status: 'pending',
+          product_title: productName,
+          amount: String(params.total_amount),
+        },
+      });
+    } catch (notifError) {
+      console.error('Failed to send new order notification:', notifError);
+    }
+
+    return {
+      success: true,
+      order,
+    };
+  } catch (error) {
+    console.error('Failed to create multi-product order:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create order',
+    };
+  }
+}
+
+/**
  * Get orders with optional filtering
  */
 export async function getOrders(
@@ -255,6 +459,53 @@ export async function getOrderById(
     return data;
   } catch (error) {
     console.error('Failed to fetch order by ID:', error);
+    return null;
+  }
+}
+
+/**
+ * Get a single order by ID with order items
+ */
+export async function getOrderWithItems(
+  orderId: string
+): Promise<OrderWithItems | null> {
+  try {
+    const supabase = createServiceRoleClient();
+
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select(
+        `
+        *,
+        seller:profiles!seller_id(id, name, store_username, currency)
+      `
+      )
+      .eq('id', orderId)
+      .maybeSingle();
+
+    if (orderError || !order) {
+      console.error('Error fetching order:', orderError);
+      return null;
+    }
+
+    // Fetch order items
+    const { data: items, error: itemsError } = await supabase
+      .from('order_items')
+      .select('*')
+      .eq('order_id', orderId)
+      .order('created_at', { ascending: true });
+
+    if (itemsError) {
+      console.error('Error fetching order items:', itemsError);
+      return null;
+    }
+
+    return {
+      ...order,
+      order_items: items || [],
+    } as OrderWithItems;
+  } catch (error) {
+    console.error('Failed to fetch order with items:', error);
     return null;
   }
 }

@@ -5,6 +5,12 @@ import { ItemSoldEmail } from './templates/ItemSold';
 import OrderConfirmationEmail from './templates/OrderConfirmation';
 import { ProductNotReceivedEmail } from './templates/ProductNotReceived';
 
+export interface OrderItem {
+  productName: string;
+  quantity: number;
+  price: number; // price per unit
+}
+
 export interface OrderConfirmationEmailData {
   to: string;
   customerName: string;
@@ -14,6 +20,8 @@ export interface OrderConfirmationEmailData {
   total: number;
   currency?: string;
   orderDetailsUrl: string;
+  orderItems?: OrderItem[]; // For multi-product orders
+  shippingFee?: number;
 }
 
 export interface ItemSoldEmailData {
@@ -27,6 +35,8 @@ export interface ItemSoldEmailData {
   saleDate: string;
   shippingDeadline: string;
   orderDetailsUrl: string;
+  orderItems?: OrderItem[]; // For multi-product orders
+  shippingFee?: number;
 }
 
 /**
@@ -116,6 +126,7 @@ export async function sendOrderEmails(params: {
     storeName: string;
     currency?: string;
     shippingFee?: number;
+    orderItems?: OrderItem[]; // For multi-product orders
   };
 }) {
   const { buyer, seller, order } = params;
@@ -143,6 +154,8 @@ export async function sendOrderEmails(params: {
       total: order.total,
       currency: order.currency,
       orderDetailsUrl: buyerOrderUrl,
+      orderItems: order.orderItems, // Pass order items for multi-product orders
+      shippingFee: shippingFee,
     }),
     sendItemSoldEmail({
       to: seller.email,
@@ -155,6 +168,8 @@ export async function sendOrderEmails(params: {
       saleDate: order.date,
       shippingDeadline: shippingDeadline.toLocaleDateString(),
       orderDetailsUrl: sellerOrderUrl,
+      orderItems: order.orderItems, // Pass order items for multi-product orders
+      shippingFee: shippingFee,
     }),
   ]);
 
