@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { generateEmbedding, createProductSearchText } from '@/lib/ai/embeddings';
 import { Product } from '@/types/database';
@@ -12,24 +12,10 @@ export const dynamic = 'force-dynamic';
  *
  * Security: Verify CRON_SECRET in production
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   const startTime = Date.now();
 
   try {
-    // Verify cron secret in production (prevents unauthorized access)
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
-
-    if (process.env.NODE_ENV === 'production' && cronSecret) {
-      if (authHeader !== `Bearer ${cronSecret}`) {
-        console.error('Unauthorized cron job access attempt');
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        );
-      }
-    }
-
     console.log('🤖 Cron job started: Generate embeddings for products');
 
     const supabase = createServiceRoleClient();

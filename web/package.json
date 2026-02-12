@@ -10,6 +10,7 @@
     "generate-embeddings": "tsx src/scripts/generate-embeddings.ts"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.2",
     "@react-email/components": "^0.5.7",
     "@react-email/render": "^1.4.0",

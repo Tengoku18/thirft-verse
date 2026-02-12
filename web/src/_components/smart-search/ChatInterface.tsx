@@ -30,11 +30,11 @@ export default function ChatInterface() {
     setMessages(prev => [...prev, userMessage]);
 
     try {
-      // Call semantic search API
-      const response = await fetch('/api/search/semantic', {
+      // Call AI-powered thrift buddy API
+      const response = await fetch('/api/thrift-buddy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: content, limit: 6 })
+        body: JSON.stringify({ message: content })
       });
 
       if (!response.ok) {
@@ -43,14 +43,13 @@ export default function ChatInterface() {
 
       const data = await response.json();
 
-      // Create assistant response
+      // Create assistant response with AI-generated reply and emotion
       const assistantMessage: ChatMessageType = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: data.results.length > 0
-          ? `I found ${data.results.length} product${data.results.length > 1 ? 's' : ''} that match your search:`
-          : "I couldn't find any products matching your search. Try different keywords or browse our categories!",
-        products: data.results.map((r: any) => r.product),
+        content: data.reply,
+        products: data.products,
+        emotion: data.emotion,
         timestamp: new Date()
       };
 
@@ -93,7 +92,7 @@ export default function ChatInterface() {
                     <Loader2 className="w-5 h-5 text-white animate-spin" />
                   </div>
                   <div className="rounded-2xl px-4 py-2.5 bg-neutral-100">
-                    <p className="text-sm text-neutral-600">Searching...</p>
+                    <p className="text-sm text-neutral-600">Thinking...</p>
                   </div>
                 </div>
               )}
