@@ -4,15 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 const ALLOWED_STATUSES = ["cancelled", "refunded"] as const;
 
-const NOTIFICATION_MESSAGES: Record<string, { title: string; body: string }> = {
-  cancelled: {
-    title: "Order Cancelled",
-    body: "An order has been cancelled.",
-  },
-  refunded: {
-    title: "Order Refunded",
-    body: "An order has been refunded.",
-  },
+const STATUS_LABELS: Record<string, { title: string; past: string }> = {
+  cancelled: { title: "Cancelled", past: "cancelled" },
+  refunded: { title: "Refunded", past: "refunded" },
 };
 
 export async function POST(request: NextRequest) {
@@ -56,7 +50,7 @@ export async function POST(request: NextRequest) {
     const supabase = createServiceRoleClient();
     const { data: order, error: findError } = await supabase
       .from("orders")
-      .select("id, status, seller_id, order_code, amount, product_id")
+      .select("id, status, seller_id, order_code, amount, product_id, buyer_name")
       .eq("id", order_id)
       .single();
 
@@ -85,23 +79,47 @@ export async function POST(request: NextRequest) {
     console.log(`Order ${order.id} updated: "${order.status}" → "${status}"`);
 
     // 5. Send push notification to seller (all devices)
-    const [{ data: seller }, { data: product }] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("expo_push_tokens, config")
-        .eq("id", order.seller_id)
-        .single(),
-      supabase
-        .from("products")
-        .select("title, cover_image, price")
-        .eq("id", order.product_id)
-        .single(),
-    ]);
+    // Fetch seller profile
+    const { data: seller } = await supabase
+      .from("profiles")
+      .select("expo_push_tokens, config")
+      .eq("id", order.seller_id)
+      .single();
 
-    const message = NOTIFICATION_MESSAGES[status];
-    const productName = product?.title || "Unknown product";
+    // Build product name — handle both single and multi-product orders
+    let productName = "Unknown product";
+    let productImage = "";
+
+    if (order.product_id) {
+      // Single-product order: fetch from products table
+      const { data: product } = await supabase
+        .from("products")
+        .select("title, cover_image")
+        .eq("id", order.product_id)
+        .single();
+      productName = product?.title || "Unknown product";
+      productImage = product?.cover_image || "";
+    } else {
+      // Multi-product order: fetch from order_items table
+      const { data: items } = await supabase
+        .from("order_items")
+        .select("product_name, cover_image")
+        .eq("order_id", order.id)
+        .order("created_at", { ascending: true });
+
+      if (items && items.length > 0) {
+        productName = items[0].product_name;
+        productImage = items[0].cover_image || "";
+        if (items.length > 1) {
+          productName += ` + ${items.length - 1} more item${items.length > 2 ? "s" : ""}`;
+        }
+      }
+    }
+
+    const label = STATUS_LABELS[status] || { title: status, past: status };
     const orderCode = order.order_code || order.id.slice(0, 8);
-    const notificationBody = `"${productName}" - Rs.${order.amount} (Order #${orderCode})`;
+    const notifTitle = `Order ${label.title} · #${orderCode}`;
+    const notifBody = `"${productName}" worth Rs.${Number(order.amount).toLocaleString()} has been ${label.past}`;
     const notificationType = status === "cancelled" ? "order_cancelled" : "order_refunded";
 
     // Send push notification if not muted
@@ -113,13 +131,14 @@ export async function POST(request: NextRequest) {
       if (tokens.length > 0) {
         await sendPushNotification({
           to: tokens,
-          title: message.title,
-          body: notificationBody,
+          title: notifTitle,
+          body: notifBody,
           data: {
             order_id: order.id,
             status,
             product_title: productName,
-            product_image: product?.cover_image || "",
+            product_image: productImage,
+            buyer_name: order.buyer_name || "",
             amount: String(order.amount),
           },
         });
@@ -132,13 +151,14 @@ export async function POST(request: NextRequest) {
     // Insert in-app notification (always, regardless of mute)
     await supabase.from("notifications").insert({
       user_id: order.seller_id,
-      title: message.title,
-      body: notificationBody,
+      title: notifTitle,
+      body: notifBody,
       type: notificationType,
       data: {
         order_id: order.id,
         status,
         product_title: productName,
+        buyer_name: order.buyer_name || "",
         amount: String(order.amount),
       },
     });

@@ -488,6 +488,7 @@ export const getOrdersByBuyer = async (buyerEmail: string) => {
 
 /**
  * Get orders where user is the seller (sales)
+ * For multi-product orders (product_id = NULL), also fetches order_items
  */
 export const getOrdersBySeller = async (sellerId: string) => {
   try {
@@ -507,7 +508,37 @@ export const getOrdersBySeller = async (sellerId: string) => {
       return { success: false, data: [], error };
     }
 
-    return { success: true, data: data || [] };
+    const orders = data || [];
+
+    // Batch-fetch order_items for multi-product orders (product_id is NULL)
+    const multiProductOrderIds = orders
+      .filter((o: any) => !o.product_id)
+      .map((o: any) => o.id);
+
+    if (multiProductOrderIds.length > 0) {
+      const { data: allItems, error: itemsError } = await supabase
+        .from("order_items")
+        .select("*")
+        .in("order_id", multiProductOrderIds)
+        .order("created_at", { ascending: true });
+
+      if (itemsError) {
+        console.error("❌ Error fetching order_items:", JSON.stringify(itemsError));
+      }
+
+      // Attach order_items to each order
+      const itemsByOrder: Record<string, any[]> = {};
+      (allItems || []).forEach((item: any) => {
+        if (!itemsByOrder[item.order_id]) itemsByOrder[item.order_id] = [];
+        itemsByOrder[item.order_id].push(item);
+      });
+
+      orders.forEach((order: any) => {
+        order.order_items = itemsByOrder[order.id] || [];
+      });
+    }
+
+    return { success: true, data: orders };
   } catch (error) {
     console.error("💥 Error in getOrdersBySeller:", error);
     return { success: false, data: [], error };
@@ -515,7 +546,7 @@ export const getOrdersBySeller = async (sellerId: string) => {
 };
 
 /**
- * Get a single order by ID with full details
+ * Get a single order by ID with full details and order_items (for multi-product orders)
  */
 export const getOrderById = async (orderId: string) => {
   try {
@@ -544,20 +575,38 @@ export const getOrderById = async (orderId: string) => {
 
         if (orderError) {
           console.error("❌ Error fetching order:", orderError);
-          return { success: false, data: null, error: orderError };
+          return { success: false, data: null, order_items: [], error: orderError };
         }
 
-        return { success: true, data: orderOnly };
+        // Fetch order_items for this order
+        const { data: items } = await supabase
+          .from("order_items")
+          .select("*")
+          .eq("order_id", orderId)
+          .order("created_at", { ascending: true });
+
+        return { success: true, data: orderOnly, order_items: items || [] };
       }
 
       console.error("❌ Error fetching order:", error);
-      return { success: false, data: null, error };
+      return { success: false, data: null, order_items: [], error };
     }
 
-    return { success: true, data };
+    // Fetch order_items for this order
+    const { data: items, error: itemsError } = await supabase
+      .from("order_items")
+      .select("*")
+      .eq("order_id", orderId)
+      .order("created_at", { ascending: true });
+
+    if (itemsError) {
+      console.error("❌ Error fetching order_items:", JSON.stringify(itemsError));
+    }
+
+    return { success: true, data, order_items: items || [] };
   } catch (error) {
     console.error("💥 Error in getOrderById:", error);
-    return { success: false, data: null, error };
+    return { success: false, data: null, order_items: [], error };
   }
 };
 

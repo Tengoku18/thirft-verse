@@ -47,6 +47,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 // TYPES
 // ============================================================================
 
+interface OrderDetailItem {
+  id: string;
+  title: string;
+  image: string | null;
+  price: number;
+  quantity: number;
+}
+
 interface OrderDetail {
   // Core
   id: string;
@@ -54,7 +62,7 @@ interface OrderDetail {
   orderCode: string;
   status: string; // pending, shipping, processing, delivered, completed, cancelled, refunded
 
-  // Product
+  // Product (primary product for single-product orders, first item for multi)
   product: {
     id: string;
     title: string;
@@ -63,6 +71,9 @@ interface OrderDetail {
     category: string;
   };
   quantity: number;
+
+  // Multi-product items (empty for single-product orders)
+  items: OrderDetailItem[];
 
   // Buyer
   buyer: {
@@ -429,23 +440,82 @@ export default function SingleOrderScreen() {
 
       if (result.success && result.data) {
         const o = result.data as any;
+        const orderItems = result.order_items || [];
         // Use order amount for price calculation (not product price which could be updated)
         const shippingFee = o.shipping_fee || 0;
         const productPrice = (o.amount || 0) - shippingFee;
+
+        // Determine if multi-product order and build items list
+        const isMultiProduct = !o.product_id;
+        let primaryProduct;
+        let itemsList: OrderDetailItem[] = [];
+
+        if (isMultiProduct && orderItems.length > 0) {
+          // Multi-product order with items loaded
+          const firstItem = orderItems[0];
+          primaryProduct = {
+            id: firstItem.product_id,
+            title: orderItems.length > 1
+              ? `${firstItem.product_name} + ${orderItems.length - 1} more`
+              : firstItem.product_name,
+            image: firstItem.cover_image || null,
+            price: productPrice,
+            category: "Product",
+          };
+          itemsList = orderItems.map((item: any) => ({
+            id: item.product_id,
+            title: item.product_name,
+            image: item.cover_image || null,
+            price: item.price * item.quantity,
+            quantity: item.quantity,
+          }));
+        } else if (isMultiProduct && orderItems.length === 0) {
+          // Multi-product order but items not loaded (RLS issue or no data)
+          primaryProduct = {
+            id: "",
+            title: `Order with ${o.quantity || 1} items`,
+            image: null,
+            price: productPrice,
+            category: "Product",
+          };
+        } else if (orderItems.length > 0 && !isMultiProduct) {
+          // Single-product order with order_items (migrated legacy order)
+          primaryProduct = {
+            id: o.product_id,
+            title: o.product?.title || orderItems[0]?.product_name || "Order Item",
+            image: o.product?.cover_image || orderItems[0]?.cover_image || null,
+            price: productPrice,
+            category: o.product?.category || "Product",
+          };
+          // Still show single item in the items list for consistency
+          if (orderItems.length === 1) {
+            itemsList = [{
+              id: orderItems[0].product_id,
+              title: orderItems[0].product_name,
+              image: orderItems[0].cover_image || null,
+              price: orderItems[0].price * orderItems[0].quantity,
+              quantity: orderItems[0].quantity,
+            }];
+          }
+        } else {
+          // Legacy single-product order without order_items
+          primaryProduct = {
+            id: o.product_id || "",
+            title: o.product?.title || "Order Item",
+            image: o.product?.cover_image || null,
+            price: productPrice,
+            category: o.product?.category || "Product",
+          };
+        }
 
         setOrder({
           id: o.id,
           type: "order",
           orderCode: o.order_code || `#${o.id.slice(0, 8).toUpperCase()}`,
           status: o.status,
-          product: {
-            id: o.product_id,
-            title: o.product?.title || "Order Item",
-            image: o.product?.cover_image || null,
-            price: productPrice, // Use price from order, not from product table
-            category: o.product?.category || "Product",
-          },
+          product: primaryProduct,
           quantity: o.quantity || 1,
+          items: itemsList,
           buyer: {
             name: o.buyer_name,
             email: o.buyer_email,
@@ -511,6 +581,7 @@ export default function SingleOrderScreen() {
               category: p.category,
             },
             quantity: 1,
+            items: [],
             buyer: {
               name: "Customer",
               email: "Not available",
@@ -957,63 +1028,116 @@ export default function SingleOrderScreen() {
           )}
         </View>
 
-        {/* Product Card */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={handleViewProduct}
-          className="mx-4 mt-4 bg-white rounded-2xl overflow-hidden"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 3,
-          }}
-        >
-          <View className="flex-row p-4">
-            {order.product.image ? (
-              <Image
-                source={{ uri: getProductImageUrl(order.product.image) }}
-                className="w-24 h-24 rounded-xl"
-                style={{ backgroundColor: "#F3F4F6" }}
-              />
-            ) : (
-              <View className="w-24 h-24 rounded-xl bg-[#F3F4F6] items-center justify-center">
-                <IconSymbol name="bag.fill" size={32} color="#D1D5DB" />
-              </View>
-            )}
-            <View className="flex-1 ml-4 justify-center">
-              <BodyBoldText style={{ fontSize: 16 }} numberOfLines={2}>
-                {order.product.title}
-              </BodyBoldText>
-              <View className="flex-row items-center mt-1">
-                <IconSymbol name="tag.fill" size={11} color="#9CA3AF" />
-                <CaptionText style={{ color: "#9CA3AF", marginLeft: 4 }}>
-                  {order.product.category}
-                </CaptionText>
-              </View>
-              <View className="flex-row items-center justify-between mt-3">
-                <HeadingBoldText style={{ fontSize: 20, color: "#3B2F2F" }}>
-                  {formatPrice(order.product.price)}
-                </HeadingBoldText>
-                <CaptionText style={{ color: "#6B7280" }}>
-                  Qty: {order.quantity}
-                </CaptionText>
+        {/* Product Card(s) */}
+        {order.items.length > 1 ? (
+          /* Multi-product order: show each item */
+          <Section title={`Items (${order.items.length})`}>
+            {order.items.map((item, idx) => (
+              <TouchableOpacity
+                key={item.id + idx}
+                activeOpacity={0.7}
+                onPress={() => router.push(`/product/${item.id}` as any)}
+                className={`flex-row p-4 ${
+                  idx < order.items.length - 1
+                    ? "border-b border-[#F3F4F6]"
+                    : ""
+                }`}
+              >
+                {item.image ? (
+                  <Image
+                    source={{ uri: getProductImageUrl(item.image) }}
+                    className="w-16 h-16 rounded-xl"
+                    style={{ backgroundColor: "#F3F4F6" }}
+                  />
+                ) : (
+                  <View className="w-16 h-16 rounded-xl bg-[#F3F4F6] items-center justify-center">
+                    <IconSymbol name="bag.fill" size={24} color="#D1D5DB" />
+                  </View>
+                )}
+                <View className="flex-1 ml-3 justify-center">
+                  <BodySemiboldText
+                    style={{ fontSize: 14 }}
+                    numberOfLines={2}
+                  >
+                    {item.title}
+                  </BodySemiboldText>
+                  <View className="flex-row items-center justify-between mt-2">
+                    <BodyBoldText style={{ fontSize: 16, color: "#3B2F2F" }}>
+                      {formatPrice(item.price)}
+                    </BodyBoldText>
+                    <CaptionText style={{ color: "#6B7280" }}>
+                      Qty: {item.quantity}
+                    </CaptionText>
+                  </View>
+                </View>
+                <IconSymbol
+                  name="chevron.right"
+                  size={12}
+                  color="#D1D5DB"
+                  style={{ alignSelf: "center", marginLeft: 8 }}
+                />
+              </TouchableOpacity>
+            ))}
+          </Section>
+        ) : (
+          /* Single product order: keep existing card */
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleViewProduct}
+            className="mx-4 mt-4 bg-white rounded-2xl overflow-hidden"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.05,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            <View className="flex-row p-4">
+              {order.product.image ? (
+                <Image
+                  source={{ uri: getProductImageUrl(order.product.image) }}
+                  className="w-24 h-24 rounded-xl"
+                  style={{ backgroundColor: "#F3F4F6" }}
+                />
+              ) : (
+                <View className="w-24 h-24 rounded-xl bg-[#F3F4F6] items-center justify-center">
+                  <IconSymbol name="bag.fill" size={32} color="#D1D5DB" />
+                </View>
+              )}
+              <View className="flex-1 ml-4 justify-center">
+                <BodyBoldText style={{ fontSize: 16 }} numberOfLines={2}>
+                  {order.product.title}
+                </BodyBoldText>
+                <View className="flex-row items-center mt-1">
+                  <IconSymbol name="tag.fill" size={11} color="#9CA3AF" />
+                  <CaptionText style={{ color: "#9CA3AF", marginLeft: 4 }}>
+                    {order.product.category}
+                  </CaptionText>
+                </View>
+                <View className="flex-row items-center justify-between mt-3">
+                  <HeadingBoldText style={{ fontSize: 20, color: "#3B2F2F" }}>
+                    {formatPrice(order.product.price)}
+                  </HeadingBoldText>
+                  <CaptionText style={{ color: "#6B7280" }}>
+                    Qty: {order.quantity}
+                  </CaptionText>
+                </View>
               </View>
             </View>
-          </View>
-          <View className="bg-[#F9FAFB] px-4 py-2.5 flex-row items-center justify-center">
-            <CaptionText style={{ color: "#6B7280" }}>
-              Tap to view product
-            </CaptionText>
-            <IconSymbol
-              name="chevron.right"
-              size={12}
-              color="#9CA3AF"
-              style={{ marginLeft: 4 }}
-            />
-          </View>
-        </TouchableOpacity>
+            <View className="bg-[#F9FAFB] px-4 py-2.5 flex-row items-center justify-center">
+              <CaptionText style={{ color: "#6B7280" }}>
+                Tap to view product
+              </CaptionText>
+              <IconSymbol
+                name="chevron.right"
+                size={12}
+                color="#9CA3AF"
+                style={{ marginLeft: 4 }}
+              />
+            </View>
+          </TouchableOpacity>
+        )}
 
         {/* Order Timeline - Show simple timeline for non-NCM orders, NCM tracking for NCM orders */}
         {order.ncm?.orderId ? (
@@ -1116,10 +1240,33 @@ export default function SingleOrderScreen() {
             value={dayjs(order.createdAt).format("DD MMM, YYYY • h:mm A")}
             icon="calendar"
           />
-          <Row
-            label="Product Price"
-            value={formatPrice(order.payment.subtotal)}
-          />
+          {/* Per-item breakdown for multi-product orders */}
+          {order.items.length > 1 ? (
+            <>
+              {order.items.map((item, idx) => (
+                <Row
+                  key={item.id + idx}
+                  label={`${item.title} (x${item.quantity})`}
+                  value={formatPrice(item.price)}
+                />
+              ))}
+              <Row
+                label="Items Total"
+                value={formatPrice(order.payment.subtotal)}
+              />
+            </>
+          ) : (
+            <Row
+              label="Product Price"
+              value={formatPrice(order.payment.subtotal)}
+            />
+          )}
+          {order.shipping.fee > 0 && (
+            <Row
+              label="Shipping Fee"
+              value={formatPrice(order.shipping.fee)}
+            />
+          )}
           <Row
             label="Service Charge (5%)"
             value={`- ${formatPrice(
@@ -1379,7 +1526,9 @@ export default function SingleOrderScreen() {
                   country: "Nepal",
                   phone: order.buyer.phone,
                 },
-            productTitle: order.product.title,
+            productTitle: order.items.length > 1
+              ? `${order.items[0].title} + ${order.items.length - 1} more`
+              : order.product.title,
             totalAmount: order.payment.total,
             shippingFee: order.shipping.fee,
             notes: "",

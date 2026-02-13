@@ -120,25 +120,35 @@ export default function NotificationsScreen() {
 
     const isRead = item.is_read;
 
+    const amount = item.data?.amount ? `Rs.${Number(item.data.amount).toLocaleString()}` : null;
+
     return (
       <TouchableOpacity
         onPress={() => handleNotificationPress(item)}
         activeOpacity={0.7}
         className="flex-row px-4 py-4"
         style={{
-          backgroundColor: isRead ? "#F3F4F6" : "#FFFFFF",
+          backgroundColor: isRead ? "#FFFFFF" : "#FEFCE8",
         }}
       >
-        {/* Icon */}
-        <View
-          className="w-11 h-11 rounded-full items-center justify-center mr-3"
-          style={{ backgroundColor: iconConfig.bg }}
-        >
-          <IconSymbol
-            name={iconConfig.name as any}
-            size={20}
-            color={iconConfig.color}
-          />
+        {/* Icon with unread dot */}
+        <View className="relative">
+          <View
+            className="w-11 h-11 rounded-full items-center justify-center mr-3"
+            style={{ backgroundColor: iconConfig.bg }}
+          >
+            <IconSymbol
+              name={iconConfig.name as any}
+              size={20}
+              color={iconConfig.color}
+            />
+          </View>
+          {!isRead && (
+            <View
+              className="absolute top-0 right-2 w-2.5 h-2.5 rounded-full"
+              style={{ backgroundColor: "#3B82F6", borderWidth: 1.5, borderColor: "#FEFCE8" }}
+            />
+          )}
         </View>
 
         {/* Content */}
@@ -151,7 +161,7 @@ export default function NotificationsScreen() {
                 flex: 1,
                 marginRight: 8,
               }}
-              numberOfLines={1}
+              numberOfLines={2}
             >
               {item.title}
             </BodySemiboldText>
@@ -169,6 +179,24 @@ export default function NotificationsScreen() {
           >
             {item.body}
           </BodyRegularText>
+          {amount && (
+            <View className="flex-row mt-2">
+              <View
+                className="px-2 py-0.5 rounded-md"
+                style={{ backgroundColor: isRead ? "#F3F4F6" : "#FEF3C7" }}
+              >
+                <CaptionText
+                  style={{
+                    color: isRead ? "#6B7280" : "#92400E",
+                    fontWeight: "700",
+                    fontSize: 12,
+                  }}
+                >
+                  {amount}
+                </CaptionText>
+              </View>
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     );

@@ -147,8 +147,9 @@ export async function createOrder(
       ]);
 
       const productName = product?.title || 'Unknown product';
-      const notifTitle = 'New Order Received';
-      const notifBody = `"${productName}" - Rs.${params.amount} (Order #${orderCode})`;
+      const notifTitle = `${params.buyer_name} ordered ${productName}`;
+      const qtyInfo = params.quantity > 1 ? `Qty: ${params.quantity} · ` : '';
+      const notifBody = `${qtyInfo}Rs.${params.amount.toLocaleString()} · #${orderCode}`;
 
       // Send push notification if not muted
       if (!seller?.config?.notifications_muted) {
@@ -162,6 +163,7 @@ export async function createOrder(
               order_id: data.id,
               status: 'pending',
               product_title: productName,
+              buyer_name: params.buyer_name,
               amount: String(params.amount),
             },
           });
@@ -179,6 +181,7 @@ export async function createOrder(
           order_id: data.id,
           status: 'pending',
           product_title: productName,
+          buyer_name: params.buyer_name,
           amount: String(params.amount),
         },
       });
@@ -322,12 +325,18 @@ export async function createMultiProductOrder(
       ]);
 
       const itemsCount = params.items.length;
+      const totalQty = params.items.reduce((sum, item) => sum + item.quantity, 0);
       const productName = itemsCount > 1
         ? `${firstProduct?.title || 'Product'} and ${itemsCount - 1} more item${itemsCount > 2 ? 's' : ''}`
         : params.items[0].product_name;
 
-      const notifTitle = 'New Order Received';
-      const notifBody = `"${productName}" - Rs.${params.total_amount} (Order #${orderCode})`;
+      const notifTitle = itemsCount > 1
+        ? `${params.buyer_name} placed an order · ${itemsCount} items`
+        : `${params.buyer_name} ordered ${params.items[0].product_name}`;
+      const qtyInfo = totalQty > 1 && itemsCount === 1 ? `Qty: ${totalQty} · ` : '';
+      const notifBody = itemsCount > 1
+        ? `${productName} · Rs.${params.total_amount.toLocaleString()} · #${orderCode}`
+        : `${qtyInfo}Rs.${params.total_amount.toLocaleString()} · #${orderCode}`;
 
       // Send push notification if not muted
       if (!seller?.config?.notifications_muted) {
@@ -341,6 +350,7 @@ export async function createMultiProductOrder(
               order_id: order.id,
               status: 'pending',
               product_title: productName,
+              buyer_name: params.buyer_name,
               amount: String(params.total_amount),
             },
           });
@@ -358,6 +368,7 @@ export async function createMultiProductOrder(
           order_id: order.id,
           status: 'pending',
           product_title: productName,
+          buyer_name: params.buyer_name,
           amount: String(params.total_amount),
         },
       });
