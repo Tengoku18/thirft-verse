@@ -104,7 +104,7 @@ export interface Order {
   id: string;
   order_code: string | null;
   seller_id: string;
-  product_id: string;
+  product_id: string | null; // NULL for multi-product orders (use order_items instead)
   quantity: number;
   buyer_email: string;
   buyer_name: string;
@@ -129,9 +129,25 @@ export interface Order {
   ncm_last_synced_at: string | null; // When we last fetched status from NCM
 }
 
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  price: number;
+  cover_image: string | null;
+  created_at: string;
+}
+
 export interface OrderWithDetails extends Order {
   seller: Pick<Profile, 'id' | 'name' | 'store_username'> | null;
   product: Pick<Product, 'id' | 'title' | 'cover_image' | 'price'> | null;
+}
+
+export interface OrderWithItems extends Order {
+  seller: Pick<Profile, 'id' | 'name' | 'store_username' | 'currency'> | null;
+  order_items: OrderItem[];
 }
 
 export interface AccountDeletionRequest {
