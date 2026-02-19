@@ -28,6 +28,7 @@ const MAPPING: IconMapping = {
   checkmark: "checkmark",
   "checkmark.circle.fill": "checkmark-circle",
   plus: "add",
+  "plus.circle": "add-circle-outline",
   "plus.circle.fill": "add-circle",
   pencil: "create",
   "square.and.pencil": "create",
@@ -88,6 +89,7 @@ const MAPPING: IconMapping = {
   // Documents
   "doc.text.fill": "document-text",
   "doc.plaintext.fill": "document",
+  "doc.on.doc": "documents-outline",
   number: "text",
 
   // Analytics
@@ -96,7 +98,15 @@ const MAPPING: IconMapping = {
   "arrow.up.right": "trending-up",
   "arrow.down.right": "trending-down",
   "arrow.triangle.2.circlepath": "sync",
+  "arrow.clockwise": "refresh",
+  "arrow.right.circle.fill": "arrow-forward-circle",
   "arrow.up.circle.fill": "arrow-up-circle",
+
+  // Location
+  "mappin.circle.fill": "location",
+
+  // Verification
+  "checkmark.seal.fill": "checkmark-circle",
 
   // Finance
   "banknote.fill": "cash-outline",

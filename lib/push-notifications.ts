@@ -1,7 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
 // Detect if running in Expo Go on Android (push not supported since SDK 53)
@@ -9,8 +8,22 @@ const isAndroidExpoGo =
   Platform.OS === "android" &&
   Constants.executionEnvironment === "storeClient";
 
+// Lazy-load expo-notifications only when supported.
+// Using conditional require() instead of static import prevents the module
+// from initializing on Android Expo Go, which would throw an error.
+type NotificationsModule = typeof import("expo-notifications");
+let _notifications: NotificationsModule | null = null;
+
+function getNotifications(): NotificationsModule | null {
+  if (!_notifications && !isAndroidExpoGo) {
+    _notifications = require("expo-notifications") as NotificationsModule;
+  }
+  return _notifications;
+}
+
 // Configure how notifications are handled when app is in foreground
-if (!isAndroidExpoGo) {
+const Notifications = getNotifications();
+if (Notifications) {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowAlert: true,
@@ -32,9 +45,11 @@ let tokenPromise: Promise<string | null> | null = null;
 function getOrInitToken(): Promise<string | null> {
   if (!tokenPromise) {
     tokenPromise = (async () => {
+      const Notif = getNotifications();
+
       // Push notifications not supported on Android Expo Go (SDK 53+)
-      if (isAndroidExpoGo) {
-        console.log("Push notifications not supported on Android Expo Go");
+      if (!Notif) {
+        console.log("Push notifications not supported in this environment");
         return null;
       }
 
@@ -46,11 +61,11 @@ function getOrInitToken(): Promise<string | null> {
 
       // Request permissions
       const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
+        await Notif.getPermissionsAsync();
       let finalStatus = existingStatus;
 
       if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
+        const { status } = await Notif.requestPermissionsAsync();
         finalStatus = status;
       }
 
@@ -64,7 +79,7 @@ function getOrInitToken(): Promise<string | null> {
         Constants.expoConfig?.extra?.eas?.projectId ??
         "6c1851d4-a94c-42f6-942c-c2d2f223aaa8";
 
-      const { data: token } = await Notifications.getExpoPushTokenAsync({
+      const { data: token } = await Notif.getExpoPushTokenAsync({
         projectId,
       });
 
@@ -72,16 +87,16 @@ function getOrInitToken(): Promise<string | null> {
 
       // Set up Android notification channels
       if (Platform.OS === "android") {
-        await Notifications.setNotificationChannelAsync("orders", {
+        await Notif.setNotificationChannelAsync("orders", {
           name: "Order Updates",
-          importance: Notifications.AndroidImportance.HIGH,
+          importance: Notif.AndroidImportance.HIGH,
           sound: "default",
           vibrationPattern: [0, 250, 250, 250],
         });
 
-        await Notifications.setNotificationChannelAsync("default", {
+        await Notif.setNotificationChannelAsync("default", {
           name: "General",
-          importance: Notifications.AndroidImportance.DEFAULT,
+          importance: Notif.AndroidImportance.DEFAULT,
           sound: "default",
         });
       }
@@ -98,6 +113,34 @@ function getOrInitToken(): Promise<string | null> {
  */
 export async function initializePushNotifications(): Promise<void> {
   await getOrInitToken();
+}
+
+/**
+ * Subscribe to foreground notification events.
+ * Returns a cleanup function, or null if notifications are unsupported.
+ */
+export function addNotificationReceivedListener(
+  callback: (notification: import("expo-notifications").Notification) => void
+): (() => void) | null {
+  const Notif = getNotifications();
+  if (!Notif) return null;
+  const sub = Notif.addNotificationReceivedListener(callback);
+  return () => sub.remove();
+}
+
+/**
+ * Subscribe to notification response events (user tapped a notification).
+ * Returns a cleanup function, or null if notifications are unsupported.
+ */
+export function addNotificationResponseReceivedListener(
+  callback: (
+    response: import("expo-notifications").NotificationResponse
+  ) => void
+): (() => void) | null {
+  const Notif = getNotifications();
+  if (!Notif) return null;
+  const sub = Notif.addNotificationResponseReceivedListener(callback);
+  return () => sub.remove();
 }
 
 /**

@@ -17,6 +17,7 @@
     "android": {
       "package": "com.thriftverse.app",
       "versionCode": 2,
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo/android-icon1.png",
         "backgroundImage": "./assets/logo/android-base1.png",
