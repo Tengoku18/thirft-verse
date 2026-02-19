@@ -1,18 +1,18 @@
 import { pipeline, env } from '@xenova/transformers';
-import type { Pipeline } from '@xenova/transformers';
+import type { FeatureExtractionPipeline } from '@xenova/transformers';
 
 // Configure transformers to use local cache
 env.allowLocalModels = false;
 env.allowRemoteModels = true;
 
 // Cache the pipeline instance to avoid reloading model
-let cachedPipeline: Pipeline | null = null;
+let cachedPipeline: FeatureExtractionPipeline | null = null;
 
 /**
  * Get or initialize the embedding pipeline (singleton pattern)
  * Model: Xenova/all-MiniLM-L6-v2 (384 dimensions, ~23MB)
  */
-export async function getEmbeddingPipeline(): Promise<Pipeline> {
+export async function getEmbeddingPipeline(): Promise<FeatureExtractionPipeline> {
   if (!cachedPipeline) {
     console.log('Loading embedding model...');
     cachedPipeline = await pipeline(
