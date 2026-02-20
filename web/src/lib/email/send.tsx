@@ -61,7 +61,7 @@ export async function sendOrderConfirmationEmail(
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to: data.to,
-      subject: `Order Confirmed - ${data.orderId} | ThriftVerse`,
+      subject: `Order Confirmed - ${data.orderId} | Thriftverse`,
       html: emailHtml,
     });
 
@@ -94,7 +94,7 @@ export async function sendItemSoldEmail(data: ItemSoldEmailData) {
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to: data.to,
-      subject: `🎉 Your item has been sold - ${data.orderId} | ThriftVerse`,
+      subject: `🎉 Your item has been sold - ${data.orderId} | Thriftverse`,
       html: emailHtml,
     });
 
@@ -212,7 +212,7 @@ export async function sendProductNotReceivedEmail(
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to: data.to,
-      subject: `⚠️ URGENT: Product Not Received Report - ${data.orderCode} | ThriftVerse`,
+      subject: `⚠️ URGENT: Product Not Received Report - ${data.orderCode} | Thriftverse`,
       html: emailHtml,
     });
 

@@ -87,7 +87,7 @@ function buildEmotionalPrompt(
         .join('\n\n')
     : 'No products available';
 
-  return `You are **Thrift Buddy**, an emotionally intelligent AI shopping assistant for ThriftVerse. You understand user emotions and respond with empathy while helping them find great thrift deals.
+  return `You are **Thrift Buddy**, an emotionally intelligent AI shopping assistant for Thriftverse. You understand user emotions and respond with empathy while helping them find great thrift deals.
 
 **Your Abilities:**
 - Detect emotional tone (happy, sad, excited, frustrated, confused, grateful, neutral)
@@ -129,7 +129,7 @@ ${productList}
 User: "Hi there!"
 Response:
 {
-  "reply": "Hey! 👋 Welcome to ThriftVerse! I'm your Thrift Buddy, here to help you discover amazing secondhand treasures. What are you looking for today?",
+  "reply": "Hey! 👋 Welcome to Thriftverse! I'm your Thrift Buddy, here to help you discover amazing secondhand treasures. What are you looking for today?",
   "emotion": "happy",
   "intent": "greeting"
 }

@@ -33,7 +33,7 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: 'Product Not Found | ThriftVerse',
+      title: 'Product Not Found | Thriftverse',
       description: 'This product does not exist.',
     }
   }
@@ -46,10 +46,10 @@ export async function generateMetadata({
 
   const currency = product.store?.currency || 'NPR'
   const formattedPrice = formatProductPrice(product.price, currency)
-  const title = `${product.title} - ${formattedPrice} | ${product.store?.name || 'ThriftVerse'}`
+  const title = `${product.title} - ${formattedPrice} | ${product.store?.name || 'Thriftverse'}`
   const description =
     product.description?.slice(0, 160) ||
-    `${product.title} available for ${formattedPrice} at ${product.store?.name || 'ThriftVerse'}.`
+    `${product.title} available for ${formattedPrice} at ${product.store?.name || 'Thriftverse'}.`
 
   return {
     title,
@@ -58,7 +58,7 @@ export async function generateMetadata({
       title,
       description,
       url: productUrl,
-      siteName: 'ThriftVerse',
+      siteName: 'Thriftverse',
       images: product.cover_image
         ? [
             {
@@ -73,7 +73,7 @@ export async function generateMetadata({
               url: 'https://www.thriftverse.shop/images/horizontal-logo.png',
               width: 1200,
               height: 630,
-              alt: 'ThriftVerse',
+              alt: 'Thriftverse',
             },
           ],
       type: 'website',

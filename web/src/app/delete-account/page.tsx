@@ -101,7 +101,7 @@ export default function DeleteAccountPage() {
             Delete Account
           </h1>
           <p className="max-w-3xl text-lg text-primary/70">
-            Request to permanently delete your ThriftVerse account.
+            Request to permanently delete your Thriftverse account.
           </p>
         </div>
       </div>

@@ -10,7 +10,7 @@ const stories = [
     handle: '@vintagebypriya',
     image: '👗',
     story:
-      "I started with just 5 vintage sarees from my grandmother's collection. Within 3 months on ThriftVerse, I've sold over 150 items and turned my passion into a full-time business. The platform made it so easy to reach customers who truly appreciate sustainable fashion.",
+      "I started with just 5 vintage sarees from my grandmother's collection. Within 3 months on Thriftverse, I've sold over 150 items and turned my passion into a full-time business. The platform made it so easy to reach customers who truly appreciate sustainable fashion.",
     stats: {
       products: '200+',
       sales: 'Rs. 2.5L',
@@ -22,7 +22,7 @@ const stories = [
     handle: '@retrofindsrj',
     image: '📻',
     story:
-      'As a collector of vintage electronics and music equipment, ThriftVerse gave me the perfect platform to share my finds. The eSewa integration made transactions seamless, and my unique subdomain became my brand identity on social media.',
+      'As a collector of vintage electronics and music equipment, Thriftverse gave me the perfect platform to share my finds. The eSewa integration made transactions seamless, and my unique subdomain became my brand identity on social media.',
     stats: {
       products: '120+',
       sales: 'Rs. 1.8L',
@@ -34,7 +34,7 @@ const stories = [
     handle: '@secondchancestyle',
     image: '👟',
     story:
-      'I was skeptical about online thrift selling, but ThriftVerse changed everything. The platform is so user-friendly, and the analytics helped me understand what my customers love. I went from selling from my bedroom to running a successful sustainable fashion business!',
+      'I was skeptical about online thrift selling, but Thriftverse changed everything. The platform is so user-friendly, and the analytics helped me understand what my customers love. I went from selling from my bedroom to running a successful sustainable fashion business!',
     stats: {
       products: '350+',
       sales: 'Rs. 4.2L',
@@ -46,7 +46,7 @@ const stories = [
     handle: '@bookwormthrifts',
     image: '📚',
     story:
-      'Starting my rare book collection store on ThriftVerse was the best decision. The platform handles payments, I handle curation. My store has become the go-to place for book lovers looking for vintage and rare editions in Nepal.',
+      'Starting my rare book collection store on Thriftverse was the best decision. The platform handles payments, I handle curation. My store has become the go-to place for book lovers looking for vintage and rare editions in Nepal.',
     stats: {
       products: '450+',
       sales: 'Rs. 3.1L',
@@ -59,7 +59,7 @@ export default function SuccessStoriesPage() {
   return (
     <PageLayout
       title="Success Stories"
-      description="Real stories from real sellers who are building thriving businesses on ThriftVerse"
+      description="Real stories from real sellers who are building thriving businesses on Thriftverse"
     >
       <div className="py-12">
         {/* Stats Overview */}
@@ -161,7 +161,7 @@ export default function SuccessStoriesPage() {
           </h2>
           <p className="mb-8 text-surface/80">
             Join hundreds of sellers building sustainable businesses on
-            ThriftVerse
+            Thriftverse
           </p>
           <Link
             href="/start-selling"
