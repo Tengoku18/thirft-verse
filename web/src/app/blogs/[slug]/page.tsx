@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const blog = getBlogBySlug(slug);
   if (!blog) return {};
   return {
-    title: `${blog.title} | ThriftVerse Blog`,
+    title: `${blog.title} | Thriftverse Blog`,
     description: blog.excerpt,
   };
 }
@@ -201,7 +201,7 @@ export default async function BlogDetailPage({ params }: Props) {
                     <div className="p-3">
                       <Image
                         src={step.labelUrl}
-                        alt="ThriftVerse Shipping Label"
+                        alt="Thriftverse Shipping Label"
                         width={800}
                         height={400}
                         className="w-full rounded-lg object-contain max-h-64"

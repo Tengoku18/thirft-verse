@@ -6,9 +6,9 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Blog | ThriftVerse',
+  title: 'Blog | Thriftverse',
   description:
-    'Guides, tips, and updates for ThriftVerse sellers and buyers. Learn how to grow your thrift store and make the most of the platform.',
+    'Guides, tips, and updates for Thriftverse sellers and buyers. Learn how to grow your thrift store and make the most of the platform.',
 };
 
 export default function BlogsPage() {
@@ -28,7 +28,7 @@ export default function BlogsPage() {
             <div className="bg-secondary/10 border-secondary/20 mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-2">
               <BookOpen className="text-secondary h-4 w-4" />
               <span className="text-primary text-sm font-semibold">
-                ThriftVerse Blog
+                Thriftverse Blog
               </span>
             </div>
 

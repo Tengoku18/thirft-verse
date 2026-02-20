@@ -59,7 +59,7 @@ export default function Header() {
           >
             <Image
               src="/images/horizontal-logo.png"
-              alt="ThriftVerse Logo"
+              alt="Thriftverse Logo"
               height={50}
               width={180}
               className="object-contain p-1"

@@ -22,7 +22,7 @@ export default function ThriftBuddyPage() {
           >
             <Image
               src="/images/horizontal-logo.png"
-              alt="ThriftVerse Logo"
+              alt="Thriftverse Logo"
               height={32}
               width={120}
               className="object-contain"

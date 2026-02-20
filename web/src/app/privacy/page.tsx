@@ -16,7 +16,7 @@ export default function PrivacyPolicyPage() {
             1. Introduction
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
-            Welcome to ThriftVerse. We respect your privacy and are committed to
+            Welcome to Thriftverse. We respect your privacy and are committed to
             protecting your personal data. This privacy policy explains how we
             collect, use, and safeguard your information when you use our
             platform to create and manage your thrift store.
@@ -144,7 +144,7 @@ export default function PrivacyPolicyPage() {
             8. Children&apos;s Privacy
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
-            ThriftVerse is not intended for users under 18 years of age. We do
+            Thriftverse is not intended for users under 18 years of age. We do
             not knowingly collect information from children. If we discover we
             have collected data from a child, we will delete it immediately.
           </p>
@@ -157,7 +157,7 @@ export default function PrivacyPolicyPage() {
           <p className="text-primary/80 leading-relaxed mb-4">
             We may update this privacy policy from time to time. We will notify
             you of significant changes via email or through the platform. Your
-            continued use of ThriftVerse after changes constitutes acceptance.
+            continued use of Thriftverse after changes constitutes acceptance.
           </p>
         </section>
 

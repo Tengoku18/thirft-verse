@@ -13,14 +13,14 @@ export default function ExploreNavbar() {
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity flex-shrink-0">
             <Image
               src="/images/horizontal-logo.png"
-              alt="ThriftVerse Logo"
+              alt="Thriftverse Logo"
               height={28}
               width={100}
               className="object-contain sm:hidden"
             />
             <Image
               src="/images/horizontal-logo.png"
-              alt="ThriftVerse Logo"
+              alt="Thriftverse Logo"
               height={40}
               width={150}
               className="object-contain hidden sm:block"
