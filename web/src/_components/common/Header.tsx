@@ -17,6 +17,7 @@ const navLinks: NavLink[] = [
   //TODO: Enable pricing page after proper planning
   // { label: 'Pricing', href: '/pricing' },
   { label: 'Success Stories', href: '/success-stories' },
+  { label: 'Blog', href: '/blogs' },
 ];
 
 export default function Header() {
@@ -45,8 +46,8 @@ export default function Header() {
     <header
       className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-surface/95 border-border border-b shadow-md backdrop-blur-md'
-          : 'bg-transparent'
+          ? 'bg-surface border-border border-b shadow-md lg:bg-surface/95 lg:backdrop-blur-md'
+          : 'bg-surface border-b border-border/40 lg:bg-transparent lg:border-transparent lg:shadow-none'
       }`}
     >
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
