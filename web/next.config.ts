@@ -12,11 +12,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'rsaqwegftpoqqtosgrbx.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'saaifilhhntxnxvudgym.supabase.co',
+      },
     ],
   },
 
-    outputFileTracingRoot: path.join(__dirname, '../'),
-
+  outputFileTracingRoot: path.join(__dirname, '../'),
 };
 
 export default nextConfig;
