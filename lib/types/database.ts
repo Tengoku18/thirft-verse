@@ -72,6 +72,10 @@ export interface Product {
   status: ProductStatus;
   created_at: string;
   updated_at: string;
+  // AI semantic search fields
+  embedding?: number[] | null;
+  embedding_model?: string | null;
+  embedding_generated_at?: string | null;
 }
 
 export interface ProductWithStore extends Product {
