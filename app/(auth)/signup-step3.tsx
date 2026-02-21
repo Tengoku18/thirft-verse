@@ -94,8 +94,8 @@ export default function SignupStep3Screen() {
           user.id,
           paymentQRImage
         );
-        if (uploadResult.success && uploadResult.path) {
-          paymentQRPath = uploadResult.path;
+        if (uploadResult.success && uploadResult.url) {
+          paymentQRPath = uploadResult.url;
         } else {
           console.error("Failed to upload QR image:", uploadResult.error);
         }
