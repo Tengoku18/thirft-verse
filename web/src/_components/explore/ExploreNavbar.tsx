@@ -13,14 +13,14 @@ export default function ExploreNavbar() {
           <Link href="/" className="flex items-center hover:opacity-80 transition-opacity flex-shrink-0">
             <Image
               src="/images/horizontal-logo.png"
-              alt="ThriftVerse Logo"
+              alt="Thriftverse Logo"
               height={28}
               width={100}
               className="object-contain sm:hidden"
             />
             <Image
               src="/images/horizontal-logo.png"
-              alt="ThriftVerse Logo"
+              alt="Thriftverse Logo"
               height={40}
               width={150}
               className="object-contain hidden sm:block"
@@ -30,14 +30,16 @@ export default function ExploreNavbar() {
           {/* Right: Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Thrift Buddy Button */}
-            <Link
-              href="/thrift-buddy"
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-all hover:shadow-lg hover:scale-105 cursor-pointer group"
-            >
-              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-pulse" />
-              <span className="hidden sm:inline">Thrift Buddy</span>
-              <span className="sm:hidden">Buddy</span>
-            </Link>
+            {process.env.NEXT_PUBLIC_ENABLE_THRIFT_BUDDY === 'true' && (
+              <Link
+                href="/thrift-buddy"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-all hover:shadow-lg hover:scale-105 cursor-pointer group"
+              >
+                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-pulse" />
+                <span className="hidden sm:inline">Thrift Buddy</span>
+                <span className="sm:hidden">Buddy</span>
+              </Link>
+            )}
 
             {/* Start Selling Button */}
             <Link

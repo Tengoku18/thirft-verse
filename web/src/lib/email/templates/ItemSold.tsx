@@ -47,7 +47,7 @@ export const ItemSoldEmail = ({
         <Section style={logoContainer}>
           <Img
             src="https://www.thriftverse.shop/images/vertical-logo.png"
-            alt="ThriftVerse Logo"
+            alt="Thriftverse Logo"
             style={logo}
           />
         </Section>
@@ -135,7 +135,7 @@ export const ItemSoldEmail = ({
           <br />
           Happy selling!
           <br />
-          The ThriftVerse Team
+          The Thriftverse Team
         </Text>
       </Container>
     </Body>

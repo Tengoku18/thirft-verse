@@ -47,30 +47,30 @@ const folito = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.thriftverse.shop"),
-  title: "ThriftVerse — Your Finds. Your Store. Your Story.",
+  title: "Thriftverse — Your Finds. Your Store. Your Story.",
   description: "Create your own thrift store and give every item a second life.",
   openGraph: {
-    title: "ThriftVerse — Your Finds. Your Store. Your Story.",
+    title: "Thriftverse — Your Finds. Your Store. Your Story.",
     description: "Create your own thrift store and give every item a second life.",
     url: "https://www.thriftverse.shop",
-    siteName: "ThriftVerse",
+    siteName: "Thriftverse",
     images: [
       {
         url: "https://www.thriftverse.shop/images/horizontal-logo.png",
         width: 1200,
         height: 630,
-        alt: "ThriftVerse — Reuse. Resell. Renew."
+        alt: "Thriftverse — Reuse. Resell. Renew."
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "ThriftVerse — Your Finds. Your Store. Your Story.",
+    title: "Thriftverse — Your Finds. Your Store. Your Story.",
     description: "Create your own thrift store and give every item a second life.",
     images: [
       {
         url: "https://www.thriftverse.shop/images/horizontal-logo.png",
-        alt: "ThriftVerse — Reuse. Resell. Renew."
+        alt: "Thriftverse — Reuse. Resell. Renew."
       }
     ]
   }
@@ -87,13 +87,13 @@ export default function RootLayout({
     <html lang="en">
       <Head>
         {/* Explicit OG meta tags for scrapers */}
-        <meta property="og:title" content="ThriftVerse — Your Finds. Your Store. Your Story." />
+        <meta property="og:title" content="Thriftverse — Your Finds. Your Store. Your Story." />
         <meta property="og:description" content="Create your own thrift store and give every item a second life." />
         <meta property="og:image" content="https://www.thriftverse.shop/images/horizontal-logo.png" />
         <meta property="og:url" content="https://www.thriftverse.shop" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="ThriftVerse — Your Finds. Your Store. Your Story." />
+        <meta name="twitter:title" content="Thriftverse — Your Finds. Your Store. Your Story." />
         <meta name="twitter:description" content="Create your own thrift store and give every item a second life." />
         <meta name="twitter:image" content="https://www.thriftverse.shop/images/horizontal-logo.png" />
       </Head>

@@ -5,8 +5,8 @@ import Footer from '@/_components/landing/Footer'
 import AppDownloadQR from '@/_components/AppDownloadQR'
 
 export const metadata = {
-  title: 'Start Your Store | ThriftVerse',
-  description: 'Download the ThriftVerse mobile app to create your thrift store, add products, and manage orders on the go.',
+  title: 'Start Your Store | Thriftverse',
+  description: 'Download the Thriftverse mobile app to create your thrift store, add products, and manage orders on the go.',
 }
 
 export default function StartSellingPage() {
@@ -91,7 +91,7 @@ export default function StartSellingPage() {
               <p className="text-primary/70">
                 Point your phone camera at the QR code to
                 <br />
-                download the ThriftVerse app instantly
+                download the Thriftverse app instantly
               </p>
             </div>
           </div>
@@ -122,7 +122,7 @@ export default function StartSellingPage() {
                   Download App
                 </h3>
                 <p className="text-sm text-primary/70">
-                  Get the ThriftVerse app from App Store or Google Play Store
+                  Get the Thriftverse app from App Store or Google Play Store
                 </p>
               </div>
               <div className="absolute -right-4 top-1/2 hidden -translate-y-1/2 lg:block">

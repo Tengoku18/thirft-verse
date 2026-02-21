@@ -4,7 +4,7 @@ export default function TermsOfServicePage() {
   return (
     <PageLayout
       title="Terms of Service"
-      description="Terms and conditions for using ThriftVerse"
+      description="Terms and conditions for using Thriftverse"
     >
       <div className="prose prose-primary mx-auto max-w-4xl py-12">
         <p className="text-primary/70 italic">
@@ -16,7 +16,7 @@ export default function TermsOfServicePage() {
             1. Acceptance of Terms
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
-            By accessing and using ThriftVerse, you accept and agree to be bound
+            By accessing and using Thriftverse, you accept and agree to be bound
             by these Terms of Service. If you do not agree to these terms,
             please do not use our platform.
           </p>
@@ -27,7 +27,7 @@ export default function TermsOfServicePage() {
             2. Description of Service
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
-            ThriftVerse provides a platform that enables users to create and
+            Thriftverse provides a platform that enables users to create and
             manage their own thrift stores with unique subdomain URLs. We
             facilitate e-commerce transactions between sellers and buyers
             through integration with eSewa payment gateway.
@@ -39,7 +39,7 @@ export default function TermsOfServicePage() {
             3. Product Categories
           </h2>
           <p className="text-primary/80 leading-relaxed mb-3">
-            ThriftVerse is a marketplace specializing in pre-owned, vintage, and
+            Thriftverse is a marketplace specializing in pre-owned, vintage, and
             secondhand goods. Our platform supports the sale of products within
             the following categories:
           </p>
@@ -82,7 +82,7 @@ export default function TermsOfServicePage() {
             </li>
           </ul>
           <p className="text-primary/80 leading-relaxed mb-4">
-            All products listed on ThriftVerse must be authentic, accurately
+            All products listed on Thriftverse must be authentic, accurately
             described, and comply with our Prohibited Items policy. Sellers are
             responsible for ensuring their listings meet these requirements.
           </p>
@@ -117,7 +117,7 @@ export default function TermsOfServicePage() {
             5. Seller Responsibilities
           </h2>
           <p className="text-primary/80 leading-relaxed mb-3">
-            As a seller on ThriftVerse, you agree to:
+            As a seller on Thriftverse, you agree to:
           </p>
           <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
             <li>
@@ -149,7 +149,7 @@ export default function TermsOfServicePage() {
             6. Prohibited Items
           </h2>
           <p className="text-primary/80 leading-relaxed mb-3">
-            The following items are prohibited from being sold on ThriftVerse:
+            The following items are prohibited from being sold on Thriftverse:
           </p>
           <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
             <li>Illegal drugs, weapons, or controlled substances</li>
@@ -178,7 +178,7 @@ export default function TermsOfServicePage() {
             7.2 Transaction Processing
           </h3>
           <p className="text-primary/80 leading-relaxed mb-4">
-            All customer payments are processed through eSewa. ThriftVerse does
+            All customer payments are processed through eSewa. Thriftverse does
             not take commission on sales, but standard eSewa payment gateway
             fees apply (typically 2-3% per transaction).
           </p>
@@ -188,7 +188,7 @@ export default function TermsOfServicePage() {
           </h3>
           <p className="text-primary/80 leading-relaxed mb-4">
             Sellers are responsible for determining and paying all applicable
-            taxes on their sales. ThriftVerse is not responsible for tax
+            taxes on their sales. Thriftverse is not responsible for tax
             compliance.
           </p>
         </section>
@@ -198,7 +198,7 @@ export default function TermsOfServicePage() {
             8. Intellectual Property
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
-            You retain ownership of content you upload to ThriftVerse. By
+            You retain ownership of content you upload to Thriftverse. By
             uploading content, you grant us a license to display, store, and
             distribute it as necessary to provide our services. You represent
             that you have all necessary rights to the content you upload.
@@ -211,7 +211,7 @@ export default function TermsOfServicePage() {
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
             Disputes between buyers and sellers should be resolved directly
-            between the parties. ThriftVerse may assist in dispute resolution
+            between the parties. Thriftverse may assist in dispute resolution
             but is not obligated to do so. We reserve the right to suspend
             accounts involved in disputes until resolution.
           </p>
@@ -222,7 +222,7 @@ export default function TermsOfServicePage() {
             10. Limitation of Liability
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
-            ThriftVerse provides the platform &quot;as is&quot; without warranties of any
+            Thriftverse provides the platform &quot;as is&quot; without warranties of any
             kind. We are not liable for:
           </p>
           <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
@@ -243,7 +243,7 @@ export default function TermsOfServicePage() {
             11. Indemnification
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
-            You agree to indemnify and hold ThriftVerse harmless from any claims,
+            You agree to indemnify and hold Thriftverse harmless from any claims,
             damages, or expenses arising from your use of the platform, your
             violation of these terms, or your violation of any rights of others.
           </p>
@@ -255,7 +255,7 @@ export default function TermsOfServicePage() {
           </h2>
           <p className="text-primary/80 leading-relaxed mb-4">
             We may modify these terms at any time. We will notify users of
-            significant changes via email. Continued use of ThriftVerse after
+            significant changes via email. Continued use of Thriftverse after
             changes constitutes acceptance of the new terms.
           </p>
         </section>

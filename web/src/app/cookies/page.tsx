@@ -19,7 +19,7 @@ export default function CookiePolicyPage() {
             Cookies are small text files that are placed on your device when you
             visit our website. They help us provide you with a better
             experience by remembering your preferences and understanding how you
-            use ThriftVerse.
+            use Thriftverse.
           </p>
         </section>
 
@@ -183,7 +183,7 @@ export default function CookiePolicyPage() {
               Cookie Consent Tool
             </h3>
             <p className="text-primary/80 leading-relaxed mb-4">
-              When you first visit ThriftVerse, you can choose which categories
+              When you first visit Thriftverse, you can choose which categories
               of cookies to accept through our cookie consent banner. You can
               change your preferences at any time through our cookie settings.
             </p>
@@ -192,7 +192,7 @@ export default function CookiePolicyPage() {
           <div className="rounded-lg bg-accent-1/10 border border-accent-1/20 p-6 mb-4">
             <p className="text-primary/80">
               <strong>Note:</strong> Disabling certain cookies may limit your
-              ability to use some features of ThriftVerse. Essential cookies
+              ability to use some features of Thriftverse. Essential cookies
               cannot be disabled as they are required for the platform to
               function.
             </p>
