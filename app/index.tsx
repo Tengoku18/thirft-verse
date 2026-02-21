@@ -107,6 +107,10 @@ export default function Index() {
     return <Redirect href="/(auth)/signup-step3" />;
   }
 
+  if (appStatus === "profile_incomplete") {
+    return <Redirect href={"/(auth)/google-profile-setup" as any} />;
+  }
+
   if (appStatus === "ready") {
     return <Redirect href="/(tabs)" />;
   }
