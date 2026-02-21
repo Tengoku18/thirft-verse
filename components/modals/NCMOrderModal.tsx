@@ -50,6 +50,7 @@ interface NCMOrderModalProps {
     totalAmount: number;
     shippingFee: number;
     notes?: string;
+    vref_id?: string;
   };
 }
 
@@ -174,6 +175,7 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
         fbranch: fromBranch,
         branch: destinationBranch,
         package: packageName.trim() || undefined,
+        vref_id: orderData.vref_id || undefined,
         instruction: instruction.trim() || undefined,
         delivery_type: deliveryType as any,
         weight: weight || undefined,
