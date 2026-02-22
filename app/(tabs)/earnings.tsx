@@ -150,7 +150,7 @@ export default function EarningsScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [loadData])
+    }, [loadData]),
   );
 
   const onRefresh = useCallback(() => {
@@ -198,7 +198,7 @@ export default function EarningsScreen() {
       if (!permissionResult.granted) {
         Alert.alert(
           "Permission Required",
-          "Please allow access to your photos to upload a QR code."
+          "Please allow access to your photos to upload a QR code.",
         );
         return;
       }
@@ -235,14 +235,14 @@ export default function EarningsScreen() {
       if (newPaymentQRUri) {
         const uploadResult = await uploadPaymentQRImage(
           user.id,
-          newPaymentQRUri
+          newPaymentQRUri,
         );
         if (uploadResult.success && uploadResult.url) {
           paymentQRUrl = uploadResult.url;
         } else {
           Alert.alert(
             "Error",
-            "Failed to upload payment QR code. Please try again."
+            "Failed to upload payment QR code. Please try again.",
           );
           setSavingPayment(false);
           return;
@@ -261,7 +261,7 @@ export default function EarningsScreen() {
       if (error) {
         Alert.alert(
           "Error",
-          "Failed to update payment details. Please try again."
+          "Failed to update payment details. Please try again.",
         );
         return;
       }
@@ -388,148 +388,154 @@ export default function EarningsScreen() {
               />
             }
           >
-          {/* Header */}
-          <View className="mx-4 mt-4 flex-row items-center justify-between">
-            <BodySemiboldText style={{ fontSize: 18 }}>
-              {isEditing ? "Edit Payment Details" : "Setup Payment Details"}
-            </BodySemiboldText>
-            {isEditing && (
-              <TouchableOpacity onPress={handleCancelEdit} activeOpacity={0.7}>
-                <CaptionText style={{ color: "#6B7280", fontSize: 14 }}>
-                  Cancel
-                </CaptionText>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {!isEditing && (
-            <View className="mx-4 mt-4 p-5 bg-[#FEF3C7] rounded-2xl flex-row items-start">
-              <View className="w-12 h-12 rounded-full bg-[#F59E0B]/20 items-center justify-center mr-3">
-                <IconSymbol
-                  name="exclamationmark.triangle.fill"
-                  size={24}
-                  color="#F59E0B"
-                />
-              </View>
-              <View className="flex-1">
-                <BodySemiboldText style={{ color: "#92400E", fontSize: 16 }}>
-                  Payment Required
-                </BodySemiboldText>
-                <CaptionText style={{ color: "#92400E", marginTop: 4 }}>
-                  Add your payment details to start receiving payments from
-                  buyers.
-                </CaptionText>
-              </View>
-            </View>
-          )}
-
-          <View className="px-4 mt-6">
-            <FormInput
-              label="Payment Account Holder Name"
-              placeholder="e.g., eSewa: 9812345678 or Bank: John Doe"
-              value={editPaymentData.payment_username}
-              onChangeText={(text) => {
-                setEditPaymentData((prev) => ({
-                  ...prev,
-                  payment_username: text,
-                }));
-                if (paymentErrors.payment_username) {
-                  setPaymentErrors((prev) => ({
-                    ...prev,
-                    payment_username: undefined,
-                  }));
-                }
-              }}
-              autoCapitalize="none"
-              required
-              error={paymentErrors.payment_username}
-            />
-            <CaptionText className="mb-6 -mt-2" style={{ color: "#6B7280" }}>
-              Enter your eSewa name, bank account name, or payment identifier
-            </CaptionText>
-
-            <View className="mb-6">
-              <View className="flex-row items-center mb-3">
-                <BodySemiboldText style={{ fontSize: 13 }}>
-                  Payment QR Code
-                </BodySemiboldText>
-                <BodySemiboldText style={{ color: "#EF4444", fontSize: 13 }}>
-                  {" "}
-                  *
-                </BodySemiboldText>
-              </View>
-
-              <TouchableOpacity
-                onPress={handlePaymentQRSelect}
-                activeOpacity={0.8}
-                className="rounded-2xl overflow-hidden"
-                style={{
-                  height: 220,
-                  borderWidth: 2,
-                  borderStyle: "dashed",
-                  borderColor: paymentErrors.payment_qr_image
-                    ? "#EF4444"
-                    : "#E5E7EB",
-                }}
-              >
-                {getDisplayPaymentQRUri() ? (
-                  <View className="flex-1 relative bg-[#FAFAFA]">
-                    <Image
-                      source={{ uri: getDisplayPaymentQRUri()! }}
-                      style={{ width: "100%", height: "100%" }}
-                      resizeMode="contain"
-                    />
-                    <TouchableOpacity
-                      onPress={handlePaymentQRSelect}
-                      className="absolute top-3 right-3 bg-white rounded-full p-2.5"
-                      style={{
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 4,
-                        elevation: 3,
-                      }}
-                    >
-                      <IconSymbol
-                        name="square.and.pencil"
-                        size={18}
-                        color="#3B2F2F"
-                      />
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <View className="flex-1 justify-center items-center bg-[#FAFAFA]">
-                    <View className="w-16 h-16 rounded-full bg-[#F3F4F6] justify-center items-center mb-3">
-                      <IconSymbol name="qrcode" size={28} color="#9CA3AF" />
-                    </View>
-                    <BodySemiboldText
-                      style={{ color: "#6B7280", fontSize: 15 }}
-                    >
-                      Upload QR Code
-                    </BodySemiboldText>
-                    <CaptionText style={{ color: "#9CA3AF" }} className="mt-1">
-                      Tap to add your payment QR
-                    </CaptionText>
-                  </View>
-                )}
-              </TouchableOpacity>
-              {paymentErrors.payment_qr_image && (
-                <CaptionText className="mt-2" style={{ color: "#EF4444" }}>
-                  {paymentErrors.payment_qr_image}
-                </CaptionText>
+            {/* Header */}
+            <View className="mx-4 mt-4 flex-row items-center justify-between">
+              <BodySemiboldText style={{ fontSize: 18 }}>
+                {isEditing ? "Edit Payment Details" : "Setup Payment Details"}
+              </BodySemiboldText>
+              {isEditing && (
+                <TouchableOpacity
+                  onPress={handleCancelEdit}
+                  activeOpacity={0.7}
+                >
+                  <CaptionText style={{ color: "#6B7280", fontSize: 14 }}>
+                    Cancel
+                  </CaptionText>
+                </TouchableOpacity>
               )}
             </View>
 
-            <FormButton
-              title={
-                isEditing ? "Update Payment Details" : "Save Payment Details"
-              }
-              onPress={handleSavePayment}
-              loading={savingPayment}
-              variant="primary"
-            />
-          </View>
-        </ScrollView>
+            {!isEditing && (
+              <View className="mx-4 mt-4 p-5 bg-[#FEF3C7] rounded-2xl flex-row items-start">
+                <View className="w-12 h-12 rounded-full bg-[#F59E0B]/20 items-center justify-center mr-3">
+                  <IconSymbol
+                    name="exclamationmark.triangle.fill"
+                    size={24}
+                    color="#F59E0B"
+                  />
+                </View>
+                <View className="flex-1">
+                  <BodySemiboldText style={{ color: "#92400E", fontSize: 16 }}>
+                    Payment Required
+                  </BodySemiboldText>
+                  <CaptionText style={{ color: "#92400E", marginTop: 4 }}>
+                    Add your payment details to start receiving payments from
+                    buyers.
+                  </CaptionText>
+                </View>
+              </View>
+            )}
+
+            <View className="px-4 mt-6">
+              <FormInput
+                label="Payment Account Holder Name"
+                placeholder="E.g. eSewa: 9812345678 or Bank: John Doe"
+                value={editPaymentData.payment_username}
+                onChangeText={(text) => {
+                  setEditPaymentData((prev) => ({
+                    ...prev,
+                    payment_username: text,
+                  }));
+                  if (paymentErrors.payment_username) {
+                    setPaymentErrors((prev) => ({
+                      ...prev,
+                      payment_username: undefined,
+                    }));
+                  }
+                }}
+                autoCapitalize="none"
+                required
+                error={paymentErrors.payment_username}
+              />
+              <CaptionText className="mb-6 -mt-2" style={{ color: "#6B7280" }}>
+                Enter your eSewa name, bank account name, or payment identifier
+              </CaptionText>
+
+              <View className="mb-6">
+                <View className="flex-row items-center mb-3">
+                  <BodySemiboldText style={{ fontSize: 13 }}>
+                    Payment QR Code
+                  </BodySemiboldText>
+                  <BodySemiboldText style={{ color: "#EF4444", fontSize: 13 }}>
+                    {" "}
+                    *
+                  </BodySemiboldText>
+                </View>
+
+                <TouchableOpacity
+                  onPress={handlePaymentQRSelect}
+                  activeOpacity={0.8}
+                  className="rounded-2xl overflow-hidden"
+                  style={{
+                    height: 220,
+                    borderWidth: 2,
+                    borderStyle: "dashed",
+                    borderColor: paymentErrors.payment_qr_image
+                      ? "#EF4444"
+                      : "#E5E7EB",
+                  }}
+                >
+                  {getDisplayPaymentQRUri() ? (
+                    <View className="flex-1 relative bg-[#FAFAFA]">
+                      <Image
+                        source={{ uri: getDisplayPaymentQRUri()! }}
+                        style={{ width: "100%", height: "100%" }}
+                        resizeMode="contain"
+                      />
+                      <TouchableOpacity
+                        onPress={handlePaymentQRSelect}
+                        className="absolute top-3 right-3 bg-white rounded-full p-2.5"
+                        style={{
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.1,
+                          shadowRadius: 4,
+                          elevation: 3,
+                        }}
+                      >
+                        <IconSymbol
+                          name="square.and.pencil"
+                          size={18}
+                          color="#3B2F2F"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View className="flex-1 justify-center items-center bg-[#FAFAFA]">
+                      <View className="w-16 h-16 rounded-full bg-[#F3F4F6] justify-center items-center mb-3">
+                        <IconSymbol name="qrcode" size={28} color="#9CA3AF" />
+                      </View>
+                      <BodySemiboldText
+                        style={{ color: "#6B7280", fontSize: 15 }}
+                      >
+                        Upload QR Code
+                      </BodySemiboldText>
+                      <CaptionText
+                        style={{ color: "#9CA3AF" }}
+                        className="mt-1"
+                      >
+                        Tap to add your payment QR
+                      </CaptionText>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                {paymentErrors.payment_qr_image && (
+                  <CaptionText className="mt-2" style={{ color: "#EF4444" }}>
+                    {paymentErrors.payment_qr_image}
+                  </CaptionText>
+                )}
+              </View>
+
+              <FormButton
+                title={
+                  isEditing ? "Update Payment Details" : "Save Payment Details"
+                }
+                onPress={handleSavePayment}
+                loading={savingPayment}
+                variant="primary"
+              />
+            </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </TabScreenLayout>
     );
@@ -637,7 +643,9 @@ export default function EarningsScreen() {
             disabled={(revenue?.confirmedAmount || 0) <= 0}
           >
             <IconSymbol name="arrow.up.circle.fill" size={18} color="#FFFFFF" />
-            <BodySemiboldText style={{ color: "#FFFFFF", marginLeft: 8, fontSize: 15 }}>
+            <BodySemiboldText
+              style={{ color: "#FFFFFF", marginLeft: 8, fontSize: 15 }}
+            >
               Request Withdraw
             </BodySemiboldText>
           </TouchableOpacity>
@@ -689,7 +697,9 @@ export default function EarningsScreen() {
               />
             </View>
             <CaptionText style={{ color: "#6B7280" }}>Withdrawn</CaptionText>
-            <HeadingBoldText style={{ fontSize: 18, marginTop: 2, color: "#8B5CF6" }}>
+            <HeadingBoldText
+              style={{ fontSize: 18, marginTop: 2, color: "#8B5CF6" }}
+            >
               {formatPrice(revenue?.withdrawnAmount || 0)}
             </HeadingBoldText>
           </View>
@@ -723,7 +733,8 @@ export default function EarningsScreen() {
                   icon: "xmark.circle.fill" as const,
                 },
               };
-              const config = statusConfig[request.status] || statusConfig.pending;
+              const config =
+                statusConfig[request.status] || statusConfig.pending;
 
               return (
                 <View
@@ -754,7 +765,10 @@ export default function EarningsScreen() {
                           {formatPrice(request.amount)}
                         </BodySemiboldText>
                         {request.notes && (
-                          <CaptionText style={{ color: "#6B7280", marginTop: 2 }} numberOfLines={1}>
+                          <CaptionText
+                            style={{ color: "#6B7280", marginTop: 2 }}
+                            numberOfLines={1}
+                          >
                             {request.notes}
                           </CaptionText>
                         )}
@@ -765,16 +779,27 @@ export default function EarningsScreen() {
                         className="px-2.5 py-1 rounded-full"
                         style={{ backgroundColor: config.bg }}
                       >
-                        <CaptionText style={{ color: config.text, fontWeight: "600", fontSize: 11 }}>
+                        <CaptionText
+                          style={{
+                            color: config.text,
+                            fontWeight: "600",
+                            fontSize: 11,
+                          }}
+                        >
                           {config.label}
                         </CaptionText>
                       </View>
-                      <CaptionText style={{ color: "#9CA3AF", marginTop: 4, fontSize: 11 }}>
-                        {new Date(request.created_at).toLocaleDateString("en-US", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                      <CaptionText
+                        style={{ color: "#9CA3AF", marginTop: 4, fontSize: 11 }}
+                      >
+                        {new Date(request.created_at).toLocaleDateString(
+                          "en-US",
+                          {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          },
+                        )}
                       </CaptionText>
                     </View>
                   </View>
@@ -803,12 +828,18 @@ export default function EarningsScreen() {
                 className="w-14 h-14 rounded-full items-center justify-center mb-3"
                 style={{ backgroundColor: "#F3F4F6" }}
               >
-                <IconSymbol name="clock.arrow.circlepath" size={24} color="#9CA3AF" />
+                <IconSymbol
+                  name="clock.arrow.circlepath"
+                  size={24}
+                  color="#9CA3AF"
+                />
               </View>
               <BodyMediumText style={{ color: "#6B7280", textAlign: "center" }}>
                 No withdrawal requests yet
               </BodyMediumText>
-              <CaptionText style={{ color: "#9CA3AF", textAlign: "center", marginTop: 4 }}>
+              <CaptionText
+                style={{ color: "#9CA3AF", textAlign: "center", marginTop: 4 }}
+              >
                 Your withdrawal requests will appear here
               </CaptionText>
             </View>
@@ -849,7 +880,9 @@ export default function EarningsScreen() {
                     <CaptionText style={{ color: "#6B7280" }}>
                       Available Balance
                     </CaptionText>
-                    <BodySemiboldText style={{ color: "#059669", fontSize: 18 }}>
+                    <BodySemiboldText
+                      style={{ color: "#059669", fontSize: 18 }}
+                    >
                       {formatPrice(revenue?.confirmedAmount || 0)}
                     </BodySemiboldText>
                   </View>
@@ -863,7 +896,8 @@ export default function EarningsScreen() {
                     Withdraw Amount
                   </BodySemiboldText>
                   <BodySemiboldText style={{ color: "#EF4444", fontSize: 14 }}>
-                    {" "}*
+                    {" "}
+                    *
                   </BodySemiboldText>
                 </View>
                 <View
@@ -898,7 +932,9 @@ export default function EarningsScreen() {
 
               {/* Note Input */}
               <View className="mb-6">
-                <BodySemiboldText style={{ fontSize: 14, color: "#374151", marginBottom: 8 }}>
+                <BodySemiboldText
+                  style={{ fontSize: 14, color: "#374151", marginBottom: 8 }}
+                >
                   Note (Optional)
                 </BodySemiboldText>
                 <TextInput
@@ -924,21 +960,30 @@ export default function EarningsScreen() {
                 disabled={submittingWithdraw || !withdrawAmount.trim()}
                 className="bg-[#3B2F2F] rounded-xl py-4 flex-row items-center justify-center"
                 style={{
-                  opacity: submittingWithdraw || !withdrawAmount.trim() ? 0.5 : 1,
+                  opacity:
+                    submittingWithdraw || !withdrawAmount.trim() ? 0.5 : 1,
                 }}
                 activeOpacity={0.8}
               >
                 {submittingWithdraw ? (
                   <>
                     <ActivityIndicator size="small" color="#FFFFFF" />
-                    <BodySemiboldText style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}>
+                    <BodySemiboldText
+                      style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}
+                    >
                       Submitting...
                     </BodySemiboldText>
                   </>
                 ) : (
                   <>
-                    <IconSymbol name="paperplane.fill" size={18} color="#FFFFFF" />
-                    <BodySemiboldText style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}>
+                    <IconSymbol
+                      name="paperplane.fill"
+                      size={18}
+                      color="#FFFFFF"
+                    />
+                    <BodySemiboldText
+                      style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}
+                    >
                       Submit Request
                     </BodySemiboldText>
                   </>
@@ -952,7 +997,13 @@ export default function EarningsScreen() {
                 className="mt-3 py-3"
                 activeOpacity={0.7}
               >
-                <BodyMediumText style={{ color: "#6B7280", fontSize: 15, textAlign: "center" }}>
+                <BodyMediumText
+                  style={{
+                    color: "#6B7280",
+                    fontSize: 15,
+                    textAlign: "center",
+                  }}
+                >
                   Cancel
                 </BodyMediumText>
               </TouchableOpacity>

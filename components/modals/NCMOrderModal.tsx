@@ -2,11 +2,12 @@ import {
   BodyBoldText,
   BodyMediumText,
   CaptionText,
-  HeadingBoldText
+  HeadingBoldText,
 } from "@/components/Typography";
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { FormPicker, PickerOption } from "@/components/atoms/FormPicker";
+import { SuccessModal } from "@/components/molecules/SuccessModal";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import {
   createNCMOrder,
@@ -27,7 +28,7 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 interface NCMOrderModalProps {
@@ -56,7 +57,10 @@ interface NCMOrderModalProps {
 
 const deliveryTypeOptions: PickerOption[] = [
   // { label: "Door to Door (NCM Pickup & Delivery)", value: "Door2Door" },
-  { label: "Branch to Door (Drop at Branch, NCM Delivers)", value: "Branch2Door" },
+  {
+    label: "Branch to Door (Drop at Branch, NCM Delivers)",
+    value: "Branch2Door",
+  },
   // { label: "Door to Branch (NCM Pickup, Collect at Branch)", value: "Door2Branch" },
   {
     label: "Branch to Branch (Drop & Collect at Branch)",
@@ -73,6 +77,9 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
   const [branches, setBranches] = useState<NCMBranch[]>([]);
   const [loadingBranches, setLoadingBranches] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [successData, setSuccessData] = useState<{ orderId: number } | null>(
+    null,
+  );
 
   // Form state
   const [name, setName] = useState(orderData.buyerName);
@@ -85,7 +92,7 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
       orderData.shippingAddress.district,
     ]
       .filter((part) => part && part.trim())
-      .join(", ")
+      .join(", "),
   );
   const [fromBranch, setFromBranch] = useState("");
   const [destinationBranch, setDestinationBranch] = useState("");
@@ -119,7 +126,7 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
       : branch.name,
     value: branch.name,
     description: branch.areas_covered || undefined,
-    searchableText: `${branch.areas_covered || ''} ${branch.district_name || ''}`,
+    searchableText: `${branch.areas_covered || ""} ${branch.district_name || ""}`,
   }));
 
   const handleSubmit = async () => {
@@ -138,7 +145,7 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
     if (!isValidNepaliPhone(cleanedPhone)) {
       Alert.alert(
         "Invalid Phone Number",
-        "Please enter a valid 10-digit Nepali mobile number (e.g., 98XXXXXXXX, 97XXXXXXXX, or 96XXXXXXXX)"
+        "Please enter a valid 10-digit Nepali mobile number (e.g., 98XXXXXXXX, 97XXXXXXXX, or 96XXXXXXXX)",
       );
       return;
     }
@@ -184,9 +191,7 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
       const result = await createNCMOrder(params);
 
       if (result.success && result.data) {
-        Alert.alert("Success", `NCM Order created successfully! Order ID: ${result.data.orderid}`);
-        onSuccess(result.data.orderid);
-        onClose();
+        setSuccessData({ orderId: result.data.orderid });
       } else {
         Alert.alert("Error", result.error || "Failed to create NCM order");
       }
@@ -198,11 +203,19 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
     }
   };
 
+  const handleSuccessDone = () => {
+    if (successData) {
+      onSuccess(successData.orderId);
+    }
+    setSuccessData(null);
+    onClose();
+  };
+
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      onRequestClose={onClose}
+      onRequestClose={successData ? handleSuccessDone : onClose}
       presentationStyle="pageSheet"
     >
       <View className="flex-1 bg-white">
@@ -212,163 +225,165 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
         >
           {/* Header */}
           <View className="px-6 pt-4 pb-3 border-b border-[#E5E7EB] flex-row items-center justify-between">
-          <View className="flex-1">
-            <HeadingBoldText style={{ fontSize: 20 }}>Move to NCM</HeadingBoldText>
-            <CaptionText style={{ color: "#6B7280", marginTop: 4 }}>
-              Order: {orderData.orderCode}
-            </CaptionText>
-          </View>
-          <TouchableOpacity onPress={onClose} className="ml-4">
-            <IconSymbol name="xmark" size={24} color="#6B7280" />
-          </TouchableOpacity>
-        </View>
-
-        {loadingBranches ? (
-          <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#3B2F2F" />
-            <BodyMediumText style={{ color: "#6B7280", marginTop: 12 }}>
-              Loading NCM branches...
-            </BodyMediumText>
-          </View>
-        ) : (
-          <ScrollView
-            className="flex-1"
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: 120 }}
-          >
-            <View className="px-4 pt-4">
-              {/* Customer Information */}
-              <View className="mb-6">
-                <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
-                  Customer Information
-                </BodyBoldText>
-
-                <FormInput
-                  label="Customer Name"
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="Enter customer name"
-                  required
-                  editable={false}
-                />
-
-                <FormInput
-                  label="Phone Number"
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder="Enter phone number"
-                  keyboardType="phone-pad"
-                  required
-                  editable={false}
-                />
-
-                <FormInput
-                  label="Secondary Phone (Optional)"
-                  value={phone2}
-                  onChangeText={setPhone2}
-                  placeholder="Enter secondary phone"
-                  keyboardType="phone-pad"
-                />
-              </View>
-
-              {/* Delivery Address */}
-              <View className="mb-6">
-                <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
-                  Delivery Address
-                </BodyBoldText>
-
-                <FormInput
-                  label="Full Address"
-                  value={address}
-                  onChangeText={setAddress}
-                  placeholder="Street, City, District"
-                  multiline
-                  numberOfLines={3}
-                  required
-                  editable={false}
-                />
-              </View>
-
-              {/* Branch Selection */}
-              <View className="mb-6">
-                <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
-                  Branch Selection
-                </BodyBoldText>
-
-                <FormPicker
-                  label="Pickup Branch (From)"
-                  value={fromBranch}
-                  onChange={setFromBranch}
-                  options={branchOptions}
-                  placeholder="Select pickup branch"
-                  required
-                />
-
-                <FormPicker
-                  label="Destination Branch (To)"
-                  value={destinationBranch}
-                  onChange={setDestinationBranch}
-                  options={branchOptions}
-                  placeholder="Select destination branch"
-                  required
-                />
-              </View>
-
-              {/* Order Details */}
-              <View className="mb-6">
-                <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
-                  Order Details
-                </BodyBoldText>
-
-                <FormInput
-                  label="Package Name"
-                  value={packageName}
-                  onChangeText={setPackageName}
-                  placeholder="Enter package name"
-                  editable={false}
-                />
-
-                <FormInput
-                  label="COD Amount (including delivery)"
-                  value={codCharge}
-                  onChangeText={setCodCharge}
-                  placeholder="Enter COD amount"
-                  keyboardType="numeric"
-                  required
-                  editable={false}
-                />
-
-                <FormPicker
-                  label="Delivery Type"
-                  value={deliveryType}
-                  onChange={setDeliveryType}
-                  options={deliveryTypeOptions}
-                  placeholder="Select delivery type"
-                  required
-                />
-
-                <FormInput
-                  label="Weight (kg)"
-                  value={weight}
-                  onChangeText={setWeight}
-                  placeholder="Enter weight in kg"
-                  keyboardType="numeric"
-                />
-
-                <FormInput
-                  label="Delivery Instructions (Optional)"
-                  value={instruction}
-                  onChangeText={setInstruction}
-                  placeholder="Any special instructions..."
-                  multiline
-                  numberOfLines={3}
-                  editable={false}
-                />
-              </View>
+            <View className="flex-1">
+              <HeadingBoldText style={{ fontSize: 20 }}>
+                Move to NCM
+              </HeadingBoldText>
+              <CaptionText style={{ color: "#6B7280", marginTop: 4 }}>
+                Order: {orderData.orderCode}
+              </CaptionText>
             </View>
-          </ScrollView>
-        )}
+            <TouchableOpacity onPress={onClose} className="ml-4">
+              <IconSymbol name="xmark" size={24} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+
+          {loadingBranches ? (
+            <View className="flex-1 justify-center items-center">
+              <ActivityIndicator size="large" color="#3B2F2F" />
+              <BodyMediumText style={{ color: "#6B7280", marginTop: 12 }}>
+                Loading NCM branches...
+              </BodyMediumText>
+            </View>
+          ) : (
+            <ScrollView
+              className="flex-1"
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: 120 }}
+            >
+              <View className="px-4 pt-4">
+                {/* Customer Information */}
+                <View className="mb-6">
+                  <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
+                    Customer Information
+                  </BodyBoldText>
+
+                  <FormInput
+                    label="Customer Name"
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="Enter customer name"
+                    required
+                    editable={false}
+                  />
+
+                  <FormInput
+                    label="Phone Number"
+                    value={phone}
+                    onChangeText={setPhone}
+                    placeholder="Enter phone number"
+                    keyboardType="phone-pad"
+                    required
+                    editable={false}
+                  />
+
+                  <FormInput
+                    label="Secondary Phone (Optional)"
+                    value={phone2}
+                    onChangeText={setPhone2}
+                    placeholder="Enter secondary phone"
+                    keyboardType="phone-pad"
+                  />
+                </View>
+
+                {/* Delivery Address */}
+                <View className="mb-6">
+                  <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
+                    Delivery Address
+                  </BodyBoldText>
+
+                  <FormInput
+                    label="Full Address"
+                    value={address}
+                    onChangeText={setAddress}
+                    placeholder="Street, City, District"
+                    multiline
+                    numberOfLines={3}
+                    required
+                    editable={false}
+                  />
+                </View>
+
+                {/* Branch Selection */}
+                <View className="mb-6">
+                  <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
+                    Branch Selection
+                  </BodyBoldText>
+
+                  <FormPicker
+                    label="Pickup Branch (From)"
+                    value={fromBranch}
+                    onChange={setFromBranch}
+                    options={branchOptions}
+                    placeholder="Select pickup branch"
+                    required
+                  />
+
+                  <FormPicker
+                    label="Destination Branch (To)"
+                    value={destinationBranch}
+                    onChange={setDestinationBranch}
+                    options={branchOptions}
+                    placeholder="Select destination branch"
+                    required
+                  />
+                </View>
+
+                {/* Order Details */}
+                <View className="mb-6">
+                  <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
+                    Order Details
+                  </BodyBoldText>
+
+                  <FormInput
+                    label="Package Name"
+                    value={packageName}
+                    onChangeText={setPackageName}
+                    placeholder="Enter package name"
+                    editable={false}
+                  />
+
+                  <FormInput
+                    label="COD Amount (including delivery)"
+                    value={codCharge}
+                    onChangeText={setCodCharge}
+                    placeholder="Enter COD amount"
+                    keyboardType="numeric"
+                    required
+                    editable={false}
+                  />
+
+                  <FormPicker
+                    label="Delivery Type"
+                    value={deliveryType}
+                    onChange={setDeliveryType}
+                    options={deliveryTypeOptions}
+                    placeholder="Select delivery type"
+                    required
+                  />
+
+                  <FormInput
+                    label="Weight (kg)"
+                    value={weight}
+                    onChangeText={setWeight}
+                    placeholder="Enter weight in kg"
+                    keyboardType="numeric"
+                  />
+
+                  <FormInput
+                    label="Delivery Instructions (Optional)"
+                    value={instruction}
+                    onChangeText={setInstruction}
+                    placeholder="Any special instructions..."
+                    multiline
+                    numberOfLines={3}
+                    editable={false}
+                  />
+                </View>
+              </View>
+            </ScrollView>
+          )}
 
           {/* Submit Button */}
           {!loadingBranches && (
@@ -384,6 +399,62 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
           )}
         </KeyboardAvoidingView>
       </View>
+
+      {/* Success Modal */}
+      <SuccessModal
+        visible={!!successData}
+        title="Order Created!"
+        onClose={handleSuccessDone}
+      >
+        {/* Order Info Card */}
+        <View
+          style={{
+            backgroundColor: "#F9FAFB",
+            borderRadius: 12,
+            padding: 16,
+            borderWidth: 1,
+            borderColor: "#F3F4F6",
+            marginBottom: 16,
+          }}
+        >
+          <CaptionText
+            style={{
+              color: "#9CA3AF",
+              marginBottom: 4,
+              fontSize: 11,
+              textTransform: "uppercase",
+              letterSpacing: 0.5,
+            }}
+          >
+            NCM Order ID
+          </CaptionText>
+          <BodyBoldText style={{ fontSize: 24, color: "#3B2F2F" }}>
+            {successData ? `#${successData.orderId}` : ""}
+          </BodyBoldText>
+        </View>
+
+        {/* Info Text */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            gap: 8,
+          }}
+        >
+          <IconSymbol
+            name="info.circle"
+            size={16}
+            color="#9CA3AF"
+            style={{ marginTop: 2 }}
+          />
+          <BodyMediumText
+            style={{ color: "#6B7280", lineHeight: 20, flex: 1, fontSize: 13 }}
+          >
+            Your order has been sent to Nepal Can Move for delivery. You can
+            track it from the order details page.
+          </BodyMediumText>
+        </View>
+      </SuccessModal>
     </Modal>
   );
 };
