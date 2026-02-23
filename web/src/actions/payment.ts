@@ -497,7 +497,7 @@ export async function createOrderFromPayment(
               total: metadata.amount,
               itemName,
               storeName:
-                seller.store_username || seller.name || 'ThriftVerse Store',
+                seller.store_username || seller.name || 'Thriftverse Store',
               currency: seller.currency || 'NPR',
               shippingFee: shippingFee,
               // Pass order items for multi-product orders
@@ -608,7 +608,7 @@ export async function createCodOrder(
             date: new Date().toLocaleDateString(),
             total: totalAmount,
             itemName: product.title,
-            storeName: seller.store_username || seller.name || 'ThriftVerse Store',
+            storeName: seller.store_username || seller.name || 'Thriftverse Store',
             currency: seller.currency || 'NPR',
             shippingFee: params.shippingFee,
           },
@@ -713,7 +713,7 @@ export async function createMultiProductCodOrder(
             date: new Date().toLocaleDateString(),
             total: totalAmount,
             itemName,
-            storeName: seller.store_username || seller.name || 'ThriftVerse Store',
+            storeName: seller.store_username || seller.name || 'Thriftverse Store',
             currency: seller.currency || 'NPR',
             shippingFee: params.shippingFee,
             orderItems: params.items.map(item => ({

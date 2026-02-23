@@ -49,7 +49,7 @@ export default function DownloadReceipt({
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(26)
     doc.setFont('helvetica', 'bold')
-    doc.text('ThriftVerse', 105, 18, { align: 'center' })
+    doc.text('Thriftverse', 105, 18, { align: 'center' })
 
     doc.setFontSize(11)
     doc.setFont('helvetica', 'normal')
@@ -147,7 +147,7 @@ export default function DownloadReceipt({
     doc.setFontSize(10)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
-    doc.text('Thank you for shopping at ThriftVerse!', 105, footerY, {
+    doc.text('Thank you for shopping at Thriftverse!', 105, footerY, {
       align: 'center',
     })
 

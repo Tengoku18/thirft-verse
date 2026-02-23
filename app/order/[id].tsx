@@ -24,7 +24,7 @@ import { supabase } from "@/lib/supabase";
 import { Product, ProfileRevenue } from "@/lib/types/database";
 import { uploadImageToStorage } from "@/lib/upload-helpers";
 import { isValidNepaliPhone } from "@/lib/validations/create-order";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchUserProfile } from "@/store/profileSlice";
 import dayjs from "dayjs";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -410,6 +410,7 @@ export default function SingleOrderScreen() {
   const router = useRouter();
   const toast = useToast();
   const dispatch = useAppDispatch();
+  const profile = useAppSelector((state) => state.profile.profile);
   const insets = useSafeAreaInsets();
 
   const [order, setOrder] = useState<OrderDetail | null>(null);
@@ -455,9 +456,10 @@ export default function SingleOrderScreen() {
           const firstItem = orderItems[0];
           primaryProduct = {
             id: firstItem.product_id,
-            title: orderItems.length > 1
-              ? `${firstItem.product_name} + ${orderItems.length - 1} more`
-              : firstItem.product_name,
+            title:
+              orderItems.length > 1
+                ? `${firstItem.product_name} + ${orderItems.length - 1} more`
+                : firstItem.product_name,
             image: firstItem.cover_image || null,
             price: productPrice,
             category: "Product",
@@ -482,20 +484,23 @@ export default function SingleOrderScreen() {
           // Single-product order with order_items (migrated legacy order)
           primaryProduct = {
             id: o.product_id,
-            title: o.product?.title || orderItems[0]?.product_name || "Order Item",
+            title:
+              o.product?.title || orderItems[0]?.product_name || "Order Item",
             image: o.product?.cover_image || orderItems[0]?.cover_image || null,
             price: productPrice,
             category: o.product?.category || "Product",
           };
           // Still show single item in the items list for consistency
           if (orderItems.length === 1) {
-            itemsList = [{
-              id: orderItems[0].product_id,
-              title: orderItems[0].product_name,
-              image: orderItems[0].cover_image || null,
-              price: orderItems[0].price * orderItems[0].quantity,
-              quantity: orderItems[0].quantity,
-            }];
+            itemsList = [
+              {
+                id: orderItems[0].product_id,
+                title: orderItems[0].product_name,
+                image: orderItems[0].cover_image || null,
+                price: orderItems[0].price * orderItems[0].quantity,
+                quantity: orderItems[0].quantity,
+              },
+            ];
           }
         } else {
           // Legacy single-product order without order_items
@@ -1055,10 +1060,7 @@ export default function SingleOrderScreen() {
                   </View>
                 )}
                 <View className="flex-1 ml-3 justify-center">
-                  <BodySemiboldText
-                    style={{ fontSize: 14 }}
-                    numberOfLines={2}
-                  >
+                  <BodySemiboldText style={{ fontSize: 14 }} numberOfLines={2}>
                     {item.title}
                   </BodySemiboldText>
                   <View className="flex-row items-center justify-between mt-2">
@@ -1262,10 +1264,7 @@ export default function SingleOrderScreen() {
             />
           )}
           {order.shipping.fee > 0 && (
-            <Row
-              label="Shipping Fee"
-              value={formatPrice(order.shipping.fee)}
-            />
+            <Row label="Shipping Fee" value={formatPrice(order.shipping.fee)} />
           )}
           <Row
             label="Service Charge (5%)"
@@ -1514,6 +1513,7 @@ export default function SingleOrderScreen() {
             orderCode: order.orderCode,
             buyerName: order.buyer.name,
             buyerPhone: order.buyer.phone,
+            vref_id: profile?.store_username || "",
             shippingAddress: order.shipping.address
               ? {
                   ...order.shipping.address,
@@ -1526,9 +1526,10 @@ export default function SingleOrderScreen() {
                   country: "Nepal",
                   phone: order.buyer.phone,
                 },
-            productTitle: order.items.length > 1
-              ? `${order.items[0].title} + ${order.items.length - 1} more`
-              : order.product.title,
+            productTitle:
+              order.items.length > 1
+                ? `${order.items[0].title} + ${order.items.length - 1} more`
+                : order.product.title,
             totalAmount: order.payment.total,
             shippingFee: order.shipping.fee,
             notes: "",

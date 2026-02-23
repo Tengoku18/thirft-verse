@@ -23,7 +23,7 @@ import {
   View,
 } from "react-native";
 
-type StatusFilter = "all" | "pending" | "processing" | "completed";
+type StatusFilter = "all" | "pending" | "processing" | "completed" | "cancelled" | "refunded";
 
 // Unified item type that works for both orders and sold products
 interface OrderItem {
@@ -235,7 +235,9 @@ export default function OrdersScreen() {
     if (
       filter === "pending" ||
       filter === "processing" ||
-      filter === "completed"
+      filter === "completed" ||
+      filter === "cancelled" ||
+      filter === "refunded"
     ) {
       setStatusFilter(filter as StatusFilter);
     }
@@ -334,6 +336,8 @@ export default function OrdersScreen() {
     pending: items.filter((i) => i.status === "pending").length,
     processing: items.filter((i) => i.status === "processing").length,
     completed: items.filter((i) => i.status === "completed").length,
+    cancelled: items.filter((i) => i.status === "cancelled").length,
+    refunded: items.filter((i) => i.status === "refunded").length,
   };
 
   // Calculate total revenue for filtered items
@@ -357,6 +361,8 @@ export default function OrdersScreen() {
     { key: "pending", label: "Pending" },
     { key: "processing", label: "Processing" },
     { key: "completed", label: "Completed" },
+    { key: "cancelled", label: "Cancelled" },
+    { key: "refunded", label: "Refunded" },
   ];
 
   const handleItemPress = (item: OrderItem) => {

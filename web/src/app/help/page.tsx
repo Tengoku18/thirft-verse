@@ -95,7 +95,7 @@ export default function HelpCenterPage() {
   return (
     <PageLayout
       title="Help Center"
-      description="Find guides, tutorials, and answers to help you succeed on ThriftVerse"
+      description="Find guides, tutorials, and answers to help you succeed on Thriftverse"
     >
       <div className="py-12">
         {/* Search Bar */}

@@ -16,9 +16,11 @@ import {
 import { useAppDispatch } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Link, useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -28,6 +30,8 @@ import {
   View,
 } from "react-native";
 import * as yup from "yup";
+
+WebBrowser.maybeCompleteAuthSession();
 
 interface SignInFormData {
   email: string;
@@ -47,8 +51,9 @@ const signInSchema = yup.object({
 export default function SignInScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const {
@@ -137,6 +142,35 @@ export default function SignInScreen() {
       console.error("Unexpected sign in error:", error);
       setErrorMessage("An unexpected error occurred. Please try again.");
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setErrorMessage("");
+
+    try {
+      const { error } = await signInWithGoogle();
+
+      if (error) {
+        if (error.message === "Sign in was cancelled") {
+          setGoogleLoading(false);
+          return;
+        }
+        setErrorMessage(
+          error.message || "Google sign in failed. Please try again."
+        );
+        setGoogleLoading(false);
+        return;
+      }
+
+      // Success - route guard in app/index.tsx handles navigation
+      setGoogleLoading(false);
+      router.replace("/");
+    } catch (error) {
+      console.error("Unexpected Google sign in error:", error);
+      setErrorMessage("An unexpected error occurred. Please try again.");
+      setGoogleLoading(false);
     }
   };
 
@@ -231,8 +265,50 @@ export default function SignInScreen() {
               title="Sign In"
               onPress={handleSubmit(onSubmit)}
               loading={loading}
+              disabled={googleLoading}
               variant="primary"
             />
+
+            {/* Divider */}
+            <View className="flex-row items-center my-6">
+              <View className="flex-1 h-[1px] bg-[#E5E7EB]" />
+              <BodyRegularText
+                style={{ color: "#9CA3AF", marginHorizontal: 16, fontSize: 14 }}
+              >
+                or
+              </BodyRegularText>
+              <View className="flex-1 h-[1px] bg-[#E5E7EB]" />
+            </View>
+
+            {/* Continue with Google */}
+            <TouchableOpacity
+              className="h-[58px] rounded-2xl justify-center items-center px-6 w-full flex-row border-[2px] border-[#E5E7EB] bg-white"
+              onPress={handleGoogleSignIn}
+              disabled={loading || googleLoading}
+              activeOpacity={0.85}
+              style={googleLoading ? { opacity: 0.7 } : undefined}
+            >
+              {googleLoading ? (
+                <ActivityIndicator color="#3B2F2F" size="small" />
+              ) : (
+                <>
+                  <Image
+                    source={require("@/assets/images/google-icon.png")}
+                    style={{ width: 20, height: 20, marginRight: 12 }}
+                    resizeMode="contain"
+                  />
+                  <BodyBoldText
+                    style={{
+                      color: "#3B2F2F",
+                      fontSize: 16,
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Continue with Google
+                  </BodyBoldText>
+                </>
+              )}
+            </TouchableOpacity>
 
             {/* Sign Up Link */}
             <View className="mt-8">

@@ -28,20 +28,20 @@ export const OrderConfirmationEmail = ({
   customerName = 'Customer',
   orderId = '#12345',
   orderDate = new Date().toLocaleDateString(),
-  storeName = 'ThriftVerse Store',
+  storeName = 'Thriftverse Store',
   total = 45.00,
   currency = 'USD',
   orderDetailsUrl = 'https://www.thriftverse.shop',
 }: OrderConfirmationEmailProps) => (
   <Html>
     <Head />
-    <Preview>Your ThriftVerse order {orderId} has been confirmed</Preview>
+    <Preview>Your Thriftverse order {orderId} has been confirmed</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={logoContainer}>
           <Img
             src="https://www.thriftverse.shop/images/vertical-logo.png"
-            alt="ThriftVerse Logo"
+            alt="Thriftverse Logo"
             style={logo}
           />
         </Section>
@@ -96,7 +96,7 @@ export const OrderConfirmationEmail = ({
           <br />
           Happy thrifting!
           <br />
-          The ThriftVerse Team
+          The Thriftverse Team
         </Text>
       </Container>
     </Body>
