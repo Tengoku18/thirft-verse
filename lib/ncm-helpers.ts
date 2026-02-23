@@ -7,7 +7,8 @@
 
 import axios, { AxiosError } from "axios";
 
-const NCM_API_BASE_URL = "https://demo.nepalcanmove.com/api";
+const NCM_API_BASE_URL =
+  process.env.EXPO_PUBLIC_NCM_API_BASE_URL || "https://demo.nepalcanmove.com/api";
 
 // Get token lazily to ensure env vars are loaded
 const getNCMToken = () => {

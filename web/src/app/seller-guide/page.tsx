@@ -118,7 +118,7 @@ export default function SellerGuidePage() {
   return (
     <PageLayout
       title="Seller Guide"
-      description="Your complete guide to building a successful thrift business on ThriftVerse"
+      description="Your complete guide to building a successful thrift business on Thriftverse"
     >
       <div className="py-12">
         {/* Introduction */}
@@ -128,7 +128,7 @@ export default function SellerGuidePage() {
           </h2>
           <p className="text-primary/80 mb-4 text-lg leading-relaxed">
             This guide will walk you through everything you need to know to
-            start, run, and grow a successful thrift store on ThriftVerse.
+            start, run, and grow a successful thrift store on Thriftverse.
             Whether you're selling a few items from your closet or building a
             full-time business, we're here to help you succeed.
           </p>

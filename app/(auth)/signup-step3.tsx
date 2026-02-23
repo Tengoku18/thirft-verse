@@ -16,6 +16,7 @@ import {
   clearPersistedSignupState,
   completeSignup,
   setPaymentData,
+  fetchUserProfile,
 } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
@@ -93,8 +94,8 @@ export default function SignupStep3Screen() {
           user.id,
           paymentQRImage
         );
-        if (uploadResult.success && uploadResult.path) {
-          paymentQRPath = uploadResult.path;
+        if (uploadResult.success && uploadResult.url) {
+          paymentQRPath = uploadResult.url;
         } else {
           console.error("Failed to upload QR image:", uploadResult.error);
         }
@@ -119,6 +120,9 @@ export default function SignupStep3Screen() {
         })
       );
 
+      // Refetch the profile to update Redux state with latest data
+      await dispatch(fetchUserProfile(user.id));
+
       // Complete signup and clear persisted state
       dispatch(completeSignup());
       await dispatch(clearPersistedSignupState());
@@ -137,6 +141,15 @@ export default function SignupStep3Screen() {
     setLoading(true);
 
     try {
+      // Get current user and refetch profile
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        await dispatch(fetchUserProfile(user.id));
+      }
+
       // Complete signup without payment info
       dispatch(completeSignup());
       await dispatch(clearPersistedSignupState());

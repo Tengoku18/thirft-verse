@@ -70,14 +70,26 @@ export interface ProductWithStore extends Product {
   store: Pick<Profile, 'id' | 'name' | 'store_username' | 'currency'> | null
 }
 
+export interface OrderItem {
+  id: string
+  order_id: string
+  product_id: string
+  product_name: string
+  quantity: number
+  price: number
+  cover_image: string | null
+  created_at: string
+}
+
 export interface Order {
   id: string
   order_code: string | null
   seller_id: string
-  product_id: string
+  product_id: string | null // Nullable for multi-product orders
   quantity: number
   buyer_email: string
   buyer_name: string
+  buyer_notes: string | null
   shipping_address: ShippingAddress
   transaction_code: string
   transaction_uuid: string
@@ -95,6 +107,11 @@ export interface Order {
 export interface OrderWithDetails extends Order {
   seller: Pick<Profile, 'id' | 'name' | 'store_username'> | null
   product: Pick<Product, 'id' | 'title' | 'cover_image' | 'price'> | null
+}
+
+export interface OrderWithItems extends Order {
+  seller: Pick<Profile, 'id' | 'name' | 'store_username' | 'currency'> | null
+  order_items: OrderItem[]
 }
 
 export interface AccountDeletionRequest {

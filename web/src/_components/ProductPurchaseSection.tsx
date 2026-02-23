@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ShoppingCart, Shield } from 'lucide-react'
+import { ShoppingCart, Shield, ShoppingBag } from 'lucide-react'
 import { QuantitySelector } from './QuantitySelector'
 import { formatCheckoutPrice } from '@/utils/formatPrice'
+import { useCart } from '@/contexts/CartContext'
+import toast from 'react-hot-toast'
 
 interface ProductPurchaseSectionProps {
   productId: string
@@ -13,6 +15,9 @@ interface ProductPurchaseSectionProps {
   currency: string
   availabilityCount: number
   isOutOfStock: boolean
+  storeId?: string
+  storeName?: string
+  coverImage?: string
 }
 
 export default function ProductPurchaseSection({
@@ -22,8 +27,12 @@ export default function ProductPurchaseSection({
   currency,
   availabilityCount,
   isOutOfStock,
+  storeId,
+  storeName,
+  coverImage,
 }: ProductPurchaseSectionProps) {
   const router = useRouter()
+  const { addItem, isInCart, getItemQuantity } = useCart()
   const [quantity, setQuantity] = useState(1)
 
   const handleBuyNow = () => {
@@ -38,6 +47,34 @@ export default function ProductPurchaseSection({
       quantity: quantity.toString(),
     })
     router.push(`/checkout?${params.toString()}`)
+  }
+
+  const handleAddToCart = () => {
+    if (isOutOfStock || quantity < 1 || quantity > availabilityCount) return
+    if (!storeId || !storeName) {
+      toast.error('Store information is missing')
+      return
+    }
+
+    // Check current cart quantity
+    const currentCartQty = getItemQuantity(storeId, productId)
+    const totalQty = currentCartQty + quantity
+
+    if (totalQty > availabilityCount) {
+      toast.error(`Only ${availabilityCount - currentCartQty} more available`)
+      return
+    }
+
+    addItem(storeId, storeName, currency, {
+      productId,
+      productName,
+      price,
+      quantity: totalQty, // Update to new total
+      coverImage: coverImage || undefined,
+      availabilityCount,
+    })
+
+    toast.success(`${quantity} item(s) added to cart!`)
   }
 
   const totalPrice = price * quantity
@@ -64,8 +101,21 @@ export default function ProductPurchaseSection({
         </div>
       )}
 
-      {/* Buy Now Button */}
-      <div className="w-full">
+      {/* Action Buttons */}
+      <div className="w-full space-y-3">
+        {/* Add to Cart Button - Only show if storeId is provided */}
+        {storeId && !isOutOfStock && (
+          <button
+            onClick={handleAddToCart}
+            disabled={isBuyDisabled}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-secondary bg-transparent px-8 py-4 font-semibold text-secondary shadow-lg transition-all hover:bg-secondary hover:text-surface hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-transparent disabled:hover:text-secondary"
+          >
+            <ShoppingBag className="h-5 w-5" />
+            Add to Cart
+          </button>
+        )}
+
+        {/* Buy Now Button */}
         <button
           onClick={handleBuyNow}
           disabled={isBuyDisabled}
@@ -74,7 +124,8 @@ export default function ProductPurchaseSection({
           <ShoppingCart className="h-5 w-5" />
           {isOutOfStock ? 'Out of Stock' : 'Buy Now'}
         </button>
-        <div className="mt-3 flex items-center justify-center gap-1.5 text-sm text-primary/60">
+
+        <div className="flex items-center justify-center gap-1.5 text-sm text-primary/60">
           <Shield className="h-4 w-4" />
           <span>Secure payment with eSewa</span>
         </div>

@@ -7,11 +7,12 @@ export function getSubDomain(hostname: string): string {
     return parts[0] || '';
   } else if (hostname.endsWith('.vercel.app')) {
     // Vercel: split by ".vercel.app" and return the subdomain
-    const parts = hostname.split('.thriftverse.vercel.app');
+    const parts = hostname.split('.dev-thriftverse.vercel.app');
     return parts[0] || '';
   } else {
     // Production: split by environment variable
-    const productionDomain = process.env.NEXT_PUBLIC_DOMAIN || '.thriftverse.shop';
+    const productionDomain =
+      process.env.NEXT_PUBLIC_DOMAIN || '.thriftverse.shop';
     const parts = hostname.split(productionDomain);
     return parts[0] || '';
   }
@@ -51,6 +52,6 @@ export function getBaseDomain(): string {
   } else if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'production') {
     return 'thriftverse.shop';
   } else {
-    return 'thriftverse.vercel.app';
+    return 'dev-thriftverse.vercel.app';
   }
 }

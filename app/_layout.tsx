@@ -14,7 +14,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -24,9 +24,33 @@ import "../global.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { store } from "@/store";
-import { Provider } from "react-redux";
+import {
+  addNotificationReceivedListener,
+  addNotificationResponseReceivedListener,
+  initializePushNotifications,
+} from "@/lib/push-notifications";
+import { fetchNotifications, fetchUnreadCount, store } from "@/store";
+import * as Sentry from "@sentry/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Provider } from "react-redux";
+
+Sentry.init({
+  dsn: "https://ab2b2f8db939702cd141915db19a54eb@o4510834233114624.ingest.us.sentry.io/4510834234425344",
+
+  // Only enable Sentry in production
+  enabled: !__DEV__,
+
+  sendDefaultPii: true,
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [
+    Sentry.mobileReplayIntegration(),
+    Sentry.feedbackIntegration(),
+  ],
+});
 
 // Prevent auto-hiding the splash screen
 SplashScreen.preventAutoHideAsync();
@@ -35,8 +59,48 @@ export const unstable_settings = {
   initialRouteName: "index",
 };
 
-export default function RootLayout() {
+function handleNotificationNavigation(data: Record<string, string>) {
+  if (data?.order_id) {
+    router.push(`/order/${data.order_id}` as never);
+  }
+}
+
+export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
+  // Initialize push notifications on app launch (request permission + get token)
+  useEffect(() => {
+    initializePushNotifications();
+  }, []);
+
+  // Handle notification interactions (foreground, background, quit)
+  useEffect(() => {
+    // Foreground: when notification arrives while app is open — refresh unread count
+    const removeReceived = addNotificationReceivedListener((notification) => {
+      console.log("Notification received (foreground):", notification);
+      // Refresh unread badge and notification list when a push arrives
+      const userId = store.getState().auth.user?.id;
+      if (userId) {
+        store.dispatch(fetchUnreadCount(userId));
+        store.dispatch(fetchNotifications(userId));
+      }
+    });
+
+    // Background & Quit: when user taps on a notification
+    const removeResponse = addNotificationResponseReceivedListener(
+      (response) => {
+        const data = response.notification.request.content.data as Record<
+          string,
+          string
+        >;
+        handleNotificationNavigation(data);
+      }
+    );
+
+    return () => {
+      removeReceived?.();
+      removeResponse?.();
+    };
+  }, []);
 
   const [fontsLoaded] = useFonts({
     // Folito fonts for headings (loaded from local assets)
@@ -77,37 +141,51 @@ export default function RootLayout() {
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
               <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="explore" options={{ headerShown: false }} />
-            <Stack.Screen name="profile" options={{ headerShown: false }} />
-            <Stack.Screen name="settings" options={{ headerShown: false }} />
-            <Stack.Screen name="policies" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="edit-profile"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="change-password"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="modal"
-              options={{ presentation: "modal", title: "Modal" }}
-            />
-            <Stack.Screen
-              name="sold-item/[id]"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="product/[id]"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="edit-product/[id]"
-              options={{ headerShown: false }}
-            />
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="explore" options={{ headerShown: false }} />
+                <Stack.Screen name="profile" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="settings"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="policies"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="edit-profile"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="change-password"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="modal"
+                  options={{ presentation: "modal", title: "Modal" }}
+                />
+                <Stack.Screen
+                  name="sold-item/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="product/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="edit-product/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="order/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="notifications"
+                  options={{ headerShown: false }}
+                />
               </Stack>
               <StatusBar style="dark" />
             </ThemeProvider>
@@ -116,4 +194,4 @@ export default function RootLayout() {
       </Provider>
     </SafeAreaProvider>
   );
-}
+});

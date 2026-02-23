@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "ThriftVerse",
+    "name": "thriftverse",
     "slug": "thrift-verse",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/logo/ios-app-icon.png",
     "scheme": "thriftverse",
@@ -17,6 +17,7 @@
     "android": {
       "package": "com.thriftverse.app",
       "versionCode": 2,
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo/android-icon1.png",
         "backgroundImage": "./assets/logo/android-base1.png",
@@ -41,7 +42,22 @@
           "backgroundColor": "#C08B7B"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "react-native",
+          "organization": "thriiftverse"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo/android-icon1.png",
+          "color": "#C08B7B"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

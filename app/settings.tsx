@@ -9,7 +9,9 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { getProfileImageUrl } from "@/lib/storage-helpers";
-import { useAppSelector } from "@/store/hooks";
+import { supabase } from "@/lib/supabase";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchUserProfile } from "@/store";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -18,6 +20,7 @@ import {
   Image,
   Linking,
   ScrollView,
+  Switch,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -107,12 +110,60 @@ function Divider() {
 export default function SettingsScreen() {
   const { signOut } = useAuth();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   // Use Redux store for profile - consistent with AuthContext
   const profile = useAppSelector((state) => state.profile.profile);
+  const user = useAppSelector((state) => state.auth.user);
   const profileLoading = useAppSelector((state) => state.profile.loading);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showMuteModal, setShowMuteModal] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [mutingNotification, setMutingNotification] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    !profile?.config?.notifications_muted
+  );
+
+  const updateNotificationSetting = async (muted: boolean) => {
+    if (!profile?.id) return;
+
+    // Optimistic update
+    setNotificationsEnabled(!muted);
+
+    const updatedConfig = {
+      ...profile.config,
+      notifications_muted: muted,
+    };
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ config: updatedConfig })
+      .eq("id", profile.id);
+
+    if (error) {
+      // Revert on failure
+      setNotificationsEnabled(muted);
+      console.error("Failed to update notification setting:", error);
+      Alert.alert("Error", "Failed to update notification setting.");
+    }
+  };
+
+  const handleToggleNotifications = (enabled: boolean) => {
+    if (!enabled) {
+      // Turning OFF → show confirmation
+      setShowMuteModal(true);
+    } else {
+      // Turning ON → update immediately
+      updateNotificationSetting(false);
+    }
+  };
+
+  const confirmMuteNotifications = async () => {
+    setMutingNotification(true);
+    await updateNotificationSetting(true);
+    setMutingNotification(false);
+    setShowMuteModal(false);
+  };
 
   const handleEditProfile = () => {
     router.push("/edit-profile" as any);
@@ -146,6 +197,7 @@ export default function SettingsScreen() {
     try {
       await signOut();
       setShowSignOutModal(false);
+      router.dismissAll();
       router.replace("/(auth)/signin" as any);
     } catch (error) {
       console.error("Error signing out:", error);
@@ -248,7 +300,7 @@ export default function SettingsScreen() {
         </SettingsSection>
 
         {/* Preferences Section */}
-        {/* <SettingsSection title="Preferences">
+        <SettingsSection title="Preferences">
           <SettingsItem
             icon="bell.fill"
             title="Push Notifications"
@@ -257,13 +309,13 @@ export default function SettingsScreen() {
             rightElement={
               <Switch
                 value={notificationsEnabled}
-                onValueChange={setNotificationsEnabled}
+                onValueChange={handleToggleNotifications}
                 trackColor={{ false: "#E5E7EB", true: "#3B2F2F" }}
                 thumbColor="#FFFFFF"
               />
             }
           />
-        </SettingsSection> */}
+        </SettingsSection>
 
         {/* Support Section */}
         <SettingsSection title="Support">
@@ -311,6 +363,20 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
       </ScrollView>
+
+      {/* Mute Notifications Confirmation Modal */}
+      <ConfirmModal
+        visible={showMuteModal}
+        title="Mute Notifications"
+        message="Are you sure you want to mute push notifications? You won't receive order updates until you turn them back on."
+        confirmText="Mute"
+        cancelText="Cancel"
+        onConfirm={confirmMuteNotifications}
+        onCancel={() => setShowMuteModal(false)}
+        loading={mutingNotification}
+        variant="danger"
+        icon="bell.slash.fill"
+      />
 
       {/* Sign Out Confirmation Modal */}
       <ConfirmModal

@@ -44,7 +44,7 @@ export default function SignupStep1Screen() {
 
   const [loading, setLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(
-    signupState.formData.profileImage
+    signupState.formData.profileImage,
   );
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -136,8 +136,6 @@ export default function SignupStep1Screen() {
         },
       });
 
-      console.log({ data: authData, error: authError });
-
       // Check for existing email
       if (authData?.user && authData?.user?.identities?.length === 0) {
         // Email already exists!
@@ -174,7 +172,7 @@ export default function SignupStep1Screen() {
             currentStep: 2,
             formData,
             isSignupInProgress: true,
-          })
+          }),
         );
 
         // Navigate to step 2
@@ -410,7 +408,7 @@ export default function SignupStep1Screen() {
                             style={{ fontSize: 13 }}
                             onPress={() =>
                               Linking.openURL(
-                                "https://www.thriftverse.shop/terms"
+                                "https://www.thriftverse.shop/terms",
                               )
                             }
                           >
@@ -421,7 +419,7 @@ export default function SignupStep1Screen() {
                             style={{ fontSize: 13 }}
                             onPress={() =>
                               Linking.openURL(
-                                "https://www.thriftverse.shop/privacy"
+                                "https://www.thriftverse.shop/privacy",
                               )
                             }
                           >
