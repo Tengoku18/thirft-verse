@@ -14,7 +14,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <h3 className="font-heading text-primary mb-4 text-2xl font-bold">
-              ThriftVerse
+              Thriftverse
             </h3>
             <p className="text-primary/70 mb-6 text-sm leading-relaxed">
               Empowering thrift entrepreneurs to build sustainable businesses,
@@ -174,7 +174,7 @@ export default function Footer() {
         <div className="border-border mt-12 border-t pt-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-primary/60 text-sm">
-              © {currentYear} ThriftVerse. All rights reserved.
+              © {currentYear} Thriftverse. All rights reserved.
             </p>
             <p className="text-primary/60 flex items-center gap-1 text-sm">
               Made with{' '}

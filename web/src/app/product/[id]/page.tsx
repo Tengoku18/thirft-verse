@@ -3,6 +3,7 @@ import ProductPurchaseSection from '@/_components/ProductPurchaseSection'
 import ImageGallery from '@/_components/ImageGallery'
 import ProductCard from '@/_components/ProductCard'
 import ExpandableDescription from '@/_components/ExpandableDescription'
+import CartButton from '@/_components/cart/CartButton'
 import { formatProductPrice } from '@/utils/formatPrice'
 import { ArrowLeft, Store } from 'lucide-react'
 import { Metadata } from 'next'
@@ -32,7 +33,7 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: 'Product Not Found | ThriftVerse',
+      title: 'Product Not Found | Thriftverse',
       description: 'This product does not exist.',
     }
   }
@@ -45,10 +46,10 @@ export async function generateMetadata({
 
   const currency = product.store?.currency || 'NPR'
   const formattedPrice = formatProductPrice(product.price, currency)
-  const title = `${product.title} - ${formattedPrice} | ${product.store?.name || 'ThriftVerse'}`
+  const title = `${product.title} - ${formattedPrice} | ${product.store?.name || 'Thriftverse'}`
   const description =
     product.description?.slice(0, 160) ||
-    `${product.title} available for ${formattedPrice} at ${product.store?.name || 'ThriftVerse'}.`
+    `${product.title} available for ${formattedPrice} at ${product.store?.name || 'Thriftverse'}.`
 
   return {
     title,
@@ -57,7 +58,7 @@ export async function generateMetadata({
       title,
       description,
       url: productUrl,
-      siteName: 'ThriftVerse',
+      siteName: 'Thriftverse',
       images: product.cover_image
         ? [
             {
@@ -72,7 +73,7 @@ export async function generateMetadata({
               url: 'https://www.thriftverse.shop/images/horizontal-logo.png',
               width: 1200,
               height: 630,
-              alt: 'ThriftVerse',
+              alt: 'Thriftverse',
             },
           ],
       type: 'website',
@@ -202,6 +203,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 currency={currency}
                 availabilityCount={product.availability_count}
                 isOutOfStock={product.status === 'out_of_stock' || product.availability_count === 0}
+                storeId={product.store_id}
+                storeName={product.store?.name || product.store?.store_username || 'Store'}
+                coverImage={product.cover_image}
               />
             </div>
           </div>
@@ -236,6 +240,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       )}
+
+      {/* Floating Cart Button */}
+      <CartButton storeId={product.store_id} />
     </div>
   )
 }

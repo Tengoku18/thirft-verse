@@ -1,12 +1,12 @@
 import { supabase } from "./supabase";
-import { PaginatedResponse, Product, ProductStatus } from "./types/database";
+import { AppNotification, PaginatedResponse, Product, ProductStatus } from "./types/database";
 
 /**
  * Check if email already exists in auth.users table
  * Uses RPC function 'check_email_exists' which must be created in Supabase
  */
 export const checkEmailExists = async (
-  email: string
+  email: string,
 ): Promise<{ exists: boolean; error?: string }> => {
   try {
     const { data, error } = await supabase.rpc("check_email_exists", {
@@ -33,7 +33,7 @@ export const checkEmailExists = async (
  * Check if store username already exists in the database
  */
 export const checkUsernameExists = async (
-  username: string
+  username: string,
 ): Promise<boolean> => {
   try {
     const lowercaseUsername = username.toLowerCase();
@@ -154,7 +154,6 @@ export const createMissingProfile = async () => {
     // Check if profile already exists
     const profileExists = await verifyProfileExists(user.id);
     if (profileExists) {
-      console.log("✅ Profile already exists for user:", user.id);
       return { success: true, alreadyExists: true };
     }
 
@@ -167,8 +166,6 @@ export const createMissingProfile = async () => {
       `user_${user.id.slice(0, 8)}`;
     const profileImage = metadata.profile_image || null;
     const address = metadata.address || "";
-
-    console.log("🔄 Creating missing profile for user:", user.id);
 
     // Create the profile
     const result = await createUserProfile({
@@ -191,7 +188,6 @@ export const createMissingProfile = async () => {
       };
     }
 
-    console.log("✅ Successfully created missing profile for user:", user.id);
     return { success: true, created: true };
   } catch (error) {
     console.error("💥 Error in createMissingProfile:", error);
@@ -215,7 +211,7 @@ interface GetProductsParams {
 }
 
 export const getProductsByStoreId = async (
-  params: GetProductsParams
+  params: GetProductsParams,
 ): Promise<PaginatedResponse<Product>> => {
   try {
     const { storeId, limit = 12, offset = 0, status } = params;
@@ -267,7 +263,7 @@ export const getProductsByStoreId = async (
 export const getAvailableProductsByStoreId = async (
   storeId: string,
   limit?: number,
-  offset?: number
+  offset?: number,
 ): Promise<PaginatedResponse<Product>> => {
   return getProductsByStoreId({ storeId, limit, offset, status: "available" });
 };
@@ -276,7 +272,7 @@ export const getAvailableProductsByStoreId = async (
  * Get products count by store ID
  */
 export const getProductsCountByStore = async (
-  storeId: string
+  storeId: string,
 ): Promise<number> => {
   try {
     const { count, error } = await supabase
@@ -338,7 +334,7 @@ export const updateUserProfile = async (data: UpdateProfileData) => {
       // Table doesn't exist - warn but don't fail
       if (error.code === "PGRST205") {
         console.warn(
-          "⚠️  profiles table not found - profile NOT updated. Please run SQL migration."
+          "⚠️  profiles table not found - profile NOT updated. Please run SQL migration.",
         );
         return { success: false, error, tableNotFound: true };
       }
@@ -469,7 +465,7 @@ export const getOrdersByBuyer = async (buyerEmail: string) => {
         *,
         seller:profiles!orders_seller_id_fkey(id, name, store_username),
         product:products!orders_product_id_fkey(id, title, cover_image, price)
-      `
+      `,
       )
       .eq("buyer_email", buyerEmail)
       .order("created_at", { ascending: false });
@@ -492,17 +488,18 @@ export const getOrdersByBuyer = async (buyerEmail: string) => {
 
 /**
  * Get orders where user is the seller (sales)
+ * For multi-product orders (product_id = NULL), also fetches order_items
  */
 export const getOrdersBySeller = async (sellerId: string) => {
   try {
-    console.log("🔍 Fetching orders for seller:", sellerId);
-
     const { data, error } = await supabase
       .from("orders")
-      .select(`
+      .select(
+        `
         *,
         product:product_id(id, title, cover_image, price)
-      `)
+      `,
+      )
       .eq("seller_id", sellerId)
       .order("created_at", { ascending: false });
 
@@ -511,8 +508,37 @@ export const getOrdersBySeller = async (sellerId: string) => {
       return { success: false, data: [], error };
     }
 
-    console.log("✅ Found orders:", data?.length || 0);
-    return { success: true, data: data || [] };
+    const orders = data || [];
+
+    // Batch-fetch order_items for multi-product orders (product_id is NULL)
+    const multiProductOrderIds = orders
+      .filter((o: any) => !o.product_id)
+      .map((o: any) => o.id);
+
+    if (multiProductOrderIds.length > 0) {
+      const { data: allItems, error: itemsError } = await supabase
+        .from("order_items")
+        .select("*")
+        .in("order_id", multiProductOrderIds)
+        .order("created_at", { ascending: true });
+
+      if (itemsError) {
+        console.error("❌ Error fetching order_items:", JSON.stringify(itemsError));
+      }
+
+      // Attach order_items to each order
+      const itemsByOrder: Record<string, any[]> = {};
+      (allItems || []).forEach((item: any) => {
+        if (!itemsByOrder[item.order_id]) itemsByOrder[item.order_id] = [];
+        itemsByOrder[item.order_id].push(item);
+      });
+
+      orders.forEach((order: any) => {
+        order.order_items = itemsByOrder[order.id] || [];
+      });
+    }
+
+    return { success: true, data: orders };
   } catch (error) {
     console.error("💥 Error in getOrdersBySeller:", error);
     return { success: false, data: [], error };
@@ -520,7 +546,7 @@ export const getOrdersBySeller = async (sellerId: string) => {
 };
 
 /**
- * Get a single order by ID with full details
+ * Get a single order by ID with full details and order_items (for multi-product orders)
  */
 export const getOrderById = async (orderId: string) => {
   try {
@@ -530,7 +556,7 @@ export const getOrderById = async (orderId: string) => {
         `
         *,
         product:products(id, title, cover_image, price)
-      `
+      `,
       )
       .eq("id", orderId)
       .single();
@@ -549,20 +575,38 @@ export const getOrderById = async (orderId: string) => {
 
         if (orderError) {
           console.error("❌ Error fetching order:", orderError);
-          return { success: false, data: null, error: orderError };
+          return { success: false, data: null, order_items: [], error: orderError };
         }
 
-        return { success: true, data: orderOnly };
+        // Fetch order_items for this order
+        const { data: items } = await supabase
+          .from("order_items")
+          .select("*")
+          .eq("order_id", orderId)
+          .order("created_at", { ascending: true });
+
+        return { success: true, data: orderOnly, order_items: items || [] };
       }
 
       console.error("❌ Error fetching order:", error);
-      return { success: false, data: null, error };
+      return { success: false, data: null, order_items: [], error };
     }
 
-    return { success: true, data };
+    // Fetch order_items for this order
+    const { data: items, error: itemsError } = await supabase
+      .from("order_items")
+      .select("*")
+      .eq("order_id", orderId)
+      .order("created_at", { ascending: true });
+
+    if (itemsError) {
+      console.error("❌ Error fetching order_items:", JSON.stringify(itemsError));
+    }
+
+    return { success: true, data, order_items: items || [] };
   } catch (error) {
     console.error("💥 Error in getOrderById:", error);
-    return { success: false, data: null, error };
+    return { success: false, data: null, order_items: [], error };
   }
 };
 
@@ -571,7 +615,7 @@ export const getOrderById = async (orderId: string) => {
  */
 export const updateOrderStatus = async (
   orderId: string,
-  status: "pending" | "completed" | "cancelled" | "refunded"
+  status: "pending" | "completed" | "cancelled" | "refunded",
 ) => {
   try {
     const { error } = await supabase
@@ -664,7 +708,6 @@ export const updateOrderDetails = async (params: UpdateOrderDetailsParams) => {
       return { success: false, error: updateError.message };
     }
 
-    console.log(`✅ Order ${params.orderId} details updated successfully`);
     return { success: true };
   } catch (error) {
     console.error("💥 Error in updateOrderDetails:", error);
@@ -748,10 +791,10 @@ export const createProduct = async (data: CreateProductData) => {
         console.error("❌ RLS Policy Error:", error);
         console.error("This usually means:");
         console.error(
-          "1. The products table RLS policies are not set up correctly"
+          "1. The products table RLS policies are not set up correctly",
         );
         console.error(
-          "2. Your session token is not being sent with the request"
+          "2. Your session token is not being sent with the request",
         );
         console.error("3. The auth.uid() does not match the store_id");
         return {
@@ -772,19 +815,14 @@ export const createProduct = async (data: CreateProductData) => {
       ) {
         console.error("❌ Foreign Key Error: Profile doesn't exist");
         console.error(
-          "This means the user's profile was not created during signup"
+          "This means the user's profile was not created during signup",
         );
         console.error("store_id:", data.store_id);
-        console.log("🔄 Attempting automatic profile recovery...");
 
         // Try to automatically create the missing profile
         const recoveryResult = await createMissingProfile();
 
         if (recoveryResult.success) {
-          console.log(
-            "✅ Profile recovered successfully! Retrying product creation..."
-          );
-
           // Retry the product creation now that profile exists
           const { data: retryProduct, error: retryError } = await supabase
             .from("products")
@@ -805,7 +843,7 @@ export const createProduct = async (data: CreateProductData) => {
           if (retryError) {
             console.error(
               "❌ Retry failed after profile recovery:",
-              retryError
+              retryError,
             );
             return {
               success: false,
@@ -923,7 +961,7 @@ export const createManualOrder = async (params: CreateManualOrderParams) => {
     const hash = Math.abs(
       `${timestamp}-${randomStr}`.split("").reduce((acc, char) => {
         return (acc << 5) - acc + char.charCodeAt(0);
-      }, 0)
+      }, 0),
     );
     const code = hash
       .toString(36)
@@ -999,7 +1037,7 @@ export const createManualOrder = async (params: CreateManualOrderParams) => {
       }
     } else {
       console.warn(
-        "⚠️  Product availability insufficient or not found. Order created but inventory not updated."
+        "⚠️  Product availability insufficient or not found. Order created but inventory not updated.",
       );
     }
 
@@ -1015,7 +1053,7 @@ export const createManualOrder = async (params: CreateManualOrderParams) => {
  */
 export const updateOrderWithNCM = async (
   orderId: string,
-  ncmOrderId: number
+  ncmOrderId: number,
 ) => {
   try {
     const { error } = await supabase
@@ -1046,7 +1084,10 @@ export const updateOrderWithNCM = async (
  * Note: If NCM API fails, we still return success with null data
  * so the UI can continue to work with cached data
  */
-export const syncNCMOrderStatus = async (orderId: string, ncmOrderId: number) => {
+export const syncNCMOrderStatus = async (
+  orderId: string,
+  ncmOrderId: number,
+) => {
   try {
     // Import NCM helpers dynamically to avoid circular dependency
     const { getNCMOrderDetails } = await import("./ncm-helpers");
@@ -1057,7 +1098,10 @@ export const syncNCMOrderStatus = async (orderId: string, ncmOrderId: number) =>
     if (!detailsResult.success || !detailsResult.data) {
       // Log the error but don't fail - the order was created successfully
       // The NCM portal may have different permissions for read vs write
-      console.warn("⚠️ Could not fetch NCM order details (API may have limited read access):", detailsResult.error);
+      console.warn(
+        "⚠️ Could not fetch NCM order details (API may have limited read access):",
+        detailsResult.error,
+      );
 
       // Just update the last synced timestamp so user knows we tried
       await supabase
@@ -1071,7 +1115,8 @@ export const syncNCMOrderStatus = async (orderId: string, ncmOrderId: number) =>
       return {
         success: true,
         data: null,
-        warning: "NCM status sync not available. Please check the NCM portal for updates."
+        warning:
+          "NCM status sync not available. Please check the NCM portal for updates.",
       };
     }
 
@@ -1095,10 +1140,8 @@ export const syncNCMOrderStatus = async (orderId: string, ncmOrderId: number) =>
     // Update main order status based on NCM delivery status
     if (isDelivered) {
       updateData.status = "completed";
-      console.log("📦 NCM marked as Delivered → Order status set to 'completed'");
     } else if (isCancelled) {
       updateData.status = "cancelled";
-      console.log("❌ NCM marked as Cancelled → Order status set to 'cancelled'");
     } else if (isReturned) {
       updateData.status = "refunded";
       console.log("↩️ NCM marked as Returned → Order status set to 'refunded'");
@@ -1115,8 +1158,6 @@ export const syncNCMOrderStatus = async (orderId: string, ncmOrderId: number) =>
       return { success: false, error };
     }
 
-    console.log(`✅ NCM status synced for order ${orderId}: ${ncmDetails.last_delivery_status}`);
-
     return {
       success: true,
       data: {
@@ -1130,5 +1171,110 @@ export const syncNCMOrderStatus = async (orderId: string, ncmOrderId: number) =>
     console.error("💥 Error in syncNCMOrderStatus:", error);
     // Still return success so UI doesn't show error
     return { success: true, data: null, warning: "Could not connect to NCM" };
+  }
+};
+
+// ============================================================
+// Notification Helpers
+// ============================================================
+
+export const getNotifications = async (
+  userId: string,
+  limit = 20,
+  offset = 0
+): Promise<{ success: boolean; data: AppNotification[]; count: number }> => {
+  try {
+    const { data, error, count } = await supabase
+      .from("notifications")
+      .select("*", { count: "exact" })
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching notifications:", JSON.stringify(error));
+      return { success: false, data: [], count: 0 };
+    }
+
+    return { success: true, data: data || [], count: count || 0 };
+  } catch (error) {
+    console.error("Error in getNotifications:", error);
+    return { success: false, data: [], count: 0 };
+  }
+};
+
+export const getUnreadNotificationCount = async (
+  userId: string
+): Promise<number> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return 0;
+
+    const { data, error } = await supabase
+      .from("notifications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("is_read", false);
+
+    if (error) {
+      console.error("Error fetching unread count:", JSON.stringify(error));
+      return 0;
+    }
+
+    return data?.length || 0;
+  } catch (error) {
+    console.error("Error in getUnreadNotificationCount:", error);
+    return 0;
+  }
+};
+
+export const markNotificationAsRead = async (
+  notificationId: string
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", notificationId)
+      .select("id");
+
+    if (error) {
+      console.error("Error marking notification as read:", error);
+      return false;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn("markNotificationAsRead: no rows updated for id:", notificationId);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error in markNotificationAsRead:", error);
+    return false;
+  }
+};
+
+export const markAllNotificationsAsRead = async (
+  userId: string
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", userId)
+      .eq("is_read", false)
+      .select("id");
+
+    if (error) {
+      console.error("Error marking all notifications as read:", error);
+      return false;
+    }
+
+    console.log("Marked", data?.length || 0, "notifications as read");
+    return true;
+  } catch (error) {
+    console.error("Error in markAllNotificationsAsRead:", error);
+    return false;
   }
 };

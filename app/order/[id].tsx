@@ -13,14 +13,18 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
-import { getOrderById, syncNCMOrderStatus, updateOrderWithNCM } from "@/lib/database-helpers";
+import {
+  getOrderById,
+  syncNCMOrderStatus,
+  updateOrderWithNCM,
+} from "@/lib/database-helpers";
 import { pickImage, takePhoto } from "@/lib/image-picker-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import { Product, ProfileRevenue } from "@/lib/types/database";
 import { uploadImageToStorage } from "@/lib/upload-helpers";
 import { isValidNepaliPhone } from "@/lib/validations/create-order";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchUserProfile } from "@/store/profileSlice";
 import dayjs from "dayjs";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -43,6 +47,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 // TYPES
 // ============================================================================
 
+interface OrderDetailItem {
+  id: string;
+  title: string;
+  image: string | null;
+  price: number;
+  quantity: number;
+}
+
 interface OrderDetail {
   // Core
   id: string;
@@ -50,7 +62,7 @@ interface OrderDetail {
   orderCode: string;
   status: string; // pending, shipping, processing, delivered, completed, cancelled, refunded
 
-  // Product
+  // Product (primary product for single-product orders, first item for multi)
   product: {
     id: string;
     title: string;
@@ -59,6 +71,9 @@ interface OrderDetail {
     category: string;
   };
   quantity: number;
+
+  // Multi-product items (empty for single-product orders)
+  items: OrderDetailItem[];
 
   // Buyer
   buyer: {
@@ -304,7 +319,9 @@ function SimpleTimeline({
       description: "Order sent to Nepal Can Move for delivery",
       done: isProcessingOrBeyond,
       current: status === "processing",
-      date: isProcessingOrBeyond ? updateDate.format("DD MMM • h:mm A") : undefined,
+      date: isProcessingOrBeyond
+        ? updateDate.format("DD MMM • h:mm A")
+        : undefined,
     },
     {
       id: "completed",
@@ -327,8 +344,8 @@ function SimpleTimeline({
                 backgroundColor: step.done
                   ? "#059669"
                   : step.current
-                  ? "#3B82F6"
-                  : "#E5E7EB",
+                    ? "#3B82F6"
+                    : "#E5E7EB",
               }}
             >
               {step.done ? (
@@ -393,6 +410,7 @@ export default function SingleOrderScreen() {
   const router = useRouter();
   const toast = useToast();
   const dispatch = useAppDispatch();
+  const profile = useAppSelector((state) => state.profile.profile);
   const insets = useSafeAreaInsets();
 
   const [order, setOrder] = useState<OrderDetail | null>(null);
@@ -423,30 +441,86 @@ export default function SingleOrderScreen() {
 
       if (result.success && result.data) {
         const o = result.data as any;
+        const orderItems = result.order_items || [];
         // Use order amount for price calculation (not product price which could be updated)
         const shippingFee = o.shipping_fee || 0;
         const productPrice = (o.amount || 0) - shippingFee;
 
-        // Debug: Log NCM data from database
-        console.log("📦 Order NCM Data from DB:", {
-          ncm_order_id: o.ncm_order_id,
-          ncm_status: o.ncm_status,
-          ncm_delivery_status: o.ncm_delivery_status,
-        });
+        // Determine if multi-product order and build items list
+        const isMultiProduct = !o.product_id;
+        let primaryProduct;
+        let itemsList: OrderDetailItem[] = [];
+
+        if (isMultiProduct && orderItems.length > 0) {
+          // Multi-product order with items loaded
+          const firstItem = orderItems[0];
+          primaryProduct = {
+            id: firstItem.product_id,
+            title:
+              orderItems.length > 1
+                ? `${firstItem.product_name} + ${orderItems.length - 1} more`
+                : firstItem.product_name,
+            image: firstItem.cover_image || null,
+            price: productPrice,
+            category: "Product",
+          };
+          itemsList = orderItems.map((item: any) => ({
+            id: item.product_id,
+            title: item.product_name,
+            image: item.cover_image || null,
+            price: item.price * item.quantity,
+            quantity: item.quantity,
+          }));
+        } else if (isMultiProduct && orderItems.length === 0) {
+          // Multi-product order but items not loaded (RLS issue or no data)
+          primaryProduct = {
+            id: "",
+            title: `Order with ${o.quantity || 1} items`,
+            image: null,
+            price: productPrice,
+            category: "Product",
+          };
+        } else if (orderItems.length > 0 && !isMultiProduct) {
+          // Single-product order with order_items (migrated legacy order)
+          primaryProduct = {
+            id: o.product_id,
+            title:
+              o.product?.title || orderItems[0]?.product_name || "Order Item",
+            image: o.product?.cover_image || orderItems[0]?.cover_image || null,
+            price: productPrice,
+            category: o.product?.category || "Product",
+          };
+          // Still show single item in the items list for consistency
+          if (orderItems.length === 1) {
+            itemsList = [
+              {
+                id: orderItems[0].product_id,
+                title: orderItems[0].product_name,
+                image: orderItems[0].cover_image || null,
+                price: orderItems[0].price * orderItems[0].quantity,
+                quantity: orderItems[0].quantity,
+              },
+            ];
+          }
+        } else {
+          // Legacy single-product order without order_items
+          primaryProduct = {
+            id: o.product_id || "",
+            title: o.product?.title || "Order Item",
+            image: o.product?.cover_image || null,
+            price: productPrice,
+            category: o.product?.category || "Product",
+          };
+        }
 
         setOrder({
           id: o.id,
           type: "order",
           orderCode: o.order_code || `#${o.id.slice(0, 8).toUpperCase()}`,
           status: o.status,
-          product: {
-            id: o.product_id,
-            title: o.product?.title || "Order Item",
-            image: o.product?.cover_image || null,
-            price: productPrice, // Use price from order, not from product table
-            category: o.product?.category || "Product",
-          },
+          product: primaryProduct,
           quantity: o.quantity || 1,
+          items: itemsList,
           buyer: {
             name: o.buyer_name,
             email: o.buyer_email,
@@ -512,6 +586,7 @@ export default function SingleOrderScreen() {
               category: p.category,
             },
             quantity: 1,
+            items: [],
             buyer: {
               name: "Customer",
               email: "Not available",
@@ -550,7 +625,7 @@ export default function SingleOrderScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    setRefreshTrigger(prev => prev + 1); // Trigger refresh in child components
+    setRefreshTrigger((prev) => prev + 1); // Trigger refresh in child components
     loadOrder();
   }, [loadOrder]);
 
@@ -600,13 +675,13 @@ export default function SingleOrderScreen() {
       const uploadResult = await uploadImageToStorage(
         billImageUri,
         "bill",
-        "shipping-bills"
+        "shipping-bills",
       );
 
       if (!uploadResult.success) {
         Alert.alert(
           "Error",
-          uploadResult.error || "Failed to upload bill image."
+          uploadResult.error || "Failed to upload bill image.",
         );
         setUploadingBill(false);
         return;
@@ -705,7 +780,7 @@ export default function SingleOrderScreen() {
         Alert.alert(
           "Warning",
           "NCM order created but failed to update local record. Please note the NCM Order ID: " +
-            ncmOrderId
+            ncmOrderId,
         );
       }
     } catch (error) {
@@ -747,7 +822,7 @@ export default function SingleOrderScreen() {
         Alert.alert(
           "Invalid Phone Number",
           "This phone number doesn't appear to be valid. Please edit the order to fix it.",
-          [{ text: "OK" }]
+          [{ text: "OK" }],
         );
         return;
       }
@@ -801,23 +876,78 @@ export default function SingleOrderScreen() {
   }
 
   // NCM delivery status config (maps NCM statuses to colors)
-  const NCM_STATUS_DISPLAY: Record<string, { bg: string; text: string; label: string; icon: string }> = {
-    "Pickup Order Created": { bg: "#FEF3C7", text: "#D97706", label: "Pickup Created", icon: "doc.text.fill" },
-    "Drop off Order Created": { bg: "#FEF3C7", text: "#D97706", label: "Order Created", icon: "doc.text.fill" },
-    "Sent for Pickup": { bg: "#DBEAFE", text: "#2563EB", label: "Sent for Pickup", icon: "shippingbox.fill" },
-    "Pickup Complete": { bg: "#DBEAFE", text: "#2563EB", label: "Picked Up", icon: "checkmark.circle.fill" },
-    "In Transit": { bg: "#E0E7FF", text: "#4F46E5", label: "In Transit", icon: "arrow.right.circle.fill" },
-    "Arrived": { bg: "#DBEAFE", text: "#2563EB", label: "Arrived at Branch", icon: "mappin.circle.fill" },
-    "Sent for Delivery": { bg: "#DBEAFE", text: "#2563EB", label: "Out for Delivery", icon: "paperplane.fill" },
-    "Delivered": { bg: "#D1FAE5", text: "#059669", label: "Delivered", icon: "checkmark.seal.fill" },
-    "Returned": { bg: "#FEE2E2", text: "#DC2626", label: "Returned", icon: "arrow.uturn.backward.circle.fill" },
-    "Cancelled": { bg: "#FEE2E2", text: "#DC2626", label: "Cancelled", icon: "xmark.circle.fill" },
+  const NCM_STATUS_DISPLAY: Record<
+    string,
+    { bg: string; text: string; label: string; icon: string }
+  > = {
+    "Pickup Order Created": {
+      bg: "#FEF3C7",
+      text: "#D97706",
+      label: "Pickup Created",
+      icon: "doc.text.fill",
+    },
+    "Drop off Order Created": {
+      bg: "#FEF3C7",
+      text: "#D97706",
+      label: "Order Created",
+      icon: "doc.text.fill",
+    },
+    "Sent for Pickup": {
+      bg: "#DBEAFE",
+      text: "#2563EB",
+      label: "Sent for Pickup",
+      icon: "shippingbox.fill",
+    },
+    "Pickup Complete": {
+      bg: "#DBEAFE",
+      text: "#2563EB",
+      label: "Picked Up",
+      icon: "checkmark.circle.fill",
+    },
+    "In Transit": {
+      bg: "#E0E7FF",
+      text: "#4F46E5",
+      label: "In Transit",
+      icon: "arrow.right.circle.fill",
+    },
+    Arrived: {
+      bg: "#DBEAFE",
+      text: "#2563EB",
+      label: "Arrived at Branch",
+      icon: "mappin.circle.fill",
+    },
+    "Sent for Delivery": {
+      bg: "#DBEAFE",
+      text: "#2563EB",
+      label: "Out for Delivery",
+      icon: "paperplane.fill",
+    },
+    Delivered: {
+      bg: "#D1FAE5",
+      text: "#059669",
+      label: "Delivered",
+      icon: "checkmark.seal.fill",
+    },
+    Returned: {
+      bg: "#FEE2E2",
+      text: "#DC2626",
+      label: "Returned",
+      icon: "arrow.uturn.backward.circle.fill",
+    },
+    Cancelled: {
+      bg: "#FEE2E2",
+      text: "#DC2626",
+      label: "Cancelled",
+      icon: "xmark.circle.fill",
+    },
   };
 
   // Use NCM status display if order has NCM data, otherwise use order status
   const statusStyle = order.ncm?.deliveryStatus
-    ? (NCM_STATUS_DISPLAY[order.ncm.deliveryStatus] || STATUS_CONFIG[order.status] || DEFAULT_STATUS)
-    : (STATUS_CONFIG[order.status] || DEFAULT_STATUS);
+    ? NCM_STATUS_DISPLAY[order.ncm.deliveryStatus] ||
+      STATUS_CONFIG[order.status] ||
+      DEFAULT_STATUS
+    : STATUS_CONFIG[order.status] || DEFAULT_STATUS;
 
   const isSeller = user?.id === order.sellerId;
   const canMarkDelivered =
@@ -825,7 +955,10 @@ export default function SingleOrderScreen() {
 
   // Order is editable only if it's pending and hasn't been sent to NCM
   const isEditable =
-    isSeller && order.status === "pending" && !order.ncm?.orderId && order.type === "order";
+    isSeller &&
+    order.status === "pending" &&
+    !order.ncm?.orderId &&
+    order.type === "order";
 
   return (
     <View className="flex-1 bg-[#FAFAFA]">
@@ -900,63 +1033,113 @@ export default function SingleOrderScreen() {
           )}
         </View>
 
-        {/* Product Card */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={handleViewProduct}
-          className="mx-4 mt-4 bg-white rounded-2xl overflow-hidden"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 3,
-          }}
-        >
-          <View className="flex-row p-4">
-            {order.product.image ? (
-              <Image
-                source={{ uri: getProductImageUrl(order.product.image) }}
-                className="w-24 h-24 rounded-xl"
-                style={{ backgroundColor: "#F3F4F6" }}
-              />
-            ) : (
-              <View className="w-24 h-24 rounded-xl bg-[#F3F4F6] items-center justify-center">
-                <IconSymbol name="bag.fill" size={32} color="#D1D5DB" />
-              </View>
-            )}
-            <View className="flex-1 ml-4 justify-center">
-              <BodyBoldText style={{ fontSize: 16 }} numberOfLines={2}>
-                {order.product.title}
-              </BodyBoldText>
-              <View className="flex-row items-center mt-1">
-                <IconSymbol name="tag.fill" size={11} color="#9CA3AF" />
-                <CaptionText style={{ color: "#9CA3AF", marginLeft: 4 }}>
-                  {order.product.category}
-                </CaptionText>
-              </View>
-              <View className="flex-row items-center justify-between mt-3">
-                <HeadingBoldText style={{ fontSize: 20, color: "#3B2F2F" }}>
-                  {formatPrice(order.product.price)}
-                </HeadingBoldText>
-                <CaptionText style={{ color: "#6B7280" }}>
-                  Qty: {order.quantity}
-                </CaptionText>
+        {/* Product Card(s) */}
+        {order.items.length > 1 ? (
+          /* Multi-product order: show each item */
+          <Section title={`Items (${order.items.length})`}>
+            {order.items.map((item, idx) => (
+              <TouchableOpacity
+                key={item.id + idx}
+                activeOpacity={0.7}
+                onPress={() => router.push(`/product/${item.id}` as any)}
+                className={`flex-row p-4 ${
+                  idx < order.items.length - 1
+                    ? "border-b border-[#F3F4F6]"
+                    : ""
+                }`}
+              >
+                {item.image ? (
+                  <Image
+                    source={{ uri: getProductImageUrl(item.image) }}
+                    className="w-16 h-16 rounded-xl"
+                    style={{ backgroundColor: "#F3F4F6" }}
+                  />
+                ) : (
+                  <View className="w-16 h-16 rounded-xl bg-[#F3F4F6] items-center justify-center">
+                    <IconSymbol name="bag.fill" size={24} color="#D1D5DB" />
+                  </View>
+                )}
+                <View className="flex-1 ml-3 justify-center">
+                  <BodySemiboldText style={{ fontSize: 14 }} numberOfLines={2}>
+                    {item.title}
+                  </BodySemiboldText>
+                  <View className="flex-row items-center justify-between mt-2">
+                    <BodyBoldText style={{ fontSize: 16, color: "#3B2F2F" }}>
+                      {formatPrice(item.price)}
+                    </BodyBoldText>
+                    <CaptionText style={{ color: "#6B7280" }}>
+                      Qty: {item.quantity}
+                    </CaptionText>
+                  </View>
+                </View>
+                <IconSymbol
+                  name="chevron.right"
+                  size={12}
+                  color="#D1D5DB"
+                  style={{ alignSelf: "center", marginLeft: 8 }}
+                />
+              </TouchableOpacity>
+            ))}
+          </Section>
+        ) : (
+          /* Single product order: keep existing card */
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleViewProduct}
+            className="mx-4 mt-4 bg-white rounded-2xl overflow-hidden"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.05,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            <View className="flex-row p-4">
+              {order.product.image ? (
+                <Image
+                  source={{ uri: getProductImageUrl(order.product.image) }}
+                  className="w-24 h-24 rounded-xl"
+                  style={{ backgroundColor: "#F3F4F6" }}
+                />
+              ) : (
+                <View className="w-24 h-24 rounded-xl bg-[#F3F4F6] items-center justify-center">
+                  <IconSymbol name="bag.fill" size={32} color="#D1D5DB" />
+                </View>
+              )}
+              <View className="flex-1 ml-4 justify-center">
+                <BodyBoldText style={{ fontSize: 16 }} numberOfLines={2}>
+                  {order.product.title}
+                </BodyBoldText>
+                <View className="flex-row items-center mt-1">
+                  <IconSymbol name="tag.fill" size={11} color="#9CA3AF" />
+                  <CaptionText style={{ color: "#9CA3AF", marginLeft: 4 }}>
+                    {order.product.category}
+                  </CaptionText>
+                </View>
+                <View className="flex-row items-center justify-between mt-3">
+                  <HeadingBoldText style={{ fontSize: 20, color: "#3B2F2F" }}>
+                    {formatPrice(order.product.price)}
+                  </HeadingBoldText>
+                  <CaptionText style={{ color: "#6B7280" }}>
+                    Qty: {order.quantity}
+                  </CaptionText>
+                </View>
               </View>
             </View>
-          </View>
-          <View className="bg-[#F9FAFB] px-4 py-2.5 flex-row items-center justify-center">
-            <CaptionText style={{ color: "#6B7280" }}>
-              Tap to view product
-            </CaptionText>
-            <IconSymbol
-              name="chevron.right"
-              size={12}
-              color="#9CA3AF"
-              style={{ marginLeft: 4 }}
-            />
-          </View>
-        </TouchableOpacity>
+            <View className="bg-[#F9FAFB] px-4 py-2.5 flex-row items-center justify-center">
+              <CaptionText style={{ color: "#6B7280" }}>
+                Tap to view product
+              </CaptionText>
+              <IconSymbol
+                name="chevron.right"
+                size={12}
+                color="#9CA3AF"
+                style={{ marginLeft: 4 }}
+              />
+            </View>
+          </TouchableOpacity>
+        )}
 
         {/* Order Timeline - Show simple timeline for non-NCM orders, NCM tracking for NCM orders */}
         {order.ncm?.orderId ? (
@@ -973,7 +1156,10 @@ export default function SingleOrderScreen() {
             />
 
             {/* NCM Comments Section */}
-            <NCMCommentsSection ncmOrderId={order.ncm.orderId} refreshTrigger={refreshTrigger} />
+            <NCMCommentsSection
+              ncmOrderId={order.ncm.orderId}
+              refreshTrigger={refreshTrigger}
+            />
           </>
         ) : (
           /* Simple timeline for pending orders (before NCM) */
@@ -1056,14 +1242,34 @@ export default function SingleOrderScreen() {
             value={dayjs(order.createdAt).format("DD MMM, YYYY • h:mm A")}
             icon="calendar"
           />
-          <Row
-            label="Product Price"
-            value={formatPrice(order.payment.subtotal)}
-          />
+          {/* Per-item breakdown for multi-product orders */}
+          {order.items.length > 1 ? (
+            <>
+              {order.items.map((item, idx) => (
+                <Row
+                  key={item.id + idx}
+                  label={`${item.title} (x${item.quantity})`}
+                  value={formatPrice(item.price)}
+                />
+              ))}
+              <Row
+                label="Items Total"
+                value={formatPrice(order.payment.subtotal)}
+              />
+            </>
+          ) : (
+            <Row
+              label="Product Price"
+              value={formatPrice(order.payment.subtotal)}
+            />
+          )}
+          {order.shipping.fee > 0 && (
+            <Row label="Shipping Fee" value={formatPrice(order.shipping.fee)} />
+          )}
           <Row
             label="Service Charge (5%)"
             value={`- ${formatPrice(
-              Math.round(order.payment.subtotal * 0.05)
+              Math.round(order.payment.subtotal * 0.05),
             )}`}
           />
           {/* Earnings Row with green background */}
@@ -1125,11 +1331,7 @@ export default function SingleOrderScreen() {
             style={{ opacity: updating ? 0.7 : 1 }}
             activeOpacity={0.8}
           >
-            <IconSymbol
-              name="paperplane.fill"
-              size={20}
-              color="#FFFFFF"
-            />
+            <IconSymbol name="paperplane.fill" size={20} color="#FFFFFF" />
             <BodyBoldText
               style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}
             >
@@ -1311,6 +1513,7 @@ export default function SingleOrderScreen() {
             orderCode: order.orderCode,
             buyerName: order.buyer.name,
             buyerPhone: order.buyer.phone,
+            vref_id: profile?.store_username || "",
             shippingAddress: order.shipping.address
               ? {
                   ...order.shipping.address,
@@ -1323,7 +1526,10 @@ export default function SingleOrderScreen() {
                   country: "Nepal",
                   phone: order.buyer.phone,
                 },
-            productTitle: order.product.title,
+            productTitle:
+              order.items.length > 1
+                ? `${order.items[0].title} + ${order.items.length - 1} more`
+                : order.product.title,
             totalAmount: order.payment.total,
             shippingFee: order.shipping.fee,
             notes: "",

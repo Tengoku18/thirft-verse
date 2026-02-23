@@ -23,7 +23,7 @@ import {
   View,
 } from "react-native";
 
-type StatusFilter = "all" | "pending" | "processing" | "completed";
+type StatusFilter = "all" | "pending" | "processing" | "completed" | "cancelled" | "refunded";
 
 // Unified item type that works for both orders and sold products
 interface OrderItem {
@@ -38,6 +38,8 @@ interface OrderItem {
   payment_method: string;
   status: string; // Can be: pending, shipped, completed, cancelled, refunded
   created_at: string;
+  quantity: number;
+  items_count: number; // Number of different products in this order (1 = single product)
   // Original data for navigation
   originalId: string;
 }
@@ -109,18 +111,41 @@ function OrderCard({ item, onPress }: OrderCardProps) {
       <View className="p-4">
         {/* Product Info Row */}
         <View className="flex-row">
-          {/* Product Image */}
-          {item.product_image ? (
-            <Image
-              source={{ uri: getProductImageUrl(item.product_image) }}
-              className="w-20 h-20 rounded-xl"
-              style={{ backgroundColor: "#F3F4F6" }}
-            />
-          ) : (
-            <View className="w-20 h-20 rounded-xl bg-[#F3F4F6] justify-center items-center">
-              <IconSymbol name="bag.fill" size={28} color="#9CA3AF" />
-            </View>
-          )}
+          {/* Product Image with items count badge */}
+          <View>
+            {item.product_image ? (
+              <Image
+                source={{ uri: getProductImageUrl(item.product_image) }}
+                className="w-20 h-20 rounded-xl"
+                style={{ backgroundColor: "#F3F4F6" }}
+              />
+            ) : (
+              <View className="w-20 h-20 rounded-xl bg-[#F3F4F6] justify-center items-center">
+                <IconSymbol name="bag.fill" size={28} color="#9CA3AF" />
+              </View>
+            )}
+            {item.items_count > 1 && (
+              <View
+                className="absolute -top-1.5 -right-1.5 rounded-full items-center justify-center"
+                style={{
+                  backgroundColor: "#3B2F2F",
+                  minWidth: 22,
+                  height: 22,
+                  paddingHorizontal: 5,
+                }}
+              >
+                <CaptionText
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: 10,
+                    fontWeight: "800",
+                  }}
+                >
+                  {item.items_count}
+                </CaptionText>
+              </View>
+            )}
+          </View>
 
           {/* Order Details */}
           <View className="flex-1 ml-4 justify-center">
@@ -128,14 +153,19 @@ function OrderCard({ item, onPress }: OrderCardProps) {
               {item.product_title}
             </BodyBoldText>
 
-            <View className="flex-row items-center mt-2">
-              <IconSymbol name="person.fill" size={12} color="#6B7280" />
-              <BodyMediumText
-                style={{ color: "#6B7280", fontSize: 13, marginLeft: 4 }}
-                numberOfLines={1}
-              >
-                {item.buyer_name}
-              </BodyMediumText>
+            <View className="flex-row items-center mt-2 gap-3">
+              <View className="flex-row items-center">
+                <IconSymbol name="person.fill" size={12} color="#6B7280" />
+                <BodyMediumText
+                  style={{ color: "#6B7280", fontSize: 13, marginLeft: 4 }}
+                  numberOfLines={1}
+                >
+                  {item.buyer_name}
+                </BodyMediumText>
+              </View>
+              <CaptionText style={{ color: "#9CA3AF", fontSize: 12 }}>
+                Qty: {item.quantity}
+              </CaptionText>
             </View>
 
             <HeadingBoldText
@@ -202,7 +232,13 @@ export default function OrdersScreen() {
 
   // Set filter from query params (only accept valid filters)
   useEffect(() => {
-    if (filter === "pending" || filter === "processing" || filter === "completed") {
+    if (
+      filter === "pending" ||
+      filter === "processing" ||
+      filter === "completed" ||
+      filter === "cancelled" ||
+      filter === "refunded"
+    ) {
       setStatusFilter(filter as StatusFilter);
     }
   }, [filter]);
@@ -215,38 +251,48 @@ export default function OrdersScreen() {
     }
 
     try {
-      console.log("📦 Loading orders for user ID:", user.id);
-
       // First, try to get actual orders from the orders table
       const ordersResult = await getOrdersBySeller(user.id);
-
-      console.log("📦 Orders result:", JSON.stringify(ordersResult, null, 2));
 
       let orderItems: OrderItem[] = [];
 
       if (ordersResult.success) {
-        console.log("✅ Found orders:", ordersResult.data.length);
-        if (ordersResult.data.length > 0) {
-          console.log(
-            "📦 First order:",
-            JSON.stringify(ordersResult.data[0], null, 2)
-          );
-        }
         orderItems = ordersResult.data.map((order: any) => {
           const shippingFee = order.shipping_fee || 0;
           const productPrice = (order.amount || 0) - shippingFee;
+          const hasOrderItems = order.order_items?.length > 0;
+          const isMultiProduct = !order.product_id;
+
+          let productTitle = order.product?.title || "Order Item";
+          let productImage = order.product?.cover_image || null;
+          let itemsCount = 1;
+
+          if (isMultiProduct && hasOrderItems) {
+            // Multi-product order with order_items loaded
+            const firstItem = order.order_items[0];
+            productTitle = firstItem.product_name;
+            productImage = firstItem.cover_image;
+            itemsCount = order.order_items.length;
+          } else if (isMultiProduct && !hasOrderItems) {
+            // Multi-product order but order_items not loaded (RLS issue)
+            productTitle = `${order.quantity} items`;
+            itemsCount = order.quantity || 1;
+          }
+
           return {
             id: order.id,
             type: "order" as const,
             order_code: order.order_code || order.transaction_code || null,
-            product_title: order.product?.title || "Order Item",
-            product_image: order.product?.cover_image || null,
+            product_title: productTitle,
+            product_image: productImage,
             buyer_name: order.buyer_name || "Customer",
             amount: productPrice,
             shipping_fee: shippingFee,
             payment_method: order.payment_method || "eSewa",
             status: order.status || "pending",
             created_at: order.created_at || new Date().toISOString(),
+            quantity: order.quantity || 1,
+            items_count: itemsCount,
             originalId: order.id,
           };
         });
@@ -268,7 +314,7 @@ export default function OrdersScreen() {
       setLoading(true);
       loadData();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user])
+    }, [user]),
   );
 
   const onRefresh = useCallback(async () => {
@@ -290,6 +336,8 @@ export default function OrdersScreen() {
     pending: items.filter((i) => i.status === "pending").length,
     processing: items.filter((i) => i.status === "processing").length,
     completed: items.filter((i) => i.status === "completed").length,
+    cancelled: items.filter((i) => i.status === "cancelled").length,
+    refunded: items.filter((i) => i.status === "refunded").length,
   };
 
   // Calculate total revenue for filtered items
@@ -313,6 +361,8 @@ export default function OrdersScreen() {
     { key: "pending", label: "Pending" },
     { key: "processing", label: "Processing" },
     { key: "completed", label: "Completed" },
+    { key: "cancelled", label: "Cancelled" },
+    { key: "refunded", label: "Refunded" },
   ];
 
   const handleItemPress = (item: OrderItem) => {

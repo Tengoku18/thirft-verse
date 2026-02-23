@@ -18,6 +18,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
+import MultiProductCheckout from './multi-product-page'
 
 const CHECKOUT_STEPS: Step[] = [
   { id: 1, name: 'Delivery Method', shortName: 'Delivery' },
@@ -36,6 +37,15 @@ function CheckoutContent() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('esewa')
   const [shippingOption, setShippingOption] = useState<ShippingOption>(null)
 
+  // Check if this is a multi-product checkout (from cart)
+  const storeId = searchParams.get('storeId')
+
+  // If storeId exists, use multi-product checkout flow
+  if (storeId) {
+    return <MultiProductCheckout storeId={storeId} />
+  }
+
+  // Otherwise, continue with single-product checkout flow
   // Get product details from URL params
   const productId = searchParams.get('productId')
   const productName = searchParams.get('productName')

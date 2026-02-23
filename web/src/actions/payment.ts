@@ -21,7 +21,8 @@ import {
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import type { ShippingAddress } from '@/types/database';
 import { headers } from 'next/headers';
-import { createOrder, getOrderByTransactionUuid } from './orders';
+import { CartItem } from '@/types/cart';
+import { createMultiProductOrder, createOrder, getOrderByTransactionUuid } from './orders';
 import { getProductById } from './products';
 
 interface CodOrderParams {
@@ -29,6 +30,29 @@ interface CodOrderParams {
   productName: string;
   quantity: number;
   amount: number;
+  shippingFee: number;
+  shippingOption: 'home' | 'branch';
+  buyer_name: string;
+  buyer_email: string;
+  shipping_address: ShippingAddress;
+  buyer_notes?: string;
+}
+
+interface MultiProductCodOrderParams {
+  storeId: string;
+  items: CartItem[];
+  shippingFee: number;
+  shippingOption: 'home' | 'branch';
+  buyer_name: string;
+  buyer_email: string;
+  shipping_address: ShippingAddress;
+  buyer_notes?: string;
+}
+
+interface MultiProductPaymentParams {
+  storeId: string;
+  storeName: string;
+  items: CartItem[];
   shippingFee: number;
   shippingOption: 'home' | 'branch';
   buyer_name: string;
@@ -358,25 +382,50 @@ export async function createOrderFromPayment(
       shippingFee = 120;
     }
 
-    // Create order from payment metadata (idempotent - will return existing order if it exists)
     // Use passed transactionCode first, then metadata, then fallback to transactionUuid
     const finalTransactionCode = transactionCode || metadata.transaction_code || transactionUuid;
 
-    const orderResult = await createOrder({
-      seller_id: metadata.seller_id,
-      product_id: metadata.product_id,
-      quantity: metadata.quantity || 1,
-      buyer_email: metadata.buyer_email,
-      buyer_name: metadata.buyer_name,
-      shipping_address: metadata.shipping_address,
-      transaction_code: finalTransactionCode,
-      transaction_uuid: transactionUuid,
-      amount: parseFloat(metadata.amount),
-      shipping_fee: shippingFee,
-      shipping_option: metadata.shipping_option || null,
-      payment_method: metadata.payment_method || 'eSewa',
-      buyer_notes: metadata.buyer_notes || null,
-    });
+    // Check if this is a multi-product order (cart_items exists)
+    let orderResult;
+
+    if (metadata.cart_items && Array.isArray(metadata.cart_items)) {
+      // Multi-product order
+      console.log('Creating multi-product order from payment');
+
+      orderResult = await createMultiProductOrder({
+        seller_id: metadata.seller_id,
+        items: metadata.cart_items,
+        buyer_email: metadata.buyer_email,
+        buyer_name: metadata.buyer_name,
+        shipping_address: metadata.shipping_address,
+        transaction_code: finalTransactionCode,
+        transaction_uuid: transactionUuid,
+        total_amount: parseFloat(metadata.amount),
+        shipping_fee: shippingFee,
+        shipping_option: metadata.shipping_option || null,
+        payment_method: metadata.payment_method || 'eSewa',
+        buyer_notes: metadata.buyer_notes || null,
+      });
+    } else {
+      // Single product order (legacy flow)
+      console.log('Creating single-product order from payment');
+
+      orderResult = await createOrder({
+        seller_id: metadata.seller_id,
+        product_id: metadata.product_id,
+        quantity: metadata.quantity || 1,
+        buyer_email: metadata.buyer_email,
+        buyer_name: metadata.buyer_name,
+        shipping_address: metadata.shipping_address,
+        transaction_code: finalTransactionCode,
+        transaction_uuid: transactionUuid,
+        amount: parseFloat(metadata.amount),
+        shipping_fee: shippingFee,
+        shipping_option: metadata.shipping_option || null,
+        payment_method: metadata.payment_method || 'eSewa',
+        buyer_notes: metadata.buyer_notes || null,
+      });
+    }
 
     if (!orderResult.success) {
       console.error('Failed to create order:', orderResult.error);
@@ -401,9 +450,6 @@ export async function createOrderFromPayment(
     // Send confirmation emails only for new orders
     if (isNewOrder) {
       try {
-        // Get product details for email
-        const product = await getProductById({ id: metadata.product_id });
-
         // Get seller details from profiles
         const { data: seller } = await supabase
           .from('profiles')
@@ -418,7 +464,23 @@ export async function createOrderFromPayment(
 
         const sellerEmail = authUser?.user?.email;
 
-        if (product && seller && sellerEmail && orderResult.order) {
+        if (seller && sellerEmail && orderResult.order) {
+          let itemName: string;
+
+          // Determine item name based on order type
+          if (metadata.cart_items && Array.isArray(metadata.cart_items)) {
+            // Multi-product order
+            const itemsCount = metadata.cart_items.length;
+            const firstItemName = metadata.cart_items[0]?.product_name || 'Product';
+            itemName = itemsCount > 1
+              ? `${firstItemName} and ${itemsCount - 1} more item${itemsCount > 2 ? 's' : ''}`
+              : firstItemName;
+          } else {
+            // Single product order - get product details
+            const product = await getProductById({ id: metadata.product_id });
+            itemName = product?.title || 'Product';
+          }
+
           await sendOrderEmails({
             buyer: {
               email: metadata.buyer_email,
@@ -433,17 +495,24 @@ export async function createOrderFromPayment(
               orderCode: orderResult.order.order_code || orderResult.order.id,
               date: new Date().toLocaleDateString(),
               total: metadata.amount,
-              itemName: product.title,
+              itemName,
               storeName:
-                seller.store_username || seller.name || 'ThriftVerse Store',
+                seller.store_username || seller.name || 'Thriftverse Store',
               currency: seller.currency || 'NPR',
               shippingFee: shippingFee,
+              // Pass order items for multi-product orders
+              orderItems: metadata.cart_items && Array.isArray(metadata.cart_items)
+                ? metadata.cart_items.map((item: any) => ({
+                    productName: item.product_name,
+                    quantity: item.quantity,
+                    price: item.price,
+                  }))
+                : undefined,
             },
           });
           console.log('Order confirmation emails sent successfully');
         } else {
           console.error('Could not send emails - missing required data', {
-            hasProduct: !!product,
             hasSeller: !!seller,
             hasSellerEmail: !!sellerEmail,
           });
@@ -539,7 +608,7 @@ export async function createCodOrder(
             date: new Date().toLocaleDateString(),
             total: totalAmount,
             itemName: product.title,
-            storeName: seller.store_username || seller.name || 'ThriftVerse Store',
+            storeName: seller.store_username || seller.name || 'Thriftverse Store',
             currency: seller.currency || 'NPR',
             shippingFee: params.shippingFee,
           },
@@ -561,6 +630,459 @@ export async function createCodOrder(
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create COD order',
+    };
+  }
+}
+
+/**
+ * Create multi-product COD order
+ */
+export async function createMultiProductCodOrder(
+  params: MultiProductCodOrderParams
+): Promise<CodOrderResult> {
+  try {
+    // Calculate items total
+    const itemsTotal = params.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const totalAmount = itemsTotal + params.shippingFee;
+
+    // Prepare order items
+    const orderItems = params.items.map((item) => ({
+      product_id: item.productId,
+      product_name: item.productName,
+      quantity: item.quantity,
+      price: item.price,
+      cover_image: item.coverImage || null,
+    }));
+
+    // Create multi-product order
+    const orderResult = await createMultiProductOrder({
+      seller_id: params.storeId,
+      items: orderItems,
+      buyer_name: params.buyer_name,
+      buyer_email: params.buyer_email,
+      shipping_address: params.shipping_address,
+      total_amount: totalAmount,
+      shipping_fee: params.shippingFee,
+      shipping_option: params.shippingOption,
+      payment_method: 'Cash on Delivery',
+      status: 'pending',
+      buyer_notes: params.buyer_notes,
+    });
+
+    if (!orderResult.success || !orderResult.order) {
+      return {
+        success: false,
+        error: orderResult.error || 'Failed to create COD order',
+      };
+    }
+
+    // Send confirmation emails
+    try {
+      const supabase = createServiceRoleClient();
+      const { data: seller } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', params.storeId)
+        .single();
+
+      const { data: authUser } = await supabase.auth.admin.getUserById(params.storeId);
+      const sellerEmail = authUser?.user?.email;
+
+      if (seller && sellerEmail) {
+        const itemsCount = params.items.length;
+        const firstItemName = params.items[0].productName;
+        const itemName = itemsCount > 1
+          ? `${firstItemName} and ${itemsCount - 1} more item${itemsCount > 2 ? 's' : ''}`
+          : firstItemName;
+
+        await sendOrderEmails({
+          buyer: {
+            email: params.buyer_email,
+            name: params.buyer_name,
+          },
+          seller: {
+            email: sellerEmail,
+            name: seller.name || seller.store_username || 'Seller',
+          },
+          order: {
+            id: orderResult.order.id,
+            orderCode: orderResult.order.order_code || orderResult.order.id,
+            date: new Date().toLocaleDateString(),
+            total: totalAmount,
+            itemName,
+            storeName: seller.store_username || seller.name || 'Thriftverse Store',
+            currency: seller.currency || 'NPR',
+            shippingFee: params.shippingFee,
+            orderItems: params.items.map(item => ({
+              productName: item.productName,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+          },
+        });
+        console.log('Multi-product COD order confirmation emails sent successfully');
+      }
+    } catch (emailError) {
+      console.error('Failed to send COD order confirmation emails:', emailError);
+    }
+
+    return {
+      success: true,
+      orderId: orderResult.order.id,
+      orderCode: orderResult.order.order_code || orderResult.order.id,
+    };
+  } catch (error) {
+    console.error('Failed to create multi-product COD order:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create COD order',
+    };
+  }
+}
+
+/**
+ * Initiate eSewa payment for multi-product orders
+ */
+export async function initiateMultiProductEsewaPayment(
+  params: MultiProductPaymentParams
+): Promise<InitiatePaymentResult> {
+  try {
+    const config = getEsewaConfig();
+    const transactionUuid = generateTransactionUuid();
+
+    // Get current host from headers
+    const headersList = await headers();
+    const host = headersList.get('host') || 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+
+    // Calculate totals
+    const itemsTotal = params.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const totalAmount = itemsTotal + params.shippingFee;
+
+    // Prepare cart items for storage (convert CartItem to storable format)
+    const cartItemsForStorage = params.items.map((item) => ({
+      product_id: item.productId,
+      product_name: item.productName,
+      quantity: item.quantity,
+      price: item.price,
+      cover_image: item.coverImage || null,
+    }));
+
+    // Store payment metadata with cart items
+    const supabase = createServiceRoleClient();
+    const { error: metadataError } = await supabase
+      .from('payment_metadata')
+      .insert({
+        transaction_uuid: transactionUuid,
+        product_id: null, // NULL for multi-product orders
+        seller_id: params.storeId,
+        buyer_email: params.buyer_email,
+        buyer_name: params.buyer_name,
+        shipping_address: params.shipping_address,
+        amount: totalAmount,
+        quantity: params.items.reduce((sum, item) => sum + item.quantity, 0),
+        shipping_option: params.shippingOption,
+        buyer_notes: params.buyer_notes || null,
+        cart_items: cartItemsForStorage, // Store cart items as JSONB
+      });
+
+    if (metadataError) {
+      console.error('Error storing payment metadata:', metadataError);
+      return {
+        success: false,
+        error: 'Failed to initialize payment',
+      };
+    }
+
+    // Create signature message
+    const signatureMessage = createSignatureMessage({
+      totalAmount: totalAmount.toString(),
+      transactionUuid,
+      productCode: config.merchantCode,
+    });
+
+    // Generate signature
+    const signature = generateEsewaSignature(
+      signatureMessage,
+      config.secretKey
+    );
+
+    // Create product description for eSewa
+    const itemsCount = params.items.length;
+    const productDescription = itemsCount > 1
+      ? `${params.storeName} - ${itemsCount} items`
+      : params.items[0].productName;
+
+    // Create HTML form that will auto-submit to eSewa
+    const formHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Redirecting to eSewa...</title>
+          <style>
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              margin: 0;
+              background: linear-gradient(135deg, #3B2F2F 0%, #D4A373 100%);
+            }
+            .loader {
+              text-align: center;
+              color: white;
+              background: rgba(255, 255, 255, 0.1);
+              padding: 3rem 4rem;
+              border-radius: 1rem;
+              backdrop-filter: blur(10px);
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+            .spinner {
+              border: 4px solid rgba(212, 163, 115, 0.3);
+              border-radius: 50%;
+              border-top: 4px solid #D4A373;
+              width: 50px;
+              height: 50px;
+              animation: spin 1s linear infinite;
+              margin: 0 auto 24px;
+            }
+            h2 {
+              font-size: 1.5rem;
+              margin-bottom: 0.5rem;
+              font-weight: 600;
+            }
+            p {
+              font-size: 1rem;
+              opacity: 0.9;
+              margin: 0;
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="loader">
+            <div class="spinner"></div>
+            <h2>Redirecting to eSewa Payment Gateway...</h2>
+            <p>Please wait while we redirect you to complete your payment</p>
+          </div>
+          <form id="esewaForm" action="${config.gatewayUrl}" method="POST">
+            <input type="hidden" name="amount" value="${itemsTotal}" />
+            <input type="hidden" name="tax_amount" value="0" />
+            <input type="hidden" name="total_amount" value="${totalAmount}" />
+            <input type="hidden" name="transaction_uuid" value="${transactionUuid}" />
+            <input type="hidden" name="product_code" value="${config.merchantCode}" />
+            <input type="hidden" name="product_service_charge" value="${params.shippingFee}" />
+            <input type="hidden" name="product_delivery_charge" value="0" />
+            <input type="hidden" name="success_url" value="${baseUrl}/payment/success" />
+            <input type="hidden" name="failure_url" value="${baseUrl}/payment/failed" />
+            <input type="hidden" name="signed_field_names" value="total_amount,transaction_uuid,product_code" />
+            <input type="hidden" name="signature" value="${signature}" />
+          </form>
+          <script>
+            document.getElementById('esewaForm').submit();
+          </script>
+        </body>
+      </html>
+    `;
+
+    return {
+      success: true,
+      formHtml,
+      transactionUuid,
+    };
+  } catch (error) {
+    console.error('Failed to initiate multi-product eSewa payment:', error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : 'Failed to initiate payment',
+    };
+  }
+}
+
+/**
+ * Initiate FonePay payment for multi-product orders
+ */
+export async function initiateMultiProductFonepayPayment(
+  params: MultiProductPaymentParams
+): Promise<InitiatePaymentResult> {
+  try {
+    const config = getFonepayConfig();
+    const paymentReferenceNumber = generatePaymentReferenceNumber();
+
+    // Get current host from headers
+    const headersList = await headers();
+    const host = headersList.get('host') || 'localhost:3000';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+
+    // Calculate totals
+    const itemsTotal = params.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const totalAmount = itemsTotal + params.shippingFee;
+
+    // Prepare cart items for storage
+    const cartItemsForStorage = params.items.map((item) => ({
+      product_id: item.productId,
+      product_name: item.productName,
+      quantity: item.quantity,
+      price: item.price,
+      cover_image: item.coverImage || null,
+    }));
+
+    // Store payment metadata
+    const supabase = createServiceRoleClient();
+    const { error: metadataError } = await supabase
+      .from('payment_metadata')
+      .insert({
+        transaction_uuid: paymentReferenceNumber,
+        product_id: null, // NULL for multi-product orders
+        seller_id: params.storeId,
+        buyer_email: params.buyer_email,
+        buyer_name: params.buyer_name,
+        shipping_address: params.shipping_address,
+        amount: totalAmount,
+        quantity: params.items.reduce((sum, item) => sum + item.quantity, 0),
+        payment_method: 'FonePay',
+        shipping_option: params.shippingOption,
+        buyer_notes: params.buyer_notes || null,
+        cart_items: cartItemsForStorage,
+      });
+
+    if (metadataError) {
+      console.error('Error storing payment metadata:', metadataError);
+      return {
+        success: false,
+        error: 'Failed to initialize payment',
+      };
+    }
+
+    // FonePay parameters
+    const amount = totalAmount.toFixed(2);
+    const currency = 'NPR';
+    const paymentMode = 'P';
+    const date = getFonepayDate();
+    const returnUrl = `${baseUrl}/payment/success`;
+    const itemsCount = params.items.length;
+    const r1 = itemsCount > 1
+      ? `${params.storeName} - ${itemsCount} items`
+      : params.items[0].productName;
+    const r2 = params.buyer_email;
+
+    // Generate signature
+    const signature = generateFonepaySignature({
+      merchantCode: config.merchantCode,
+      paymentMode,
+      amount,
+      currency,
+      date,
+      paymentReferenceNumber,
+      r1,
+      r2,
+      returnUrl,
+      secretKey: config.secretKey,
+    });
+
+    // Generate payment URL
+    const paymentUrl = generateFonepayPaymentUrl({
+      gatewayUrl: config.gatewayUrl,
+      merchantCode: config.merchantCode,
+      prn: paymentReferenceNumber,
+      amount,
+      r1,
+      r2,
+      returnUrl,
+      signature,
+    });
+
+    // Create HTML page that redirects to FonePay
+    const formHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Redirecting to FonePay...</title>
+          <meta http-equiv="refresh" content="0;url=${paymentUrl}">
+          <style>
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              margin: 0;
+              background: linear-gradient(135deg, #3B2F2F 0%, #D4A373 100%);
+            }
+            .loader {
+              text-align: center;
+              color: white;
+              background: rgba(255, 255, 255, 0.1);
+              padding: 3rem 4rem;
+              border-radius: 1rem;
+              backdrop-filter: blur(10px);
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+            .spinner {
+              border: 4px solid rgba(238, 49, 36, 0.3);
+              border-radius: 50%;
+              border-top: 4px solid #ee3124;
+              width: 50px;
+              height: 50px;
+              animation: spin 1s linear infinite;
+              margin: 0 auto 24px;
+            }
+            h2 {
+              font-size: 1.5rem;
+              margin-bottom: 0.5rem;
+              font-weight: 600;
+            }
+            p {
+              font-size: 1rem;
+              opacity: 0.9;
+              margin: 0;
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="loader">
+            <div class="spinner"></div>
+            <h2>Redirecting to FonePay Payment Gateway...</h2>
+            <p>Please wait while we redirect you to complete your payment</p>
+          </div>
+          <script>
+            window.location.href = "${paymentUrl}";
+          </script>
+        </body>
+      </html>
+    `;
+
+    return {
+      success: true,
+      formHtml,
+      transactionUuid: paymentReferenceNumber,
+    };
+  } catch (error) {
+    console.error('Failed to initiate multi-product FonePay payment:', error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : 'Failed to initiate payment',
     };
   }
 }

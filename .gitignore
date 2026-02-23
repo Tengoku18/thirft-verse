@@ -34,7 +34,7 @@ yarn-error.*
 .env
 .env*.local
 
-# Google Play Store service account
+# Google / Firebase credentials (private keys - never commit)
 google-service-account.json
 
 # EAS
@@ -56,3 +56,4 @@ app-example
 
 thrift-verse-6c479761f3e0.json
 google-service-account.json
+.env.local

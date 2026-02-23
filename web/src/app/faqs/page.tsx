@@ -10,14 +10,14 @@ const faqCategories = [
     category: 'Getting Started',
     questions: [
       {
-        question: 'How do I create my thrift store on ThriftVerse?',
+        question: 'How do I create my thrift store on Thriftverse?',
         answer:
           'Simply sign up for a free account, choose your unique subdomain (e.g., yourname.thriftverse.shop), and start adding products. The entire setup takes less than 10 minutes!',
       },
       {
         question: 'What is a subdomain and how does it work?',
         answer:
-          'Your subdomain is your unique store URL on ThriftVerse. For example, if you choose "vintage", your store will be accessible at vintage.thriftverse.shop. This becomes your personal brand identity.',
+          'Your subdomain is your unique store URL on Thriftverse. For example, if you choose "vintage", your store will be accessible at vintage.thriftverse.shop. This becomes your personal brand identity.',
       },
       {
         question: 'Is there a limit to how many products I can add?',
@@ -37,7 +37,7 @@ const faqCategories = [
       {
         question: 'What are the transaction fees?',
         answer:
-          "ThriftVerse doesn't charge any commission on sales! You only pay standard eSewa payment gateway fees (typically 2-3% per transaction).",
+          "Thriftverse doesn't charge any commission on sales! You only pay standard eSewa payment gateway fees (typically 2-3% per transaction).",
       },
       {
         question: 'How long does it take to receive payments?',
@@ -90,7 +90,7 @@ const faqCategories = [
     category: 'Account & Security',
     questions: [
       {
-        question: 'Is my data secure on ThriftVerse?',
+        question: 'Is my data secure on Thriftverse?',
         answer:
           'Yes! We use enterprise-grade security measures to protect your data. All transactions are encrypted and we never share your information with third parties.',
       },
@@ -140,7 +140,7 @@ export default function FAQsPage() {
   return (
     <PageLayout
       title="Frequently Asked Questions"
-      description="Find answers to common questions about ThriftVerse"
+      description="Find answers to common questions about Thriftverse"
     >
       <div className="pb-16">
         <div className="mx-auto max-w-3xl space-y-12">
