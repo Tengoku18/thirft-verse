@@ -16,6 +16,8 @@ export default function ProductResultCard({ product }: ProductResultCardProps) {
   return (
     <Link
       href={`/product/${product.id}`}
+      target="_blank"
+      rel="noopener noreferrer"
       className="flex gap-3 rounded-xl bg-white p-3 shadow-sm hover:shadow-md transition-all duration-200 border border-neutral-100 hover:border-[#D4A373]/30"
     >
       {/* Image */}
