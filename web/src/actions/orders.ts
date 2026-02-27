@@ -660,3 +660,43 @@ export async function reportProductNotReceived(
     };
   }
 }
+
+/**
+ * Find an order by order_code or UUID for public order tracking
+ */
+export async function findOrderByCodeOrId(
+  query: string
+): Promise<{ id: string } | null> {
+  const trimmed = query.trim();
+  if (!trimmed) return null;
+
+  try {
+    const supabase = createServiceRoleClient();
+
+    // Order codes are stored with a '#' prefix (e.g. #TV-260102-101528-VCBZ).
+    // Accept input with or without the '#' by trying both variants.
+    const withHash = trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
+    const withoutHash = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+
+    const { data: byCode } = await supabase
+      .from('orders')
+      .select('id')
+      .in('order_code', [withHash, withoutHash])
+      .maybeSingle();
+
+    if (byCode) return { id: byCode.id };
+
+    // Fallback: try matching by UUID
+    const { data: byId } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('id', trimmed)
+      .maybeSingle();
+
+    if (byId) return { id: byId.id };
+
+    return null;
+  } catch {
+    return null;
+  }
+}
