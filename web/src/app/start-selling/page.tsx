@@ -58,7 +58,7 @@ export default function StartSellingPage() {
               </a>
 
               <a
-                href="https://play.google.com/store/apps"
+                href="https://play.google.com/store/apps/details?id=com.thriftverse.app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center gap-3 rounded-2xl bg-primary px-6 py-4 text-surface shadow-lg transition-all hover:scale-105 hover:shadow-xl"
@@ -82,9 +82,9 @@ export default function StartSellingPage() {
       <div className="border-y border-border/50 bg-surface/30 py-12">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-8 sm:flex-row sm:justify-center">
-            <AppDownloadQR />
+            <AppDownloadQR store="ios" />
 
-            <div className="text-center sm:text-left">
+            <div className="text-center">
               <h3 className="font-heading mb-2 text-2xl font-bold text-primary">
                 Quick Access
               </h3>
@@ -94,6 +94,8 @@ export default function StartSellingPage() {
                 download the Thriftverse app instantly
               </p>
             </div>
+
+            <AppDownloadQR store="android" />
           </div>
         </div>
       </div>
@@ -301,7 +303,7 @@ export default function StartSellingPage() {
             </a>
 
             <a
-              href="https://play.google.com/store/apps"
+              href="https://play.google.com/store/apps/details?id=com.thriftverse.app"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center gap-3 rounded-2xl bg-primary px-6 py-4 text-surface shadow-lg transition-all hover:scale-105 hover:shadow-xl"
