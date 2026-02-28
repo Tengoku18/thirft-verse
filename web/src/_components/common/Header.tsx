@@ -18,6 +18,7 @@ const navLinks: NavLink[] = [
   // { label: 'Pricing', href: '/pricing' },
   { label: 'Success Stories', href: '/success-stories' },
   { label: 'Blog', href: '/blogs' },
+  { label: 'Track Order', href: '/track-order' },
 ];
 
 export default function Header() {
