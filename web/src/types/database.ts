@@ -2,7 +2,7 @@
 
 export type UserRole = 'ADMIN' | 'USER'
 export type SubscriptionPlan = 'BASIC' | 'SILVER' | 'GOLD'
-export type OrderStatus = 'pending' | 'completed' | 'cancelled' | 'refunded'
+export type OrderStatus = 'pending' | 'processing' | 'completed' | 'cancelled' | 'refunded'
 export type ProfileStatus = 'active' | 'suspended' | 'deleted'
 export type DeletionRequestStatus = 'pending' | 'approved' | 'rejected' | 'completed'
 
@@ -102,6 +102,27 @@ export interface Order {
   platform_earnings: number
   created_at: string
   updated_at: string
+  // NCM tracking
+  ncm_order_id: number | null
+  ncm_delivery_status: string | null
+  ncm_payment_status: string | null
+  ncm_delivery_charge: number | null
+  ncm_last_synced_at: string | null
+  ncm_data: NCMCachedData | null
+}
+
+/** Cached NCM data stored as JSONB — used by website to show tracking without hitting NCM API */
+export interface NCMCachedData {
+  order_id: number
+  cod_charge: string
+  delivery_charge: string
+  last_delivery_status: string
+  payment_status: string
+  status_history: {
+    status: string
+    added_time: string
+  }[]
+  last_synced_at: string
 }
 
 export interface OrderWithDetails extends Order {
