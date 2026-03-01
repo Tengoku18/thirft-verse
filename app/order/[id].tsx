@@ -1,5 +1,6 @@
 import { EditOrderModal } from "@/components/modals/EditOrderModal";
 import { NCMOrderModal } from "@/components/modals/NCMOrderModal";
+import { SuccessModal } from "@/components/molecules/SuccessModal";
 import { CustomHeader } from "@/components/navigation/CustomHeader";
 import { NCMCommentsSection, NCMTrackingSection } from "@/components/order";
 import {
@@ -60,7 +61,7 @@ interface OrderDetail {
   id: string;
   type: "order" | "product";
   orderCode: string;
-  status: string; // pending, shipping, processing, delivered, completed, cancelled, refunded
+  status: string; // pending, processing, completed, cancelled, refunded
 
   // Product (primary product for single-product orders, first item for multi)
   product: {
@@ -194,6 +195,54 @@ function Section({
         }}
       >
         {children}
+      </View>
+    </View>
+  );
+}
+
+function GuideStep({
+  number,
+  title,
+  description,
+  color,
+  bg,
+}: {
+  number: string;
+  title: string;
+  description: string;
+  color: string;
+  bg: string;
+}) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
+      <View
+        style={{
+          width: 26,
+          height: 26,
+          borderRadius: 13,
+          backgroundColor: bg,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <BodySemiboldText style={{ fontSize: 12, color }}>
+          {number}
+        </BodySemiboldText>
+      </View>
+      <View style={{ flex: 1 }}>
+        <BodySemiboldText style={{ fontSize: 13, color: "#3B2F2F" }}>
+          {title}
+        </BodySemiboldText>
+        <BodyRegularText
+          style={{
+            fontSize: 12,
+            color: "#6B7280",
+            marginTop: 2,
+            lineHeight: 17,
+          }}
+        >
+          {description}
+        </BodyRegularText>
       </View>
     </View>
   );
@@ -430,6 +479,9 @@ export default function SingleOrderScreen() {
 
   // Edit order modal state
   const [showEditModal, setShowEditModal] = useState(false);
+
+  // Seller guide modal
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
   // Load data
   const loadOrder = useCallback(async () => {
@@ -966,15 +1018,59 @@ export default function SingleOrderScreen() {
       <CustomHeader
         title="Order Details"
         showBackButton
-        rightAction={
-          isEditable
-            ? {
-                label: "Edit",
-                icon: "pencil",
-                onPress: () => setShowEditModal(true),
-                color: "#3B82F6",
-              }
-            : undefined
+        rightComponent={
+          isSeller ? (
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
+            >
+              {isEditable && (
+                <TouchableOpacity
+                  onPress={() => setShowEditModal(true)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 20,
+                    backgroundColor: "#3B82F615",
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <IconSymbol
+                    name="pencil"
+                    size={14}
+                    color="#3B82F6"
+                    style={{ marginRight: 4 }}
+                  />
+                  <BodyMediumText style={{ fontSize: 13, color: "#3B82F6" }}>
+                    Edit
+                  </BodyMediumText>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={() => setShowGuideModal(true)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 20,
+                  backgroundColor: "#3B2F2F10",
+                }}
+                activeOpacity={0.7}
+              >
+                <IconSymbol
+                  name="book.fill"
+                  size={14}
+                  color="#3B2F2F"
+                  style={{ marginRight: 4 }}
+                />
+                <BodyMediumText style={{ fontSize: 13, color: "#3B2F2F" }}>
+                  Guide
+                </BodyMediumText>
+              </TouchableOpacity>
+            </View>
+          ) : undefined
         }
       />
 
@@ -1272,6 +1368,7 @@ export default function SingleOrderScreen() {
               Math.round(order.payment.subtotal * 0.05),
             )}`}
           />
+
           {/* Earnings Row with green background */}
           <View
             className="flex-row items-center justify-between px-4 py-4"
@@ -1292,6 +1389,28 @@ export default function SingleOrderScreen() {
               {formatPrice(Math.round(order.payment.subtotal * 0.95))}
             </HeadingBoldText>
           </View>
+
+          {/* Payment info link */}
+          <TouchableOpacity
+            onPress={() =>
+              Linking.openURL(
+                "https://www.thriftverse.shop/blogs/payment-and-pricing",
+              )
+            }
+            activeOpacity={0.7}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 10,
+              gap: 4,
+            }}
+          >
+            <BodyRegularText style={{ fontSize: 12, color: "#9CA3AF" }}>
+              How does pricing work?
+            </BodyRegularText>
+            <IconSymbol name="arrow.up.right" size={10} color="#9CA3AF" />
+          </TouchableOpacity>
         </Section>
 
         {/* Order Meta */}
@@ -1556,6 +1675,64 @@ export default function SingleOrderScreen() {
           }}
         />
       )}
+
+      {/* Seller Guide Modal */}
+      <SuccessModal
+        visible={showGuideModal}
+        title="How to Handle Orders"
+        onClose={() => setShowGuideModal(false)}
+        actions={[
+          {
+            label: "Read Full Guide",
+            onPress: () => {
+              setShowGuideModal(false);
+              Linking.openURL(
+                "https://www.thriftverse.shop/blogs/how-to-handle-orders",
+              );
+            },
+            icon: "arrow.up.right",
+            variant: "primary",
+          },
+        ]}
+      >
+        <View style={{ gap: 14 }}>
+          <GuideStep
+            number="1"
+            title="Review the order"
+            description="Check buyer info, items, and shipping address."
+            color="#D97706"
+            bg="#FEF3C7"
+          />
+          <GuideStep
+            number="2"
+            title='Tap "Move to NCM"'
+            description="Register shipment with Nepal Can Move from this page."
+            color="#2563EB"
+            bg="#DBEAFE"
+          />
+          <GuideStep
+            number="3"
+            title="Pack the item"
+            description="Use a box or bubble wrap. Keep packaging clean."
+            color="#7C3AED"
+            bg="#EDE9FE"
+          />
+          <GuideStep
+            number="4"
+            title="Visit NCM branch"
+            description="Take your package and show the Order ID at the counter."
+            color="#059669"
+            bg="#D1FAE5"
+          />
+          <GuideStep
+            number="5"
+            title="Hand over & done"
+            description="NCM attaches their label. Package is on its way!"
+            color="#DC2626"
+            bg="#FEE2E2"
+          />
+        </View>
+      </SuccessModal>
     </View>
   );
 }

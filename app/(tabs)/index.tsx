@@ -12,7 +12,8 @@ import {
   getOrdersBySeller,
   getProductsByStoreId,
 } from "@/lib/database-helpers";
-import { useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { fetchUserProfile } from "@/store/profileSlice";
 import dayjs from "dayjs";
 import { useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
@@ -62,6 +63,7 @@ interface WeeklyData {
 
 export default function DashboardScreen() {
   const { user } = useAuth();
+  const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.profile.profile);
   const [stats, setStats] = useState<Stats>({
     totalOrders: 0,
@@ -97,6 +99,9 @@ export default function DashboardScreen() {
     }
 
     try {
+      // Refresh profile to get latest revenue data
+      dispatch(fetchUserProfile(user.id));
+
       // Fetch products data
       const { count: totalProducts } = await getProductsByStoreId({
         storeId: user.id,

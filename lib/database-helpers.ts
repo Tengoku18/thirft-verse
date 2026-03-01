@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { AppNotification, PaginatedResponse, Product, ProductStatus } from "./types/database";
+import { AppNotification, PaginatedResponse, Product, ProductStatus, ProfileRevenue } from "./types/database";
 
 /**
  * Check if email already exists in auth.users table
@@ -1056,13 +1056,35 @@ export const updateOrderWithNCM = async (
   ncmOrderId: number,
 ) => {
   try {
+    const now = new Date().toISOString();
+
+    // Build initial ncm_data with creation info
+    const initialNcmData = {
+      order_id: ncmOrderId,
+      cod_charge: "",
+      delivery_charge: "",
+      last_delivery_status: "Pickup Order Created",
+      payment_status: "Pending",
+      status_history: [
+        {
+          status: "Pickup Order Created",
+          added_time: now,
+        },
+      ],
+      last_synced_at: now,
+    };
+
     const { error } = await supabase
       .from("orders")
       .update({
         ncm_order_id: ncmOrderId,
         ncm_status: "sent_to_ncm",
+        ncm_delivery_status: "Pickup Order Created",
+        ncm_payment_status: "Pending",
+        ncm_data: initialNcmData,
+        ncm_last_synced_at: now,
         status: "processing",
-        updated_at: new Date().toISOString(),
+        updated_at: now,
       })
       .eq("id", orderId);
 
@@ -1070,6 +1092,44 @@ export const updateOrderWithNCM = async (
       console.error("❌ Error updating order with NCM info:", error);
       return { success: false, error };
     }
+
+    // Update seller's pendingAmount in revenue
+    const { data: orderData } = await supabase
+      .from("orders")
+      .select("seller_id, sellers_earning")
+      .eq("id", orderId)
+      .single();
+
+    if (orderData) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("revenue")
+        .eq("id", orderData.seller_id)
+        .single();
+
+      const currentRevenue = (profile?.revenue as ProfileRevenue) || {
+        pendingAmount: 0,
+        confirmedAmount: 0,
+        withdrawnAmount: 0,
+        withdrawalHistory: [],
+      };
+
+      await supabase
+        .from("profiles")
+        .update({
+          revenue: {
+            ...currentRevenue,
+            pendingAmount: (currentRevenue.pendingAmount || 0) + (orderData.sellers_earning || 0),
+          },
+          updated_at: now,
+        })
+        .eq("id", orderData.seller_id);
+    }
+
+    // Auto-sync from NCM API in the background to get accurate details
+    syncNCMOrderStatus(orderId, ncmOrderId).catch((e) =>
+      console.warn("⚠️ Background NCM sync failed:", e),
+    );
 
     return { success: true };
   } catch (error) {
@@ -1090,14 +1150,12 @@ export const syncNCMOrderStatus = async (
 ) => {
   try {
     // Import NCM helpers dynamically to avoid circular dependency
-    const { getNCMOrderDetails } = await import("./ncm-helpers");
+    const { getNCMOrderDetails, getNCMOrderStatus } = await import("./ncm-helpers");
 
     // Fetch order details from NCM
     const detailsResult = await getNCMOrderDetails(ncmOrderId);
 
     if (!detailsResult.success || !detailsResult.data) {
-      // Log the error but don't fail - the order was created successfully
-      // The NCM portal may have different permissions for read vs write
       console.warn(
         "⚠️ Could not fetch NCM order details (API may have limited read access):",
         detailsResult.error,
@@ -1121,20 +1179,46 @@ export const syncNCMOrderStatus = async (
     }
 
     const ncmDetails = detailsResult.data;
+    const now = new Date().toISOString();
+
+    // Fetch status history for the full timeline
+    let statusHistory: { status: string; added_time: string }[] = [];
+    try {
+      const statusResult = await getNCMOrderStatus(ncmOrderId);
+      if (statusResult.success && statusResult.data) {
+        statusHistory = statusResult.data.map((s) => ({
+          status: s.status,
+          added_time: s.added_time,
+        }));
+      }
+    } catch (e) {
+      console.warn("⚠️ Could not fetch NCM status history:", e);
+    }
 
     // Determine if order should be marked as completed based on NCM status
-    // NCM "Delivered" status means the order is complete
     const isDelivered = ncmDetails.last_delivery_status === "Delivered";
     const isReturned = ncmDetails.last_delivery_status === "Returned";
     const isCancelled = ncmDetails.last_delivery_status === "Cancelled";
+
+    // Build the cached NCM data object (JSONB)
+    const ncmData = {
+      order_id: ncmOrderId,
+      cod_charge: ncmDetails.cod_charge,
+      delivery_charge: ncmDetails.delivery_charge,
+      last_delivery_status: ncmDetails.last_delivery_status,
+      payment_status: ncmDetails.payment_status,
+      status_history: statusHistory,
+      last_synced_at: now,
+    };
 
     // Build update object
     const updateData: Record<string, any> = {
       ncm_delivery_status: ncmDetails.last_delivery_status,
       ncm_payment_status: ncmDetails.payment_status,
       ncm_delivery_charge: parseFloat(ncmDetails.delivery_charge) || null,
-      ncm_last_synced_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      ncm_last_synced_at: now,
+      ncm_data: ncmData,
+      updated_at: now,
     };
 
     // Update main order status based on NCM delivery status

@@ -19,6 +19,8 @@ interface CustomHeaderProps {
     onPress: () => void;
     color?: string;
   };
+  /** Custom right component — takes priority over rightAction/rightIcon */
+  rightComponent?: React.ReactNode;
 }
 
 export function CustomHeader({
@@ -27,6 +29,7 @@ export function CustomHeader({
   backRoute,
   rightIcon,
   rightAction,
+  rightComponent,
 }: CustomHeaderProps) {
   const router = useRouter();
 
@@ -59,9 +62,11 @@ export function CustomHeader({
             </HeadingSemiboldText>
           </View>
 
-          {/* Right Section - Text Action, Icon, or Empty Space */}
+          {/* Right Section - Custom Component, Text Action, Icon, or Empty Space */}
           <View className="flex-1 items-end">
-            {rightAction ? (
+            {rightComponent ? (
+              rightComponent
+            ) : rightAction ? (
               <TouchableOpacity
                 onPress={rightAction.onPress}
                 className="flex-row items-center px-3 py-1.5 rounded-full"
