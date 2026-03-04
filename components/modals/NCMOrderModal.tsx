@@ -205,10 +205,12 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
 
   const handleSuccessDone = () => {
     if (successData) {
+      // Call onSuccess which handles DB update + router.replace to orders list
+      // Navigation will unmount everything (this modal included)
       onSuccess(successData.orderId);
+    } else {
+      onClose();
     }
-    setSuccessData(null);
-    onClose();
   };
 
   return (

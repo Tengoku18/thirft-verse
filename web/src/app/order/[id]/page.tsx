@@ -48,6 +48,12 @@ const statusConfig = {
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-50',
   },
+  processing: {
+    icon: Package,
+    label: 'Processing',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+  },
   cancelled: {
     icon: XCircle,
     label: 'Cancelled',

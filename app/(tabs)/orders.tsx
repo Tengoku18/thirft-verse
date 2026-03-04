@@ -11,12 +11,14 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { getOrdersBySeller } from "@/lib/database-helpers";
 import { getProductImageUrl } from "@/lib/storage-helpers";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import dayjs from "dayjs";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Linking,
   RefreshControl,
   ScrollView,
   TouchableOpacity,
@@ -229,6 +231,19 @@ export default function OrdersScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [showGuideBanner, setShowGuideBanner] = useState(false);
+
+  // Load guide banner visibility from AsyncStorage
+  useEffect(() => {
+    AsyncStorage.getItem("@thriftverse_seen_order_guide").then((value) => {
+      if (value !== "true") setShowGuideBanner(true);
+    });
+  }, []);
+
+  const dismissGuideBanner = () => {
+    setShowGuideBanner(false);
+    AsyncStorage.setItem("@thriftverse_seen_order_guide", "true");
+  };
 
   // Set filter from query params (only accept valid filters)
   useEffect(() => {
@@ -374,6 +389,70 @@ export default function OrdersScreen() {
   return (
     <TabScreenLayout title="Orders">
       <View className="flex-1 bg-[#FAFAFA]">
+        {/* Onboarding Banner */}
+        {showGuideBanner && (
+          <View className="px-4 pt-4">
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "#FFFBEB",
+                borderRadius: 14,
+                padding: 14,
+                borderWidth: 1,
+                borderColor: "#FDE68A",
+              }}
+            >
+              <TouchableOpacity
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+                activeOpacity={0.7}
+                onPress={() =>
+                  Linking.openURL(
+                    "https://www.thriftverse.shop/blogs/how-to-handle-orders"
+                  )
+                }
+              >
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    backgroundColor: "#FEF3C7",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 12,
+                  }}
+                >
+                  <IconSymbol name="book.fill" size={20} color="#D97706" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <BodySemiboldText style={{ fontSize: 14, color: "#92400E" }}>
+                    New to selling?
+                  </BodySemiboldText>
+                  <BodyRegularText
+                    style={{ fontSize: 12, color: "#A16207", marginTop: 2 }}
+                  >
+                    Learn how to handle orders step by step
+                  </BodyRegularText>
+                </View>
+                <IconSymbol
+                  name="arrow.up.right"
+                  size={14}
+                  color="#D97706"
+                  style={{ marginRight: 8 }}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={dismissGuideBanner}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                activeOpacity={0.6}
+              >
+                <IconSymbol name="xmark" size={14} color="#D97706" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* Status Filter Tabs with Create Button */}
         <View className="px-4 pt-4 pb-2">
           <View className="flex-row items-center justify-between mb-3">

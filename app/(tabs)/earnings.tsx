@@ -344,6 +344,43 @@ export default function EarningsScreen() {
         return;
       }
 
+      // Update revenue: move from confirmed → withdrawn
+      const currentRevenue = revenue || {
+        pendingAmount: 0,
+        confirmedAmount: 0,
+        withdrawnAmount: 0,
+        withdrawalHistory: [],
+      };
+
+      const updatedRevenue = {
+        ...currentRevenue,
+        confirmedAmount: Math.max(0, (currentRevenue.confirmedAmount || 0) - amount),
+        withdrawnAmount: (currentRevenue.withdrawnAmount || 0) + amount,
+        withdrawalHistory: [
+          ...(currentRevenue.withdrawalHistory || []),
+          {
+            amount,
+            settledBy: "",
+            transactionId: "",
+            settlementDate: new Date().toISOString(),
+          },
+        ],
+      };
+
+      const { error: revenueError } = await supabase
+        .from("profiles")
+        .update({
+          revenue: updatedRevenue,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+      if (revenueError) {
+        console.error("Error updating revenue:", revenueError);
+      } else {
+        setRevenue(updatedRevenue);
+      }
+
       // Success
       toast.success("Withdrawal request submitted successfully");
       handleCloseWithdrawModal();
