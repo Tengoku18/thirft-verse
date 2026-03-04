@@ -106,6 +106,11 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
     return `${address.street}, ${address.city}, ${address.district}, ${address.country}`
   }
 
+  const timelineEvents = [
+    { status: 'Order Placed', added_time: order.created_at },
+    ...(order.ncm_data?.status_history ?? []),
+  ]
+
   return (
     <div className="min-h-screen bg-surface/30 py-8 px-4 sm:py-12">
       {/* Back to Home Button */}
@@ -501,31 +506,28 @@ export default async function OrderDetailsPage({ params, searchParams }: OrderDe
                 </h2>
               </div>
 
-              <div className="relative space-y-3 pl-5">
-                {/* Vertical line */}
-                <div className="absolute left-[3px] top-1 bottom-1 w-px bg-green-300" />
+              <div className="relative">
+                {/* Vertical line — left-[11px] centers it under the w-6 dot wrapper */}
+                <div className="absolute left-[11px] top-3 bottom-3 w-px bg-primary/15" />
 
-                <div className="relative flex items-start gap-3">
-                  <div className="absolute -left-5 flex h-4 w-4 items-center justify-center">
-                    <div className="h-2 w-2 rounded-full bg-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-primary">Order Placed</p>
-                    <p className="text-xs text-primary/50">{formatDate(order.created_at)}</p>
-                  </div>
+                <div className="space-y-4">
+                  {timelineEvents.map((event, index) => {
+                    const isLast = index === timelineEvents.length - 1
+                    return (
+                      <div key={index} className="flex items-start gap-3">
+                        <div className="relative z-10 flex h-6 w-6 shrink-0 items-center justify-center">
+                          <div className={`h-3 w-3 rounded-full ${isLast ? 'bg-green-500' : 'bg-primary/25'}`} />
+                        </div>
+                        <div className="pt-0.5">
+                          <p className={`text-sm font-medium ${isLast ? 'text-green-700' : 'text-primary'}`}>
+                            {event.status}
+                          </p>
+                          <p className="text-xs text-primary/50">{formatDate(event.added_time)}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
-
-                {order.status === 'completed' && (
-                  <div className="relative flex items-start gap-3">
-                    <div className="absolute -left-5 flex h-4 w-4 items-center justify-center">
-                      <div className="h-2 w-2 rounded-full bg-green-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-primary">Payment Confirmed</p>
-                      <p className="text-xs text-primary/50">{formatDate(order.updated_at)}</p>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
