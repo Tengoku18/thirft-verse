@@ -1,6 +1,6 @@
 export { default as ApplicationFormStep } from './ApplicationFormStep';
 export { default as BenefitsStep } from './BenefitsStep';
-export { default as FounderCircleInput } from './FounderCircleInput';
+export { FounderCircleInput } from './FounderCircleInput';
 export { default as FounderCircleNavbar } from './FounderCircleNavbar';
 export { default as GlowBackground } from './GlowBackground';
 export { default as RoleSelectionStep } from './RoleSelectionStep';

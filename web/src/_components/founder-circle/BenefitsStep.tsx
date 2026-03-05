@@ -38,7 +38,7 @@ export default function BenefitsStep({ role, onBack, onContinue }: BenefitsStepP
       <div className="w-full max-w-lg">
         <button
           onClick={onBack}
-          className="mb-8 flex items-center gap-2 text-sm text-white/30 transition-colors hover:text-white/60"
+          className="mb-8 flex cursor-pointer items-center gap-2 text-sm text-white/30 transition-colors hover:text-white/60"
         >
           <ArrowLeft className="h-4 w-4" />
           Change role
@@ -92,7 +92,7 @@ export default function BenefitsStep({ role, onBack, onContinue }: BenefitsStepP
 
         <button
           onClick={onContinue}
-          className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl px-6 py-3.5 text-base font-semibold text-fc-bg transition-all duration-300"
+          className="group relative flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl px-6 py-3.5 text-base font-semibold text-fc-bg transition-all duration-300"
           style={{ background: 'var(--fc-button-gradient)', boxShadow: 'var(--fc-gold-glow)' }}
         >
           <span className="relative z-10">Claim My Founding Spot</span>

@@ -34,6 +34,13 @@ export {
   updateOrderStatus,
 } from './orders'
 
+export {
+  applyToFounderCircle,
+  getFounderCircleApplications,
+  approveFounderCircleApplication,
+  updateFounderCircleNotes,
+} from './founder-circle'
+
 // Aliases to match web-ref naming
 export { getProfileById as getUserById } from './profiles'
 export { getProfileIdByStoreUsername as getUserIdByInstagramHandle } from './profiles'

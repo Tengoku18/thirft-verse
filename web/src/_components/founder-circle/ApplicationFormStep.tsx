@@ -92,7 +92,7 @@ export default function ApplicationFormStep({ role, onBack, onSuccess }: Applica
       <div className="mx-auto w-full max-w-lg">
         <button
           onClick={onBack}
-          className="mb-8 flex items-center gap-2 text-sm text-white/30 transition-colors hover:text-white/60"
+          className="mb-8 flex cursor-pointer items-center gap-2 text-sm text-white/30 transition-colors hover:text-white/60"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to benefits
@@ -262,7 +262,7 @@ export default function ApplicationFormStep({ role, onBack, onSuccess }: Applica
             <button
               type="submit"
               disabled={isSubmitting}
-              className="group relative mt-2 flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl px-6 py-3.5 text-base font-semibold text-fc-bg transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className="group relative mt-2 flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl px-6 py-3.5 text-base font-semibold text-fc-bg transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
               style={{
                 background: 'var(--fc-button-gradient)',
                 boxShadow: 'var(--fc-gold-glow)',

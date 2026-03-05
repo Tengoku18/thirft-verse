@@ -55,7 +55,7 @@ export default function RoleSelectionStep({ onSelect }: RoleSelectionStepProps) 
           <button
             key={card.role}
             onClick={() => onSelect(card.role)}
-            className="group relative flex flex-col items-start overflow-hidden rounded-2xl p-7 text-left transition-all duration-300 focus:outline-none"
+            className="group relative flex cursor-pointer flex-col items-start overflow-hidden rounded-2xl p-7 text-left transition-all duration-300 focus:outline-none"
             style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
             onMouseEnter={(e) => {
               const el = e.currentTarget as HTMLElement;
