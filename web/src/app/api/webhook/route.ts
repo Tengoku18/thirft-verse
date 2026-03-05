@@ -21,30 +21,15 @@ const NCM_TO_ORDER_STATUS: Record<string, string | null> = {
 };
 
 // Notification config for each NCM status
+// Only send notifications for terminal statuses
 const STATUS_NOTIF: Record<
   string,
   { title: string; body: string; type: string } | null
 > = {
-  "Pickup Complete": {
-    title: "Picked Up",
-    body: "has been picked up by NCM",
-    type: "order_update",
-  },
-  "Dispatched": {
-    title: "Dispatched",
-    body: "has been dispatched from the origin branch",
-    type: "order_update",
-  },
-  "Arrived": {
-    title: "Arrived",
-    body: "has arrived at the destination branch",
-    type: "order_update",
-  },
-  "Sent for Delivery": {
-    title: "Out for Delivery",
-    body: "is out for delivery",
-    type: "order_update",
-  },
+  "Pickup Complete": null,
+  "Dispatched": null,
+  "Arrived": null,
+  "Sent for Delivery": null,
   "Delivered": {
     title: "Delivered",
     body: "has been delivered successfully",
@@ -154,7 +139,7 @@ async function processOrderUpdate(
     };
 
     const earning = order.sellers_earning || 0;
-    let updatedRevenue = { ...currentRevenue };
+    const updatedRevenue = { ...currentRevenue };
 
     if (newOrderStatus === "completed") {
       // Delivered: move from pending → confirmed
