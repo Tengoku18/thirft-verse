@@ -32,7 +32,7 @@ export default withSentryConfig(nextConfig, {
 
   // Only upload source maps in production builds
   sourcemaps: {
-    disable: process.env.NODE_ENV !== "production",
+    disable: process.env.NODE_ENV !== "production" || !process.env.SENTRY_AUTH_TOKEN,
   },
 
   // For all available options, see:
