@@ -49,9 +49,9 @@ const ProductCard = ({ product, currency = 'USD' }: ProductCardProps) => {
         </Link>
 
         {/* Info */}
-        <div className="space-y-1.5 p-2.5 sm:space-y-2 sm:p-4">
+        <div className="space-y-2.5 p-2.5 sm:space-y-3 sm:p-4">
           <Link href={`/product/${product.id}`}>
-            <h3 className="line-clamp-2 text-sm leading-tight font-semibold text-neutral-900 transition-colors group-hover:text-[#D4A373] sm:text-base">
+            <h3 className="truncate text-sm leading-tight font-semibold text-neutral-900 transition-colors group-hover:text-[#D4A373] sm:text-base">
               {product.title}
             </h3>
           </Link>

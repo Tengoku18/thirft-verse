@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   TouchableOpacityProps,
+  View,
 } from "react-native";
 
 export interface FormButtonProps extends TouchableOpacityProps {
@@ -45,27 +46,30 @@ export const FormButton: React.FC<FormButtonProps> = ({
   };
 
   return (
-    <TouchableOpacity
-      className={`h-[58px] rounded-2xl justify-center items-center px-6 ${getVariantClasses()} ${
-        fullWidth ? "w-full" : ""
-      } ${className || ""}`}
-      disabled={disabled || loading}
-      activeOpacity={0.85}
-      {...props}
-    >
-      {loading ? (
-        <ActivityIndicator color={getTextColor()} size="small" />
-      ) : (
-        <BodyBoldText
-          style={{
-            color: getTextColor(),
-            fontSize: 16,
-            letterSpacing: 0.5,
-          }}
-        >
-          {title}
-        </BodyBoldText>
-      )}
-    </TouchableOpacity>
+    <View style={{ paddingBottom: 4, overflow: "visible" }} className={className || ""}>
+      <TouchableOpacity
+        className={`h-[58px] rounded-2xl justify-center items-center px-6 ${getVariantClasses()} ${
+          fullWidth ? "w-full" : ""
+        }`}
+        disabled={disabled || loading}
+        activeOpacity={0.85}
+        style={{ overflow: "visible" }}
+        {...props}
+      >
+        {loading ? (
+          <ActivityIndicator color={getTextColor()} size="small" />
+        ) : (
+          <BodyBoldText
+            style={{
+              color: getTextColor(),
+              fontSize: 16,
+              letterSpacing: 0.5,
+            }}
+          >
+            {title}
+          </BodyBoldText>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 };
