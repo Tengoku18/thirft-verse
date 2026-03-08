@@ -12,6 +12,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, onPress }: ProductCardProps) {
   const currency = product.store?.currency || "NPR";
+  const isOutOfStock = product.availability_count === 0;
 
   const handlePress = () => {
     if (onPress) {
@@ -29,7 +30,7 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, isOutOfStock && styles.cardOutOfStock]}
       onPress={handlePress}
       activeOpacity={0.9}
     >
@@ -38,7 +39,7 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
         {imageUrl ? (
           <Image
             source={{ uri: imageUrl }}
-            style={styles.image}
+            style={[styles.image, isOutOfStock && styles.imageOutOfStock]}
             resizeMode="cover"
           />
         ) : (
@@ -46,19 +47,26 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
             <IconSymbol name="photo" size={40} color="#D1D5DB" />
           </View>
         )}
+        {isOutOfStock && (
+          <View style={styles.soldOutOverlay}>
+            <View style={styles.soldOutBadge}>
+              <Text style={styles.soldOutText}>Sold Out</Text>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Product Info */}
       <View style={styles.infoContainer}>
-        <Text style={styles.title} numberOfLines={2}>
+        <Text style={[styles.title, isOutOfStock && styles.titleOutOfStock]} numberOfLines={2}>
           {product.title}
         </Text>
         <View style={styles.bottomRow}>
-          <Text style={styles.price}>
+          <Text style={[styles.price, isOutOfStock && styles.priceOutOfStock]}>
             {currency} {product.price.toLocaleString()}
           </Text>
           <View style={styles.arrowButton}>
-            <IconSymbol name="arrow.up.right" size={16} color="#3B2F2F" />
+            <IconSymbol name="arrow.up.right" size={16} color={isOutOfStock ? "#9CA3AF" : "#3B2F2F"} />
           </View>
         </View>
       </View>
@@ -123,5 +131,35 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3F4F6",
     justifyContent: "center",
     alignItems: "center",
+  },
+  cardOutOfStock: {
+    opacity: 0.75,
+  },
+  imageOutOfStock: {
+    opacity: 0.5,
+  },
+  soldOutOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  soldOutBadge: {
+    backgroundColor: "#DC2626",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  soldOutText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontFamily: "NunitoSans_700Bold",
+    letterSpacing: 0.5,
+  },
+  titleOutOfStock: {
+    color: "#9CA3AF",
+  },
+  priceOutOfStock: {
+    color: "#9CA3AF",
   },
 });

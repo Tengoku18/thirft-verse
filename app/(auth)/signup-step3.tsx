@@ -8,15 +8,18 @@ import {
   HeadingBoldText,
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { createMissingProfile, updateUserProfile } from "@/lib/database-helpers";
+import {
+  createMissingProfile,
+  updateUserProfile,
+} from "@/lib/database-helpers";
 import { showImagePickerOptions } from "@/lib/image-picker-helpers";
 import { uploadPaymentQRImage } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import {
   clearPersistedSignupState,
   completeSignup,
-  setPaymentData,
   fetchUserProfile,
+  setPaymentData,
 } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
@@ -36,10 +39,10 @@ export default function SignupStep3Screen() {
   const signupState = useAppSelector((state) => state.signup);
 
   const [paymentUsername, setPaymentUsername] = useState(
-    signupState.paymentData.paymentUsername || ""
+    signupState.paymentData.paymentUsername || "",
   );
   const [paymentQRImage, setPaymentQRImage] = useState<string | null>(
-    signupState.paymentData.paymentQRImage || null
+    signupState.paymentData.paymentQRImage || null,
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -53,7 +56,7 @@ export default function SignupStep3Screen() {
         }
       },
       !!paymentQRImage,
-      () => setPaymentQRImage(null)
+      () => setPaymentQRImage(null),
     );
   };
 
@@ -92,7 +95,7 @@ export default function SignupStep3Screen() {
       if (paymentQRImage) {
         const uploadResult = await uploadPaymentQRImage(
           user.id,
-          paymentQRImage
+          paymentQRImage,
         );
         if (uploadResult.success && uploadResult.url) {
           paymentQRPath = uploadResult.url;
@@ -105,7 +108,7 @@ export default function SignupStep3Screen() {
       const result = await updateUserProfile({
         userId: user.id,
         payment_username: paymentUsername.trim(),
-        payment_qr_image: paymentQRPath,
+        payment_qr_image: paymentQRPath ?? undefined,
       });
 
       if (!result.success) {
@@ -117,7 +120,7 @@ export default function SignupStep3Screen() {
         setPaymentData({
           paymentUsername: paymentUsername.trim(),
           paymentQRImage: paymentQRPath,
-        })
+        }),
       );
 
       // Refetch the profile to update Redux state with latest data
@@ -228,8 +231,7 @@ export default function SignupStep3Screen() {
           {/* QR Code Upload */}
           <View className="mb-6">
             <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
-              Payment QR Code{" "}
-              <CaptionText style={{ color: "#9CA3AF" }}>(Optional)</CaptionText>
+              Payment QR Code
             </BodySemiboldText>
 
             <TouchableOpacity
@@ -255,7 +257,11 @@ export default function SignupStep3Screen() {
                       elevation: 3,
                     }}
                   >
-                    <IconSymbol name="square.and.pencil" size={16} color="#3B2F2F" />
+                    <IconSymbol
+                      name="square.and.pencil"
+                      size={16}
+                      color="#3B2F2F"
+                    />
                   </View>
                 </View>
               ) : (

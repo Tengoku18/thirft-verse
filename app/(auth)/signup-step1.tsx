@@ -257,7 +257,7 @@ export default function SignupStep1Screen() {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <FormInput
                     label="Address"
-                    placeholder="Enter your address"
+                    placeholder="e.g. tinkune-3, kathmandu"
                     autoCapitalize="words"
                     required
                     value={value}
