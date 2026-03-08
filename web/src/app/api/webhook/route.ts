@@ -1,6 +1,6 @@
-import { sendPushNotification } from "@/lib/expo-push";
-import { createServiceRoleClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { sendPushNotification } from '@/lib/expo-push';
+import { createServiceRoleClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // ============================================================
 // NCM Webhook — handles all delivery status updates from NCM
@@ -11,13 +11,13 @@ import { NextRequest, NextResponse } from "next/server";
 // Intermediate statuses (Pickup Complete, Dispatched, Arrived, Sent for Delivery)
 // only update ncm_data — NCM handles those stages.
 const NCM_TO_ORDER_STATUS: Record<string, string | null> = {
-  "Pickup Complete": null,
-  "Dispatched": null,
-  "Arrived": null,
-  "Sent for Delivery": null,
-  "Delivered": "completed",
-  "Cancelled": "cancelled",
-  "Returned": "refunded",
+  'Pickup Complete': null,
+  Dispatched: null,
+  Arrived: null,
+  'Sent for Delivery': null,
+  Delivered: 'completed',
+  Cancelled: 'cancelled',
+  Returned: 'refunded',
 };
 
 // Notification config for each NCM status
@@ -26,24 +26,24 @@ const STATUS_NOTIF: Record<
   string,
   { title: string; body: string; type: string } | null
 > = {
-  "Pickup Complete": null,
-  "Dispatched": null,
-  "Arrived": null,
-  "Sent for Delivery": null,
-  "Delivered": {
-    title: "Delivered",
-    body: "has been delivered successfully",
-    type: "order_completed",
+  'Pickup Complete': null,
+  Dispatched: null,
+  Arrived: null,
+  'Sent for Delivery': null,
+  Delivered: {
+    title: 'Delivered',
+    body: 'has been delivered successfully',
+    type: 'order_completed',
   },
-  "Cancelled": {
-    title: "Cancelled",
-    body: "has been cancelled",
-    type: "order_cancelled",
+  Cancelled: {
+    title: 'Cancelled',
+    body: 'has been cancelled',
+    type: 'order_cancelled',
   },
-  "Returned": {
-    title: "Returned",
-    body: "has been returned",
-    type: "order_refunded",
+  Returned: {
+    title: 'Returned',
+    body: 'has been returned',
+    type: 'order_refunded',
   },
 };
 
@@ -62,21 +62,20 @@ async function processOrderUpdate(
 
   // 1. Find order by NCM order ID (not our internal UUID!)
   const { data: order, error: findError } = await supabase
-    .from("orders")
+    .from('orders')
     .select(
-      "id, status, seller_id, order_code, amount, product_id, buyer_name, ncm_data, ncm_order_id, sellers_earning"
+      'id, status, seller_id, order_code, amount, product_id, buyer_name, ncm_data, ncm_order_id, sellers_earning'
     )
-    .eq("ncm_order_id", Number(ncmOrderId))
+    .eq('ncm_order_id', Number(ncmOrderId))
     .single();
 
   if (findError || !order) {
     console.error(`Order not found for NCM ID: ${ncmOrderId}`);
-    return { success: false, error: "Order not found" };
+    return { success: false, error: 'Order not found' };
   }
 
   // 2. Build ncm_data update
-  const existingNcmData =
-    (order.ncm_data as Record<string, unknown>) || {};
+  const existingNcmData = (order.ncm_data as Record<string, unknown>) || {};
   const ncmDataUpdate = {
     ...existingNcmData,
     last_delivery_status: status,
@@ -104,13 +103,13 @@ async function processOrderUpdate(
 
   // 4. Update order
   const { error: updateError } = await supabase
-    .from("orders")
+    .from('orders')
     .update(updateData)
-    .eq("id", order.id);
+    .eq('id', order.id);
 
   if (updateError) {
     console.error(`Failed to update order ${order.id}:`, updateError);
-    return { success: false, error: "Failed to update order" };
+    return { success: false, error: 'Failed to update order' };
   }
 
   const displayStatus = newOrderStatus || order.status;
@@ -121,9 +120,9 @@ async function processOrderUpdate(
   // 4b. Update seller revenue on terminal statuses
   if (newOrderStatus && order.sellers_earning) {
     const { data: profile } = await supabase
-      .from("profiles")
-      .select("revenue")
-      .eq("id", order.seller_id)
+      .from('profiles')
+      .select('revenue')
+      .eq('id', order.seller_id)
       .single();
 
     const currentRevenue = (profile?.revenue as {
@@ -141,22 +140,32 @@ async function processOrderUpdate(
     const earning = order.sellers_earning || 0;
     const updatedRevenue = { ...currentRevenue };
 
-    if (newOrderStatus === "completed") {
+    if (newOrderStatus === 'completed') {
       // Delivered: move from pending → confirmed
-      updatedRevenue.pendingAmount = Math.max(0, (currentRevenue.pendingAmount || 0) - earning);
-      updatedRevenue.confirmedAmount = (currentRevenue.confirmedAmount || 0) + earning;
-    } else if (newOrderStatus === "cancelled" || newOrderStatus === "refunded") {
+      updatedRevenue.pendingAmount = Math.max(
+        0,
+        (currentRevenue.pendingAmount || 0) - earning
+      );
+      updatedRevenue.confirmedAmount =
+        (currentRevenue.confirmedAmount || 0) + earning;
+    } else if (
+      newOrderStatus === 'cancelled' ||
+      newOrderStatus === 'refunded'
+    ) {
       // Cancelled/Returned: remove from pending
-      updatedRevenue.pendingAmount = Math.max(0, (currentRevenue.pendingAmount || 0) - earning);
+      updatedRevenue.pendingAmount = Math.max(
+        0,
+        (currentRevenue.pendingAmount || 0) - earning
+      );
     }
 
     await supabase
-      .from("profiles")
+      .from('profiles')
       .update({
         revenue: updatedRevenue,
         updated_at: now,
       })
-      .eq("id", order.seller_id);
+      .eq('id', order.seller_id);
 
     console.log(
       `Revenue updated for seller ${order.seller_id}: pending=${updatedRevenue.pendingAmount}, confirmed=${updatedRevenue.confirmedAmount}`
@@ -171,35 +180,35 @@ async function processOrderUpdate(
 
   // Fetch seller profile
   const { data: seller } = await supabase
-    .from("profiles")
-    .select("expo_push_tokens, config")
-    .eq("id", order.seller_id)
+    .from('profiles')
+    .select('expo_push_tokens, config')
+    .eq('id', order.seller_id)
     .single();
 
   // Build product name
-  let productName = "Unknown product";
-  let productImage = "";
+  let productName = 'Unknown product';
+  let productImage = '';
 
   if (order.product_id) {
     const { data: product } = await supabase
-      .from("products")
-      .select("title, cover_image")
-      .eq("id", order.product_id)
+      .from('products')
+      .select('title, cover_image')
+      .eq('id', order.product_id)
       .single();
-    productName = product?.title || "Unknown product";
-    productImage = product?.cover_image || "";
+    productName = product?.title || 'Unknown product';
+    productImage = product?.cover_image || '';
   } else {
     const { data: items } = await supabase
-      .from("order_items")
-      .select("product_name, cover_image")
-      .eq("order_id", order.id)
-      .order("created_at", { ascending: true });
+      .from('order_items')
+      .select('product_name, cover_image')
+      .eq('order_id', order.id)
+      .order('created_at', { ascending: true });
 
     if (items && items.length > 0) {
       productName = items[0].product_name;
-      productImage = items[0].cover_image || "";
+      productImage = items[0].cover_image || '';
       if (items.length > 1) {
-        productName += ` + ${items.length - 1} more item${items.length > 2 ? "s" : ""}`;
+        productName += ` + ${items.length - 1} more item${items.length > 2 ? 's' : ''}`;
       }
     }
   }
@@ -222,7 +231,7 @@ async function processOrderUpdate(
           ncm_status: status,
           product_title: productName,
           product_image: productImage,
-          buyer_name: order.buyer_name || "",
+          buyer_name: order.buyer_name || '',
           amount: String(order.amount),
         },
       });
@@ -234,7 +243,7 @@ async function processOrderUpdate(
   }
 
   // In-app notification (always)
-  await supabase.from("notifications").insert({
+  await supabase.from('notifications').insert({
     user_id: order.seller_id,
     title: notifTitle,
     body: notifBody,
@@ -244,7 +253,7 @@ async function processOrderUpdate(
       status: displayStatus,
       ncm_status: status,
       product_title: productName,
-      buyer_name: order.buyer_name || "",
+      buyer_name: order.buyer_name || '',
       amount: String(order.amount),
     },
   });
@@ -257,43 +266,43 @@ async function processOrderUpdate(
 // ============================================================
 export async function POST(request: NextRequest) {
   // 1. Verify webhook secret
-  const secret = request.nextUrl.searchParams.get("secret");
+  const secret = request.nextUrl.searchParams.get('secret');
   if (secret !== process.env.NCM_WEBHOOK_SECRET) {
-    console.error("Webhook auth failed: invalid secret");
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.error('Webhook auth failed: invalid secret');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
     const text = await request.text();
     if (!text) {
       return NextResponse.json(
-        { error: "Empty body. Send JSON with order_id and status." },
+        { error: 'Empty body. Send JSON with order_id and status.' },
         { status: 400 }
       );
     }
 
     const payload = JSON.parse(text);
-    console.log("=== NCM Webhook Received ===");
+    console.log('=== NCM Webhook Received ===');
     console.log(JSON.stringify(payload, null, 2));
 
     // 2. Handle test webhooks from NCM portal
     if (payload.test) {
-      console.log("Test webhook received — responding OK");
-      return NextResponse.json({ status: "success" });
+      console.log('Test webhook received — responding OK');
+      return NextResponse.json({ status: 'success' });
     }
 
     const { order_id, order_ids, status, timestamp } = payload;
 
     if (!status) {
       return NextResponse.json(
-        { error: "Missing status field" },
+        { error: 'Missing status field' },
         { status: 400 }
       );
     }
 
     if (!order_id && !order_ids) {
       return NextResponse.json(
-        { error: "Missing order_id or order_ids" },
+        { error: 'Missing order_id or order_ids' },
         { status: 400 }
       );
     }
@@ -312,7 +321,7 @@ export async function POST(request: NextRequest) {
     );
 
     const succeeded = results.filter(
-      (r) => r.status === "fulfilled" && r.value.success
+      (r) => r.status === 'fulfilled' && r.value.success
     ).length;
     const failed = results.length - succeeded;
 
@@ -327,9 +336,9 @@ export async function POST(request: NextRequest) {
       total: results.length,
     });
   } catch (error) {
-    console.error("Webhook error:", error);
+    console.error('Webhook error:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -337,5 +346,5 @@ export async function POST(request: NextRequest) {
 
 // Health check
 export async function GET() {
-  return NextResponse.json({ status: "ok", endpoint: "ncm-order-webhook" });
+  return NextResponse.json({ status: 'ok', endpoint: 'ncm-order-webhook' });
 }
