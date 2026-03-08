@@ -5,7 +5,8 @@ import ProductCard from '@/_components/ProductCard'
 import ExpandableDescription from '@/_components/ExpandableDescription'
 import CartButton from '@/_components/cart/CartButton'
 import { formatProductPrice } from '@/utils/formatPrice'
-import { ArrowLeft, Store } from 'lucide-react'
+import BackButton from '@/_components/BackButton'
+import { Store } from 'lucide-react'
 import { Metadata } from 'next'
 import { headers } from 'next/headers'
 import Link from 'next/link'
@@ -114,13 +115,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       {/* Header with Back Button */}
       <div className="border-b border-border/50 bg-linear-to-b from-secondary/10 via-accent-2/5 to-background">
         <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-primary/70 transition-colors hover:text-primary"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to store
-          </Link>
+          <BackButton />
         </div>
       </div>
 
