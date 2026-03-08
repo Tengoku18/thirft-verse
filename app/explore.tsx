@@ -56,7 +56,7 @@ export default function ExploreScreen() {
 
   // Product filters
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [inStockOnly, setInStockOnly] = useState(false);
+  const [inStockOnly, setInStockOnly] = useState(true);
   const [productSortBy, setProductSortBy] =
     useState<ProductSortOption>("newest");
 
@@ -154,7 +154,7 @@ export default function ExploreScreen() {
   const resetFilters = () => {
     setSearchQuery("");
     setSelectedCategories([]);
-    setInStockOnly(false);
+    setInStockOnly(true);
     setProductSortBy("newest");
     setStoreSortBy("newest");
   };
@@ -162,7 +162,7 @@ export default function ExploreScreen() {
   const hasActiveFilters =
     searchQuery ||
     selectedCategories.length > 0 ||
-    inStockOnly ||
+    !inStockOnly ||
     productSortBy !== "newest" ||
     storeSortBy !== "newest";
 
@@ -204,7 +204,7 @@ export default function ExploreScreen() {
 
   // Header with back button + search bar in same line
   const HeaderWithSearch = (
-    <View className="flex-row items-center px-5 pb-3">
+    <View className="flex-row items-center px-5 pt-3 pb-3">
       <TouchableOpacity
         onPress={() => router.back()}
         className="w-10 h-10 rounded-full bg-[#F5F5F5] justify-center items-center mr-3"
@@ -349,17 +349,17 @@ export default function ExploreScreen() {
               >
                 <View
                   className={`w-[22px] h-[22px] rounded-md border-2 mr-2.5 justify-center items-center ${
-                    inStockOnly
+                    !inStockOnly
                       ? "bg-[#3B2F2F] border-[#3B2F2F]"
                       : "border-[#E5E7EB]"
                   }`}
                 >
-                  {inStockOnly && (
+                  {!inStockOnly && (
                     <Ionicons name="checkmark" size={16} color="#FFFFFF" />
                   )}
                 </View>
                 <BodyMediumText style={{ color: "#3B2F2F", fontSize: 14 }}>
-                  In stock only
+                  Show out of stock
                 </BodyMediumText>
               </TouchableOpacity>
 
@@ -483,15 +483,10 @@ export default function ExploreScreen() {
               </View>
             ) : (
               <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-                {filteredProducts.map((product, index) => {
-                  // Pattern: small, large, large, small (repeating)
-                  const patternIndex = index % 4;
-                  const isSmall = patternIndex === 0 || patternIndex === 3;
-                  const cardSize = isSmall ? 'small' : 'large';
-
+                {filteredProducts.map((product) => {
                   return (
                     <View key={product.id} style={{ width: "47%" }}>
-                      <ProductCard product={product} size={cardSize as any} />
+                      <ProductCard product={product} />
                     </View>
                   );
                 })}

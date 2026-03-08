@@ -15,12 +15,14 @@ import {
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
+import { useToast } from "@/contexts/ToastContext";
 import {
-  Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -30,6 +32,7 @@ export default function SignupStep2Screen() {
   const signupState = useAppSelector((state) => state.signup);
   const profile = useAppSelector((state) => state.profile.profile);
 
+  const toast = useToast();
   const email = signupState.formData.email;
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -171,10 +174,7 @@ export default function SignupStep2Screen() {
         return;
       }
 
-      Alert.alert(
-        "Code Sent",
-        "A new verification code has been sent to your email.",
-      );
+      toast.success("A new verification code has been sent to your email.");
 
       setTimer(60);
       setCanResend(false);
@@ -198,6 +198,7 @@ export default function SignupStep2Screen() {
   }
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-white"
@@ -300,5 +301,6 @@ export default function SignupStep2Screen() {
         </View>
       </View>
     </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
