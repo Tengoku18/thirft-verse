@@ -31,7 +31,16 @@
       "output": "static",
       "favicon": "./assets/logo/fav-icon.png"
     },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_ERROR_RECOVERY",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "plugins": [
+      "expo-updates",
       "expo-router",
       [
         "expo-splash-screen",

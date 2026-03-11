@@ -31,6 +31,7 @@ import {
 } from "@/lib/push-notifications";
 import { fetchNotifications, fetchUnreadCount, store } from "@/store";
 import * as Sentry from "@sentry/react-native";
+import * as Updates from "expo-updates";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 
@@ -100,6 +101,25 @@ export default Sentry.wrap(function RootLayout() {
       removeReceived?.();
       removeResponse?.();
     };
+  }, []);
+
+  // Check for OTA updates on app launch (production only)
+  useEffect(() => {
+    if (__DEV__) return;
+
+    async function checkForUpdates() {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        }
+      } catch (error) {
+        Sentry.captureException(error);
+      }
+    }
+
+    checkForUpdates();
   }, []);
 
   const [fontsLoaded] = useFonts({
