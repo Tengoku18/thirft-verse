@@ -1,5 +1,6 @@
 import { decode } from "base64-arraybuffer";
 import { File } from "expo-file-system";
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { supabase } from "./supabase";
 
 export interface UploadResult {
@@ -32,8 +33,6 @@ export async function uploadImageToStorage(
         error: "File size must be less than 5MB",
       };
     }
-    const base64Data = await file.base64();
-    const arrayBuffer = decode(base64Data);
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2);
     let fileExt = "jpg";
@@ -41,9 +40,27 @@ export async function uploadImageToStorage(
     if (uriParts.length > 1) {
       fileExt = uriParts[uriParts.length - 1].split("?")[0].toLowerCase();
     }
-    const mimeType = `image/${fileExt}`;
+
+    // Convert HEIC/HEIF to JPG for browser compatibility
+    let finalUri = imageUri;
+    if (fileExt === "heic" || fileExt === "heif") {
+      const manipulated = await ImageManipulator.manipulate(imageUri)
+        .renderAsync();
+      const result = await manipulated.saveAsync({
+        format: SaveFormat.JPEG,
+        compress: 0.8,
+      });
+      finalUri = result.uri;
+      fileExt = "jpg";
+    }
+
+    const mimeType = `image/${fileExt === "jpg" ? "jpeg" : fileExt}`;
     const fileName = `${random}-${timestamp}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
+
+    const finalFile = new File(finalUri);
+    const base64Data = await finalFile.base64();
+    const arrayBuffer = decode(base64Data);
     const { error: uploadError, data } = await supabase.storage
       .from(bucket)
       .upload(filePath, arrayBuffer, {

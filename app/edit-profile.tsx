@@ -130,14 +130,15 @@ export default function EditProfileScreen() {
       if (!permissionResult.granted) {
         Alert.alert(
           "Permission Required",
-          "Please allow access to your photos to upload a profile picture."
+          "Please allow access to your photos to upload a profile picture.",
         );
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
-        allowsEditing: false,
+        allowsEditing: true,
+        aspect: [1, 1],
         quality: 0.8,
       });
 
@@ -170,7 +171,7 @@ export default function EditProfileScreen() {
         } else {
           Alert.alert(
             "Error",
-            "Failed to upload profile image. Please try again."
+            "Failed to upload profile image. Please try again.",
           );
           setSaving(false);
           return;

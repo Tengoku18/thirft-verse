@@ -56,48 +56,50 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
         return;
       }
 
+      const remainingSlots = maxImages - images.length;
+      if (remainingSlots <= 0) {
+        Alert.alert("Limit Reached", `You can only upload up to ${maxImages} images.`);
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsMultipleSelection: true,
+        selectionLimit: remainingSlots,
         quality: 0.8,
-        selectionLimit: maxImages - images.length,
       });
 
-      if (!result.canceled && result.assets.length > 0) {
-        setUploading(true);
+      if (result.canceled || !result.assets.length) return;
 
-        try {
-          // Get local URIs from selected images
-          const localUris = result.assets.map((asset) => asset.uri);
-          const uploadResults = await uploadMultipleImages(localUris);
+      setUploading(true);
 
-          // Check for upload failures
-          const failedUploads = uploadResults.filter((r) => !r.success);
-          if (failedUploads.length > 0) {
-            const errorMsg = failedUploads[0].error || "Unknown error";
-            Alert.alert("Upload Error", errorMsg);
-            setUploading(false);
-            return;
-          }
+      try {
+        const localUris = result.assets.map((asset) => asset.uri);
+        const uploadResults = await uploadMultipleImages(localUris);
 
-          // Create ProductImage objects with uploaded URLs
-          const newImages = uploadResults
-            .filter((r) => r.success && r.url)
-            .map((r) => ({
-              uri: r.url!,
-              id: Math.random().toString(36).substr(2, 9),
-            }));
-
-          onImagesChange([...images, ...newImages]);
-        } catch (uploadError) {
-          console.error("Error uploading images:", uploadError);
-          Alert.alert(
-            "Upload Failed",
-            "Failed to upload images to storage. Please try again."
-          );
-        } finally {
+        const failedUploads = uploadResults.filter((r) => !r.success);
+        if (failedUploads.length > 0) {
+          Alert.alert("Upload Error", failedUploads[0].error || "Unknown error");
           setUploading(false);
+          return;
         }
+
+        const newImages = uploadResults
+          .filter((r) => r.success && r.url)
+          .map((r) => ({
+            uri: r.url!,
+            id: Math.random().toString(36).substring(2, 11),
+          }));
+
+        onImagesChange([...images, ...newImages]);
+      } catch (uploadError) {
+        console.error("Error uploading images:", uploadError);
+        Alert.alert(
+          "Upload Failed",
+          "Failed to upload images to storage. Please try again."
+        );
+      } finally {
+        setUploading(false);
       }
     } catch (error) {
       console.error("Error picking images:", error);
