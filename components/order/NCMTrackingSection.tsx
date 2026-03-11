@@ -181,25 +181,60 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* NCM Order ID */}
-          <TouchableOpacity
-            onPress={async () => {
-              await Clipboard.setStringAsync(String(ncmOrderId));
-              Alert.alert("Copied!", "NCM ID copied to clipboard");
-            }}
-            className="flex-row items-center px-4 pb-1"
-            activeOpacity={0.6}
-          >
-            <BodyBoldText style={{ fontSize: 28, color: NCM.white, letterSpacing: 0.5 }}>
-              #{ncmOrderId}
-            </BodyBoldText>
-            <View
-              className="ml-3 px-2 py-1 rounded"
-              style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+          {/* NCM ID & Order ID - Highlighted */}
+          <View className="flex-row px-4 pb-1" style={{ gap: 10 }}>
+            {/* Thriftverse NCM ID (fixed) */}
+            <TouchableOpacity
+              onPress={async () => {
+                await Clipboard.setStringAsync("35788");
+                Alert.alert("Copied!", "NCM ID copied to clipboard");
+              }}
+              className="flex-1 rounded-xl px-3 py-2.5"
+              style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
+              activeOpacity={0.6}
             >
-              <IconSymbol name="doc.on.doc" size={13} color={NCM.white} />
-            </View>
-          </TouchableOpacity>
+              <CaptionText style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, letterSpacing: 0.5 }}>
+                NCM ID
+              </CaptionText>
+              <View className="flex-row items-center mt-1">
+                <BodyBoldText style={{ fontSize: 22, color: NCM.white, letterSpacing: 0.5 }}>
+                  #35788
+                </BodyBoldText>
+                <View
+                  className="ml-2 px-1.5 py-1 rounded"
+                  style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+                >
+                  <IconSymbol name="doc.on.doc" size={11} color={NCM.white} />
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {/* NCM Order ID (dynamic per order) */}
+            <TouchableOpacity
+              onPress={async () => {
+                await Clipboard.setStringAsync(String(ncmOrderId));
+                Alert.alert("Copied!", "NCM Order ID copied to clipboard");
+              }}
+              className="flex-1 rounded-xl px-3 py-2.5"
+              style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
+              activeOpacity={0.6}
+            >
+              <CaptionText style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, letterSpacing: 0.5 }}>
+                NCM ORDER ID
+              </CaptionText>
+              <View className="flex-row items-center mt-1">
+                <BodyBoldText style={{ fontSize: 22, color: NCM.white, letterSpacing: 0.5 }}>
+                  #{ncmOrderId}
+                </BodyBoldText>
+                <View
+                  className="ml-2 px-1.5 py-1 rounded"
+                  style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+                >
+                  <IconSymbol name="doc.on.doc" size={11} color={NCM.white} />
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
 
           {/* Current Status Badge */}
           <View className="px-4 pt-2 pb-4">

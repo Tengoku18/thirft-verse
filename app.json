@@ -2,7 +2,7 @@
   "expo": {
     "name": "thriftverse",
     "slug": "thrift-verse",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/logo/ios-app-icon.png",
     "scheme": "thriftverse",
@@ -31,7 +31,17 @@
       "output": "static",
       "favicon": "./assets/logo/fav-icon.png"
     },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_ERROR_RECOVERY",
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/6c1851d4-a94c-42f6-942c-c2d2f223aaa8"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "plugins": [
+      "expo-updates",
       "expo-router",
       [
         "expo-splash-screen",
