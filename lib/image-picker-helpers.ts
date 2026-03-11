@@ -31,7 +31,8 @@ export const pickImage = async (
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      allowsEditing: false,
+      allowsEditing: true,
+      aspect: options.aspectRatio,
       quality: options.quality ?? 0.8,
     });
 
@@ -70,7 +71,8 @@ export const takePhoto = async (
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: false,
+      allowsEditing: true,
+      aspect: options.aspectRatio,
       quality: options.quality ?? 0.8,
     });
 
@@ -98,8 +100,7 @@ export const takePhoto = async (
 };
 
 /**
- * Pick and crop image - now just picks without crop
- * Kept for backward compatibility
+ * Pick and crop image using native cropper
  */
 export const pickAndCropImage = async (
   options: ImagePickerOptions = {}
@@ -126,7 +127,6 @@ export const pickMultipleImages = async (
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      allowsEditing: false,
       allowsMultipleSelection: true,
       selectionLimit: options.selectionLimit ?? 10,
       quality: options.quality ?? 0.8,
