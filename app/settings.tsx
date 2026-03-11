@@ -11,7 +11,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getProfileImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchUserProfile } from "@/store";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -121,7 +120,7 @@ export default function SettingsScreen() {
   const [signingOut, setSigningOut] = useState(false);
   const [mutingNotification, setMutingNotification] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(
-    !profile?.config?.notifications_muted
+    !profile?.config?.notifications_muted,
   );
 
   const updateNotificationSetting = async (muted: boolean) => {
@@ -332,6 +331,11 @@ export default function SettingsScreen() {
             onPress={handlePrivacyPolicy}
           />
           <Divider />
+          <SettingsItem
+            icon="doc.plaintext.fill"
+            title="Terms of Service"
+            onPress={handleTermsOfService}
+          />
           <SettingsItem
             icon="doc.plaintext.fill"
             title="Terms of Service"
