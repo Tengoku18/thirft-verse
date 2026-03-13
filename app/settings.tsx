@@ -1,4 +1,6 @@
+import { VerifyFounderModal } from "@/components/modals/VerifyFounderModal";
 import { ConfirmModal } from "@/components/molecules/ConfirmModal";
+import { FounderBadge } from "@/components/molecules/FounderBadge";
 import { CustomHeader } from "@/components/navigation/CustomHeader";
 import {
   BodyRegularText,
@@ -11,7 +13,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getProfileImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchUserProfile } from "@/store";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -118,10 +119,11 @@ export default function SettingsScreen() {
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showMuteModal, setShowMuteModal] = useState(false);
+  const [showFounderModal, setShowFounderModal] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [mutingNotification, setMutingNotification] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(
-    !profile?.config?.notifications_muted
+    !profile?.config?.notifications_muted,
   );
 
   const updateNotificationSetting = async (muted: boolean) => {
@@ -264,14 +266,31 @@ export default function SettingsScreen() {
             </View>
           )}
           <View className="flex-1 ml-4">
-            <HeadingBoldText style={{ fontSize: 18 }}>
-              {profile?.name || "User"}
-            </HeadingBoldText>
+            <View className="flex-row items-center gap-2">
+              <HeadingBoldText style={{ fontSize: 18 }}>
+                {profile?.name || "User"}
+              </HeadingBoldText>
+            </View>
+
             <BodyRegularText
               style={{ color: "#6B7280", fontSize: 14, marginTop: 2 }}
             >
               @{profile?.store_username || "username"}
             </BodyRegularText>
+            {profile?.is_founder && (
+              <View className="mt-2">
+                <FounderBadge
+                  type={
+                    profile.is_founder_creator && profile.is_founder_seller
+                      ? "both"
+                      : profile.is_founder_creator
+                        ? "creator"
+                        : "seller"
+                  }
+                  size="sm"
+                />
+              </View>
+            )}
           </View>
         </TouchableOpacity>
 
@@ -316,6 +335,32 @@ export default function SettingsScreen() {
             }
           />
         </SettingsSection>
+
+        {/* Founder Status Section */}
+        {profile?.is_founder ? (
+          <SettingsSection title="Founder Circle">
+            <Divider />
+            <SettingsItem
+              icon="crown.fill"
+              iconColor="#D97706"
+              iconBgColor="#FEF3C7"
+              title="Founder Dashboard"
+              subtitle="View benefits & referral stats"
+              onPress={() => router.push("/founder-circle" as any)}
+            />
+          </SettingsSection>
+        ) : (
+          <SettingsSection title="Founder Circle">
+            <SettingsItem
+              icon="crown.fill"
+              iconColor="#D97706"
+              iconBgColor="#FEF3C7"
+              title="Verify Founder Access"
+              subtitle="Enter your access code to activate founder status"
+              onPress={() => setShowFounderModal(true)}
+            />
+          </SettingsSection>
+        )}
 
         {/* Support Section */}
         <SettingsSection title="Support">
@@ -363,6 +408,16 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
       </ScrollView>
+
+      {/* Verify Founder Modal */}
+      <VerifyFounderModal
+        visible={showFounderModal}
+        onClose={() => setShowFounderModal(false)}
+        onVerified={() => {
+          setShowFounderModal(false);
+          router.push("/founder-circle" as any);
+        }}
+      />
 
       {/* Mute Notifications Confirmation Modal */}
       <ConfirmModal

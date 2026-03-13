@@ -1,5 +1,11 @@
 import { supabase } from "./supabase";
-import { AppNotification, PaginatedResponse, Product, ProductStatus, ProfileRevenue } from "./types/database";
+import {
+  AppNotification,
+  PaginatedResponse,
+  Product,
+  ProductStatus,
+  ProfileRevenue,
+} from "./types/database";
 
 /**
  * Check if email already exists in auth.users table
@@ -523,7 +529,10 @@ export const getOrdersBySeller = async (sellerId: string) => {
         .order("created_at", { ascending: true });
 
       if (itemsError) {
-        console.error("❌ Error fetching order_items:", JSON.stringify(itemsError));
+        console.error(
+          "❌ Error fetching order_items:",
+          JSON.stringify(itemsError),
+        );
       }
 
       // Attach order_items to each order
@@ -575,7 +584,12 @@ export const getOrderById = async (orderId: string) => {
 
         if (orderError) {
           console.error("❌ Error fetching order:", orderError);
-          return { success: false, data: null, order_items: [], error: orderError };
+          return {
+            success: false,
+            data: null,
+            order_items: [],
+            error: orderError,
+          };
         }
 
         // Fetch order_items for this order
@@ -600,7 +614,10 @@ export const getOrderById = async (orderId: string) => {
       .order("created_at", { ascending: true });
 
     if (itemsError) {
-      console.error("❌ Error fetching order_items:", JSON.stringify(itemsError));
+      console.error(
+        "❌ Error fetching order_items:",
+        JSON.stringify(itemsError),
+      );
     }
 
     return { success: true, data, order_items: items || [] };
@@ -1119,7 +1136,9 @@ export const updateOrderWithNCM = async (
         .update({
           revenue: {
             ...currentRevenue,
-            pendingAmount: (currentRevenue.pendingAmount || 0) + (orderData.sellers_earning || 0),
+            pendingAmount:
+              (currentRevenue.pendingAmount || 0) +
+              (orderData.sellers_earning || 0),
           },
           updated_at: now,
         })
@@ -1150,7 +1169,8 @@ export const syncNCMOrderStatus = async (
 ) => {
   try {
     // Import NCM helpers dynamically to avoid circular dependency
-    const { getNCMOrderDetails, getNCMOrderStatus } = await import("./ncm-helpers");
+    const { getNCMOrderDetails, getNCMOrderStatus } =
+      await import("./ncm-helpers");
 
     // Fetch order details from NCM
     const detailsResult = await getNCMOrderDetails(ncmOrderId);
@@ -1265,7 +1285,7 @@ export const syncNCMOrderStatus = async (
 export const getNotifications = async (
   userId: string,
   limit = 20,
-  offset = 0
+  offset = 0,
 ): Promise<{ success: boolean; data: AppNotification[]; count: number }> => {
   try {
     const { data, error, count } = await supabase
@@ -1288,10 +1308,12 @@ export const getNotifications = async (
 };
 
 export const getUnreadNotificationCount = async (
-  userId: string
+  userId: string,
 ): Promise<number> => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session) return 0;
 
     const { data, error } = await supabase
@@ -1313,7 +1335,7 @@ export const getUnreadNotificationCount = async (
 };
 
 export const markNotificationAsRead = async (
-  notificationId: string
+  notificationId: string,
 ): Promise<boolean> => {
   try {
     const { data, error } = await supabase
@@ -1328,7 +1350,10 @@ export const markNotificationAsRead = async (
     }
 
     if (!data || data.length === 0) {
-      console.warn("markNotificationAsRead: no rows updated for id:", notificationId);
+      console.warn(
+        "markNotificationAsRead: no rows updated for id:",
+        notificationId,
+      );
       return false;
     }
 
@@ -1340,7 +1365,7 @@ export const markNotificationAsRead = async (
 };
 
 export const markAllNotificationsAsRead = async (
-  userId: string
+  userId: string,
 ): Promise<boolean> => {
   try {
     const { data, error } = await supabase
@@ -1360,5 +1385,294 @@ export const markAllNotificationsAsRead = async (
   } catch (error) {
     console.error("Error in markAllNotificationsAsRead:", error);
     return false;
+  }
+};
+
+// ── Founder Circle helpers ──────────────────────────────────────────────────
+
+/**
+ * Verify a founder access code against the founder_circle_applications table.
+ * On success, marks the user's profile as a founder and captures their role.
+ */
+export const verifyFounderAccess = async (
+  code: string,
+  email: string,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const trimmedCode = code.trim().toUpperCase();
+
+    // Always bind verification to the signed-in account email.
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return {
+        success: false,
+        error: "You must be signed in to verify founder access.",
+      };
+    }
+
+    const authEmail = user.email?.trim().toLowerCase();
+    if (!authEmail) {
+      return {
+        success: false,
+        error: "Your account email is missing. Please contact support.",
+      };
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    if (trimmedEmail !== authEmail) {
+      return {
+        success: false,
+        error: "Please use the same email as your signed-in account.",
+      };
+    }
+
+    // RLS blocks direct client reads on founder applications, so use a
+    // SECURITY DEFINER RPC that safely validates code+email.
+    const { data, error: lookupError } = await supabase.rpc(
+      "verify_founder_access",
+      {
+        p_code: trimmedCode,
+        p_email: trimmedEmail,
+      },
+    );
+
+    const application = Array.isArray(data) ? data[0] : data;
+
+    if (lookupError) {
+      console.error("Founder lookup error:", lookupError);
+      if (lookupError.code === "PGRST202") {
+        return {
+          success: false,
+          error:
+            "Founder verification is not configured on the server yet. Please run the latest Supabase migration.",
+        };
+      }
+      return {
+        success: false,
+        error: "Could not verify access code. Please try again.",
+      };
+    }
+
+    if (!application) {
+      return {
+        success: false,
+        error: "Invalid access code or email. Please check and try again.",
+      };
+    }
+
+    if (!application.is_approved) {
+      return {
+        success: false,
+        error:
+          "Your application is still under review. We'll notify you once it's approved.",
+      };
+    }
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({
+        is_founder: true,
+        is_founder_creator: application.is_creator,
+        is_founder_seller: application.is_seller,
+        founder_verified_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Error updating founder status:", updateError);
+      return {
+        success: false,
+        error: "Failed to activate founder status. Please try again.",
+      };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Unexpected error in verifyFounderAccess:", err);
+    return {
+      success: false,
+      error: "An unexpected error occurred. Please try again.",
+    };
+  }
+};
+
+/**
+ * Generate a unique referral code for a Founding Creator and persist it.
+ * If the user already has a code, returns the existing one.
+ */
+export const generateReferralCode = async (
+  userId: string,
+  userEmail: string,
+): Promise<{ success: boolean; code?: string; error?: string }> => {
+  try {
+    // Return existing code if one already exists
+    const existing = await getMyReferralCode(userId);
+    if (existing.code) {
+      return { success: true, code: existing.code };
+    }
+
+    // Build a collision-resistant code: "THRIFT-" + 6 random uppercase alphanumeric chars
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "THRIFT-";
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    const { error } = await supabase.from("referrals").insert({
+      referrer_id: userId,
+      referrer_email: userEmail.toLowerCase(),
+      code,
+    });
+
+    if (error) {
+      // Unique violation: race condition — re-fetch the row that won the race
+      if (error.code === "23505") {
+        const retry = await getMyReferralCode(userId);
+        if (retry.code) return { success: true, code: retry.code };
+      }
+      console.error("Error generating referral code:", error);
+      return {
+        success: false,
+        error: "Failed to generate referral code. Please try again.",
+      };
+    }
+
+    return { success: true, code };
+  } catch (err) {
+    console.error("Unexpected error in generateReferralCode:", err);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+};
+
+/**
+ * Retrieve the current user's referral code (if any).
+ */
+export const getMyReferralCode = async (
+  userId: string,
+): Promise<{ code: string | null; referralId: string | null }> => {
+  try {
+    const { data, error } = await supabase
+      .from("referrals")
+      .select("id, code")
+      .eq("referrer_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching referral code:", error);
+      return { code: null, referralId: null };
+    }
+
+    return { code: data?.code ?? null, referralId: data?.id ?? null };
+  } catch (err) {
+    console.error("Unexpected error in getMyReferralCode:", err);
+    return { code: null, referralId: null };
+  }
+};
+
+/**
+ * Apply a referral code at the end of signup.
+ * Validates the code exists, then creates a referral_users row linking
+ * the new user to the creator who referred them.
+ * A user can only be referred once (enforced by DB unique index).
+ */
+export const applyReferralCode = async (
+  code: string,
+  userId: string,
+  userEmail: string,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const trimmedCode = code.trim().toUpperCase();
+
+    // Resolve the referral row for this code
+    const { data: referral, error: lookupError } = await supabase
+      .from("referrals")
+      .select("id, referrer_id")
+      .eq("code", trimmedCode)
+      .maybeSingle();
+
+    if (lookupError) {
+      console.error("Error looking up referral code:", lookupError);
+      return {
+        success: false,
+        error: "Could not validate referral code. Please try again.",
+      };
+    }
+
+    if (!referral) {
+      return {
+        success: false,
+        error: "Invalid referral code. Please check and try again.",
+      };
+    }
+
+    // Prevent self-referral
+    if (referral.referrer_id === userId) {
+      return {
+        success: false,
+        error: "You cannot use your own referral code.",
+      };
+    }
+
+    const { error: insertError } = await supabase
+      .from("referral_users")
+      .insert({
+        referral_id: referral.id,
+        referred_user_id: userId,
+        referred_email: userEmail.toLowerCase(),
+      });
+
+    if (insertError) {
+      // Unique violation means this user was already referred
+      if (insertError.code === "23505") {
+        return { success: true }; // Idempotent — treat as success
+      }
+      console.error("Error applying referral code:", insertError);
+      return {
+        success: false,
+        error: "Failed to apply referral code. You may have already used one.",
+      };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Unexpected error in applyReferralCode:", err);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+};
+
+/**
+ * Fetch referral stats for a Founding Creator —
+ * how many users they've referred and how many are still in the commission window.
+ */
+export const getReferralStats = async (
+  userId: string,
+): Promise<{ totalReferred: number; activeCommissions: number }> => {
+  try {
+    const { referralId } = await getMyReferralCode(userId);
+    if (!referralId) return { totalReferred: 0, activeCommissions: 0 };
+
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from("referral_users")
+      .select("id, commission_expires_at")
+      .eq("referral_id", referralId);
+
+    if (error) {
+      console.error("Error fetching referral stats:", error);
+      return { totalReferred: 0, activeCommissions: 0 };
+    }
+
+    const totalReferred = data?.length ?? 0;
+    const activeCommissions =
+      data?.filter((r) => r.commission_expires_at > now).length ?? 0;
+
+    return { totalReferred, activeCommissions };
+  } catch (err) {
+    console.error("Unexpected error in getReferralStats:", err);
+    return { totalReferred: 0, activeCommissions: 0 };
   }
 };

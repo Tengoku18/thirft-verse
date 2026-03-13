@@ -1,13 +1,25 @@
 // Database types for Supabase tables
 // Aligned with web app types
 
-export type UserRole = 'ADMIN' | 'USER';
-export type SubscriptionPlan = 'BASIC' | 'SILVER' | 'GOLD';
-export type OrderStatus = 'pending' | 'processing' | 'completed' | 'cancelled' | 'refunded';
-export type ProductStatus = 'available' | 'out_of_stock';
-export type ProfileStatus = 'active' | 'suspended' | 'deleted';
-export type DeletionRequestStatus = 'pending' | 'approved' | 'rejected' | 'completed';
-export type NotificationType = 'new_order' | 'order_cancelled' | 'order_refunded';
+export type UserRole = "ADMIN" | "USER";
+export type SubscriptionPlan = "BASIC" | "SILVER" | "GOLD";
+export type OrderStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "cancelled"
+  | "refunded";
+export type ProductStatus = "available" | "out_of_stock";
+export type ProfileStatus = "active" | "suspended" | "deleted";
+export type DeletionRequestStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "completed";
+export type NotificationType =
+  | "new_order"
+  | "order_cancelled"
+  | "order_refunded";
 
 export interface AppNotification {
   id: string;
@@ -55,8 +67,32 @@ export interface Profile {
   payment_qr_image: string | null;
   revenue: ProfileRevenue | null;
   expo_push_tokens: string[];
+  // Founder Circle
+  is_founder: boolean;
+  is_founder_creator: boolean;
+  is_founder_seller: boolean;
+  founder_verified_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// ── Referral types ──────────────────────────────────────────────────────────
+
+export interface Referral {
+  id: string;
+  referrer_id: string;
+  referrer_email: string;
+  code: string;
+  created_at: string;
+}
+
+export interface ReferralUser {
+  id: string;
+  referral_id: string;
+  referred_user_id: string;
+  referred_email: string;
+  commission_expires_at: string;
+  created_at: string;
 }
 
 export interface Product {
@@ -79,7 +115,7 @@ export interface Product {
 }
 
 export interface ProductWithStore extends Product {
-  store: Pick<Profile, 'id' | 'name' | 'store_username' | 'currency'> | null;
+  store: Pick<Profile, "id" | "name" | "store_username" | "currency"> | null;
 }
 
 export interface PaginatedResponse<T> {
@@ -117,7 +153,7 @@ export interface Order {
   transaction_uuid: string;
   amount: number;
   shipping_fee: number;
-  shipping_option: 'home' | 'branch' | null;
+  shipping_option: "home" | "branch" | null;
   payment_method: string;
   status: OrderStatus;
   sellers_earning: number;
@@ -160,12 +196,12 @@ export interface OrderItem {
 }
 
 export interface OrderWithDetails extends Order {
-  seller: Pick<Profile, 'id' | 'name' | 'store_username'> | null;
-  product: Pick<Product, 'id' | 'title' | 'cover_image' | 'price'> | null;
+  seller: Pick<Profile, "id" | "name" | "store_username"> | null;
+  product: Pick<Product, "id" | "title" | "cover_image" | "price"> | null;
 }
 
 export interface OrderWithItems extends Order {
-  seller: Pick<Profile, 'id' | 'name' | 'store_username' | 'currency'> | null;
+  seller: Pick<Profile, "id" | "name" | "store_username" | "currency"> | null;
   order_items: OrderItem[];
 }
 
