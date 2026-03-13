@@ -89,7 +89,7 @@ export default function DashboardScreen() {
   useFocusEffect(
     useCallback(() => {
       loadDashboardData();
-    }, [user])
+    }, [user]),
   );
 
   const loadDashboardData = async () => {
@@ -130,11 +130,11 @@ export default function DashboardScreen() {
       if (realOrders.length > 0) {
         // Pending = only pending status (matches Orders screen filter)
         pendingOrders = realOrders.filter(
-          (o: any) => o.status === "pending"
+          (o: any) => o.status === "pending",
         ).length;
         // Completed = only completed status (matches Orders screen filter)
         completedOrders = realOrders.filter(
-          (o: any) => o.status === "completed"
+          (o: any) => o.status === "completed",
         ).length;
         totalOrders = realOrders.length;
         // Map orders with earnings calculation
@@ -182,7 +182,7 @@ export default function DashboardScreen() {
             status:
               dayjs().diff(
                 dayjs(product.updated_at || product.created_at),
-                "day"
+                "day",
               ) > 7
                 ? "completed"
                 : "pending",
@@ -231,13 +231,13 @@ export default function DashboardScreen() {
       labels.push(days[date.day()]);
 
       const dayOrders = orders.filter((order) =>
-        dayjs(order.created_at).isSame(date, "day")
+        dayjs(order.created_at).isSame(date, "day"),
       );
 
       // Use earnings (amount - shipping_fee) instead of total amount
       const dayRevenue = dayOrders.reduce(
         (sum: number, order) => sum + (order.earnings || 0),
-        0
+        0,
       );
       data.push(dayRevenue);
       total += dayRevenue;
