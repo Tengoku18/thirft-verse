@@ -1,6 +1,7 @@
 import {
   BodyRegularText,
   BodySemiboldText,
+  CaptionText,
   HeadingBoldText,
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -22,6 +23,7 @@ interface ProductSuccessModalProps {
     price: number;
     cover_image: string;
   } | null;
+  storeUsername?: string;
   onShare: () => void;
   onViewProduct: () => void;
   onClose: () => void;
@@ -30,6 +32,7 @@ interface ProductSuccessModalProps {
 export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
   visible,
   product,
+  storeUsername,
   onShare,
   onViewProduct,
   onClose,
@@ -38,16 +41,22 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
     if (!product) return;
 
     try {
-      const productUrl = `https://thriftverse.shop/product/${product.id}`;
+      const productUrl = storeUsername
+        ? `https://${storeUsername}.thriftverse.shop/product/${product.id}`
+        : `https://thriftverse.shop/product/${product.id}`;
       await Share.share({
         message: `Check out "${product.title}" on Thriftverse!\n\n${productUrl}`,
-        url: productUrl,
         title: product.title,
       });
+      onShare();
     } catch (error) {
       console.error("Error sharing:", error);
     }
   };
+
+  const displayStoreDomain = storeUsername
+    ? `${storeUsername}.thriftverse.com`
+    : "your-store.thriftverse.com";
 
   return (
     <Modal
@@ -115,13 +124,79 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
               </View>
             )}
 
-            <BodyRegularText
-              className="text-center mb-6"
-              style={{ color: "#6B7280" }}
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: "#E2E8F0",
+                borderRadius: 12,
+                overflow: "hidden",
+                marginTop: 8,
+                marginBottom: 20,
+                backgroundColor: "#FFFFFF",
+              }}
             >
-              Your product has been listed successfully and is now visible to
-              buyers.
-            </BodyRegularText>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  padding: 12,
+                  backgroundColor: "#F8FAFC",
+                }}
+              >
+                <View
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: 13,
+                    backgroundColor: "#DBEAFE",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: 1,
+                  }}
+                >
+                  <IconSymbol name="storefront" size={12} color="#1D4ED8" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <CaptionText style={{ color: "#475569", lineHeight: 18 }}>
+                    The product will be visible on your store (
+                    {displayStoreDomain}) immediately.
+                  </CaptionText>
+                </View>
+              </View>
+
+              <View style={{ height: 1, backgroundColor: "#E2E8F0" }} />
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  padding: 12,
+                  backgroundColor: "#FFFFFF",
+                }}
+              >
+                <View
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: 13,
+                    backgroundColor: "#F1F5F9",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: 1,
+                  }}
+                >
+                  <IconSymbol name="clock" size={12} color="#475569" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <CaptionText style={{ color: "#475569", lineHeight: 18 }}>
+                    It will appear on the main marketplace (thriftverse.com)
+                    after it is verified by our team.
+                  </CaptionText>
+                </View>
+              </View>
+            </View>
 
             {/* Action Buttons */}
             <View style={{ gap: 12 }}>
