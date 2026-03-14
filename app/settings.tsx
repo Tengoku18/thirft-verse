@@ -318,6 +318,21 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
 
+        <SettingsSection title="Sales">
+          <SettingsItem
+            icon="ticket.fill"
+            iconColor="#2563EB"
+            iconBgColor="#DBEAFE"
+            title="Offer Code"
+            subtitle={
+              profile?.offer_code_object
+                ? `${profile.offer_code_object.code} · ${profile.offer_code_object.discountPercent}% off`
+                : "Create a discount code for your store"
+            }
+            onPress={() => router.push("/offer-code" as any)}
+          />
+        </SettingsSection>
+
         {/* Preferences Section */}
         <SettingsSection title="Preferences">
           <SettingsItem
@@ -345,7 +360,7 @@ export default function SettingsScreen() {
               iconColor="#D97706"
               iconBgColor="#FEF3C7"
               title="Founder Dashboard"
-              subtitle="View benefits & referral stats"
+              subtitle="View benefits and founder status"
               onPress={() => router.push("/founder-circle" as any)}
             />
           </SettingsSection>

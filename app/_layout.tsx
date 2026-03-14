@@ -207,6 +207,10 @@ export default Sentry.wrap(function RootLayout() {
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen
+                  name="offer-code"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
                   name="founder-circle"
                   options={{ headerShown: false }}
                 />
