@@ -25,7 +25,13 @@ import {
   View,
 } from "react-native";
 
-type StatusFilter = "all" | "pending" | "processing" | "completed" | "cancelled" | "refunded";
+type StatusFilter =
+  | "all"
+  | "pending"
+  | "processing"
+  | "completed"
+  | "cancelled"
+  | "refunded";
 
 // Unified item type that works for both orders and sold products
 interface OrderItem {
@@ -42,6 +48,11 @@ interface OrderItem {
   created_at: string;
   quantity: number;
   items_count: number; // Number of different products in this order (1 = single product)
+  items_subtotal: number;
+  discounted_items_total: number;
+  offer_code_text: string | null;
+  offer_discount_percent: number | null;
+  offer_discount_amount: number;
   // Original data for navigation
   originalId: string;
 }
@@ -175,6 +186,26 @@ function OrderCard({ item, onPress }: OrderCardProps) {
             >
               {formatPrice(item.amount)}
             </HeadingBoldText>
+
+            {item.offer_code_text && item.offer_discount_amount > 0 && (
+              <View className="mt-2 flex-row items-center self-start rounded-full bg-[#ECFDF5] px-2.5 py-1">
+                <IconSymbol name="tag.fill" size={10} color="#059669" />
+                <CaptionText
+                  style={{
+                    color: "#059669",
+                    marginLeft: 4,
+                    fontSize: 11,
+                    fontWeight: "700",
+                  }}
+                >
+                  {item.offer_code_text}
+                  {item.offer_discount_percent
+                    ? ` (${item.offer_discount_percent}% OFF)`
+                    : ""}
+                  {`  -${formatPrice(item.offer_discount_amount)}`}
+                </CaptionText>
+              </View>
+            )}
           </View>
         </View>
 
@@ -294,6 +325,16 @@ export default function OrdersScreen() {
             itemsCount = order.quantity || 1;
           }
 
+          const itemsSubtotal = order.items_subtotal ?? productPrice;
+          const discountedItemsTotal =
+            order.discounted_items_total ?? itemsSubtotal;
+          const offerDiscountAmount =
+            order.offer_discount_amount ??
+            Math.max(
+              0,
+              Math.round((itemsSubtotal - discountedItemsTotal) * 100) / 100,
+            );
+
           return {
             id: order.id,
             type: "order" as const,
@@ -308,6 +349,11 @@ export default function OrdersScreen() {
             created_at: order.created_at || new Date().toISOString(),
             quantity: order.quantity || 1,
             items_count: itemsCount,
+            items_subtotal: itemsSubtotal,
+            discounted_items_total: discountedItemsTotal,
+            offer_code_text: order.offer_code_text || null,
+            offer_discount_percent: order.offer_discount_percent || null,
+            offer_discount_amount: offerDiscountAmount,
             originalId: order.id,
           };
         });
@@ -354,9 +400,6 @@ export default function OrdersScreen() {
     cancelled: items.filter((i) => i.status === "cancelled").length,
     refunded: items.filter((i) => i.status === "refunded").length,
   };
-
-  // Calculate total revenue for filtered items
-  const totalRevenue = filteredItems.reduce((sum, i) => sum + i.amount, 0);
 
   if (loading) {
     return (
@@ -408,7 +451,7 @@ export default function OrdersScreen() {
                 activeOpacity={0.7}
                 onPress={() =>
                   Linking.openURL(
-                    "https://www.thriftverse.shop/blogs/how-to-handle-orders"
+                    "https://www.thriftverse.shop/blogs/how-to-handle-orders",
                   )
                 }
               >

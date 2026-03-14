@@ -52,6 +52,13 @@ export interface ProfileRevenue {
   withdrawalHistory: WithdrawalRecord[];
 }
 
+export interface ProfileOfferCodeObject {
+  code: string;
+  discountPercent: number;
+  expiresAt: string;
+  updatedAt: string;
+}
+
 export interface Profile {
   id: string;
   name: string;
@@ -67,6 +74,7 @@ export interface Profile {
   payment_qr_image: string | null;
   revenue: ProfileRevenue | null;
   expo_push_tokens: string[];
+  offer_code_object: ProfileOfferCodeObject | null;
   // Founder Circle
   is_founder: boolean;
   is_founder_creator: boolean;
@@ -93,6 +101,34 @@ export interface ReferralUser {
   referred_email: string;
   commission_expires_at: string;
   created_at: string;
+}
+
+export interface OfferCode {
+  id: string;
+  owner_user_id: string;
+  code: string;
+  code_normalized: string;
+  discount_percent: number;
+  expires_at: string;
+  deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OfferCodeUsage {
+  id: string;
+  offer_code_id: string;
+  owner_user_id: string;
+  client_user_id: string | null;
+  client_email: string | null;
+  order_id: string | null;
+  items_subtotal: number;
+  discount_percent: number;
+  discount_amount: number;
+  discounted_items_total: number;
+  final_amount: number;
+  used_at: string;
+  metadata: Record<string, unknown> | null;
 }
 
 export interface Product {
@@ -153,11 +189,17 @@ export interface Order {
   transaction_uuid: string;
   amount: number;
   shipping_fee: number;
+  items_subtotal: number | null;
+  discounted_items_total: number | null;
   shipping_option: "home" | "branch" | null;
   payment_method: string;
   status: OrderStatus;
   sellers_earning: number;
   platform_earnings: number;
+  offer_code_id: string | null;
+  offer_code_text: string | null;
+  offer_discount_percent: number | null;
+  offer_discount_amount: number | null;
   created_at: string;
   updated_at: string;
   // NCM (Nepal Can Move) tracking fields

@@ -1,11 +1,16 @@
 import { supabase } from "./supabase";
 import {
   AppNotification,
+  OfferCode,
   PaginatedResponse,
   Product,
   ProductStatus,
   ProfileRevenue,
 } from "./types/database";
+
+const OFFER_CODE_REGEX = /^[A-Z0-9_-]{4,24}$/;
+const MAX_OFFER_DISCOUNT_PERCENT = 90;
+const MAX_OFFER_VALID_HOURS = 24 * 365;
 
 /**
  * Check if email already exists in auth.users table
@@ -353,6 +358,218 @@ export const updateUserProfile = async (data: UpdateProfileData) => {
   } catch (error) {
     console.error("💥 Error in updateUserProfile:", error);
     return { success: false, error };
+  }
+};
+
+interface UpsertOfferCodeData {
+  code: string;
+  discountPercent: number;
+  validHours: number;
+}
+
+const normalizeOfferCode = (code: string) => code.trim().toUpperCase();
+
+export const getMyOfferCode = async (): Promise<{
+  success: boolean;
+  data?: OfferCode | null;
+  error?: string;
+}> => {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return {
+        success: false,
+        error: "You must be signed in to manage offer codes.",
+      };
+    }
+
+    const { data, error } = await supabase
+      .from("offer_codes")
+      .select("*")
+      .eq("owner_user_id", user.id)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (error) {
+      if (error.code === "PGRST205") {
+        return {
+          success: false,
+          error:
+            "Offer code system is not configured yet. Please run the latest Supabase migration.",
+        };
+      }
+
+      console.error("Error fetching offer code:", error);
+      return { success: false, error: "Failed to load your offer code." };
+    }
+
+    return { success: true, data: (data as OfferCode | null) ?? null };
+  } catch (error) {
+    console.error("Unexpected error in getMyOfferCode:", error);
+    return { success: false, error: "Failed to load your offer code." };
+  }
+};
+
+export const upsertMyOfferCode = async (
+  data: UpsertOfferCodeData,
+): Promise<{ success: boolean; data?: OfferCode; error?: string }> => {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return {
+        success: false,
+        error: "You must be signed in to manage offer codes.",
+      };
+    }
+
+    const normalizedCode = normalizeOfferCode(data.code);
+    if (!OFFER_CODE_REGEX.test(normalizedCode)) {
+      return {
+        success: false,
+        error:
+          "Offer code must be 4-24 characters and only use letters, numbers, hyphens, or underscores.",
+      };
+    }
+
+    if (!Number.isFinite(data.discountPercent) || data.discountPercent <= 0) {
+      return { success: false, error: "Discount must be greater than 0%." };
+    }
+
+    if (data.discountPercent > MAX_OFFER_DISCOUNT_PERCENT) {
+      return {
+        success: false,
+        error:
+          "Discount cannot exceed 90% because the platform keeps a 5% product commission.",
+      };
+    }
+
+    if (
+      !Number.isFinite(data.validHours) ||
+      data.validHours <= 0 ||
+      data.validHours > MAX_OFFER_VALID_HOURS
+    ) {
+      return {
+        success: false,
+        error: "Validity must be between 1 hour and 8760 hours.",
+      };
+    }
+
+    const expiresAt = new Date(
+      Date.now() + data.validHours * 60 * 60 * 1000,
+    ).toISOString();
+    const existing = await getMyOfferCode();
+    if (!existing.success) {
+      return { success: false, error: existing.error };
+    }
+
+    if (existing.data) {
+      const { data: updated, error } = await supabase
+        .from("offer_codes")
+        .update({
+          code: normalizedCode,
+          code_normalized: normalizedCode,
+          discount_percent: data.discountPercent,
+          expires_at: expiresAt,
+          deleted_at: null,
+        })
+        .eq("id", existing.data.id)
+        .select("*")
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          return {
+            success: false,
+            error: "That offer code is already taken globally.",
+          };
+        }
+
+        console.error("Error updating offer code:", error);
+        return { success: false, error: "Failed to update your offer code." };
+      }
+
+      return { success: true, data: updated as OfferCode };
+    }
+
+    const { data: created, error } = await supabase
+      .from("offer_codes")
+      .insert({
+        owner_user_id: user.id,
+        code: normalizedCode,
+        code_normalized: normalizedCode,
+        discount_percent: data.discountPercent,
+        expires_at: expiresAt,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      if (error.code === "23505") {
+        return {
+          success: false,
+          error: "That offer code is already taken globally.",
+        };
+      }
+
+      if (error.code === "PGRST205") {
+        return {
+          success: false,
+          error:
+            "Offer code system is not configured yet. Please run the latest Supabase migration.",
+        };
+      }
+
+      console.error("Error creating offer code:", error);
+      return { success: false, error: "Failed to create your offer code." };
+    }
+
+    return { success: true, data: created as OfferCode };
+  } catch (error) {
+    console.error("Unexpected error in upsertMyOfferCode:", error);
+    return { success: false, error: "Failed to save your offer code." };
+  }
+};
+
+export const deleteMyOfferCode = async (): Promise<{
+  success: boolean;
+  error?: string;
+}> => {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return {
+        success: false,
+        error: "You must be signed in to manage offer codes.",
+      };
+    }
+
+    const { error } = await supabase
+      .from("offer_codes")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("owner_user_id", user.id)
+      .is("deleted_at", null);
+
+    if (error) {
+      console.error("Error deleting offer code:", error);
+      return { success: false, error: "Failed to delete your offer code." };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected error in deleteMyOfferCode:", error);
+    return { success: false, error: "Failed to delete your offer code." };
   }
 };
 
