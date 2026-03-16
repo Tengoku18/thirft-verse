@@ -15,7 +15,7 @@ export default async function ExplorePage() {
   // Fetch all available products and stores in parallel
   const [productsResult, profilesResult] = await Promise.all([
     getAvailableProducts(),
-    getProfiles({ role: 'USER' })
+    getProfiles({ role: 'USER', verified: true })
   ])
 
   const products = productsResult.data

@@ -56,6 +56,9 @@ export interface Profile {
   reviews: Review[];
   config: ProfileConfig;
   offer_code_object: ProfileOfferCodeObject | null;
+  is_verified: boolean;
+  verified_at: string | null;
+  verified_by: string | null;
   created_at: string;
   updated_at: string;
 }
