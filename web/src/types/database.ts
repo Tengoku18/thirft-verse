@@ -59,6 +59,10 @@ export interface Profile {
   is_verified: boolean;
   verified_at: string | null;
   verified_by: string | null;
+  is_founder: boolean;
+  is_founder_creator: boolean;
+  is_founder_seller: boolean;
+  founder_verified_at: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -1,6 +1,6 @@
 import { Profile } from '@/types/database'
 import { getStorefrontUrl } from '@/utils/domainHelpers'
-import { Store } from 'lucide-react'
+import { BadgeCheck, Store } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -40,9 +40,14 @@ const StoreCard = ({ profile }: StoreCardProps) => {
 
       {/* Store Info */}
       <div className="p-2.5 pb-3 sm:p-4">
-        <h3 className="font-heading mb-1 text-sm font-bold text-primary sm:mb-2 sm:text-xl">
-          {profile.name}
-        </h3>
+        <div className="mb-1 flex items-center gap-1 sm:mb-2">
+          <h3 className="font-heading text-sm font-bold text-primary sm:text-xl">
+            {profile.name}
+          </h3>
+          {profile.is_verified && (
+            <BadgeCheck className="h-4 w-4 shrink-0 fill-blue-500 text-white sm:h-5 sm:w-5" />
+          )}
+        </div>
 
         {profile.store_username && (
           <div className="flex items-center gap-1 text-xs text-primary/60 sm:gap-1.5 sm:text-sm">
