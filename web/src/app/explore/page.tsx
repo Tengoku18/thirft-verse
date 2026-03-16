@@ -1,6 +1,7 @@
 import { getProfiles } from '@/actions'
 import { getAvailableProducts } from '@/actions/products'
 import ExploreContent from '@/_components/explore/ExploreContent'
+import { Suspense } from 'react'
 
 /**
  * ISR Configuration
@@ -20,5 +21,9 @@ export default async function ExplorePage() {
   const products = productsResult.data
   const stores = profilesResult.data
 
-  return <ExploreContent initialProducts={products} initialStores={stores} />
+  return (
+    <Suspense>
+      <ExploreContent initialProducts={products} initialStores={stores} />
+    </Suspense>
+  )
 }

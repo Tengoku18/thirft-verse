@@ -9,6 +9,7 @@ import {
 } from '@/utils/exploreHelpers'
 import { Package, Store } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import ProductCard from '../ProductCard'
 import StoreCard from '../StoreCard'
 import type { ExploreTab } from './index'
@@ -30,8 +31,19 @@ export default function ExploreContent({
   initialProducts,
   initialStores,
 }: ExploreContentProps) {
-  // Tab state
-  const [activeTab, setActiveTab] = useState<ExploreTab>('products')
+  // Tab state — driven by ?tab= URL param, defaults to 'products'
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const activeTab = (searchParams.get('tab') as ExploreTab) || 'products'
+  const setActiveTab = (tab: ExploreTab) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (tab === 'products') {
+      params.delete('tab')
+    } else {
+      params.set('tab', tab)
+    }
+    router.push(`?${params.toString()}`, { scroll: false })
+  }
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('')
@@ -248,7 +260,7 @@ export default function ExploreContent({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
               {filteredStores.map((store) => (
                 <StoreCard key={store.id} profile={store} />
               ))}
