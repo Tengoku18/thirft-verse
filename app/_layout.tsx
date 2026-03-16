@@ -211,6 +211,10 @@ export default Sentry.wrap(function RootLayout() {
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen
+                  name="referral-code"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
                   name="founder-circle"
                   options={{ headerShown: false }}
                 />

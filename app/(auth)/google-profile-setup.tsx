@@ -8,13 +8,13 @@ import {
   HeadingBoldText,
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   checkUsernameExists,
   createUserProfile,
   verifyProfileExists,
 } from "@/lib/database-helpers";
-import { useAuth } from "@/contexts/AuthContext";
-import { fetchUserProfile } from "@/store";
+import { fetchUserProfile, persistSignupState, setCurrentStep } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -100,7 +100,7 @@ export default function GoogleProfileSetupScreen() {
     }
     if (!/^[a-z0-9_]+$/.test(username)) {
       setErrorMessage(
-        "Username can only contain lowercase letters, numbers, and underscores"
+        "Username can only contain lowercase letters, numbers, and underscores",
       );
       return;
     }
@@ -160,7 +160,14 @@ export default function GoogleProfileSetupScreen() {
       // Refresh profile in Redux so route guard sees it
       await dispatch(fetchUserProfile(user.id));
 
-      // Redirect to payment setup (same as signup step 3)
+      // Continue with dedicated referral step
+      dispatch(setCurrentStep(3));
+      await dispatch(
+        persistSignupState({
+          currentStep: 3,
+          isSignupInProgress: true,
+        }),
+      );
       router.replace("/(auth)/signup-step3");
     } catch (error) {
       console.error("Error creating profile:", error);

@@ -316,13 +316,18 @@ export default function SettingsScreen() {
             subtitle="Manage your payment methods"
             onPress={handleEditProfile}
           />
+          <Divider />
+          <SettingsItem
+            icon="person.2.fill"
+            title="Referral Code"
+            subtitle="Create and manage your referral code"
+            onPress={() => router.push("/referral-code" as any)}
+          />
         </SettingsSection>
 
         <SettingsSection title="Sales">
           <SettingsItem
             icon="ticket.fill"
-            iconColor="#2563EB"
-            iconBgColor="#DBEAFE"
             title="Offer Code"
             subtitle={
               profile?.offer_code_object
