@@ -30,6 +30,7 @@
     "react-hot-toast": "^2.6.0",
     "react-qr-code": "^2.0.18",
     "resend": "^6.4.0",
+    "yet-another-react-lightbox": "^3.29.1",
     "yup": "^1.7.1"
   },
   "devDependencies": {
