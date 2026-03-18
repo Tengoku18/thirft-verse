@@ -108,10 +108,6 @@ export default function GoogleProfileSetupScreen() {
       setErrorMessage("This username is already taken");
       return;
     }
-    if (!address.trim()) {
-      setErrorMessage("Please enter your address");
-      return;
-    }
 
     setLoading(true);
     setErrorMessage(null);
@@ -309,12 +305,12 @@ export default function GoogleProfileSetupScreen() {
               label="Address"
               placeholder="Enter your address"
               autoCapitalize="words"
-              required
               value={address}
               onChangeText={(text) => {
                 setAddress(text);
                 if (errorMessage) setErrorMessage(null);
               }}
+              helpText="Optional - you can add this later"
             />
 
             {/* Error message */}

@@ -47,19 +47,20 @@ export const userDetailsSchema = yup.object({
     .test(
       "has-letters",
       "Address must contain at least some letters",
-      (value) => !!value && /[a-zA-Z]/.test(value)
+      (value) => !value || /[a-zA-Z]/.test(value)
     )
     .test(
       "has-location",
       "Please include area/street name and city (e.g., Thamel, Kathmandu)",
       (value) => {
-        if (!value) return false;
+        if (!value) return true; // Optional field
         // Check if address has at least 2 words (area + city)
         const words = value.trim().split(/\s+/);
         return words.length >= 2;
       }
     )
-    .required("Address is required"),
+    .optional()
+    .nullable()
 
   password: yup
     .string()

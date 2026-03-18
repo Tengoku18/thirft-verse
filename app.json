@@ -11,7 +11,10 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.thriftverse.app",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "We need access to your camera to capture photos of vehicles you want to sell on Thriftverse. For example, when you list a used car or motorcycle, you can take photos directly from your camera to upload to your product listing.",
+        "NSPhotoLibraryUsageDescription": "We need access to your photo library to select and upload photos of vehicles for sale. For example, you can choose existing photos from your gallery when creating or editing a vehicle listing, allowing you to show multiple angles of your car, bike, or e-bike.",
+        "NSPhotoLibraryAddOnlyUsageDescription": "We need permission to save photos to your photo library from vehicle listings. For example, you can download photos of vehicles you're interested in buying to your gallery for later reference."
       }
     },
     "android": {

@@ -112,10 +112,14 @@ export default function EditProfileScreen() {
       newErrors.bio = "Bio must be less than 300 characters";
     }
 
-    if (!profileData.address?.trim()) {
-      newErrors.address = "Address is required";
-    } else if (profileData.address.length > 255) {
-      newErrors.address = "Address must be less than 255 characters";
+    // Address is optional, but if provided, validate it
+    if (profileData.address?.trim()) {
+      if (profileData.address.length < 10) {
+        newErrors.address =
+          "Address must be at least 10 characters if provided";
+      } else if (profileData.address.length > 255) {
+        newErrors.address = "Address must be less than 255 characters";
+      }
     }
 
     setErrors(newErrors);
@@ -314,10 +318,9 @@ export default function EditProfileScreen() {
 
             {/* Address Field */}
             <FormInput
-              label="Address"
+              label="Address (Optional)"
               placeholder="Enter your address"
               autoCapitalize="words"
-              required
               value={profileData.address}
               onChangeText={(text) =>
                 setProfileData((prev) => ({ ...prev, address: text }))

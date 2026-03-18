@@ -259,11 +259,11 @@ export default function SignupStep1Screen() {
                     label="Address"
                     placeholder="e.g. tinkune-3, kathmandu"
                     autoCapitalize="words"
-                    required
                     value={value}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     error={errors.address?.message}
+                    helpText="Optional - you can add this later"
                   />
                 )}
               />
