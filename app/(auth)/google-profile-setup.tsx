@@ -310,7 +310,6 @@ export default function GoogleProfileSetupScreen() {
                 setAddress(text);
                 if (errorMessage) setErrorMessage(null);
               }}
-              helpText="Optional - you can add this later"
             />
 
             {/* Error message */}
