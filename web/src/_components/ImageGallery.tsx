@@ -1,8 +1,11 @@
 'use client'
 
-import { Package } from 'lucide-react'
+import { Package, ZoomIn } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
+import Lightbox from 'yet-another-react-lightbox'
+import Zoom from 'yet-another-react-lightbox/plugins/zoom'
+import 'yet-another-react-lightbox/styles.css'
 
 interface ImageGalleryProps {
   images: string[]
@@ -11,6 +14,7 @@ interface ImageGalleryProps {
 
 const ImageGallery = ({ images, productTitle }: ImageGalleryProps) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
   const validImages = images.filter(Boolean)
 
   if (validImages.length === 0) {
@@ -25,10 +29,15 @@ const ImageGallery = ({ images, productTitle }: ImageGalleryProps) => {
     )
   }
 
+  const slides = validImages.map((src) => ({ src }))
+
   return (
     <div className="space-y-4">
       {/* Main Image */}
-      <div className="relative aspect-square overflow-hidden rounded-3xl bg-white shadow-lg">
+      <div
+        className="group relative aspect-square cursor-zoom-in overflow-hidden rounded-3xl bg-white shadow-lg"
+        onClick={() => setLightboxOpen(true)}
+      >
         <Image
           src={validImages[selectedImageIndex]}
           alt={`${productTitle} - Image ${selectedImageIndex + 1}`}
@@ -37,6 +46,13 @@ const ImageGallery = ({ images, productTitle }: ImageGalleryProps) => {
           sizes="(max-width: 1024px) 100vw, 50vw"
           priority={selectedImageIndex === 0}
         />
+        {/* Zoom hint overlay */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-200 group-hover:bg-black/10">
+          <div className="flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 opacity-100 transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100">
+            <ZoomIn className="h-4 w-4 text-white" />
+            <span className="text-xs font-medium text-white">Zoom</span>
+          </div>
+        </div>
       </div>
 
       {/* Thumbnail Gallery */}
@@ -72,6 +88,17 @@ const ImageGallery = ({ images, productTitle }: ImageGalleryProps) => {
           </p>
         </div>
       )}
+
+      {/* Lightbox */}
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        slides={slides}
+        index={selectedImageIndex}
+        on={{ view: ({ index }) => setSelectedImageIndex(index) }}
+        plugins={[Zoom]}
+        zoom={{ maxZoomPixelRatio: 4, scrollToZoom: true }}
+      />
     </div>
   )
 }

@@ -8,7 +8,8 @@ import {
   sortStores, StoreSortOption
 } from '@/utils/exploreHelpers'
 import { Package, Store } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import ProductCard from '../ProductCard'
 import StoreCard from '../StoreCard'
 import type { ExploreTab } from './index'
@@ -21,6 +22,8 @@ import {
   STORE_SORT_OPTIONS,
 } from './index'
 
+const PAGE_SIZE = 12
+
 interface ExploreContentProps {
   initialProducts: ProductWithStore[]
   initialStores: Profile[]
@@ -30,8 +33,19 @@ export default function ExploreContent({
   initialProducts,
   initialStores,
 }: ExploreContentProps) {
-  // Tab state
-  const [activeTab, setActiveTab] = useState<ExploreTab>('products')
+  // Tab state — driven by ?tab= URL param, defaults to 'products'
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const activeTab = (searchParams.get('tab') as ExploreTab) || 'products'
+  const setActiveTab = (tab: ExploreTab) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (tab === 'products') {
+      params.delete('tab')
+    } else {
+      params.set('tab', tab)
+    }
+    router.push(`?${params.toString()}`, { scroll: false })
+  }
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('')
@@ -44,37 +58,79 @@ export default function ExploreContent({
   // Store filters
   const [storeSortBy, setStoreSortBy] = useState<StoreSortOption>('newest')
 
+  // Sentinel refs
+  const productSentinelRef = useRef<HTMLDivElement>(null)
+  const storeSentinelRef = useRef<HTMLDivElement>(null)
+
   // Filter and sort products
   const filteredProducts = useMemo(() => {
     let filtered = initialProducts
-
-    // Apply search
     filtered = filterProductsBySearch(filtered, searchQuery)
-
-    // Apply category filter
     filtered = filterProductsByCategory(filtered, selectedCategories)
-
-    // Apply availability filter
     filtered = filterProductsByAvailability(filtered, inStockOnly)
-
-    // Apply sort
     filtered = sortProducts(filtered, productSortBy)
-
     return filtered
   }, [initialProducts, searchQuery, selectedCategories, inStockOnly, productSortBy])
 
   // Filter and sort stores
   const filteredStores = useMemo(() => {
     let filtered = initialStores
-
-    // Apply search
     filtered = filterStoresBySearch(filtered, searchQuery)
-
-    // Apply sort
     filtered = sortStores(filtered, storeSortBy)
-
     return filtered
   }, [initialStores, searchQuery, storeSortBy])
+
+  // Visible counts keyed to filter identity — resets automatically when filters change
+  const productFilterKey = `${searchQuery}|${selectedCategories.join(',')}|${inStockOnly}|${productSortBy}`
+  const storeFilterKey = `${searchQuery}|${storeSortBy}`
+  const [productScroll, setProductScroll] = useState({ key: productFilterKey, count: PAGE_SIZE })
+  const [storeScroll, setStoreScroll] = useState({ key: storeFilterKey, count: PAGE_SIZE })
+  const visibleProductCount = productScroll.key === productFilterKey ? productScroll.count : PAGE_SIZE
+  const visibleStoreCount = storeScroll.key === storeFilterKey ? storeScroll.count : PAGE_SIZE
+
+  // IntersectionObserver for products
+  useEffect(() => {
+    const sentinel = productSentinelRef.current
+    if (!sentinel) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setProductScroll((prev) => ({
+            key: productFilterKey,
+            count: Math.min(
+              (prev.key === productFilterKey ? prev.count : PAGE_SIZE) + PAGE_SIZE,
+              filteredProducts.length
+            ),
+          }))
+        }
+      },
+      { rootMargin: '200px' }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [filteredProducts.length, activeTab, productFilterKey])
+
+  // IntersectionObserver for stores
+  useEffect(() => {
+    const sentinel = storeSentinelRef.current
+    if (!sentinel) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setStoreScroll((prev) => ({
+            key: storeFilterKey,
+            count: Math.min(
+              (prev.key === storeFilterKey ? prev.count : PAGE_SIZE) + PAGE_SIZE,
+              filteredStores.length
+            ),
+          }))
+        }
+      },
+      { rootMargin: '200px' }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [filteredStores.length, activeTab, storeFilterKey])
 
   // Reset filters
   const resetFilters = () => {
@@ -91,6 +147,9 @@ export default function ExploreContent({
     inStockOnly ||
     productSortBy !== 'newest' ||
     storeSortBy !== 'newest'
+
+  const displayedProducts = filteredProducts.slice(0, visibleProductCount)
+  const displayedStores = filteredStores.slice(0, visibleStoreCount)
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -226,15 +285,23 @@ export default function ExploreContent({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  currency={product.store?.currency || 'USD'}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+                {displayedProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    currency={product.store?.currency || 'USD'}
+                  />
+                ))}
+              </div>
+              <div ref={productSentinelRef} className="h-1" />
+              {visibleProductCount < filteredProducts.length && (
+                <div className="py-8 text-center">
+                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900" />
+                </div>
+              )}
+            </>
           )
         ) : (
           filteredStores.length === 0 ? (
@@ -248,11 +315,19 @@ export default function ExploreContent({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {filteredStores.map((store) => (
-                <StoreCard key={store.id} profile={store} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+                {displayedStores.map((store) => (
+                  <StoreCard key={store.id} profile={store} />
+                ))}
+              </div>
+              <div ref={storeSentinelRef} className="h-1" />
+              {visibleStoreCount < filteredStores.length && (
+                <div className="py-8 text-center">
+                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900" />
+                </div>
+              )}
+            </>
           )
         )}
       </div>

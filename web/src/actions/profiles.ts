@@ -7,6 +7,7 @@ interface GetProfilesParams {
   limit?: number;
   offset?: number;
   role?: 'ADMIN' | 'USER';
+  verified?: boolean;
 }
 
 interface GetProfileByIdParams {
@@ -33,6 +34,10 @@ export async function getProfiles(
 
     if (params?.role) {
       query = query.eq('role', params.role);
+    }
+
+    if (params?.verified !== undefined) {
+      query = query.eq('is_verified', params.verified);
     }
 
     if (params?.limit) {
