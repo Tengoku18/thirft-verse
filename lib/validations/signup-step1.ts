@@ -12,7 +12,7 @@ export const userDetailsSchema = yup.object({
     .max(50, "Name must be less than 50 characters")
     .matches(
       /^[a-zA-Z\s'-]+$/,
-      "Name can only contain letters, spaces, hyphens, and apostrophes"
+      "Name can only contain letters, spaces, hyphens, and apostrophes",
     )
     .required("Name is required"),
 
@@ -31,7 +31,7 @@ export const userDetailsSchema = yup.object({
     .max(20, "Username must be less than 20 characters")
     .matches(
       /^[a-z0-9_]+$/,
-      "Username can only contain lowercase letters, numbers, and underscores"
+      "Username can only contain lowercase letters, numbers, and underscores",
     )
     .required("Username is required"),
 
@@ -42,12 +42,12 @@ export const userDetailsSchema = yup.object({
     .max(200, "Address must be less than 200 characters")
     .matches(
       /^[a-zA-Z0-9\s,.\-/()#']+$/,
-      "Address can only contain letters, numbers, and common punctuation (,./-#')"
+      "Address can only contain letters, numbers, and common punctuation (,./-#')",
     )
     .test(
       "has-letters",
       "Address must contain at least some letters",
-      (value) => !value || /[a-zA-Z]/.test(value)
+      (value) => !value || /[a-zA-Z]/.test(value),
     )
     .test(
       "has-location",
@@ -57,10 +57,10 @@ export const userDetailsSchema = yup.object({
         // Check if address has at least 2 words (area + city)
         const words = value.trim().split(/\s+/);
         return words.length >= 2;
-      }
+      },
     )
     .optional()
-    .nullable()
+    .nullable(),
 
   password: yup
     .string()
