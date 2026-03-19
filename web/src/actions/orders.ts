@@ -6,7 +6,6 @@ import { createServiceRoleClient } from '@/lib/supabase/server';
 import { generateOrderCodeWithDate } from '@/lib/utils/order-code';
 import {
   Order,
-  OrderItem,
   OrderWithDetails,
   OrderWithItems,
   PaginatedResponse,
@@ -25,11 +24,17 @@ interface CreateOrderParams {
   transaction_code?: string | null;
   transaction_uuid?: string | null;
   amount: number;
+  items_subtotal?: number;
+  discounted_items_total?: number;
   shipping_fee?: number;
   shipping_option?: 'home' | 'branch' | null;
   payment_method?: string;
   status?: 'pending' | 'completed' | 'cancelled' | 'refunded';
   buyer_notes?: string | null;
+  offer_code_id?: string | null;
+  offer_code_text?: string | null;
+  offer_discount_percent?: number | null;
+  offer_discount_amount?: number | null;
 }
 
 interface OrderItemInput {
@@ -49,11 +54,21 @@ interface CreateMultiProductOrderParams {
   transaction_code?: string | null;
   transaction_uuid?: string | null;
   total_amount: number; // Total including all items + shipping
+  items_subtotal?: number;
+  discounted_items_total?: number;
   shipping_fee?: number;
   shipping_option?: 'home' | 'branch' | null;
   payment_method?: string;
   status?: 'pending' | 'completed' | 'cancelled' | 'refunded';
   buyer_notes?: string | null;
+  offer_code_id?: string | null;
+  offer_code_text?: string | null;
+  offer_discount_percent?: number | null;
+  offer_discount_amount?: number | null;
+}
+
+function roundCurrency(value: number) {
+  return Math.round(value * 100) / 100;
 }
 
 interface GetOrdersParams {
@@ -73,21 +88,27 @@ export async function createOrder(
     const supabase = createServiceRoleClient();
 
     // Generate unique order code - use transaction_uuid if available, otherwise generate random string
-    const orderCodeSeed = params.transaction_uuid || `cod-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const orderCodeSeed =
+      params.transaction_uuid ||
+      `cod-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const orderCode = generateOrderCodeWithDate(orderCodeSeed);
 
-    // Calculate product cost (amount - shipping_fee)
+    // Calculate product cost after any offer discount, excluding shipping.
     const shippingFee = params.shipping_fee || 0;
-    const productCost = params.amount - shippingFee;
+    const itemsSubtotal = params.items_subtotal ?? params.amount - shippingFee;
+    const discountedItemsTotal =
+      params.discounted_items_total ?? params.amount - shippingFee;
     const paymentMethod = params.payment_method || 'eSewa';
 
-    // Calculate seller's earning (always 95% of product cost)
-    const sellersEarning = Math.round(productCost * 0.95);
-
-    // Calculate platform earnings based on payment method
-    // eSewa: 3% platform fee, COD: 5% platform fee
-    const platformFeeRate = paymentMethod === 'eSewa' ? 0.03 : 0.05;
-    const platformEarnings = Math.round(productCost * platformFeeRate * 100) / 100;
+    // Platform commission is capped around a 5% store take, so all offer math
+    // is applied before commission and shipping is excluded from the discount.
+    const platformFeeRate = 0.05;
+    const platformEarnings = roundCurrency(
+      discountedItemsTotal * platformFeeRate
+    );
+    const sellersEarning = roundCurrency(
+      discountedItemsTotal - platformEarnings
+    );
 
     const { data, error } = await supabase
       .from('orders')
@@ -101,6 +122,8 @@ export async function createOrder(
         transaction_code: params.transaction_code || null,
         transaction_uuid: params.transaction_uuid || null,
         amount: params.amount,
+        items_subtotal: itemsSubtotal,
+        discounted_items_total: discountedItemsTotal,
         shipping_fee: shippingFee,
         shipping_option: params.shipping_option || null,
         payment_method: paymentMethod,
@@ -109,6 +132,10 @@ export async function createOrder(
         sellers_earning: sellersEarning,
         platform_earnings: platformEarnings,
         buyer_notes: params.buyer_notes || null,
+        offer_code_id: params.offer_code_id || null,
+        offer_code_text: params.offer_code_text || null,
+        offer_discount_percent: params.offer_discount_percent ?? null,
+        offer_discount_amount: params.offer_discount_amount ?? null,
       })
       .select()
       .single();
@@ -167,7 +194,10 @@ export async function createOrder(
               amount: String(params.amount),
             },
           });
-          console.log('New order notification sent to seller:', params.seller_id);
+          console.log(
+            'New order notification sent to seller:',
+            params.seller_id
+          );
         }
       }
 
@@ -214,31 +244,41 @@ export async function createMultiProductOrder(
     const supabase = createServiceRoleClient();
 
     // Generate unique order code
-    const orderCodeSeed = params.transaction_uuid || `cod-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const orderCodeSeed =
+      params.transaction_uuid ||
+      `cod-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const orderCode = generateOrderCodeWithDate(orderCodeSeed);
 
     // Calculate totals
     const shippingFee = params.shipping_fee || 0;
-    const itemsTotal = params.items.reduce(
+    const itemsSubtotal =
+      params.items_subtotal ??
+      params.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const discountedItemsTotal = params.discounted_items_total ?? itemsSubtotal;
+    const rawItemsTotal = params.items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
     const paymentMethod = params.payment_method || 'eSewa';
 
     // Verify total_amount matches calculated total
-    if (Math.abs(params.total_amount - (itemsTotal + shippingFee)) > 0.01) {
+    if (
+      Math.abs(params.total_amount - (discountedItemsTotal + shippingFee)) >
+      0.01
+    ) {
       console.error('Amount mismatch:', {
         provided: params.total_amount,
-        calculated: itemsTotal + shippingFee,
+        calculated: discountedItemsTotal + shippingFee,
       });
     }
 
-    // Calculate seller's earning (always 95% of items total)
-    const sellersEarning = Math.round(itemsTotal * 0.95);
-
-    // Calculate platform earnings based on payment method
-    const platformFeeRate = paymentMethod === 'eSewa' ? 0.03 : 0.05;
-    const platformEarnings = Math.round(itemsTotal * platformFeeRate * 100) / 100;
+    const platformFeeRate = 0.05;
+    const platformEarnings = roundCurrency(
+      discountedItemsTotal * platformFeeRate
+    );
+    const sellersEarning = roundCurrency(
+      discountedItemsTotal - platformEarnings
+    );
 
     // Create order (product_id is NULL for multi-product orders)
     const { data: order, error: orderError } = await supabase
@@ -253,6 +293,8 @@ export async function createMultiProductOrder(
         transaction_code: params.transaction_code || null,
         transaction_uuid: params.transaction_uuid || null,
         amount: params.total_amount,
+        items_subtotal: itemsSubtotal,
+        discounted_items_total: discountedItemsTotal,
         shipping_fee: shippingFee,
         shipping_option: params.shipping_option || null,
         payment_method: paymentMethod,
@@ -261,6 +303,10 @@ export async function createMultiProductOrder(
         sellers_earning: sellersEarning,
         platform_earnings: platformEarnings,
         buyer_notes: params.buyer_notes || null,
+        offer_code_id: params.offer_code_id || null,
+        offer_code_text: params.offer_code_text || null,
+        offer_discount_percent: params.offer_discount_percent ?? null,
+        offer_discount_amount: params.offer_discount_amount ?? null,
       })
       .select()
       .single();
@@ -305,7 +351,10 @@ export async function createMultiProductOrder(
       );
 
       if (!inventoryResult.success) {
-        console.error('Failed to update inventory for product:', item.product_id);
+        console.error(
+          'Failed to update inventory for product:',
+          item.product_id
+        );
       }
     }
 
@@ -325,18 +374,25 @@ export async function createMultiProductOrder(
       ]);
 
       const itemsCount = params.items.length;
-      const totalQty = params.items.reduce((sum, item) => sum + item.quantity, 0);
-      const productName = itemsCount > 1
-        ? `${firstProduct?.title || 'Product'} and ${itemsCount - 1} more item${itemsCount > 2 ? 's' : ''}`
-        : params.items[0].product_name;
+      const totalQty = params.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0
+      );
+      const productName =
+        itemsCount > 1
+          ? `${firstProduct?.title || 'Product'} and ${itemsCount - 1} more item${itemsCount > 2 ? 's' : ''}`
+          : params.items[0].product_name;
 
-      const notifTitle = itemsCount > 1
-        ? `${params.buyer_name} placed an order · ${itemsCount} items`
-        : `${params.buyer_name} ordered ${params.items[0].product_name}`;
-      const qtyInfo = totalQty > 1 && itemsCount === 1 ? `Qty: ${totalQty} · ` : '';
-      const notifBody = itemsCount > 1
-        ? `${productName} · Rs.${params.total_amount.toLocaleString()} · #${orderCode}`
-        : `${qtyInfo}Rs.${params.total_amount.toLocaleString()} · #${orderCode}`;
+      const notifTitle =
+        itemsCount > 1
+          ? `${params.buyer_name} placed an order · ${itemsCount} items`
+          : `${params.buyer_name} ordered ${params.items[0].product_name}`;
+      const qtyInfo =
+        totalQty > 1 && itemsCount === 1 ? `Qty: ${totalQty} · ` : '';
+      const notifBody =
+        itemsCount > 1
+          ? `${productName} · Rs.${params.total_amount.toLocaleString()} · #${orderCode}`
+          : `${qtyInfo}Rs.${params.total_amount.toLocaleString()} · #${orderCode}`;
 
       // Send push notification if not muted
       if (!seller?.config?.notifications_muted) {
@@ -354,7 +410,10 @@ export async function createMultiProductOrder(
               amount: String(params.total_amount),
             },
           });
-          console.log('New order notification sent to seller:', params.seller_id);
+          console.log(
+            'New order notification sent to seller:',
+            params.seller_id
+          );
         }
       }
 

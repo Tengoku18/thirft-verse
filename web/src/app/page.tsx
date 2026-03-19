@@ -4,7 +4,7 @@ import LandingPage from '@/_components/landing/LandingPage';
 import { getProductsByStoreId, getProfileByStoreUsername } from '@/actions';
 import { getSubDomain } from '@/utils/domainHelpers';
 import { pluralize } from '@/utils/textHelpers';
-import { Compass, MapPin, Store } from 'lucide-react';
+import { BadgeCheck, Compass, Gem, MapPin, Store } from 'lucide-react';
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Image from 'next/image';
@@ -151,6 +151,7 @@ export default async function Home() {
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-8">
             {/* Profile Photo with Enhanced Style */}
             <div className="shrink-0">
+              <div className="relative">
               <div className="bg-background ring-secondary/10 relative h-32 w-32 overflow-hidden rounded-full border-4 border-white/50 shadow-xl ring-4 transition-transform duration-300 hover:scale-105 sm:h-40 sm:w-40">
                 {profile?.profile_image ? (
                   <Image
@@ -169,13 +170,27 @@ export default async function Home() {
                   </div>
                 )}
               </div>
+              </div>
             </div>
 
             {/* Profile Info */}
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="font-heading from-primary via-primary/90 to-primary/70 mb-3 bg-linear-to-r bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
-                {profile?.name}
-              </h1>
+              <div className="mb-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                <h1 className="font-heading from-primary via-primary/90 to-primary/70 bg-linear-to-r bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
+                  {profile?.name}
+                </h1>
+                {profile?.is_verified && (
+                  <BadgeCheck className="h-7 w-7 fill-blue-500 text-white drop-shadow-md sm:h-8 sm:w-8" />
+                )}
+              </div>
+              {profile?.is_founder && (
+                <div className="mb-3 flex justify-center sm:justify-start">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-linear-to-r from-amber-400/15 to-amber-600/10 px-3 py-1 text-xs font-semibold tracking-wide text-amber-700 backdrop-blur-sm">
+                    <Gem className="h-3.5 w-3.5" strokeWidth={2} />
+                    Founder Member
+                  </span>
+                </div>
+              )}
 
               <div className="text-primary/70 mb-4 flex flex-wrap items-center justify-center gap-4 text-sm sm:justify-start sm:text-base">
                 <div className="bg-background/60 rounded-full px-4 py-1.5 backdrop-blur-sm">

@@ -1,5 +1,16 @@
 import { supabase } from "./supabase";
-import { AppNotification, PaginatedResponse, Product, ProductStatus, ProfileRevenue } from "./types/database";
+import {
+  AppNotification,
+  OfferCode,
+  PaginatedResponse,
+  Product,
+  ProductStatus,
+  ProfileRevenue,
+} from "./types/database";
+
+const OFFER_CODE_REGEX = /^[A-Z0-9_-]{4,24}$/;
+const MAX_OFFER_DISCOUNT_PERCENT = 90;
+const MAX_OFFER_VALID_HOURS = 24 * 365;
 
 /**
  * Check if email already exists in auth.users table
@@ -350,6 +361,218 @@ export const updateUserProfile = async (data: UpdateProfileData) => {
   }
 };
 
+interface UpsertOfferCodeData {
+  code: string;
+  discountPercent: number;
+  validHours: number;
+}
+
+const normalizeOfferCode = (code: string) => code.trim().toUpperCase();
+
+export const getMyOfferCode = async (): Promise<{
+  success: boolean;
+  data?: OfferCode | null;
+  error?: string;
+}> => {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return {
+        success: false,
+        error: "You must be signed in to manage offer codes.",
+      };
+    }
+
+    const { data, error } = await supabase
+      .from("offer_codes")
+      .select("*")
+      .eq("owner_user_id", user.id)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (error) {
+      if (error.code === "PGRST205") {
+        return {
+          success: false,
+          error:
+            "Offer code system is not configured yet. Please run the latest Supabase migration.",
+        };
+      }
+
+      console.error("Error fetching offer code:", error);
+      return { success: false, error: "Failed to load your offer code." };
+    }
+
+    return { success: true, data: (data as OfferCode | null) ?? null };
+  } catch (error) {
+    console.error("Unexpected error in getMyOfferCode:", error);
+    return { success: false, error: "Failed to load your offer code." };
+  }
+};
+
+export const upsertMyOfferCode = async (
+  data: UpsertOfferCodeData,
+): Promise<{ success: boolean; data?: OfferCode; error?: string }> => {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return {
+        success: false,
+        error: "You must be signed in to manage offer codes.",
+      };
+    }
+
+    const normalizedCode = normalizeOfferCode(data.code);
+    if (!OFFER_CODE_REGEX.test(normalizedCode)) {
+      return {
+        success: false,
+        error:
+          "Offer code must be 4-24 characters and only use letters, numbers, hyphens, or underscores.",
+      };
+    }
+
+    if (!Number.isFinite(data.discountPercent) || data.discountPercent <= 0) {
+      return { success: false, error: "Discount must be greater than 0%." };
+    }
+
+    if (data.discountPercent > MAX_OFFER_DISCOUNT_PERCENT) {
+      return {
+        success: false,
+        error:
+          "Discount cannot exceed 90% because the platform keeps a 5% product commission.",
+      };
+    }
+
+    if (
+      !Number.isFinite(data.validHours) ||
+      data.validHours <= 0 ||
+      data.validHours > MAX_OFFER_VALID_HOURS
+    ) {
+      return {
+        success: false,
+        error: "Validity must be between 1 hour and 8760 hours.",
+      };
+    }
+
+    const expiresAt = new Date(
+      Date.now() + data.validHours * 60 * 60 * 1000,
+    ).toISOString();
+    const existing = await getMyOfferCode();
+    if (!existing.success) {
+      return { success: false, error: existing.error };
+    }
+
+    if (existing.data) {
+      const { data: updated, error } = await supabase
+        .from("offer_codes")
+        .update({
+          code: normalizedCode,
+          code_normalized: normalizedCode,
+          discount_percent: data.discountPercent,
+          expires_at: expiresAt,
+          deleted_at: null,
+        })
+        .eq("id", existing.data.id)
+        .select("*")
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          return {
+            success: false,
+            error: "That offer code is already taken globally.",
+          };
+        }
+
+        console.error("Error updating offer code:", error);
+        return { success: false, error: "Failed to update your offer code." };
+      }
+
+      return { success: true, data: updated as OfferCode };
+    }
+
+    const { data: created, error } = await supabase
+      .from("offer_codes")
+      .insert({
+        owner_user_id: user.id,
+        code: normalizedCode,
+        code_normalized: normalizedCode,
+        discount_percent: data.discountPercent,
+        expires_at: expiresAt,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      if (error.code === "23505") {
+        return {
+          success: false,
+          error: "That offer code is already taken globally.",
+        };
+      }
+
+      if (error.code === "PGRST205") {
+        return {
+          success: false,
+          error:
+            "Offer code system is not configured yet. Please run the latest Supabase migration.",
+        };
+      }
+
+      console.error("Error creating offer code:", error);
+      return { success: false, error: "Failed to create your offer code." };
+    }
+
+    return { success: true, data: created as OfferCode };
+  } catch (error) {
+    console.error("Unexpected error in upsertMyOfferCode:", error);
+    return { success: false, error: "Failed to save your offer code." };
+  }
+};
+
+export const deleteMyOfferCode = async (): Promise<{
+  success: boolean;
+  error?: string;
+}> => {
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return {
+        success: false,
+        error: "You must be signed in to manage offer codes.",
+      };
+    }
+
+    const { error } = await supabase
+      .from("offer_codes")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("owner_user_id", user.id)
+      .is("deleted_at", null);
+
+    if (error) {
+      console.error("Error deleting offer code:", error);
+      return { success: false, error: "Failed to delete your offer code." };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected error in deleteMyOfferCode:", error);
+    return { success: false, error: "Failed to delete your offer code." };
+  }
+};
+
 /**
  * Create a new product
  */
@@ -523,7 +746,10 @@ export const getOrdersBySeller = async (sellerId: string) => {
         .order("created_at", { ascending: true });
 
       if (itemsError) {
-        console.error("❌ Error fetching order_items:", JSON.stringify(itemsError));
+        console.error(
+          "❌ Error fetching order_items:",
+          JSON.stringify(itemsError),
+        );
       }
 
       // Attach order_items to each order
@@ -575,7 +801,12 @@ export const getOrderById = async (orderId: string) => {
 
         if (orderError) {
           console.error("❌ Error fetching order:", orderError);
-          return { success: false, data: null, order_items: [], error: orderError };
+          return {
+            success: false,
+            data: null,
+            order_items: [],
+            error: orderError,
+          };
         }
 
         // Fetch order_items for this order
@@ -600,7 +831,10 @@ export const getOrderById = async (orderId: string) => {
       .order("created_at", { ascending: true });
 
     if (itemsError) {
-      console.error("❌ Error fetching order_items:", JSON.stringify(itemsError));
+      console.error(
+        "❌ Error fetching order_items:",
+        JSON.stringify(itemsError),
+      );
     }
 
     return { success: true, data, order_items: items || [] };
@@ -1119,7 +1353,9 @@ export const updateOrderWithNCM = async (
         .update({
           revenue: {
             ...currentRevenue,
-            pendingAmount: (currentRevenue.pendingAmount || 0) + (orderData.sellers_earning || 0),
+            pendingAmount:
+              (currentRevenue.pendingAmount || 0) +
+              (orderData.sellers_earning || 0),
           },
           updated_at: now,
         })
@@ -1150,7 +1386,8 @@ export const syncNCMOrderStatus = async (
 ) => {
   try {
     // Import NCM helpers dynamically to avoid circular dependency
-    const { getNCMOrderDetails, getNCMOrderStatus } = await import("./ncm-helpers");
+    const { getNCMOrderDetails, getNCMOrderStatus } =
+      await import("./ncm-helpers");
 
     // Fetch order details from NCM
     const detailsResult = await getNCMOrderDetails(ncmOrderId);
@@ -1265,7 +1502,7 @@ export const syncNCMOrderStatus = async (
 export const getNotifications = async (
   userId: string,
   limit = 20,
-  offset = 0
+  offset = 0,
 ): Promise<{ success: boolean; data: AppNotification[]; count: number }> => {
   try {
     const { data, error, count } = await supabase
@@ -1288,10 +1525,12 @@ export const getNotifications = async (
 };
 
 export const getUnreadNotificationCount = async (
-  userId: string
+  userId: string,
 ): Promise<number> => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session) return 0;
 
     const { data, error } = await supabase
@@ -1313,7 +1552,7 @@ export const getUnreadNotificationCount = async (
 };
 
 export const markNotificationAsRead = async (
-  notificationId: string
+  notificationId: string,
 ): Promise<boolean> => {
   try {
     const { data, error } = await supabase
@@ -1328,7 +1567,10 @@ export const markNotificationAsRead = async (
     }
 
     if (!data || data.length === 0) {
-      console.warn("markNotificationAsRead: no rows updated for id:", notificationId);
+      console.warn(
+        "markNotificationAsRead: no rows updated for id:",
+        notificationId,
+      );
       return false;
     }
 
@@ -1340,7 +1582,7 @@ export const markNotificationAsRead = async (
 };
 
 export const markAllNotificationsAsRead = async (
-  userId: string
+  userId: string,
 ): Promise<boolean> => {
   try {
     const { data, error } = await supabase
@@ -1360,5 +1602,865 @@ export const markAllNotificationsAsRead = async (
   } catch (error) {
     console.error("Error in markAllNotificationsAsRead:", error);
     return false;
+  }
+};
+
+// ── Founder Circle helpers ──────────────────────────────────────────────────
+
+/**
+ * Verify a founder access code against the founder_circle_applications table.
+ * On success, marks the user's profile as a founder and captures their role.
+ */
+export const verifyFounderAccess = async (
+  code: string,
+  email: string,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const trimmedCode = code.trim().toUpperCase();
+
+    // Always bind verification to the signed-in account email.
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return {
+        success: false,
+        error: "You must be signed in to verify founder access.",
+      };
+    }
+
+    const authEmail = user.email?.trim().toLowerCase();
+    if (!authEmail) {
+      return {
+        success: false,
+        error: "Your account email is missing. Please contact support.",
+      };
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    if (trimmedEmail !== authEmail) {
+      return {
+        success: false,
+        error: "Please use the same email as your signed-in account.",
+      };
+    }
+
+    // RLS blocks direct client reads on founder applications, so use a
+    // SECURITY DEFINER RPC that safely validates code+email.
+    const { data, error: lookupError } = await supabase.rpc(
+      "verify_founder_access",
+      {
+        p_code: trimmedCode,
+        p_email: trimmedEmail,
+      },
+    );
+
+    const application = Array.isArray(data) ? data[0] : data;
+
+    if (lookupError) {
+      console.error("Founder lookup error:", lookupError);
+      if (lookupError.code === "PGRST202") {
+        return {
+          success: false,
+          error:
+            "Founder verification is not configured on the server yet. Please run the latest Supabase migration.",
+        };
+      }
+      return {
+        success: false,
+        error: "Could not verify access code. Please try again.",
+      };
+    }
+
+    if (!application) {
+      return {
+        success: false,
+        error: "Invalid access code or email. Please check and try again.",
+      };
+    }
+
+    if (!application.is_approved) {
+      return {
+        success: false,
+        error:
+          "Your application is still under review. We'll notify you once it's approved.",
+      };
+    }
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({
+        is_founder: true,
+        is_founder_creator: application.is_creator,
+        is_founder_seller: application.is_seller,
+        founder_verified_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Error updating founder status:", updateError);
+      return {
+        success: false,
+        error: "Failed to activate founder status. Please try again.",
+      };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Unexpected error in verifyFounderAccess:", err);
+    return {
+      success: false,
+      error: "An unexpected error occurred. Please try again.",
+    };
+  }
+};
+
+/**
+ * Generate a unique referral code for a Founding Creator and persist it.
+ * If the user already has a code, returns the existing one.
+ */
+const mapReferralApplyError = (errorCode: string): string => {
+  switch (errorCode) {
+    case "invalid_code":
+      return "Invalid referral code. Please check and try again.";
+    case "self_referral":
+      return "You cannot use your own referral code.";
+    case "inactive":
+      return "This referral code is currently inactive.";
+    case "expired":
+      return "This referral code has expired.";
+    case "max_redemptions_reached":
+      return "This referral code has reached its usage limit.";
+    case "throttled":
+      return "Too many referral attempts. Please wait a bit and try again.";
+    default:
+      return "Failed to apply referral code. Please try again.";
+  }
+};
+
+interface MyReferralCodeResult {
+  code: string | null;
+  referralId: string | null;
+  isActive: boolean;
+  expiresAt: string | null;
+  maxRedemptions: number | null;
+  usedCount: number;
+}
+
+const REFERRAL_CODE_REGEX = /^[A-Z0-9_-]{4,24}$/;
+const MAX_REFERRAL_CODE_GENERATION_ATTEMPTS = 20;
+
+const generateRandomReferralCodeValue = () => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "THRIFT-";
+
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+
+  return code;
+};
+
+export const generateReferralCodeSuggestion = () =>
+  generateRandomReferralCodeValue();
+
+const normalizeReferralCode = (value: string | null | undefined) =>
+  (value ?? "").trim().toUpperCase();
+
+const isSameReferralCode = (
+  left: string | null | undefined,
+  right: string | null | undefined,
+) => normalizeReferralCode(left) === normalizeReferralCode(right);
+
+export const generateReferralCode = async (
+  userId: string,
+  userEmail: string,
+): Promise<{ success: boolean; code?: string; error?: string }> => {
+  try {
+    // Return existing code if one already exists
+    const existing = await getMyReferralCode(userId);
+    if (existing.code) {
+      return { success: true, code: existing.code };
+    }
+
+    for (
+      let attempt = 0;
+      attempt < MAX_REFERRAL_CODE_GENERATION_ATTEMPTS;
+      attempt++
+    ) {
+      const code = generateRandomReferralCodeValue();
+
+      const { error } = await supabase.from("referrals").insert({
+        referrer_id: userId,
+        referrer_email: userEmail.toLowerCase(),
+        code,
+      });
+
+      if (!error) {
+        return { success: true, code };
+      }
+
+      // Unique violation: race condition — re-fetch the row that won the race
+      if (error.code === "23505") {
+        const retry = await getMyReferralCode(userId);
+        if (retry.code) return { success: true, code: retry.code };
+        continue;
+      }
+
+      console.error("Error generating referral code:", error);
+      return {
+        success: false,
+        error: "Failed to generate referral code. Please try again.",
+      };
+    }
+
+    return {
+      success: false,
+      error: "Could not generate a unique referral code. Please try again.",
+    };
+  } catch (err) {
+    console.error("Unexpected error in generateReferralCode:", err);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+};
+
+export const createCustomReferralCode = async (
+  userId: string,
+  userEmail: string,
+  customCode: string,
+): Promise<{ success: boolean; code?: string; error?: string }> => {
+  try {
+    const existing = await getMyReferralCode(userId);
+    if (existing.code) {
+      return { success: true, code: existing.code };
+    }
+
+    const normalizedCode = customCode.trim().toUpperCase();
+    if (!REFERRAL_CODE_REGEX.test(normalizedCode)) {
+      return {
+        success: false,
+        error: "Code must be 4-24 chars and use only letters, numbers, _ or -.",
+      };
+    }
+
+    const { error } = await supabase.from("referrals").insert({
+      referrer_id: userId,
+      referrer_email: userEmail.toLowerCase(),
+      code: normalizedCode,
+    });
+
+    if (error) {
+      if (error.code === "23505") {
+        if (error.message?.includes("referrals_one_code_per_referrer")) {
+          const retry = await getMyReferralCode(userId);
+          if (retry.code) return { success: true, code: retry.code };
+        }
+        return {
+          success: false,
+          error: "This code is already taken. Try another one.",
+        };
+      }
+
+      console.error("Error creating custom referral code:", error);
+      return {
+        success: false,
+        error: "Failed to create custom referral code. Please try again.",
+      };
+    }
+
+    return { success: true, code: normalizedCode };
+  } catch (err) {
+    console.error("Unexpected error in createCustomReferralCode:", err);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+};
+
+/**
+ * Retrieve the current user's referral code (if any).
+ */
+export const getMyReferralCode = async (
+  userId: string,
+): Promise<MyReferralCodeResult> => {
+  try {
+    const { data, error } = await supabase
+      .from("referrals")
+      .select("id, code, is_active, expires_at, max_redemptions")
+      .eq("referrer_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching referral code:", error);
+      return {
+        code: null,
+        referralId: null,
+        isActive: false,
+        expiresAt: null,
+        maxRedemptions: null,
+        usedCount: 0,
+      };
+    }
+
+    if (!data?.id) {
+      return {
+        code: null,
+        referralId: null,
+        isActive: false,
+        expiresAt: null,
+        maxRedemptions: null,
+        usedCount: 0,
+      };
+    }
+
+    const { count, error: countError } = await supabase
+      .from("referral_users")
+      .select("id", { count: "exact", head: true })
+      .eq("referral_id", data.id);
+
+    if (countError) {
+      console.error("Error fetching referral usage count:", countError);
+    }
+
+    return {
+      code: data.code ?? null,
+      referralId: data.id,
+      isActive: data.is_active ?? true,
+      expiresAt: data.expires_at ?? null,
+      maxRedemptions: data.max_redemptions ?? null,
+      usedCount: count ?? 0,
+    };
+  } catch (err) {
+    console.error("Unexpected error in getMyReferralCode:", err);
+    return {
+      code: null,
+      referralId: null,
+      isActive: false,
+      expiresAt: null,
+      maxRedemptions: null,
+      usedCount: 0,
+    };
+  }
+};
+
+export const deleteReferralCode = async (
+  userId: string,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      "change_referral_code_atomic",
+      {
+        p_user_id: userId,
+      },
+    );
+
+    if (!rpcError && rpcData) {
+      const success = rpcData.success === true;
+      if (!success) {
+        if (rpcData.error === "code_used") {
+          return {
+            success: false,
+            error:
+              "This referral code has already been used and cannot be changed.",
+          };
+        }
+        return { success: false, error: "Failed to change referral code." };
+      }
+
+      return { success: true };
+    }
+
+    // Fallback path before RPC migration is applied.
+    if (rpcError && rpcError.code !== "PGRST202") {
+      console.error("Error deleting referral code via RPC:", rpcError);
+    }
+
+    const { referralId } = await getMyReferralCode(userId);
+    if (!referralId) return { success: true };
+
+    const { count: usageCount, error: usageError } = await supabase
+      .from("referral_users")
+      .select("id", { count: "exact", head: true })
+      .eq("referral_id", referralId);
+
+    if (usageError) {
+      console.error("Error checking referral usage:", usageError);
+      return { success: false, error: "Failed to verify referral usage." };
+    }
+
+    if ((usageCount ?? 0) > 0) {
+      return {
+        success: false,
+        error:
+          "This referral code has already been used and cannot be changed.",
+      };
+    }
+
+    const { error: deleteError } = await supabase
+      .from("referrals")
+      .delete()
+      .eq("id", referralId)
+      .eq("referrer_id", userId);
+
+    if (deleteError) {
+      console.error("Error deleting referral code:", deleteError);
+      return { success: false, error: "Failed to change referral code." };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Unexpected error in deleteReferralCode:", err);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+};
+
+export const changeReferralCode = async (
+  userId: string,
+  nextCode?: string,
+): Promise<{ success: boolean; code?: string; error?: string }> => {
+  try {
+    const current = await getMyReferralCode(userId);
+
+    if (!current.referralId) {
+      return { success: false, error: "No referral code found." };
+    }
+
+    if (current.usedCount > 0) {
+      return {
+        success: false,
+        error:
+          "This referral code has already been used and cannot be changed.",
+      };
+    }
+
+    const normalizedCode = nextCode?.trim().toUpperCase();
+    if (normalizedCode && !REFERRAL_CODE_REGEX.test(normalizedCode)) {
+      return {
+        success: false,
+        error: "Code must be 4-24 chars and use only letters, numbers, _ or -.",
+      };
+    }
+
+    if (normalizedCode && normalizedCode === current.code) {
+      return {
+        success: false,
+        error: "Enter a different code to make a change.",
+      };
+    }
+
+    const recreateCode = async (): Promise<{
+      success: boolean;
+      code?: string;
+      error?: string;
+    }> => {
+      const deleteResult = await deleteReferralCode(userId);
+      if (!deleteResult.success) {
+        return {
+          success: false,
+          error: deleteResult.error || "Failed to change referral code.",
+        };
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const email = user?.email?.toLowerCase().trim();
+      if (!email) {
+        return {
+          success: false,
+          error: "Could not verify account email for referral code update.",
+        };
+      }
+
+      if (normalizedCode) {
+        return createCustomReferralCode(userId, email, normalizedCode);
+      }
+
+      return generateReferralCode(userId, email);
+    };
+
+    const attempts = normalizedCode
+      ? [normalizedCode]
+      : Array.from({ length: MAX_REFERRAL_CODE_GENERATION_ATTEMPTS }, () =>
+          generateRandomReferralCodeValue(),
+        );
+
+    for (const candidateCode of attempts) {
+      const { data, error } = await supabase
+        .from("referrals")
+        .update({ code: candidateCode })
+        .eq("id", current.referralId)
+        .eq("referrer_id", userId)
+        .select("code")
+        .maybeSingle();
+
+      if (!error && data?.code) {
+        return { success: true, code: data.code };
+      }
+
+      if (!error) {
+        const refreshed = await getMyReferralCode(userId);
+        if (isSameReferralCode(refreshed.code, candidateCode)) {
+          return { success: true, code: refreshed.code ?? candidateCode };
+        }
+
+        // Some PostgREST setups can return empty update payloads even when write succeeded.
+        // Verify with a direct code lookup before declaring failure.
+        const { data: verifyByCode, error: verifyError } = await supabase
+          .from("referrals")
+          .select("code")
+          .eq("referrer_id", userId)
+          .eq("code", candidateCode)
+          .maybeSingle();
+
+        if (!verifyError && verifyByCode?.code) {
+          return { success: true, code: verifyByCode.code };
+        }
+
+        if (normalizedCode) {
+          return recreateCode();
+        }
+
+        continue;
+      }
+
+      if (error?.code === "23505") {
+        if (normalizedCode) {
+          return {
+            success: false,
+            error: "This code is already taken. Try another one.",
+          };
+        }
+
+        continue;
+      }
+
+      if (error?.code === "42501") {
+        return recreateCode();
+      }
+
+      if (error?.code === "PGRST116") {
+        if (normalizedCode) {
+          return recreateCode();
+        }
+        continue;
+      }
+
+      if (error) {
+        console.error("Error changing referral code:", error);
+        if (normalizedCode) {
+          return recreateCode();
+        }
+        continue;
+      }
+    }
+
+    if (!normalizedCode) {
+      const recreateResult = await recreateCode();
+      if (recreateResult.success) return recreateResult;
+    }
+
+    return {
+      success: false,
+      error: "Could not generate a unique referral code. Please try again.",
+    };
+  } catch (err) {
+    console.error("Unexpected error in changeReferralCode:", err);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+};
+
+export const toggleReferralCode = async (
+  userId: string,
+): Promise<{ success: boolean; isActive?: boolean; error?: string }> => {
+  try {
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      "toggle_referral_code_atomic",
+      {
+        p_user_id: userId,
+      },
+    );
+
+    if (!rpcError && rpcData) {
+      if (rpcData.success !== true) {
+        return { success: false, error: "Failed to update referral status." };
+      }
+
+      return {
+        success: true,
+        isActive: rpcData.is_active === true,
+      };
+    }
+
+    if (rpcError && rpcError.code !== "PGRST202") {
+      console.error("Error toggling referral code via RPC:", rpcError);
+    }
+
+    const current = await getMyReferralCode(userId);
+    if (!current.referralId) {
+      return { success: false, error: "No referral code found." };
+    }
+
+    const newActive = !current.isActive;
+    const { error } = await supabase
+      .from("referrals")
+      .update({ is_active: newActive })
+      .eq("id", current.referralId)
+      .eq("referrer_id", userId);
+
+    if (error) {
+      console.error("Error toggling referral code:", error);
+      return { success: false, error: "Failed to update referral status." };
+    }
+
+    return { success: true, isActive: newActive };
+  } catch (err) {
+    console.error("Unexpected error in toggleReferralCode:", err);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+};
+
+/**
+ * Apply a referral code at the end of signup.
+ * Validates the code exists, then creates a referral_users row linking
+ * the new user to the creator who referred them.
+ * A user can only be referred once (enforced by DB unique index).
+ */
+export const applyReferralCode = async (
+  code: string,
+  userId: string,
+  userEmail: string,
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const trimmedCode = code.trim().toUpperCase();
+
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      "apply_referral_code_atomic",
+      {
+        p_code: trimmedCode,
+        p_user_id: userId,
+        p_user_email: userEmail.toLowerCase().trim(),
+      },
+    );
+
+    if (!rpcError && rpcData) {
+      if (rpcData.success === true) {
+        return { success: true };
+      }
+      return {
+        success: false,
+        error: mapReferralApplyError(rpcData.error || "unknown"),
+      };
+    }
+
+    if (rpcError && rpcError.code !== "PGRST202") {
+      // If RPC fails unexpectedly, continue with the direct table fallback
+      // so valid codes still work while backend migration/state is fixed.
+      console.error("Error applying referral code via RPC:", rpcError);
+    }
+
+    // Resolve the referral row for this code
+    const { data: referral, error: lookupError } = await supabase
+      .from("referrals")
+      .select("id, referrer_id, is_active, expires_at, max_redemptions")
+      .eq("code", trimmedCode)
+      .maybeSingle();
+
+    if (lookupError) {
+      console.error("Error looking up referral code:", lookupError);
+      return {
+        success: false,
+        error: "Could not validate referral code. Please try again.",
+      };
+    }
+
+    if (!referral) {
+      return {
+        success: false,
+        error: "Invalid referral code. Please check and try again.",
+      };
+    }
+
+    if (referral.is_active === false) {
+      return {
+        success: false,
+        error: "This referral code is currently inactive.",
+      };
+    }
+
+    if (
+      referral.expires_at &&
+      referral.expires_at <= new Date().toISOString()
+    ) {
+      return {
+        success: false,
+        error: "This referral code has expired.",
+      };
+    }
+
+    // Prevent self-referral
+    if (referral.referrer_id === userId) {
+      return {
+        success: false,
+        error: "You cannot use your own referral code.",
+      };
+    }
+
+    if (typeof referral.max_redemptions === "number") {
+      const { count: redemptionCount, error: countError } = await supabase
+        .from("referral_users")
+        .select("id", { count: "exact", head: true })
+        .eq("referral_id", referral.id);
+
+      if (countError) {
+        console.error("Error checking redemption count:", countError);
+        return {
+          success: false,
+          error: "Could not validate referral code. Please try again.",
+        };
+      }
+
+      if ((redemptionCount ?? 0) >= referral.max_redemptions) {
+        return {
+          success: false,
+          error: "This referral code has reached its usage limit.",
+        };
+      }
+    }
+
+    const { error: insertError } = await supabase
+      .from("referral_users")
+      .insert({
+        referral_id: referral.id,
+        referred_user_id: userId,
+        referred_email: userEmail.toLowerCase(),
+      });
+
+    if (insertError) {
+      // Unique violation means this user was already referred
+      if (insertError.code === "23505") {
+        return { success: true }; // Idempotent — treat as success
+      }
+      console.error("Error applying referral code:", insertError);
+      return {
+        success: false,
+        error: "Failed to apply referral code. You may have already used one.",
+      };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Unexpected error in applyReferralCode:", err);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+};
+
+/**
+ * Fetch referral stats for a Founding Creator —
+ * how many users they've referred and how many are still in the commission window.
+ */
+export const getReferralStats = async (
+  userId: string,
+): Promise<{ totalReferred: number; activeCommissions: number }> => {
+  try {
+    const { referralId } = await getMyReferralCode(userId);
+    if (!referralId) return { totalReferred: 0, activeCommissions: 0 };
+
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from("referral_users")
+      .select("id, commission_expires_at")
+      .eq("referral_id", referralId);
+
+    if (error) {
+      console.error("Error fetching referral stats:", error);
+      return { totalReferred: 0, activeCommissions: 0 };
+    }
+
+    const totalReferred = data?.length ?? 0;
+    const activeCommissions =
+      data?.filter((r) => r.commission_expires_at > now).length ?? 0;
+
+    return { totalReferred, activeCommissions };
+  } catch (err) {
+    console.error("Unexpected error in getReferralStats:", err);
+    return { totalReferred: 0, activeCommissions: 0 };
+  }
+};
+
+export const getReferredUsers = async (
+  userId: string,
+): Promise<
+  {
+    referredUserId: string;
+    referredEmail: string;
+    storeUsername: string | null;
+    profileImage: string | null;
+    createdAt: string;
+    commissionExpiresAt: string;
+  }[]
+> => {
+  try {
+    const { referralId } = await getMyReferralCode(userId);
+    if (!referralId) return [];
+
+    const { data, error } = await supabase
+      .from("referral_users")
+      .select(
+        "referred_user_id, referred_email, created_at, commission_expires_at",
+      )
+      .eq("referral_id", referralId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching referred users:", error);
+      return [];
+    }
+
+    const referredUserIds = (data || [])
+      .map((row) => row.referred_user_id)
+      .filter((id): id is string => !!id);
+
+    let profileById = new Map<
+      string,
+      { store_username: string | null; profile_image: string | null }
+    >();
+
+    if (referredUserIds.length > 0) {
+      const { data: profileRows, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, store_username, profile_image")
+        .in("id", referredUserIds);
+
+      if (profileError) {
+        // Keep referral list usable even if profile lookup is blocked by RLS.
+        console.error("Error fetching referred user profiles:", profileError);
+      } else {
+        profileById = new Map(
+          (profileRows || []).map((row) => [
+            row.id,
+            {
+              store_username: row.store_username ?? null,
+              profile_image: row.profile_image ?? null,
+            },
+          ]),
+        );
+      }
+    }
+
+    return (data || []).map((row) => ({
+      referredUserId: row.referred_user_id,
+      referredEmail: row.referred_email,
+      storeUsername:
+        profileById.get(row.referred_user_id)?.store_username ?? null,
+      profileImage:
+        profileById.get(row.referred_user_id)?.profile_image ?? null,
+      createdAt: row.created_at,
+      commissionExpiresAt: row.commission_expires_at,
+    }));
+  } catch (err) {
+    console.error("Unexpected error in getReferredUsers:", err);
+    return [];
   }
 };

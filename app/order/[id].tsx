@@ -100,6 +100,10 @@ interface OrderDetail {
     method: string;
     transactionCode: string;
     subtotal: number;
+    discountedSubtotal: number;
+    offerCode: string | null;
+    offerDiscountPercent: number | null;
+    offerDiscountAmount: number;
     total: number;
     sellersEarning: number;
   };
@@ -497,6 +501,21 @@ export default function SingleOrderScreen() {
         // Use order amount for price calculation (not product price which could be updated)
         const shippingFee = o.shipping_fee || 0;
         const productPrice = (o.amount || 0) - shippingFee;
+        const itemsSubtotal = o.items_subtotal ?? productPrice;
+        const discountedItemsTotal = o.discounted_items_total ?? itemsSubtotal;
+        const offerDiscountAmount =
+          o.offer_discount_amount ??
+          Math.max(
+            0,
+            Math.round((itemsSubtotal - discountedItemsTotal) * 100) / 100,
+          );
+        const hasOfferMetadata =
+          o.offer_code_id != null ||
+          o.offer_code_text != null ||
+          o.offer_discount_percent != null ||
+          offerDiscountAmount > 0;
+        const derivedOfferCode =
+          o.offer_code_text || (o.offer_code_id ? "Applied Offer" : null);
 
         // Determine if multi-product order and build items list
         const isMultiProduct = !o.product_id;
@@ -593,7 +612,11 @@ export default function SingleOrderScreen() {
           payment: {
             method: o.payment_method,
             transactionCode: o.transaction_code || "N/A",
-            subtotal: productPrice,
+            subtotal: itemsSubtotal,
+            discountedSubtotal: discountedItemsTotal,
+            offerCode: hasOfferMetadata ? derivedOfferCode : null,
+            offerDiscountPercent: o.offer_discount_percent || null,
+            offerDiscountAmount,
             total: o.amount,
             sellersEarning: o.sellers_earning || productPrice,
           },
@@ -653,6 +676,10 @@ export default function SingleOrderScreen() {
               method: "Direct Sale",
               transactionCode: "N/A",
               subtotal: p.price,
+              discountedSubtotal: p.price,
+              offerCode: null,
+              offerDiscountPercent: null,
+              offerDiscountAmount: 0,
               total: p.price,
               sellersEarning: p.price,
             },
@@ -757,8 +784,7 @@ export default function SingleOrderScreen() {
         return;
       }
 
-      // Calculate seller's earnings (95% of product price)
-      const sellerEarnings = Math.round(order.payment.subtotal * 0.95);
+      const sellerEarnings = Math.round(order.payment.sellersEarning);
 
       // Fetch current profile revenue and update pendingAmount
       const { data: profileData, error: profileFetchError } = await supabase
@@ -1355,9 +1381,40 @@ export default function SingleOrderScreen() {
             </>
           ) : (
             <Row
-              label="Product Price"
+              label="Items Subtotal"
               value={formatPrice(order.payment.subtotal)}
             />
+          )}
+          {(order.payment.offerCode ||
+            order.payment.offerDiscountPercent ||
+            order.payment.offerDiscountAmount > 0) && (
+            <>
+              <Row
+                label="Offer Code"
+                value={
+                  order.payment.offerCode && order.payment.offerDiscountPercent
+                    ? `${order.payment.offerCode} (${order.payment.offerDiscountPercent}% OFF)`
+                    : order.payment.offerCode ||
+                      (order.payment.offerDiscountPercent
+                        ? `${order.payment.offerDiscountPercent}% OFF applied`
+                        : "Applied")
+                }
+              />
+              {order.payment.offerDiscountAmount > 0 && (
+                <Row
+                  label="Offer Discount"
+                  value={`- ${formatPrice(order.payment.offerDiscountAmount)}`}
+                  highlight
+                />
+              )}
+              {(order.payment.offerDiscountAmount > 0 ||
+                order.payment.discountedSubtotal < order.payment.subtotal) && (
+                <Row
+                  label="Discounted Items Total"
+                  value={formatPrice(order.payment.discountedSubtotal)}
+                />
+              )}
+            </>
           )}
           {order.shipping.fee > 0 && (
             <Row label="Shipping Fee" value={formatPrice(order.shipping.fee)} />
@@ -1365,7 +1422,7 @@ export default function SingleOrderScreen() {
           <Row
             label="Service Charge (5%)"
             value={`- ${formatPrice(
-              Math.round(order.payment.subtotal * 0.05),
+              Math.round(order.payment.discountedSubtotal * 0.05),
             )}`}
           />
 
@@ -1386,7 +1443,7 @@ export default function SingleOrderScreen() {
               </BodySemiboldText>
             </View>
             <HeadingBoldText style={{ fontSize: 18, color: "#059669" }}>
-              {formatPrice(Math.round(order.payment.subtotal * 0.95))}
+              {formatPrice(Math.round(order.payment.sellersEarning))}
             </HeadingBoldText>
           </View>
 

@@ -1,6 +1,7 @@
 import { getProfiles } from '@/actions'
 import { getAvailableProducts } from '@/actions/products'
 import ExploreContent from '@/_components/explore/ExploreContent'
+import { Suspense } from 'react'
 
 /**
  * ISR Configuration
@@ -14,11 +15,15 @@ export default async function ExplorePage() {
   // Fetch all available products and stores in parallel
   const [productsResult, profilesResult] = await Promise.all([
     getAvailableProducts(),
-    getProfiles({ role: 'USER' })
+    getProfiles({ role: 'USER', verified: true })
   ])
 
   const products = productsResult.data
   const stores = profilesResult.data
 
-  return <ExploreContent initialProducts={products} initialStores={stores} />
+  return (
+    <Suspense>
+      <ExploreContent initialProducts={products} initialStores={stores} />
+    </Suspense>
+  )
 }

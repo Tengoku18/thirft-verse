@@ -1,5 +1,6 @@
 import { readAsStringAsync } from "expo-file-system/legacy";
 import { decode } from "base64-arraybuffer";
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { supabase } from "./supabase";
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
@@ -156,7 +157,20 @@ export const uploadImageFromUri = async (
   try {
     // Extract extension properly (handle query params in URI)
     const uriWithoutParams = localUri.split("?")[0];
-    const extension = uriWithoutParams.split(".").pop()?.toLowerCase() || "jpg";
+    let extension = uriWithoutParams.split(".").pop()?.toLowerCase() || "jpg";
+
+    // Convert HEIC/HEIF to JPG for browser compatibility
+    let finalUri = localUri;
+    if (extension === "heic" || extension === "heif") {
+      const manipulated = await ImageManipulator.manipulate(localUri)
+        .renderAsync();
+      const result = await manipulated.saveAsync({
+        format: SaveFormat.JPEG,
+        compress: 0.8,
+      });
+      finalUri = result.uri;
+      extension = "jpg";
+    }
 
     // Determine MIME type
     const mimeType =
@@ -174,7 +188,7 @@ export const uploadImageFromUri = async (
     const filePath = `${folder}/${fileName}`;
 
     // Read file as base64 using expo-file-system (reliable in React Native)
-    const base64 = await readAsStringAsync(localUri, {
+    const base64 = await readAsStringAsync(finalUri, {
       encoding: "base64",
     });
 

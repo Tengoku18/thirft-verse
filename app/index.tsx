@@ -60,8 +60,12 @@ export default function Index() {
       }
 
       // Step 3: User exists but might be in signup flow
-      // Check if signup is in progress (e.g., they verified but didn't finish step 3)
-      if (signupState.isSignupInProgress && signupState.currentStep === 3) {
+      // If signup is in progress, route to the saved step.
+      if (
+        signupState.isSignupInProgress &&
+        signupState.currentStep >= 2 &&
+        signupState.currentStep <= 4
+      ) {
         setAppStatus("signup_incomplete");
         setStatusMessage("Completing your signup...");
         return;
@@ -103,7 +107,12 @@ export default function Index() {
   }
 
   if (appStatus === "signup_incomplete") {
-    // User is logged in but step 3 not complete
+    if (signupState.currentStep === 2) {
+      return <Redirect href="/(auth)/signup-step2" />;
+    }
+    if (signupState.currentStep === 4) {
+      return <Redirect href="/(auth)/signup-step4" />;
+    }
     return <Redirect href="/(auth)/signup-step3" />;
   }
 

@@ -18,6 +18,17 @@ export default function Section({
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
+  // If the URL hash matches this section's id, make it visible immediately and scroll to it
+  useEffect(() => {
+    if (id && window.location.hash === `#${id}`) {
+      setIsVisible(true);
+      // Allow a tick for the DOM to render, then scroll
+      setTimeout(() => {
+        sectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [id]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -46,7 +57,7 @@ export default function Section({
       ref={sectionRef}
       id={id}
       className={`${backgrounds[background]} ${className} transition-all duration-1000 ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
       }`}
     >
       {children}

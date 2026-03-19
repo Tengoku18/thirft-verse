@@ -57,6 +57,9 @@ export default function ProductDetailScreen() {
     selectedProductLoading: loading,
     deleting,
   } = useAppSelector((state) => state.products);
+  const storeUsername = useAppSelector(
+    (state) => state.profile.profile?.store_username,
+  );
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -82,7 +85,7 @@ export default function ProductDetailScreen() {
         message: `Check out "${
           product.title
         }" on Thriftverse!\n\nPrice: ${formatPrice(
-          product.price
+          product.price,
         )}\n\n${productUrl}`,
         url: productUrl,
         title: product.title,
@@ -95,7 +98,9 @@ export default function ProductDetailScreen() {
   const handleViewInWebsite = async () => {
     if (!product) return;
 
-    const url = `https://thriftverse.shop/product/${product.id}`;
+    const url = storeUsername
+      ? `https://${storeUsername}.thriftverse.shop/product/${product.id}`
+      : `https://thriftverse.shop/product/${product.id}`;
     try {
       await Linking.openURL(url);
     } catch (error) {
@@ -117,7 +122,7 @@ export default function ProductDetailScreen() {
 
     try {
       await dispatch(
-        deleteProduct({ productId: product.id, storeId: user.id })
+        deleteProduct({ productId: product.id, storeId: user.id }),
       ).unwrap();
 
       setShowDeleteModal(false);
@@ -127,7 +132,7 @@ export default function ProductDetailScreen() {
       setShowDeleteModal(false);
       Alert.alert(
         "Error",
-        error || "Failed to delete product. Please try again."
+        error || "Failed to delete product. Please try again.",
       );
     }
   };
@@ -207,7 +212,7 @@ export default function ProductDetailScreen() {
             showsHorizontalScrollIndicator={false}
             onScroll={(e) => {
               const index = Math.round(
-                e.nativeEvent.contentOffset.x / SCREEN_WIDTH
+                e.nativeEvent.contentOffset.x / SCREEN_WIDTH,
               );
               setActiveImageIndex(index);
             }}

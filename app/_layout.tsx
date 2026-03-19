@@ -94,7 +94,7 @@ export default Sentry.wrap(function RootLayout() {
           string
         >;
         handleNotificationNavigation(data);
-      }
+      },
     );
 
     return () => {
@@ -204,6 +204,18 @@ export default Sentry.wrap(function RootLayout() {
                 />
                 <Stack.Screen
                   name="notifications"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="offer-code"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="referral-code"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="founder-circle"
                   options={{ headerShown: false }}
                 />
               </Stack>

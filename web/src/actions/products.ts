@@ -38,6 +38,7 @@ export async function getProducts(
       .from('products')
       .select('*', { count: 'exact' })
       .eq('is_active', true)
+      .eq('is_verified', true)
       .order('created_at', { ascending: false });
 
     // Filter by store ID
