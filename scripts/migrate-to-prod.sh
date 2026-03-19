@@ -52,21 +52,21 @@ echo -e "  Prod project: ${YELLOW}${PROD_PROJECT_REF}${NC}"
 echo ""
 
 # ============================================================
-# Step 1: Get database passwords
+# Step 1: Database credentials (hardcoded)
 # ============================================================
-echo -e "${BLUE}Step 1: Database credentials${NC}"
-echo -e "Find these in: Supabase Dashboard → Settings → Database → Connection string"
+echo -e "${BLUE}Step 1: Connecting to databases...${NC}"
+echo -e "  Dev:  ${YELLOW}${DEV_PROJECT_REF}${NC}"
+echo -e "  Prod: ${YELLOW}${PROD_PROJECT_REF}${NC}"
 echo ""
 
-read -sp "Enter DEV database password: " DEV_DB_PASSWORD
-echo ""
-read -sp "Enter PROD database password: " PROD_DB_PASSWORD
-echo ""
-echo ""
+# Hardcoded credentials - UPDATE THESE IF PASSWORDS CHANGE
+DEV_DB_PASSWORD='mCbkfA3TFiEposCw'
+PROD_DB_PASSWORD='mCbkfA3TFiEposCw'
 
-# Build connection strings (direct connection, not pooler)
-DEV_DB_URL="postgresql://postgres.${DEV_PROJECT_REF}:${DEV_DB_PASSWORD}@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
-PROD_DB_URL="postgresql://postgres.${PROD_PROJECT_REF}:${PROD_DB_PASSWORD}@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
+# Build connection strings (using pooler endpoints for reliability)
+# Using single quotes to prevent special character expansion
+DEV_DB_URL='postgresql://postgres.rsaqwegftpoqqtosgrbx:mCbkfA3TFiEposCw@aws-1-ap-south-1.pooler.supabase.com:6543/postgres'
+PROD_DB_URL='postgresql://postgres.saaifilhhntxnxvudgym:mCbkfA3TFiEposCw@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres'
 
 # ============================================================
 # Step 2: Test connections
