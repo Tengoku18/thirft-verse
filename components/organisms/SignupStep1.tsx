@@ -1,7 +1,11 @@
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { ProfileImagePicker } from "@/components/atoms/ProfileImagePicker";
-import { BodyBoldText, BodyRegularText, CaptionText } from "@/components/Typography";
+import {
+  BodyBoldText,
+  BodyRegularText,
+  CaptionText,
+} from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { checkEmailExists, checkUsernameExists } from "@/lib/database-helpers";
 import {
@@ -191,11 +195,11 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                 label="Address"
                 placeholder="Enter your address"
                 autoCapitalize="words"
-                required
                 value={value}
                 onBlur={onBlur}
                 onChangeText={onChange}
                 error={errors.address?.message}
+                helpText="Optional - you can add this later"
               />
             )}
           />
@@ -225,7 +229,10 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                     {usernameStatus === "checking" && (
                       <>
                         <ActivityIndicator size="small" color="#6B7280" />
-                        <CaptionText className="ml-2" style={{ color: "#6B7280" }}>
+                        <CaptionText
+                          className="ml-2"
+                          style={{ color: "#6B7280" }}
+                        >
                           Checking availability...
                         </CaptionText>
                       </>
@@ -237,7 +244,10 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                           size={16}
                           color="#22C55E"
                         />
-                        <CaptionText className="ml-2" style={{ color: "#22C55E" }}>
+                        <CaptionText
+                          className="ml-2"
+                          style={{ color: "#22C55E" }}
+                        >
                           Username is available
                         </CaptionText>
                       </>
@@ -249,7 +259,10 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                           size={16}
                           color="#EF4444"
                         />
-                        <CaptionText className="ml-2" style={{ color: "#EF4444" }}>
+                        <CaptionText
+                          className="ml-2"
+                          style={{ color: "#EF4444" }}
+                        >
                           Username is already taken
                         </CaptionText>
                       </>
@@ -340,7 +353,9 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                       <BodyBoldText
                         style={{ fontSize: 13 }}
                         onPress={() =>
-                          Linking.openURL("https://www.thriftverse.shop/privacy")
+                          Linking.openURL(
+                            "https://www.thriftverse.shop/privacy",
+                          )
                         }
                       >
                         Privacy Policy

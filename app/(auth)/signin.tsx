@@ -1,3 +1,4 @@
+import { AppleSignInButton } from "@/components/atoms/AppleSignInButton";
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import {
@@ -8,11 +9,7 @@ import {
 } from "@/components/Typography";
 import { LOGO_USAGE } from "@/constants/logos";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  persistSignupState,
-  setCurrentStep,
-  setFormData,
-} from "@/store";
+import { persistSignupState, setCurrentStep, setFormData } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Link, useRouter } from "expo-router";
@@ -51,9 +48,10 @@ const signInSchema = yup.object({
 export default function SignInScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, signInWithApple } = useAuth();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const {
@@ -93,7 +91,7 @@ export default function SignInScreen() {
               username: "",
               address: "",
               profileImage: null,
-            })
+            }),
           );
           dispatch(setCurrentStep(2));
           await dispatch(
@@ -108,7 +106,7 @@ export default function SignInScreen() {
                 profileImage: null,
               },
               isSignupInProgress: true,
-            })
+            }),
           );
 
           setLoading(false);
@@ -123,7 +121,7 @@ export default function SignInScreen() {
           errorMsg.includes("user not found")
         ) {
           setErrorMessage(
-            "Account not found. Please sign up to create an account."
+            "Account not found. Please sign up to create an account.",
           );
           setLoading(false);
           return;
@@ -158,7 +156,7 @@ export default function SignInScreen() {
           return;
         }
         setErrorMessage(
-          error.message || "Google sign in failed. Please try again."
+          error.message || "Google sign in failed. Please try again.",
         );
         setGoogleLoading(false);
         return;
@@ -171,6 +169,35 @@ export default function SignInScreen() {
       console.error("Unexpected Google sign in error:", error);
       setErrorMessage("An unexpected error occurred. Please try again.");
       setGoogleLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setAppleLoading(true);
+    setErrorMessage("");
+
+    try {
+      const { error } = await signInWithApple();
+
+      if (error) {
+        if (error.message === "Sign in was cancelled") {
+          setAppleLoading(false);
+          return;
+        }
+        setErrorMessage(
+          error.message || "Apple sign in failed. Please try again.",
+        );
+        setAppleLoading(false);
+        return;
+      }
+
+      // Success - route guard in app/index.tsx handles navigation
+      setAppleLoading(false);
+      router.replace("/");
+    } catch (error) {
+      console.error("Unexpected Apple sign in error:", error);
+      setErrorMessage("An unexpected error occurred. Please try again.");
+      setAppleLoading(false);
     }
   };
 
@@ -265,7 +292,7 @@ export default function SignInScreen() {
               title="Sign In"
               onPress={handleSubmit(onSubmit)}
               loading={loading}
-              disabled={googleLoading}
+              disabled={googleLoading || appleLoading}
               variant="primary"
             />
 
@@ -282,9 +309,9 @@ export default function SignInScreen() {
 
             {/* Continue with Google */}
             <TouchableOpacity
-              className="h-[58px] rounded-2xl justify-center items-center px-6 w-full flex-row border-[2px] border-[#E5E7EB] bg-white"
+              className="h-[58px] rounded-2xl justify-center items-center px-6 w-full flex-row border-[2px] border-[#E5E7EB] bg-white mb-3"
               onPress={handleGoogleSignIn}
-              disabled={loading || googleLoading}
+              disabled={loading || googleLoading || appleLoading}
               activeOpacity={0.85}
               style={googleLoading ? { opacity: 0.7 } : undefined}
             >
@@ -309,6 +336,13 @@ export default function SignInScreen() {
                 </>
               )}
             </TouchableOpacity>
+
+            {/* Continue with Apple (iOS only) */}
+            {Platform.OS === "ios" && (
+              <View style={{ marginBottom: 16 }}>
+                <AppleSignInButton onPress={handleAppleSignIn} />
+              </View>
+            )}
 
             {/* Sign Up Link */}
             <View className="mt-8">

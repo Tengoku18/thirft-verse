@@ -205,7 +205,7 @@ export default function EarningsScreen() {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
-        allowsEditing: false,
+        allowsEditing: true,
         quality: 0.8,
       });
 

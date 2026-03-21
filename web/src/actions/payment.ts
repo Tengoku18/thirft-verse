@@ -19,10 +19,18 @@ import {
   type FonepayPaymentParams,
 } from '@/lib/fonepay/utils';
 import { createServiceRoleClient } from '@/lib/supabase/server';
+import { CartItem } from '@/types/cart';
 import type { ShippingAddress } from '@/types/database';
 import { headers } from 'next/headers';
-import { CartItem } from '@/types/cart';
-import { createMultiProductOrder, createOrder, getOrderByTransactionUuid } from './orders';
+import {
+  recordOfferCodeUsage,
+  resolveAppliedOfferForCheckout,
+} from './offer-codes';
+import {
+  createMultiProductOrder,
+  createOrder,
+  getOrderByTransactionUuid,
+} from './orders';
 import { getProductById } from './products';
 
 interface CodOrderParams {
@@ -36,6 +44,7 @@ interface CodOrderParams {
   buyer_email: string;
   shipping_address: ShippingAddress;
   buyer_notes?: string;
+  offerCode?: string | null;
 }
 
 interface MultiProductCodOrderParams {
@@ -47,6 +56,7 @@ interface MultiProductCodOrderParams {
   buyer_email: string;
   shipping_address: ShippingAddress;
   buyer_notes?: string;
+  offerCode?: string | null;
 }
 
 interface MultiProductPaymentParams {
@@ -59,6 +69,7 @@ interface MultiProductPaymentParams {
   buyer_email: string;
   shipping_address: ShippingAddress;
   buyer_notes?: string;
+  offerCode?: string | null;
 }
 
 interface CodOrderResult {
@@ -101,11 +112,19 @@ interface CreateOrderFromPaymentResult {
   error?: string;
 }
 
+function roundCurrency(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
+function amountsMatch(left: number, right: number) {
+  return Math.abs(left - right) <= 0.01;
+}
+
 /**
  * Initiate eSewa payment - generates HTML form that auto-submits to eSewa
  */
 export async function initiateEsewaPayment(
-  params: EsewaPaymentParams
+  params: EsewaPaymentParams & { offerCode?: string | null }
 ): Promise<InitiatePaymentResult> {
   try {
     const config = getEsewaConfig();
@@ -120,7 +139,7 @@ export async function initiateEsewaPayment(
     // Calculate total amount
     const taxAmount = params.taxAmount || 0;
     const deliveryCharge = params.deliveryCharge || 0;
-    const totalAmount = params.amount + taxAmount + deliveryCharge;
+    const itemsSubtotal = params.amount;
 
     // Get product details to find seller
     const product = await getProductById({ id: params.productId });
@@ -130,6 +149,25 @@ export async function initiateEsewaPayment(
         error: 'Product not found',
       };
     }
+
+    const offerResult = params.offerCode
+      ? await resolveAppliedOfferForCheckout({
+          sellerId: product.store_id,
+          code: params.offerCode,
+          itemsSubtotal,
+        })
+      : { success: true as const, offer: undefined };
+
+    if (!offerResult.success) {
+      return {
+        success: false,
+        error: offerResult.error || 'Failed to apply offer code',
+      };
+    }
+
+    const discountedItemsTotal =
+      offerResult.offer?.discountedItemsTotal ?? itemsSubtotal;
+    const totalAmount = discountedItemsTotal + taxAmount + deliveryCharge;
 
     // Store payment metadata for order creation after payment success
     const supabase = createServiceRoleClient();
@@ -143,9 +181,15 @@ export async function initiateEsewaPayment(
         buyer_name: params.buyer_name,
         shipping_address: params.shipping_address,
         amount: totalAmount,
+        items_subtotal: itemsSubtotal,
+        discounted_items_total: discountedItemsTotal,
         quantity: params.quantity,
         shipping_option: params.shippingOption || null,
         buyer_notes: params.buyer_notes || null,
+        offer_code_id: offerResult.offer?.offerCodeId || null,
+        offer_code_text: offerResult.offer?.code || null,
+        offer_discount_percent: offerResult.offer?.discountPercent || null,
+        offer_discount_amount: offerResult.offer?.discountAmount || null,
       });
 
     if (metadataError) {
@@ -226,7 +270,7 @@ export async function initiateEsewaPayment(
             <p>Please wait while we redirect you to complete your payment</p>
           </div>
           <form id="esewaForm" action="${config.gatewayUrl}" method="POST">
-            <input type="hidden" name="amount" value="${params.amount}" />
+            <input type="hidden" name="amount" value="${discountedItemsTotal}" />
             <input type="hidden" name="tax_amount" value="${taxAmount}" />
             <input type="hidden" name="total_amount" value="${totalAmount}" />
             <input type="hidden" name="transaction_uuid" value="${transactionUuid}" />
@@ -383,7 +427,146 @@ export async function createOrderFromPayment(
     }
 
     // Use passed transactionCode first, then metadata, then fallback to transactionUuid
-    const finalTransactionCode = transactionCode || metadata.transaction_code || transactionUuid;
+    const finalTransactionCode =
+      transactionCode || metadata.transaction_code || transactionUuid;
+
+    const finalAmount = Number(metadata.amount ?? 0);
+
+    if (!Number.isFinite(finalAmount) || finalAmount <= 0) {
+      console.error('Invalid payment amount detected in payment_metadata', {
+        transactionUuid,
+        amount: metadata.amount,
+      });
+      return {
+        success: false,
+        error: 'Payment metadata is invalid. Please contact support.',
+      };
+    }
+
+    const hasStoredItemsSubtotal = Number.isFinite(
+      Number(metadata.items_subtotal)
+    );
+    const itemsSubtotal = hasStoredItemsSubtotal
+      ? Number(metadata.items_subtotal)
+      : roundCurrency(Math.max(finalAmount - shippingFee, 0));
+
+    if (!Number.isFinite(itemsSubtotal) || itemsSubtotal < 0) {
+      console.error('Invalid items subtotal detected in payment_metadata', {
+        transactionUuid,
+        items_subtotal: metadata.items_subtotal,
+      });
+      return {
+        success: false,
+        error: 'Payment metadata is invalid. Please contact support.',
+      };
+    }
+
+    const rawDiscountedItemsTotal = Number(
+      metadata.discounted_items_total ?? itemsSubtotal
+    );
+
+    if (
+      !Number.isFinite(rawDiscountedItemsTotal) ||
+      rawDiscountedItemsTotal < 0 ||
+      rawDiscountedItemsTotal > itemsSubtotal + 0.01
+    ) {
+      console.error(
+        'Invalid discounted subtotal detected in payment_metadata',
+        {
+          transactionUuid,
+          discounted_items_total: metadata.discounted_items_total,
+        }
+      );
+      return {
+        success: false,
+        error: 'Payment metadata is invalid. Please contact support.',
+      };
+    }
+
+    // Validate and sanitize offer snapshot from payment initialization.
+    // For online payments we intentionally use the snapshot to preserve
+    // checkout amount even if the seller changes/removes the code later.
+    const hasAnyOfferSnapshotField =
+      metadata.offer_code_id != null ||
+      metadata.offer_code_text != null ||
+      metadata.offer_discount_percent != null ||
+      metadata.offer_discount_amount != null;
+
+    const hasCompleteOfferSnapshot =
+      metadata.offer_code_id != null &&
+      metadata.offer_code_text != null &&
+      metadata.offer_discount_percent != null &&
+      metadata.offer_discount_amount != null;
+
+    let appliedOfferSnapshot: {
+      offer_code_id: string;
+      offer_code_text: string;
+      offer_discount_percent: number;
+      offer_discount_amount: number;
+    } | null = null;
+
+    if (hasCompleteOfferSnapshot) {
+      const discountPercent = Number(metadata.offer_discount_percent);
+      const discountAmount = Number(metadata.offer_discount_amount);
+      const expectedDiscountAmount = roundCurrency(
+        itemsSubtotal * (discountPercent / 100)
+      );
+      const expectedDiscountedItemsTotal = roundCurrency(
+        itemsSubtotal - expectedDiscountAmount
+      );
+      const isOfferSnapshotValid =
+        Number.isFinite(discountPercent) &&
+        discountPercent > 0 &&
+        discountPercent <= 90 &&
+        Number.isFinite(discountAmount) &&
+        discountAmount >= 0 &&
+        amountsMatch(discountAmount, expectedDiscountAmount) &&
+        amountsMatch(rawDiscountedItemsTotal, expectedDiscountedItemsTotal) &&
+        amountsMatch(finalAmount, rawDiscountedItemsTotal + shippingFee);
+
+      if (isOfferSnapshotValid) {
+        appliedOfferSnapshot = {
+          offer_code_id: String(metadata.offer_code_id),
+          offer_code_text: String(metadata.offer_code_text),
+          offer_discount_percent: discountPercent,
+          offer_discount_amount: discountAmount,
+        };
+      } else {
+        console.error('Invalid offer snapshot detected in payment_metadata', {
+          transactionUuid,
+          offer_code_id: metadata.offer_code_id,
+        });
+        return {
+          success: false,
+          error: 'Payment metadata is invalid. Please contact support.',
+        };
+      }
+    } else if (hasAnyOfferSnapshotField) {
+      console.error('Partial offer snapshot detected in payment_metadata', {
+        transactionUuid,
+      });
+      return {
+        success: false,
+        error: 'Payment metadata is invalid. Please contact support.',
+      };
+    } else if (
+      !amountsMatch(finalAmount, rawDiscountedItemsTotal + shippingFee)
+    ) {
+      console.error('Non-offer payment totals are inconsistent', {
+        transactionUuid,
+        finalAmount,
+        rawDiscountedItemsTotal,
+        shippingFee,
+      });
+      return {
+        success: false,
+        error: 'Payment metadata is invalid. Please contact support.',
+      };
+    }
+
+    const discountedItemsTotal = appliedOfferSnapshot
+      ? rawDiscountedItemsTotal
+      : itemsSubtotal;
 
     // Check if this is a multi-product order (cart_items exists)
     let orderResult;
@@ -401,10 +584,18 @@ export async function createOrderFromPayment(
         transaction_code: finalTransactionCode,
         transaction_uuid: transactionUuid,
         total_amount: parseFloat(metadata.amount),
+        items_subtotal: itemsSubtotal,
+        discounted_items_total: discountedItemsTotal,
         shipping_fee: shippingFee,
         shipping_option: metadata.shipping_option || null,
         payment_method: metadata.payment_method || 'eSewa',
         buyer_notes: metadata.buyer_notes || null,
+        offer_code_id: appliedOfferSnapshot?.offer_code_id ?? null,
+        offer_code_text: appliedOfferSnapshot?.offer_code_text ?? null,
+        offer_discount_percent:
+          appliedOfferSnapshot?.offer_discount_percent ?? null,
+        offer_discount_amount:
+          appliedOfferSnapshot?.offer_discount_amount ?? null,
       });
     } else {
       // Single product order (legacy flow)
@@ -420,10 +611,18 @@ export async function createOrderFromPayment(
         transaction_code: finalTransactionCode,
         transaction_uuid: transactionUuid,
         amount: parseFloat(metadata.amount),
+        items_subtotal: itemsSubtotal,
+        discounted_items_total: discountedItemsTotal,
         shipping_fee: shippingFee,
         shipping_option: metadata.shipping_option || null,
         payment_method: metadata.payment_method || 'eSewa',
         buyer_notes: metadata.buyer_notes || null,
+        offer_code_id: appliedOfferSnapshot?.offer_code_id ?? null,
+        offer_code_text: appliedOfferSnapshot?.offer_code_text ?? null,
+        offer_discount_percent:
+          appliedOfferSnapshot?.offer_discount_percent ?? null,
+        offer_discount_amount:
+          appliedOfferSnapshot?.offer_discount_amount ?? null,
       });
     }
 
@@ -433,6 +632,28 @@ export async function createOrderFromPayment(
         success: false,
         error: orderResult.error || 'Failed to create order',
       };
+    }
+
+    if (orderResult.order && appliedOfferSnapshot) {
+      const usageResult = await recordOfferCodeUsage({
+        offerCodeId: appliedOfferSnapshot.offer_code_id,
+        ownerUserId: metadata.seller_id,
+        clientEmail: metadata.buyer_email,
+        orderId: orderResult.order.id,
+        itemsSubtotal,
+        discountPercent: appliedOfferSnapshot.offer_discount_percent,
+        discountAmount: appliedOfferSnapshot.offer_discount_amount,
+        discountedItemsTotal,
+        finalAmount,
+        metadata: {
+          payment_method: metadata.payment_method || 'eSewa',
+          shipping_option: metadata.shipping_option || null,
+        },
+      });
+
+      if (!usageResult.success) {
+        console.error('Failed to persist offer code usage:', usageResult.error);
+      }
     }
 
     // Mark metadata as processed
@@ -471,10 +692,12 @@ export async function createOrderFromPayment(
           if (metadata.cart_items && Array.isArray(metadata.cart_items)) {
             // Multi-product order
             const itemsCount = metadata.cart_items.length;
-            const firstItemName = metadata.cart_items[0]?.product_name || 'Product';
-            itemName = itemsCount > 1
-              ? `${firstItemName} and ${itemsCount - 1} more item${itemsCount > 2 ? 's' : ''}`
-              : firstItemName;
+            const firstItemName =
+              metadata.cart_items[0]?.product_name || 'Product';
+            itemName =
+              itemsCount > 1
+                ? `${firstItemName} and ${itemsCount - 1} more item${itemsCount > 2 ? 's' : ''}`
+                : firstItemName;
           } else {
             // Single product order - get product details
             const product = await getProductById({ id: metadata.product_id });
@@ -501,13 +724,20 @@ export async function createOrderFromPayment(
               currency: seller.currency || 'NPR',
               shippingFee: shippingFee,
               // Pass order items for multi-product orders
-              orderItems: metadata.cart_items && Array.isArray(metadata.cart_items)
-                ? metadata.cart_items.map((item: any) => ({
-                    productName: item.product_name,
-                    quantity: item.quantity,
-                    price: item.price,
-                  }))
-                : undefined,
+              orderItems:
+                metadata.cart_items && Array.isArray(metadata.cart_items)
+                  ? metadata.cart_items.map(
+                      (item: {
+                        product_name?: string;
+                        quantity?: number;
+                        price?: number;
+                      }) => ({
+                        productName: item.product_name,
+                        quantity: item.quantity,
+                        price: item.price,
+                      })
+                    )
+                  : undefined,
             },
           });
           console.log('Order confirmation emails sent successfully');
@@ -554,8 +784,24 @@ export async function createCodOrder(
       };
     }
 
-    // Calculate total amount (base amount + shipping fee)
-    const totalAmount = params.amount + params.shippingFee;
+    const offerResult = params.offerCode
+      ? await resolveAppliedOfferForCheckout({
+          sellerId: product.store_id,
+          code: params.offerCode,
+          itemsSubtotal: params.amount,
+        })
+      : { success: true as const, offer: undefined };
+
+    if (!offerResult.success) {
+      return {
+        success: false,
+        error: offerResult.error || 'Failed to apply offer code',
+      };
+    }
+
+    const discountedItemsTotal =
+      offerResult.offer?.discountedItemsTotal ?? params.amount;
+    const totalAmount = discountedItemsTotal + params.shippingFee;
 
     // Create order directly (no transaction code/uuid needed for COD)
     const orderResult = await createOrder({
@@ -565,12 +811,18 @@ export async function createCodOrder(
       buyer_email: params.buyer_email,
       shipping_address: params.shipping_address,
       amount: totalAmount,
+      items_subtotal: params.amount,
+      discounted_items_total: discountedItemsTotal,
       shipping_fee: params.shippingFee,
       shipping_option: params.shippingOption,
       quantity: params.quantity,
       payment_method: 'Cash on Delivery',
       status: 'pending',
       buyer_notes: params.buyer_notes,
+      offer_code_id: offerResult.offer?.offerCodeId || null,
+      offer_code_text: offerResult.offer?.code || null,
+      offer_discount_percent: offerResult.offer?.discountPercent || null,
+      offer_discount_amount: offerResult.offer?.discountAmount || null,
     });
 
     if (!orderResult.success || !orderResult.order) {
@@ -578,6 +830,28 @@ export async function createCodOrder(
         success: false,
         error: orderResult.error || 'Failed to create COD order',
       };
+    }
+
+    if (orderResult.success && orderResult.order && offerResult.offer) {
+      const usageResult = await recordOfferCodeUsage({
+        offerCodeId: offerResult.offer.offerCodeId,
+        ownerUserId: product.store_id,
+        clientEmail: params.buyer_email,
+        orderId: orderResult.order.id,
+        itemsSubtotal: params.amount,
+        discountPercent: offerResult.offer.discountPercent,
+        discountAmount: offerResult.offer.discountAmount,
+        discountedItemsTotal: offerResult.offer.discountedItemsTotal,
+        finalAmount: totalAmount,
+        metadata: {
+          payment_method: 'Cash on Delivery',
+          shipping_option: params.shippingOption,
+        },
+      });
+
+      if (!usageResult.success) {
+        console.error('Failed to record COD offer usage:', usageResult.error);
+      }
     }
 
     // Send confirmation emails
@@ -589,7 +863,9 @@ export async function createCodOrder(
         .eq('id', product.store_id)
         .single();
 
-      const { data: authUser } = await supabase.auth.admin.getUserById(product.store_id);
+      const { data: authUser } = await supabase.auth.admin.getUserById(
+        product.store_id
+      );
       const sellerEmail = authUser?.user?.email;
 
       if (product && seller && sellerEmail) {
@@ -608,7 +884,8 @@ export async function createCodOrder(
             date: new Date().toLocaleDateString(),
             total: totalAmount,
             itemName: product.title,
-            storeName: seller.store_username || seller.name || 'Thriftverse Store',
+            storeName:
+              seller.store_username || seller.name || 'Thriftverse Store',
             currency: seller.currency || 'NPR',
             shippingFee: params.shippingFee,
           },
@@ -616,7 +893,10 @@ export async function createCodOrder(
         console.log('COD order confirmation emails sent successfully');
       }
     } catch (emailError) {
-      console.error('Failed to send COD order confirmation emails:', emailError);
+      console.error(
+        'Failed to send COD order confirmation emails:',
+        emailError
+      );
       // Don't fail the order creation if email sending fails
     }
 
@@ -629,7 +909,8 @@ export async function createCodOrder(
     console.error('Failed to create COD order:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to create COD order',
+      error:
+        error instanceof Error ? error.message : 'Failed to create COD order',
     };
   }
 }
@@ -646,7 +927,24 @@ export async function createMultiProductCodOrder(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const totalAmount = itemsTotal + params.shippingFee;
+    const offerResult = params.offerCode
+      ? await resolveAppliedOfferForCheckout({
+          sellerId: params.storeId,
+          code: params.offerCode,
+          itemsSubtotal: itemsTotal,
+        })
+      : { success: true as const, offer: undefined };
+
+    if (!offerResult.success) {
+      return {
+        success: false,
+        error: offerResult.error || 'Failed to apply offer code',
+      };
+    }
+
+    const discountedItemsTotal =
+      offerResult.offer?.discountedItemsTotal ?? itemsTotal;
+    const totalAmount = discountedItemsTotal + params.shippingFee;
 
     // Prepare order items
     const orderItems = params.items.map((item) => ({
@@ -665,11 +963,17 @@ export async function createMultiProductCodOrder(
       buyer_email: params.buyer_email,
       shipping_address: params.shipping_address,
       total_amount: totalAmount,
+      items_subtotal: itemsTotal,
+      discounted_items_total: discountedItemsTotal,
       shipping_fee: params.shippingFee,
       shipping_option: params.shippingOption,
       payment_method: 'Cash on Delivery',
       status: 'pending',
       buyer_notes: params.buyer_notes,
+      offer_code_id: offerResult.offer?.offerCodeId || null,
+      offer_code_text: offerResult.offer?.code || null,
+      offer_discount_percent: offerResult.offer?.discountPercent || null,
+      offer_discount_amount: offerResult.offer?.discountAmount || null,
     });
 
     if (!orderResult.success || !orderResult.order) {
@@ -677,6 +981,32 @@ export async function createMultiProductCodOrder(
         success: false,
         error: orderResult.error || 'Failed to create COD order',
       };
+    }
+
+    if (orderResult.success && orderResult.order && offerResult.offer) {
+      const usageResult = await recordOfferCodeUsage({
+        offerCodeId: offerResult.offer.offerCodeId,
+        ownerUserId: params.storeId,
+        clientEmail: params.buyer_email,
+        orderId: orderResult.order.id,
+        itemsSubtotal: itemsTotal,
+        discountPercent: offerResult.offer.discountPercent,
+        discountAmount: offerResult.offer.discountAmount,
+        discountedItemsTotal: offerResult.offer.discountedItemsTotal,
+        finalAmount: totalAmount,
+        metadata: {
+          payment_method: 'Cash on Delivery',
+          shipping_option: params.shippingOption,
+          items_count: params.items.length,
+        },
+      });
+
+      if (!usageResult.success) {
+        console.error(
+          'Failed to record multi-product COD offer usage:',
+          usageResult.error
+        );
+      }
     }
 
     // Send confirmation emails
@@ -688,15 +1018,18 @@ export async function createMultiProductCodOrder(
         .eq('id', params.storeId)
         .single();
 
-      const { data: authUser } = await supabase.auth.admin.getUserById(params.storeId);
+      const { data: authUser } = await supabase.auth.admin.getUserById(
+        params.storeId
+      );
       const sellerEmail = authUser?.user?.email;
 
       if (seller && sellerEmail) {
         const itemsCount = params.items.length;
         const firstItemName = params.items[0].productName;
-        const itemName = itemsCount > 1
-          ? `${firstItemName} and ${itemsCount - 1} more item${itemsCount > 2 ? 's' : ''}`
-          : firstItemName;
+        const itemName =
+          itemsCount > 1
+            ? `${firstItemName} and ${itemsCount - 1} more item${itemsCount > 2 ? 's' : ''}`
+            : firstItemName;
 
         await sendOrderEmails({
           buyer: {
@@ -713,20 +1046,26 @@ export async function createMultiProductCodOrder(
             date: new Date().toLocaleDateString(),
             total: totalAmount,
             itemName,
-            storeName: seller.store_username || seller.name || 'Thriftverse Store',
+            storeName:
+              seller.store_username || seller.name || 'Thriftverse Store',
             currency: seller.currency || 'NPR',
             shippingFee: params.shippingFee,
-            orderItems: params.items.map(item => ({
+            orderItems: params.items.map((item) => ({
               productName: item.productName,
               quantity: item.quantity,
               price: item.price,
             })),
           },
         });
-        console.log('Multi-product COD order confirmation emails sent successfully');
+        console.log(
+          'Multi-product COD order confirmation emails sent successfully'
+        );
       }
     } catch (emailError) {
-      console.error('Failed to send COD order confirmation emails:', emailError);
+      console.error(
+        'Failed to send COD order confirmation emails:',
+        emailError
+      );
     }
 
     return {
@@ -738,7 +1077,8 @@ export async function createMultiProductCodOrder(
     console.error('Failed to create multi-product COD order:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to create COD order',
+      error:
+        error instanceof Error ? error.message : 'Failed to create COD order',
     };
   }
 }
@@ -764,7 +1104,24 @@ export async function initiateMultiProductEsewaPayment(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const totalAmount = itemsTotal + params.shippingFee;
+    const offerResult = params.offerCode
+      ? await resolveAppliedOfferForCheckout({
+          sellerId: params.storeId,
+          code: params.offerCode,
+          itemsSubtotal: itemsTotal,
+        })
+      : { success: true as const, offer: undefined };
+
+    if (!offerResult.success) {
+      return {
+        success: false,
+        error: offerResult.error || 'Failed to apply offer code',
+      };
+    }
+
+    const discountedItemsTotal =
+      offerResult.offer?.discountedItemsTotal ?? itemsTotal;
+    const totalAmount = discountedItemsTotal + params.shippingFee;
 
     // Prepare cart items for storage (convert CartItem to storable format)
     const cartItemsForStorage = params.items.map((item) => ({
@@ -787,10 +1144,16 @@ export async function initiateMultiProductEsewaPayment(
         buyer_name: params.buyer_name,
         shipping_address: params.shipping_address,
         amount: totalAmount,
+        items_subtotal: itemsTotal,
+        discounted_items_total: discountedItemsTotal,
         quantity: params.items.reduce((sum, item) => sum + item.quantity, 0),
         shipping_option: params.shippingOption,
         buyer_notes: params.buyer_notes || null,
         cart_items: cartItemsForStorage, // Store cart items as JSONB
+        offer_code_id: offerResult.offer?.offerCodeId || null,
+        offer_code_text: offerResult.offer?.code || null,
+        offer_discount_percent: offerResult.offer?.discountPercent || null,
+        offer_discount_amount: offerResult.offer?.discountAmount || null,
       });
 
     if (metadataError) {
@@ -813,12 +1176,6 @@ export async function initiateMultiProductEsewaPayment(
       signatureMessage,
       config.secretKey
     );
-
-    // Create product description for eSewa
-    const itemsCount = params.items.length;
-    const productDescription = itemsCount > 1
-      ? `${params.storeName} - ${itemsCount} items`
-      : params.items[0].productName;
 
     // Create HTML form that will auto-submit to eSewa
     const formHtml = `
@@ -877,7 +1234,7 @@ export async function initiateMultiProductEsewaPayment(
             <p>Please wait while we redirect you to complete your payment</p>
           </div>
           <form id="esewaForm" action="${config.gatewayUrl}" method="POST">
-            <input type="hidden" name="amount" value="${itemsTotal}" />
+            <input type="hidden" name="amount" value="${discountedItemsTotal}" />
             <input type="hidden" name="tax_amount" value="0" />
             <input type="hidden" name="total_amount" value="${totalAmount}" />
             <input type="hidden" name="transaction_uuid" value="${transactionUuid}" />
@@ -932,7 +1289,24 @@ export async function initiateMultiProductFonepayPayment(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const totalAmount = itemsTotal + params.shippingFee;
+    const offerResult = params.offerCode
+      ? await resolveAppliedOfferForCheckout({
+          sellerId: params.storeId,
+          code: params.offerCode,
+          itemsSubtotal: itemsTotal,
+        })
+      : { success: true as const, offer: undefined };
+
+    if (!offerResult.success) {
+      return {
+        success: false,
+        error: offerResult.error || 'Failed to apply offer code',
+      };
+    }
+
+    const discountedItemsTotal =
+      offerResult.offer?.discountedItemsTotal ?? itemsTotal;
+    const totalAmount = discountedItemsTotal + params.shippingFee;
 
     // Prepare cart items for storage
     const cartItemsForStorage = params.items.map((item) => ({
@@ -955,11 +1329,17 @@ export async function initiateMultiProductFonepayPayment(
         buyer_name: params.buyer_name,
         shipping_address: params.shipping_address,
         amount: totalAmount,
+        items_subtotal: itemsTotal,
+        discounted_items_total: discountedItemsTotal,
         quantity: params.items.reduce((sum, item) => sum + item.quantity, 0),
         payment_method: 'FonePay',
         shipping_option: params.shippingOption,
         buyer_notes: params.buyer_notes || null,
         cart_items: cartItemsForStorage,
+        offer_code_id: offerResult.offer?.offerCodeId || null,
+        offer_code_text: offerResult.offer?.code || null,
+        offer_discount_percent: offerResult.offer?.discountPercent || null,
+        offer_discount_amount: offerResult.offer?.discountAmount || null,
       });
 
     if (metadataError) {
@@ -977,9 +1357,10 @@ export async function initiateMultiProductFonepayPayment(
     const date = getFonepayDate();
     const returnUrl = `${baseUrl}/payment/success`;
     const itemsCount = params.items.length;
-    const r1 = itemsCount > 1
-      ? `${params.storeName} - ${itemsCount} items`
-      : params.items[0].productName;
+    const r1 =
+      itemsCount > 1
+        ? `${params.storeName} - ${itemsCount} items`
+        : params.items[0].productName;
     const r2 = params.buyer_email;
 
     // Generate signature
@@ -1109,7 +1490,7 @@ export async function handlePaymentFailure(
  * Initiate FonePay payment - generates HTML form that auto-submits to FonePay
  */
 export async function initiateFonepayPayment(
-  params: FonepayPaymentParams
+  params: FonepayPaymentParams & { offerCode?: string | null }
 ): Promise<InitiatePaymentResult> {
   try {
     const config = getFonepayConfig();
@@ -1123,7 +1504,7 @@ export async function initiateFonepayPayment(
 
     // Calculate total amount including shipping
     const shippingFee = params.shippingFee || 0;
-    const totalAmount = params.amount + shippingFee;
+    const itemsSubtotal = params.amount;
 
     // Get product details to find seller
     const product = await getProductById({ id: params.productId });
@@ -1133,6 +1514,25 @@ export async function initiateFonepayPayment(
         error: 'Product not found',
       };
     }
+
+    const offerResult = params.offerCode
+      ? await resolveAppliedOfferForCheckout({
+          sellerId: product.store_id,
+          code: params.offerCode,
+          itemsSubtotal,
+        })
+      : { success: true as const, offer: undefined };
+
+    if (!offerResult.success) {
+      return {
+        success: false,
+        error: offerResult.error || 'Failed to apply offer code',
+      };
+    }
+
+    const discountedItemsTotal =
+      offerResult.offer?.discountedItemsTotal ?? itemsSubtotal;
+    const totalAmount = discountedItemsTotal + shippingFee;
 
     // Store payment metadata for order creation after payment success
     const supabase = createServiceRoleClient();
@@ -1146,10 +1546,16 @@ export async function initiateFonepayPayment(
         buyer_name: params.buyer_name,
         shipping_address: params.shipping_address,
         amount: totalAmount,
+        items_subtotal: itemsSubtotal,
+        discounted_items_total: discountedItemsTotal,
         quantity: params.quantity,
         payment_method: 'FonePay',
         shipping_option: params.shippingOption || null,
         buyer_notes: params.buyer_notes || null,
+        offer_code_id: offerResult.offer?.offerCodeId || null,
+        offer_code_text: offerResult.offer?.code || null,
+        offer_discount_percent: offerResult.offer?.discountPercent || null,
+        offer_discount_amount: offerResult.offer?.discountAmount || null,
       });
 
     if (metadataError) {
@@ -1194,7 +1600,6 @@ export async function initiateFonepayPayment(
       returnUrl,
       signature,
     });
-
 
     // Create HTML page that redirects to FonePay (using GET request via URL)
     const formHtml = `

@@ -1,57 +1,76 @@
-'use client'
+'use client';
 
-import { createCodOrder, initiateEsewaPayment, initiateFonepayPayment } from '@/actions/payment'
-import { getProductById } from '@/actions/products'
-import Button from '@/_components/common/Button'
-import CheckoutStepper, { Step } from '@/_components/CheckoutStepper'
-import { FormInput, FormTextarea, FormCombobox } from '@/_components/forms'
-import { districtsOfNepal } from '@/lib/constants/districts'
-import PaymentMethodSelector, { PaymentMethod } from '@/_components/PaymentMethodSelector'
-import ShippingOptionSelector, { ShippingOption, getShippingFee } from '@/_components/ShippingOptionSelector'
-import { CheckoutFormData, checkoutSchema } from '@/lib/validations/checkout'
-import { Product, ShippingAddress } from '@/types/database'
-import { formatCheckoutPrice, formatProductPrice } from '@/utils/formatPrice'
-import { yupResolver } from '@hookform/resolvers/yup'
-import { ArrowLeft, ArrowRight, Check, Package, MapPin, CreditCard, ShoppingBag } from 'lucide-react'
-import Image from 'next/image'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import toast from 'react-hot-toast'
-import MultiProductCheckout from './multi-product-page'
+import CheckoutStepper, { Step } from '@/_components/CheckoutStepper';
+import Button from '@/_components/common/Button';
+import { FormCombobox, FormInput, FormTextarea } from '@/_components/forms';
+import PaymentMethodSelector, {
+  PaymentMethod,
+} from '@/_components/PaymentMethodSelector';
+import ShippingOptionSelector, {
+  ShippingOption,
+  getShippingFee,
+} from '@/_components/ShippingOptionSelector';
+import { validateOfferCodeForCheckout } from '@/actions/offer-codes';
+import {
+  createCodOrder,
+  initiateEsewaPayment,
+  initiateFonepayPayment,
+} from '@/actions/payment';
+import { getProductById } from '@/actions/products';
+import { districtsOfNepal } from '@/lib/constants/districts';
+import { CheckoutFormData, checkoutSchema } from '@/lib/validations/checkout';
+import { Product, ShippingAddress } from '@/types/database';
+import { AppliedOfferCodeSummary } from '@/types/offer-codes';
+import { formatCheckoutPrice, formatProductPrice } from '@/utils/formatPrice';
+import { yupResolver } from '@hookform/resolvers/yup';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  CreditCard,
+  MapPin,
+  Package,
+  ShoppingBag,
+} from 'lucide-react';
+import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import MultiProductCheckout from './multi-product-page';
 
 const CHECKOUT_STEPS: Step[] = [
   { id: 1, name: 'Delivery Method', shortName: 'Delivery' },
   { id: 2, name: 'Shipping Details', shortName: 'Details' },
   { id: 3, name: 'Payment Method', shortName: 'Payment' },
   { id: 4, name: 'Review & Pay', shortName: 'Review' },
-]
+];
 
 function CheckoutContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [product, setProduct] = useState<Product | null>(null)
-  const [isLoadingProduct, setIsLoadingProduct] = useState(true)
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('esewa')
-  const [shippingOption, setShippingOption] = useState<ShippingOption>(null)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoadingProduct, setIsLoadingProduct] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('esewa');
+  const [shippingOption, setShippingOption] = useState<ShippingOption>(null);
+  const [offerCode, setOfferCode] = useState('');
+  const [appliedOffer, setAppliedOffer] =
+    useState<AppliedOfferCodeSummary | null>(null);
+  const [offerLoading, setOfferLoading] = useState(false);
+  const [offerError, setOfferError] = useState<string | null>(null);
 
   // Check if this is a multi-product checkout (from cart)
-  const storeId = searchParams.get('storeId')
-
-  // If storeId exists, use multi-product checkout flow
-  if (storeId) {
-    return <MultiProductCheckout storeId={storeId} />
-  }
+  const storeId = searchParams.get('storeId');
 
   // Otherwise, continue with single-product checkout flow
   // Get product details from URL params
-  const productId = searchParams.get('productId')
-  const productName = searchParams.get('productName')
-  const price = searchParams.get('price')
-  const currency = searchParams.get('currency')
-  const quantity = searchParams.get('quantity')
+  const productId = searchParams.get('productId');
+  const productName = searchParams.get('productName');
+  const price = searchParams.get('price');
+  const currency = searchParams.get('currency');
+  const quantity = searchParams.get('quantity');
 
   // Form setup
   const {
@@ -73,101 +92,171 @@ function CheckoutContent() {
       country: 'Nepal',
       buyer_notes: '',
     },
-  })
+  });
 
   // Fetch product details
   useEffect(() => {
     async function fetchProduct() {
-      if (!productId) return
+      if (storeId || !productId) return;
 
       try {
-        setIsLoadingProduct(true)
-        const productData = await getProductById({ id: productId })
+        setIsLoadingProduct(true);
+        const productData = await getProductById({ id: productId });
         if (productData) {
-          setProduct(productData)
+          setProduct(productData);
         }
       } catch (error) {
-        console.error('Error fetching product:', error)
+        console.error('Error fetching product:', error);
       } finally {
-        setIsLoadingProduct(false)
+        setIsLoadingProduct(false);
       }
     }
 
-    fetchProduct()
-  }, [productId])
+    fetchProduct();
+  }, [productId, storeId]);
+
+  // If storeId exists, use multi-product checkout flow
+  if (storeId) {
+    return <MultiProductCheckout storeId={storeId} />;
+  }
 
   // Validate required params
   if (!productId || !productName || !price || !currency || !quantity) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h1 className="mb-4 font-heading text-2xl font-bold text-primary">
+          <h1 className="font-heading text-primary mb-4 text-2xl font-bold">
             Invalid Checkout Link
           </h1>
-          <p className="mb-6 text-primary/60">
+          <p className="text-primary/60 mb-6">
             Missing product information. Please try again.
           </p>
           <button
             onClick={() => router.back()}
-            className="rounded-2xl bg-primary px-6 py-3 font-semibold text-surface transition-all hover:scale-105"
+            className="bg-primary text-surface rounded-2xl px-6 py-3 font-semibold transition-all hover:scale-105"
           >
             Go Back
           </button>
         </div>
       </div>
-    )
+    );
   }
 
-  const parsedQuantity = parseInt(quantity, 10)
-  const unitPrice = parseFloat(price)
-  const baseAmount = unitPrice * parsedQuantity
-  const shippingFee = getShippingFee(shippingOption)
-  const totalAmount = baseAmount + shippingFee
+  const parsedQuantity = parseInt(quantity, 10);
+  const unitPrice = parseFloat(price);
+  const baseAmount = unitPrice * parsedQuantity;
+  const shippingFee = getShippingFee(shippingOption);
+  const discountedItemsTotal = appliedOffer?.discountedItemsTotal ?? baseAmount;
+  const totalAmount = discountedItemsTotal + shippingFee;
+
+  const isOfferFailure = (message?: string | null) =>
+    Boolean(message && /(offer code|invalid offer|expired)/i.test(message));
+
+  const showOfferSubmissionError = (message: string) => {
+    setOfferError(message);
+    setAppliedOffer(null);
+    setIsProcessing(false);
+  };
+
+  const handleApplyOfferCode = async () => {
+    const normalizedOfferCode = offerCode.trim().toUpperCase();
+
+    if (!product?.store_id) {
+      setOfferError('Store details are still loading. Please try again.');
+      return;
+    }
+
+    if (!normalizedOfferCode) {
+      setOfferError('Enter an offer code first.');
+      return;
+    }
+
+    setOfferError(null);
+    setOfferLoading(true);
+
+    try {
+      const result = await validateOfferCodeForCheckout({
+        sellerId: product.store_id,
+        code: normalizedOfferCode,
+        itemsSubtotal: baseAmount,
+      });
+
+      if (!result.success || !result.offer) {
+        setOfferError(result.error || 'Invalid offer code');
+        setAppliedOffer(null);
+        return;
+      }
+
+      setAppliedOffer(result.offer);
+      setOfferCode(result.offer.code);
+      setOfferError(null);
+      toast.success(`Offer applied: ${result.offer.discountPercent}% off`);
+    } catch (error) {
+      console.error('Failed to apply offer code:', error);
+      setOfferError('Could not apply offer code right now.');
+      setAppliedOffer(null);
+    } finally {
+      setOfferLoading(false);
+    }
+  };
+
+  const clearAppliedOffer = () => {
+    setAppliedOffer(null);
+    setOfferCode('');
+    setOfferError(null);
+  };
 
   const handleNext = async () => {
     if (currentStep === 1) {
       if (!shippingOption) {
-        toast.error('Please select a delivery method')
-        return
+        toast.error('Please select a delivery method');
+        return;
       }
-      setCurrentStep(2)
+      setCurrentStep(2);
     } else if (currentStep === 2) {
       // Validate form fields
-      const isValid = await trigger(['buyer_name', 'buyer_email', 'phone', 'street', 'city', 'district'])
+      const isValid = await trigger([
+        'buyer_name',
+        'buyer_email',
+        'phone',
+        'street',
+        'city',
+        'district',
+      ]);
       if (!isValid) {
-        toast.error('Please fill in all required fields')
-        return
+        toast.error('Please fill in all required fields');
+        return;
       }
-      setCurrentStep(3)
+      setCurrentStep(3);
     } else if (currentStep === 3) {
-      setCurrentStep(4)
+      setCurrentStep(4);
     }
-  }
+  };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep(currentStep - 1);
     } else {
-      router.back()
+      router.back();
     }
-  }
+  };
 
   const handleStepClick = (step: number) => {
     if (step < currentStep) {
-      setCurrentStep(step)
+      setCurrentStep(step);
     }
-  }
+  };
 
   const handleCheckoutSubmit = async () => {
-    const data = getValues()
+    const data = getValues();
 
     if (!shippingOption) {
-      toast.error('Please select a delivery method')
-      setCurrentStep(1)
-      return
+      toast.error('Please select a delivery method');
+      setCurrentStep(1);
+      return;
     }
 
-    setIsProcessing(true)
+    setIsProcessing(true);
 
     const shippingAddress: ShippingAddress = {
       street: data.street,
@@ -175,10 +264,10 @@ function CheckoutContent() {
       district: data.district,
       country: data.country,
       phone: data.phone,
-    }
+    };
 
     try {
-      let result
+      let result;
 
       if (paymentMethod === 'esewa') {
         result = await initiateEsewaPayment({
@@ -193,17 +282,24 @@ function CheckoutContent() {
           shipping_address: shippingAddress,
           shippingOption: shippingOption,
           buyer_notes: data.buyer_notes,
-        })
+          offerCode: appliedOffer?.code,
+        });
 
         if (result.success && result.formHtml) {
-          const paymentWindow = window.open('', '_self')
+          const paymentWindow = window.open('', '_self');
           if (paymentWindow) {
-            paymentWindow.document.write(result.formHtml)
-            paymentWindow.document.close()
+            paymentWindow.document.write(result.formHtml);
+            paymentWindow.document.close();
           }
         } else {
-          toast.error(`Payment initiation failed: ${result.error || 'Unknown error'}`)
-          setIsProcessing(false)
+          if (isOfferFailure(result.error)) {
+            showOfferSubmissionError(result.error || 'Invalid offer code');
+            return;
+          }
+          toast.error(
+            `Payment initiation failed: ${result.error || 'Unknown error'}`
+          );
+          setIsProcessing(false);
         }
       } else if (paymentMethod === 'fonepay') {
         result = await initiateFonepayPayment({
@@ -217,17 +313,24 @@ function CheckoutContent() {
           shippingFee: shippingFee,
           shippingOption: shippingOption,
           buyer_notes: data.buyer_notes,
-        })
+          offerCode: appliedOffer?.code,
+        });
 
         if (result.success && result.formHtml) {
-          const paymentWindow = window.open('', '_self')
+          const paymentWindow = window.open('', '_self');
           if (paymentWindow) {
-            paymentWindow.document.write(result.formHtml)
-            paymentWindow.document.close()
+            paymentWindow.document.write(result.formHtml);
+            paymentWindow.document.close();
           }
         } else {
-          toast.error(`Payment initiation failed: ${result.error || 'Unknown error'}`)
-          setIsProcessing(false)
+          if (isOfferFailure(result.error)) {
+            showOfferSubmissionError(result.error || 'Invalid offer code');
+            return;
+          }
+          toast.error(
+            `Payment initiation failed: ${result.error || 'Unknown error'}`
+          );
+          setIsProcessing(false);
         }
       } else if (paymentMethod === 'cod') {
         result = await createCodOrder({
@@ -241,22 +344,27 @@ function CheckoutContent() {
           buyer_email: data.buyer_email,
           shipping_address: shippingAddress,
           buyer_notes: data.buyer_notes,
-        })
+          offerCode: appliedOffer?.code,
+        });
 
         if (result.success && result.orderId) {
-          toast.success('Order placed successfully!')
-          router.push(`/order/${result.orderId}?view=buyer`)
+          toast.success('Order placed successfully!');
+          router.push(`/order/${result.orderId}?view=buyer`);
         } else {
-          toast.error(result.error || 'Failed to place order')
-          setIsProcessing(false)
+          if (isOfferFailure(result.error)) {
+            showOfferSubmissionError(result.error || 'Invalid offer code');
+            return;
+          }
+          toast.error(result.error || 'Failed to place order');
+          setIsProcessing(false);
         }
       }
     } catch (error) {
-      console.error('Error processing order:', error)
-      toast.error('Failed to process order. Please try again.')
-      setIsProcessing(false)
+      console.error('Error processing order:', error);
+      toast.error('Failed to process order. Please try again.');
+      setIsProcessing(false);
     }
-  }
+  };
 
   // Render step content
   const renderStepContent = () => {
@@ -264,15 +372,15 @@ function CheckoutContent() {
       case 1:
         return (
           <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/10">
-                <Package className="h-5 w-5 text-secondary" />
+            <div className="mb-6 flex items-center gap-3">
+              <div className="bg-secondary/10 flex h-10 w-10 items-center justify-center rounded-full">
+                <Package className="text-secondary h-5 w-5" />
               </div>
               <div>
-                <h2 className="font-heading text-xl font-bold text-primary">
+                <h2 className="font-heading text-primary text-xl font-bold">
                   Choose Delivery Method
                 </h2>
-                <p className="text-sm text-primary/60">
+                <p className="text-primary/60 text-sm">
                   How would you like to receive your order?
                 </p>
               </div>
@@ -283,20 +391,20 @@ function CheckoutContent() {
               currency={currency}
             />
           </div>
-        )
+        );
 
       case 2:
         return (
           <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/10">
-                <MapPin className="h-5 w-5 text-secondary" />
+            <div className="mb-6 flex items-center gap-3">
+              <div className="bg-secondary/10 flex h-10 w-10 items-center justify-center rounded-full">
+                <MapPin className="text-secondary h-5 w-5" />
               </div>
               <div>
-                <h2 className="font-heading text-xl font-bold text-primary">
+                <h2 className="font-heading text-primary text-xl font-bold">
                   Shipping Details
                 </h2>
-                <p className="text-sm text-primary/60">
+                <p className="text-primary/60 text-sm">
                   Where should we deliver your order?
                 </p>
               </div>
@@ -304,7 +412,7 @@ function CheckoutContent() {
 
             {/* Contact Information */}
             <div>
-              <h3 className="mb-4 font-heading text-lg font-semibold text-primary">
+              <h3 className="font-heading text-primary mb-4 text-lg font-semibold">
                 Contact Information
               </h3>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -338,7 +446,7 @@ function CheckoutContent() {
 
             {/* Shipping Address */}
             <div>
-              <h3 className="mb-4 font-heading text-lg font-semibold text-primary">
+              <h3 className="font-heading text-primary mb-4 text-lg font-semibold">
                 Shipping Address
               </h3>
               <div className="grid gap-4">
@@ -365,7 +473,7 @@ function CheckoutContent() {
                     options={[...districtsOfNepal]}
                     value={watch('district')}
                     onChange={(value) => {
-                      setValue('district', value, { shouldValidate: true })
+                      setValue('district', value, { shouldValidate: true });
                     }}
                   />
                 </div>
@@ -382,7 +490,7 @@ function CheckoutContent() {
 
             {/* Additional Notes */}
             <div>
-              <h3 className="mb-4 font-heading text-lg font-semibold text-primary">
+              <h3 className="font-heading text-primary mb-4 text-lg font-semibold">
                 Additional Notes (Optional)
               </h3>
               <FormTextarea
@@ -394,20 +502,20 @@ function CheckoutContent() {
               />
             </div>
           </div>
-        )
+        );
 
       case 3:
         return (
           <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/10">
-                <CreditCard className="h-5 w-5 text-secondary" />
+            <div className="mb-6 flex items-center gap-3">
+              <div className="bg-secondary/10 flex h-10 w-10 items-center justify-center rounded-full">
+                <CreditCard className="text-secondary h-5 w-5" />
               </div>
               <div>
-                <h2 className="font-heading text-xl font-bold text-primary">
+                <h2 className="font-heading text-primary text-xl font-bold">
                   Payment Method
                 </h2>
-                <p className="text-sm text-primary/60">
+                <p className="text-primary/60 text-sm">
                   How would you like to pay?
                 </p>
               </div>
@@ -417,20 +525,20 @@ function CheckoutContent() {
               onMethodChange={setPaymentMethod}
             />
           </div>
-        )
+        );
 
       case 4:
         return (
           <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/10">
-                <ShoppingBag className="h-5 w-5 text-secondary" />
+            <div className="mb-6 flex items-center gap-3">
+              <div className="bg-secondary/10 flex h-10 w-10 items-center justify-center rounded-full">
+                <ShoppingBag className="text-secondary h-5 w-5" />
               </div>
               <div>
-                <h2 className="font-heading text-xl font-bold text-primary">
+                <h2 className="font-heading text-primary text-xl font-bold">
                   Review Your Order
                 </h2>
-                <p className="text-sm text-primary/60">
+                <p className="text-primary/60 text-sm">
                   Please confirm your order details
                 </p>
               </div>
@@ -439,13 +547,13 @@ function CheckoutContent() {
             {/* Order Summary */}
             <div className="space-y-4">
               {/* Product */}
-              <div className="rounded-2xl border border-border/30 bg-surface/50 p-4">
-                <h4 className="mb-3 text-sm font-semibold text-primary/60 uppercase tracking-wide">
+              <div className="border-border/30 bg-surface/50 rounded-2xl border p-4">
+                <h4 className="text-primary/60 mb-3 text-sm font-semibold tracking-wide uppercase">
                   Product
                 </h4>
                 <div className="flex gap-4">
                   {product?.cover_image && (
-                    <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-border/50">
+                    <div className="border-border/50 relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border">
                       <Image
                         src={product.cover_image}
                         alt={product.title}
@@ -456,9 +564,13 @@ function CheckoutContent() {
                     </div>
                   )}
                   <div className="flex-1">
-                    <p className="font-semibold text-primary">{product?.title || productName}</p>
-                    <p className="text-sm text-primary/60">Qty: {parsedQuantity}</p>
-                    <p className="mt-1 font-semibold text-secondary">
+                    <p className="text-primary font-semibold">
+                      {product?.title || productName}
+                    </p>
+                    <p className="text-primary/60 text-sm">
+                      Qty: {parsedQuantity}
+                    </p>
+                    <p className="text-secondary mt-1 font-semibold">
                       {formatProductPrice(unitPrice, currency, false)}
                     </p>
                   </div>
@@ -466,57 +578,146 @@ function CheckoutContent() {
               </div>
 
               {/* Shipping Details */}
-              <div className="rounded-2xl border border-border/30 bg-surface/50 p-4">
-                <h4 className="mb-3 text-sm font-semibold text-primary/60 uppercase tracking-wide">
+              <div className="border-border/30 bg-surface/50 rounded-2xl border p-4">
+                <h4 className="text-primary/60 mb-3 text-sm font-semibold tracking-wide uppercase">
                   Shipping To
                 </h4>
                 <div className="space-y-1 text-sm">
-                  <p className="font-semibold text-primary">{getValues('buyer_name')}</p>
+                  <p className="text-primary font-semibold">
+                    {getValues('buyer_name')}
+                  </p>
                   <p className="text-primary/70">{getValues('buyer_email')}</p>
                   <p className="text-primary/70">{getValues('phone')}</p>
                   <p className="text-primary/70">
-                    {getValues('street')}, {getValues('city')}, {getValues('district')}
+                    {getValues('street')}, {getValues('city')},{' '}
+                    {getValues('district')}
                   </p>
                 </div>
               </div>
 
               {/* Delivery & Payment */}
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-border/30 bg-surface/50 p-4">
-                  <h4 className="mb-2 text-sm font-semibold text-primary/60 uppercase tracking-wide">
+                <div className="border-border/30 bg-surface/50 rounded-2xl border p-4">
+                  <h4 className="text-primary/60 mb-2 text-sm font-semibold tracking-wide uppercase">
                     Delivery
                   </h4>
-                  <p className="font-semibold text-primary">
-                    {shippingOption === 'home' ? 'Home Delivery' : 'Branch Pickup'}
+                  <p className="text-primary font-semibold">
+                    {shippingOption === 'home'
+                      ? 'Home Delivery'
+                      : 'Branch Pickup'}
                   </p>
                   <p className="text-sm text-amber-600">
                     +{formatCheckoutPrice(shippingFee, currency)}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-border/30 bg-surface/50 p-4">
-                  <h4 className="mb-2 text-sm font-semibold text-primary/60 uppercase tracking-wide">
+                <div className="border-border/30 bg-surface/50 rounded-2xl border p-4">
+                  <h4 className="text-primary/60 mb-2 text-sm font-semibold tracking-wide uppercase">
                     Payment
                   </h4>
-                  <p className="font-semibold text-primary">
-                    {paymentMethod === 'esewa' ? 'eSewa' : paymentMethod === 'fonepay' ? 'FonePay' : 'Cash on Delivery'}
+                  <p className="text-primary font-semibold">
+                    {paymentMethod === 'esewa'
+                      ? 'eSewa'
+                      : paymentMethod === 'fonepay'
+                        ? 'FonePay'
+                        : 'Cash on Delivery'}
                   </p>
                 </div>
               </div>
 
+              <div className="border-border/30 bg-surface/50 rounded-2xl border p-4">
+                <h4 className="text-primary/60 mb-3 text-sm font-semibold tracking-wide uppercase">
+                  Offer Code
+                </h4>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                  <div className="flex-1">
+                    <label className="text-primary mb-2 block text-sm font-medium">
+                      Offer Code
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter seller offer code"
+                      value={offerCode}
+                      onChange={(event) => {
+                        const nextCode = event.target.value.toUpperCase();
+                        setOfferCode(nextCode);
+                        if (offerError) {
+                          setOfferError(null);
+                        }
+                        if (appliedOffer && nextCode !== appliedOffer.code) {
+                          setAppliedOffer(null);
+                        }
+                      }}
+                      className={`bg-surface text-primary focus:border-secondary focus:ring-secondary/20 w-full rounded-xl border px-4 py-3 transition-colors focus:ring-2 focus:outline-none ${
+                        offerError ? 'border-red-500' : 'border-border'
+                      }`}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="md"
+                    onClick={handleApplyOfferCode}
+                    disabled={offerLoading}
+                    className="h-[50px] shrink-0 sm:min-w-[120px]"
+                  >
+                    {offerLoading ? 'Applying...' : 'Apply'}
+                  </Button>
+                </div>
+                {offerError && (
+                  <p className="mt-2 text-sm text-red-500">{offerError}</p>
+                )}
+                {appliedOffer && (
+                  <div className="mt-3 flex items-center justify-between rounded-xl bg-green-50 px-3 py-2 text-sm">
+                    <div>
+                      <p className="font-semibold text-green-700">
+                        {appliedOffer.code} applied
+                      </p>
+                      <p className="text-green-600">
+                        {appliedOffer.discountPercent}% off until{' '}
+                        {new Date(appliedOffer.expiresAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={clearAppliedOffer}
+                      className="font-medium text-green-700 transition-colors hover:text-green-900"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Total */}
-              <div className="rounded-2xl bg-primary/5 p-4">
+              <div className="bg-primary/5 rounded-2xl p-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-primary/60">Subtotal</span>
-                    <span className="font-medium text-primary">{formatCheckoutPrice(baseAmount, currency)}</span>
+                    <span className="text-primary font-medium">
+                      {formatCheckoutPrice(baseAmount, currency)}
+                    </span>
                   </div>
+                  {appliedOffer && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-700">Offer Discount</span>
+                      <span className="font-medium text-green-700">
+                        -
+                        {formatCheckoutPrice(
+                          appliedOffer.discountAmount,
+                          currency
+                        )}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-primary/60">Shipping</span>
-                    <span className="font-medium text-amber-600">+{formatCheckoutPrice(shippingFee, currency)}</span>
+                    <span className="font-medium text-amber-600">
+                      +{formatCheckoutPrice(shippingFee, currency)}
+                    </span>
                   </div>
-                  <div className="border-t border-primary/10 pt-2 flex justify-between">
-                    <span className="font-semibold text-primary">Total</span>
-                    <span className="font-heading text-2xl font-bold text-secondary">
+                  <div className="border-primary/10 flex justify-between border-t pt-2">
+                    <span className="text-primary font-semibold">Total</span>
+                    <span className="font-heading text-secondary text-2xl font-bold">
                       {formatCheckoutPrice(totalAmount, currency)}
                     </span>
                   </div>
@@ -524,21 +725,21 @@ function CheckoutContent() {
               </div>
             </div>
           </div>
-        )
+        );
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-surface py-6 sm:py-12">
+    <div className="from-background to-surface min-h-screen bg-linear-to-b py-6 sm:py-12">
       <div className="mx-auto max-w-3xl px-4">
         {/* Back Button */}
         {!isProcessing && (
           <button
             onClick={handleBack}
-            className="mb-6 flex items-center gap-2 text-primary/60 transition-colors hover:text-primary"
+            className="text-primary/60 hover:text-primary mb-6 flex items-center gap-2 transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
             <span className="font-medium">
@@ -549,25 +750,27 @@ function CheckoutContent() {
 
         {isProcessing ? (
           <div className="flex min-h-[60vh] items-center justify-center">
-            <div className="rounded-2xl bg-background p-12 text-center shadow-xl">
-              <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
-              <p className="font-heading text-xl font-semibold text-primary">
+            <div className="bg-background rounded-2xl p-12 text-center shadow-xl">
+              <div className="border-primary/20 border-t-primary mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4"></div>
+              <p className="font-heading text-primary text-xl font-semibold">
                 Processing...
               </p>
-              <p className="mt-2 text-sm text-primary/60">
-                {paymentMethod === 'cod' ? 'Creating your order...' : 'Redirecting to payment gateway...'}
+              <p className="text-primary/60 mt-2 text-sm">
+                {paymentMethod === 'cod'
+                  ? 'Creating your order...'
+                  : 'Redirecting to payment gateway...'}
               </p>
             </div>
           </div>
         ) : (
           <div className="space-y-6">
             {/* Product Summary - Always visible */}
-            <div className="rounded-2xl bg-background p-4 shadow-lg border border-border/20">
+            <div className="bg-background border-border/20 rounded-2xl border p-4 shadow-lg">
               <div className="flex items-center gap-4">
                 {isLoadingProduct ? (
-                  <div className="h-16 w-16 animate-pulse rounded-xl bg-primary/10" />
+                  <div className="bg-primary/10 h-16 w-16 animate-pulse rounded-xl" />
                 ) : product?.cover_image ? (
-                  <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-border/50">
+                  <div className="border-border/50 relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border">
                     <Image
                       src={product.cover_image}
                       alt={product.title}
@@ -577,25 +780,31 @@ function CheckoutContent() {
                     />
                   </div>
                 ) : null}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-primary truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="text-primary truncate font-semibold">
                     {product?.title || productName}
                   </p>
-                  <p className="text-sm text-primary/60">Qty: {parsedQuantity}</p>
+                  <p className="text-primary/60 text-sm">
+                    Qty: {parsedQuantity}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-heading text-xl font-bold text-secondary">
+                  <p className="font-heading text-secondary text-xl font-bold">
                     {formatCheckoutPrice(totalAmount, currency)}
                   </p>
-                  {shippingFee > 0 && (
-                    <p className="text-xs text-primary/50">incl. shipping</p>
-                  )}
+                  {appliedOffer ? (
+                    <p className="text-xs text-green-700">
+                      offer applied before shipping
+                    </p>
+                  ) : shippingFee > 0 ? (
+                    <p className="text-primary/50 text-xs">incl. shipping</p>
+                  ) : null}
                 </div>
               </div>
             </div>
 
             {/* Stepper */}
-            <div className="rounded-2xl bg-background p-4 sm:p-6 shadow-lg border border-border/20">
+            <div className="bg-background border-border/20 rounded-2xl border p-4 shadow-lg sm:p-6">
               <CheckoutStepper
                 steps={CHECKOUT_STEPS}
                 currentStep={currentStep}
@@ -604,7 +813,7 @@ function CheckoutContent() {
             </div>
 
             {/* Step Content */}
-            <div className="rounded-2xl bg-background p-4 sm:p-6 shadow-lg border border-border/20">
+            <div className="bg-background border-border/20 rounded-2xl border p-4 shadow-lg sm:p-6">
               {renderStepContent()}
 
               {/* Navigation Buttons */}
@@ -617,7 +826,7 @@ function CheckoutContent() {
                     onClick={handleBack}
                     className="w-full sm:w-auto"
                   >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
                 )}
@@ -630,7 +839,7 @@ function CheckoutContent() {
                     className="w-full sm:flex-1"
                   >
                     Continue
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (
                   <Button
@@ -640,7 +849,7 @@ function CheckoutContent() {
                     onClick={handleCheckoutSubmit}
                     className="w-full sm:flex-1"
                   >
-                    <Check className="h-4 w-4 mr-2" />
+                    <Check className="mr-2 h-4 w-4" />
                     {paymentMethod === 'cod'
                       ? `Place Order - ${formatCheckoutPrice(totalAmount, currency)}`
                       : `Pay ${formatCheckoutPrice(totalAmount, currency)}`}
@@ -652,17 +861,17 @@ function CheckoutContent() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export default function CheckoutPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="bg-background flex min-h-screen items-center justify-center">
           <div className="text-center">
-            <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary"></div>
-            <p className="font-heading text-xl font-semibold text-primary">
+            <div className="border-primary/20 border-t-primary mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4"></div>
+            <p className="font-heading text-primary text-xl font-semibold">
               Loading...
             </p>
           </div>
@@ -671,5 +880,5 @@ export default function CheckoutPage() {
     >
       <CheckoutContent />
     </Suspense>
-  )
+  );
 }

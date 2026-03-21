@@ -5,9 +5,9 @@ import {
 import { supabase } from "@/lib/supabase";
 import {
   clearAuth,
-  clearProfile,
   clearNotifications,
   clearPersistedSignupState,
+  clearProfile,
   fetchCurrentSession,
   fetchUnreadCount,
   fetchUserProfile,
@@ -16,6 +16,7 @@ import {
 } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Session, User } from "@supabase/supabase-js";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { makeRedirectUri } from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import React, { createContext, useContext, useEffect } from "react";
@@ -33,9 +34,10 @@ interface AuthContextType {
   verifyOtpAndResetPassword: (
     email: string,
     token: string,
-    newPassword: string
+    newPassword: string,
   ) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
+  signInWithApple: () => Promise<{ error: any }>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -68,8 +70,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (err) {
         // Check if it's just "no session" which is normal, not an error
         const errorMessage = (err as any)?.message || String(err);
-        if (errorMessage.toLowerCase().includes("no active session") ||
-            errorMessage.toLowerCase().includes("not logged in")) {
+        if (
+          errorMessage.toLowerCase().includes("no active session") ||
+          errorMessage.toLowerCase().includes("not logged in")
+        ) {
           console.log("ℹ️  No active session - user is not logged in");
         } else {
           // This is an actual error, log it
@@ -185,6 +189,143 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithApple = async () => {
+    try {
+      // Check if device supports Apple Authentication
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      if (!isAvailable) {
+        // Fall back to OAuth flow for Android or older devices
+        return await signInWithAppleOAuth();
+      }
+
+      // Native Sign in with Apple for iOS
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (!credential.identityToken) {
+        return { error: { message: "No identity token received from Apple" } };
+      }
+
+      // Sign in via Supabase with the identity token
+      const { error: authError, data } = await supabase.auth.signInWithIdToken({
+        provider: "apple",
+        token: credential.identityToken,
+      });
+
+      if (authError) {
+        console.error("❌ Apple Sign-In Auth Error:", authError);
+        return { error: authError };
+      }
+
+      // Save full name from credential (only available on first sign-in)
+      if (credential.fullName) {
+        const nameParts = [];
+        if (credential.fullName.givenName) {
+          nameParts.push(credential.fullName.givenName);
+        }
+        if (credential.fullName.middleName) {
+          nameParts.push(credential.fullName.middleName);
+        }
+        if (credential.fullName.familyName) {
+          nameParts.push(credential.fullName.familyName);
+        }
+
+        const fullName = nameParts.join(" ");
+
+        try {
+          await supabase.auth.updateUser({
+            data: {
+              full_name: fullName,
+              given_name: credential.fullName.givenName || "",
+              family_name: credential.fullName.familyName || "",
+            },
+          });
+        } catch (updateError) {
+          console.warn(
+            "⚠️  Failed to update user with full name:",
+            updateError,
+          );
+          // Continue even if name update fails - user is already signed in
+        }
+      }
+
+      return { error: null };
+    } catch (error: any) {
+      if (error.code === "ERR_REQUEST_CANCELED") {
+        return { error: { message: "Sign in was cancelled" } };
+      }
+      console.error("Unexpected Apple sign in error:", error);
+      return {
+        error: {
+          message: "An unexpected error occurred. Please try again.",
+        },
+      };
+    }
+  };
+
+  const signInWithAppleOAuth = async () => {
+    try {
+      const redirectTo = makeRedirectUri();
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "apple",
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) return { error };
+      if (!data.url) {
+        return { error: { message: "Failed to get Apple sign-in URL" } };
+      }
+
+      const result = await WebBrowser.openAuthSessionAsync(
+        data.url,
+        redirectTo,
+      );
+
+      if (result.type !== "success") {
+        return { error: { message: "Sign in was cancelled" } };
+      }
+
+      // Extract tokens from the redirect URL hash fragment
+      const url = result.url;
+      const hashParams = new URLSearchParams(url.split("#")[1] || "");
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+
+      if (!accessToken || !refreshToken) {
+        return {
+          error: {
+            message: "Failed to complete sign in. Please try again.",
+          },
+        };
+      }
+
+      // setSession triggers onAuthStateChange which handles Redux updates
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+      if (sessionError) return { error: sessionError };
+
+      return { error: null };
+    } catch (error) {
+      console.error("Unexpected Apple OAuth error:", error);
+      return {
+        error: {
+          message: "An unexpected error occurred. Please try again.",
+        },
+      };
+    }
+  };
+
   const signUp = async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({
       email,
@@ -234,7 +375,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const verifyOtpAndResetPassword = async (
     email: string,
     token: string,
-    newPassword: string
+    newPassword: string,
   ) => {
     // First verify the OTP
     const { error: verifyError } = await supabase.auth.verifyOtp({
@@ -270,6 +411,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         signIn,
         signInWithGoogle,
+        signInWithApple,
         signUp,
         signOut,
         resetPasswordForEmail,

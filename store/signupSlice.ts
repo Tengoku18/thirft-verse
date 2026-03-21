@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const SIGNUP_STORAGE_KEY = '@thriftverse_signup_state';
+const SIGNUP_STORAGE_KEY = "@thriftverse_signup_state";
 
 export interface SignupFormData {
   name: string;
@@ -18,7 +18,7 @@ export interface SignupPaymentData {
 }
 
 interface SignupState {
-  currentStep: 1 | 2 | 3 | 4; // 4 means completed
+  currentStep: 1 | 2 | 3 | 4 | 5; // 5 means completed
   formData: SignupFormData;
   paymentData: SignupPaymentData;
   isSignupInProgress: boolean;
@@ -27,16 +27,16 @@ interface SignupState {
 }
 
 const initialFormData: SignupFormData = {
-  name: '',
-  email: '',
-  username: '',
-  address: '',
-  password: '',
+  name: "",
+  email: "",
+  username: "",
+  address: "",
+  password: "",
   profileImage: null,
 };
 
 const initialPaymentData: SignupPaymentData = {
-  paymentUsername: '',
+  paymentUsername: "",
   paymentQRImage: null,
 };
 
@@ -51,7 +51,7 @@ const initialState: SignupState = {
 
 // Load persisted signup state from AsyncStorage
 export const loadSignupState = createAsyncThunk(
-  'signup/loadState',
+  "signup/loadState",
   async (_, { rejectWithValue }) => {
     try {
       const stored = await AsyncStorage.getItem(SIGNUP_STORAGE_KEY);
@@ -60,15 +60,15 @@ export const loadSignupState = createAsyncThunk(
       }
       return null;
     } catch (error) {
-      console.error('Failed to load signup state:', error);
-      return rejectWithValue('Failed to load signup state');
+      console.error("Failed to load signup state:", error);
+      return rejectWithValue("Failed to load signup state");
     }
-  }
+  },
 );
 
 // Persist signup state to AsyncStorage
 export const persistSignupState = createAsyncThunk(
-  'signup/persistState',
+  "signup/persistState",
   async (state: Partial<SignupState>, { getState, rejectWithValue }) => {
     try {
       const currentState = (getState() as any).signup as SignupState;
@@ -76,42 +76,49 @@ export const persistSignupState = createAsyncThunk(
         currentStep: state.currentStep ?? currentState.currentStep,
         formData: state.formData ?? currentState.formData,
         paymentData: state.paymentData ?? currentState.paymentData,
-        isSignupInProgress: state.isSignupInProgress ?? currentState.isSignupInProgress,
+        isSignupInProgress:
+          state.isSignupInProgress ?? currentState.isSignupInProgress,
       };
-      await AsyncStorage.setItem(SIGNUP_STORAGE_KEY, JSON.stringify(stateToSave));
+      await AsyncStorage.setItem(
+        SIGNUP_STORAGE_KEY,
+        JSON.stringify(stateToSave),
+      );
       return stateToSave;
     } catch (error) {
-      console.error('Failed to persist signup state:', error);
-      return rejectWithValue('Failed to persist signup state');
+      console.error("Failed to persist signup state:", error);
+      return rejectWithValue("Failed to persist signup state");
     }
-  }
+  },
 );
 
 // Clear persisted signup state
 export const clearPersistedSignupState = createAsyncThunk(
-  'signup/clearPersistedState',
+  "signup/clearPersistedState",
   async (_, { rejectWithValue }) => {
     try {
       await AsyncStorage.removeItem(SIGNUP_STORAGE_KEY);
       return true;
     } catch (error) {
-      console.error('Failed to clear signup state:', error);
-      return rejectWithValue('Failed to clear signup state');
+      console.error("Failed to clear signup state:", error);
+      return rejectWithValue("Failed to clear signup state");
     }
-  }
+  },
 );
 
 const signupSlice = createSlice({
-  name: 'signup',
+  name: "signup",
   initialState,
   reducers: {
-    setCurrentStep: (state, action: PayloadAction<1 | 2 | 3 | 4>) => {
+    setCurrentStep: (state, action: PayloadAction<1 | 2 | 3 | 4 | 5>) => {
       state.currentStep = action.payload;
     },
     setFormData: (state, action: PayloadAction<Partial<SignupFormData>>) => {
       state.formData = { ...state.formData, ...action.payload };
     },
-    setPaymentData: (state, action: PayloadAction<Partial<SignupPaymentData>>) => {
+    setPaymentData: (
+      state,
+      action: PayloadAction<Partial<SignupPaymentData>>,
+    ) => {
       state.paymentData = { ...state.paymentData, ...action.payload };
     },
     startSignup: (state) => {
@@ -120,7 +127,7 @@ const signupSlice = createSlice({
     },
     completeSignup: (state) => {
       state.isSignupInProgress = false;
-      state.currentStep = 4;
+      state.currentStep = 5;
       state.formData = initialFormData;
       state.paymentData = initialPaymentData;
     },

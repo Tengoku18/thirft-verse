@@ -68,45 +68,45 @@ export const FormMultipleImageUpload: React.FC<
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsMultipleSelection: true,
-        quality: 0.8,
         selectionLimit: remainingSlots,
+        quality: 0.8,
       });
 
-      if (!result.canceled && result.assets.length > 0) {
-        setUploading(true);
+      if (result.canceled || !result.assets.length) return;
 
-        try {
-          const localUris = result.assets.map((asset) => asset.uri);
-          const uploadResults = await uploadMultipleImages(
-            localUris,
-            bucket,
-            folder
-          );
+      setUploading(true);
 
-          const failedUploads = uploadResults.filter((r) => !r.success);
-          if (failedUploads.length > 0) {
-            Alert.alert(
-              "Upload Error",
-              failedUploads[0].error || "Some images failed to upload"
-            );
-            setUploading(false);
-            return;
-          }
+      try {
+        const localUris = result.assets.map((asset) => asset.uri);
+        const uploadResults = await uploadMultipleImages(
+          localUris,
+          bucket,
+          folder
+        );
 
-          const newUrls = uploadResults
-            .filter((r) => r.success && r.url)
-            .map((r) => r.url!);
-
-          onChange([...value, ...newUrls]);
-        } catch (uploadError) {
-          console.error("Error uploading images:", uploadError);
+        const failedUploads = uploadResults.filter((r) => !r.success);
+        if (failedUploads.length > 0) {
           Alert.alert(
-            "Upload Failed",
-            "Failed to upload images. Please try again."
+            "Upload Error",
+            failedUploads[0].error || "Some images failed to upload"
           );
-        } finally {
           setUploading(false);
+          return;
         }
+
+        const newUrls = uploadResults
+          .filter((r) => r.success && r.url)
+          .map((r) => r.url!);
+
+        onChange([...value, ...newUrls]);
+      } catch (uploadError) {
+        console.error("Error uploading images:", uploadError);
+        Alert.alert(
+          "Upload Failed",
+          "Failed to upload images. Please try again."
+        );
+      } finally {
+        setUploading(false);
       }
     } catch (error) {
       console.error("Error picking images:", error);

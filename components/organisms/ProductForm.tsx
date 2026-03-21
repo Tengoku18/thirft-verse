@@ -368,6 +368,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
         store_id: user.id,
         cover_image: coverUploadResult.url,
         other_images: uploadedOtherImages,
+        is_verified: false,
       };
 
       // Use Redux action to create product
@@ -804,6 +805,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
         <ProductSuccessModal
           visible={showSuccessModal}
           product={createdProduct}
+          storeUsername={profile?.store_username}
           onShare={() => {}}
           onViewProduct={handleViewProduct}
           onClose={handleCloseSuccessModal}
