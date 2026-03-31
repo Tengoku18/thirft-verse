@@ -11,6 +11,9 @@ export interface SignupFormData {
   password: string;
   profileImage: string | null;
   sellerType: "store" | "closet" | "";
+  bio: string;
+  district: string;
+  instagramHandle: string;
 }
 
 export interface SignupPaymentData {
@@ -35,6 +38,9 @@ const initialFormData: SignupFormData = {
   password: "",
   profileImage: null,
   sellerType: "",
+  bio: "",
+  district: "",
+  instagramHandle: "",
 };
 
 const initialPaymentData: SignupPaymentData = {

@@ -122,6 +122,9 @@ export default function SignupStep1Screen() {
           address: "",
           profileImage: null,
           sellerType: "",
+          bio: "",
+          district: "",
+          instagramHandle: "",
         };
 
         dispatch(setFormData(formData));

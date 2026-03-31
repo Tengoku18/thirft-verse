@@ -40,9 +40,7 @@ function getButtonStyles(
 ): ButtonStyles {
   const heightClass = size === "compact" ? "h-14" : "h-16";
   const widthClass = fullWidth ? "" : "";
-  const disabledClass = disabled ? "opacity-50" : "";
-
-  const baseStyles = `flex-row items-center justify-center ${heightClass} ${widthClass} rounded-3xl active:scale-95 transition-all ${disabledClass}`;
+  const baseStyles = `flex-row items-center justify-center ${heightClass} ${widthClass} rounded-3xl active:scale-95 transition-all`;
 
   switch (variant) {
     case "secondary":
@@ -55,7 +53,7 @@ function getButtonStyles(
     case "accent":
       const accentHeight = size === "compact" ? "h-10" : "h-12";
       return {
-        container: `flex-row items-center justify-center ${accentHeight} ${widthClass} rounded-lg bg-brand-tan active:opacity-90 transition-all px-4 ${disabledClass}`,
+        container: `flex-row items-center justify-center ${accentHeight} ${widthClass} rounded-lg bg-brand-tan active:opacity-90 transition-all px-4`,
         text: "text-white font-sans-bold text-base",
         indicator: "#FFFFFF",
       };
@@ -100,38 +98,40 @@ export function Button({
   console.log({ styles, disabled });
 
   return (
-    <TouchableOpacity
-      className={containerClass}
-      style={style}
-      onPress={onPress}
-      disabled={disabled || isLoading}
-      activeOpacity={0.9}
-      testID={testID}
-    >
-      {isLoading ? (
-        <ActivityIndicator size="small" color={styles.indicator} />
-      ) : (
-        <View className="flex-row items-center justify-center gap-2">
-          {icon && iconPosition === "left" && (
-            <View className="h-6 w-6 items-center justify-center flex-shrink-0">
-              {icon}
-            </View>
-          )}
-          <Typography
-            className={styles.text}
-            variation="button"
-            numberOfLines={1}
-            allowFontScaling={false}
-          >
-            {label}
-          </Typography>
-          {icon && iconPosition === "right" && (
-            <View className="h-6 w-6 items-center justify-center flex-shrink-0">
-              {icon}
-            </View>
-          )}
-        </View>
-      )}
-    </TouchableOpacity>
+    <View style={{ opacity: disabled ? 0.5 : 1 }}>
+      <TouchableOpacity
+        className={containerClass}
+        style={style}
+        onPress={onPress}
+        disabled={disabled || isLoading}
+        activeOpacity={0.9}
+        testID={testID}
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color={styles.indicator} />
+        ) : (
+          <View className="flex-row items-center justify-center gap-2">
+            {icon && iconPosition === "left" && (
+              <View className="h-6 w-6 items-center justify-center flex-shrink-0">
+                {icon}
+              </View>
+            )}
+            <Typography
+              className={styles.text}
+              variation="button"
+              numberOfLines={1}
+              allowFontScaling={false}
+            >
+              {label}
+            </Typography>
+            {icon && iconPosition === "right" && (
+              <View className="h-6 w-6 items-center justify-center flex-shrink-0">
+                {icon}
+              </View>
+            )}
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 }

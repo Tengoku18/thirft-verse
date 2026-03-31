@@ -1,74 +1,130 @@
-import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
-import { AuthHeader } from "@/components/navigation/AuthHeader";
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Select, SelectOption } from "@/components/ui/Select/Select";
+import { FormTextarea } from "@/components/atoms/FormTextarea";
+import { ProfileImagePicker } from "@/components/atoms/ProfileImagePicker";
+import { InfoBox } from "@/components/atoms/InfoBox";
+import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
+import { Button } from "@/components/ui/Button/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
+import { Typography } from "@/components/ui/Typography/Typography";
+import { districtsOfNepal } from "@/lib/constants/districts";
 import {
+  checkUsernameExists,
   createMissingProfile,
   updateUserProfile,
 } from "@/lib/database-helpers";
-import { showImagePickerOptions } from "@/lib/image-picker-helpers";
-import { uploadPaymentQRImage } from "@/lib/storage-helpers";
+import { uploadProfileImage } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import {
   clearPersistedSignupState,
   completeSignup,
   fetchUserProfile,
-  setPaymentData,
+  setFormData,
+  persistSignupState,
+  setCurrentStep,
 } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useMemo, useState } from "react";
+import { ScrollView, View } from "react-native";
+
+const BIO_MAX_LENGTH = 500;
+
+// Content config based on seller type
+const CONTENT = {
+  store: {
+    stepTitle: "Store Details",
+    heading: "Tell us about your store",
+    subheading:
+      "Let the community know who you are and what you sell.",
+    bioLabel: "STORE BIO",
+    bioPlaceholder:
+      "Share your thrift story, style aesthetic, and shipping info...",
+    bioHint:
+      "Your bio is the first thing buyers see. Share your thrift story!",
+    usernameLabel: "STORE NAME",
+    usernamePlaceholder: "eco_warrior_99",
+    buttonLabel: "Next Step",
+  },
+  closet: {
+    stepTitle: "Creator Profile",
+    heading: "Create Your Creator Profile",
+    subheading: "Tell us about yourself to start selling.",
+    bioLabel: "BIO",
+    bioPlaceholder:
+      "Tell your story, your aesthetic, and what you're selling...",
+    bioHint: null,
+    usernameLabel: "USERNAME",
+    usernamePlaceholder: "yourstorename",
+    buttonLabel: "Continue",
+  },
+};
 
 export default function SignupStep4Screen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
+  const sellerType = signupState.formData.sellerType || "closet";
+  const content = CONTENT[sellerType as "store" | "closet"] || CONTENT.closet;
+  const isStore = sellerType === "store";
 
-  const [paymentUsername, setPaymentUsername] = useState(
-    signupState.paymentData.paymentUsername || "",
+  // Form state
+  const [username, setUsername] = useState(
+    signupState.formData.username || "",
   );
-  const [paymentQRImage, setPaymentQRImage] = useState<string | null>(
-    signupState.paymentData.paymentQRImage || null,
+  const [bio, setBio] = useState(signupState.formData.bio || "");
+  const [instagramHandle, setInstagramHandle] = useState(
+    signupState.formData.instagramHandle || "",
   );
+  const [district, setDistrict] = useState(
+    signupState.formData.district || "",
+  );
+  const [profileImage, setProfileImage] = useState<string | null>(
+    signupState.formData.profileImage || null,
+  );
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleImageSelect = () => {
-    showImagePickerOptions(
-      { aspectRatio: [1, 1], quality: 0.8 },
-      (result) => {
-        if (result.success && result.uri) {
-          setPaymentQRImage(result.uri);
-        }
-      },
-      !!paymentQRImage,
-      () => setPaymentQRImage(null),
-    );
+  // District options for Select
+  const districtOptions: SelectOption[] = useMemo(
+    () => districtsOfNepal.map((d) => ({ label: d, value: d })),
+    [],
+  );
+
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   };
 
-  const handleComplete = async () => {
-    if (!paymentUsername.trim()) {
-      setError("Please enter your payment account name");
-      return;
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!username.trim()) {
+      newErrors.username = "Username is required";
+    } else if (username.trim().length < 3) {
+      newErrors.username = "Username must be at least 3 characters";
+    } else if (!/^[a-zA-Z0-9._]+$/.test(username.trim())) {
+      newErrors.username =
+        "Username can only contain letters, numbers, dots, and underscores";
     }
 
+    if (!district) {
+      newErrors.district = "Please select your district";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleContinue = async () => {
+    if (!validate()) return;
+
     setLoading(true);
-    setError("");
+    setErrors({});
 
     try {
       const {
@@ -76,231 +132,221 @@ export default function SignupStep4Screen() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setError("User not found. Please try again.");
+        setErrors({ general: "User not found. Please sign in again." });
         setLoading(false);
         return;
       }
 
-      // Ensure profile exists (safety net if database trigger failed)
+      // Check username uniqueness
+      const usernameExists = await checkUsernameExists(username.trim());
+      if (usernameExists) {
+        setErrors({ username: "This username is already taken" });
+        setLoading(false);
+        return;
+      }
+
+      // Ensure profile exists
       const profileResult = await createMissingProfile();
       if (!profileResult.success) {
-        console.error("Failed to ensure profile exists:", profileResult.error);
-        setError("Failed to set up your profile. Please try again.");
+        setErrors({
+          general: "Failed to set up your profile. Please try again.",
+        });
         setLoading(false);
         return;
       }
 
-      let paymentQRPath: string | null = null;
-
-      // Upload QR image if provided
-      if (paymentQRImage) {
-        const uploadResult = await uploadPaymentQRImage(
-          user.id,
-          paymentQRImage,
-        );
+      // Upload profile image if provided
+      let profileImagePath: string | null = null;
+      if (profileImage) {
+        const uploadResult = await uploadProfileImage(user.id, profileImage);
         if (uploadResult.success && uploadResult.url) {
-          paymentQRPath = uploadResult.url;
-        } else {
-          console.error("Failed to upload QR image:", uploadResult.error);
+          profileImagePath = uploadResult.url;
         }
       }
 
-      // Update profile with payment info
-      const result = await updateUserProfile({
+      // Update profile in Supabase
+      const updateData: {
+        userId: string;
+        store_username: string;
+        bio: string;
+        address: string;
+        profile_image?: string;
+      } = {
         userId: user.id,
-        payment_username: paymentUsername.trim(),
-        payment_qr_image: paymentQRPath ?? undefined,
-      });
+        store_username: username.trim().toLowerCase(),
+        bio: bio.trim(),
+        address: district,
+      };
+
+      if (profileImagePath) {
+        updateData.profile_image = profileImagePath;
+      }
+
+      const result = await updateUserProfile(updateData);
 
       if (!result.success) {
-        console.error("Failed to save payment info:", result.error);
+        setErrors({
+          general: "Failed to save your profile. Please try again.",
+        });
+        setLoading(false);
+        return;
       }
 
       // Save to Redux
       dispatch(
-        setPaymentData({
-          paymentUsername: paymentUsername.trim(),
-          paymentQRImage: paymentQRPath,
+        setFormData({
+          username: username.trim(),
+          bio: bio.trim(),
+          district,
+          instagramHandle: instagramHandle.trim(),
+          profileImage: profileImagePath || profileImage,
         }),
       );
 
-      // Refetch the profile to update Redux state with latest data
+      // Refetch profile
       await dispatch(fetchUserProfile(user.id));
 
-      // Complete signup and clear persisted state
+      // Complete signup
       dispatch(completeSignup());
       await dispatch(clearPersistedSignupState());
 
-      // Navigate to home
       router.replace("/(tabs)");
     } catch (error) {
-      console.error("Error saving payment info:", error);
-      setError("Failed to save payment info. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSkip = async () => {
-    setLoading(true);
-
-    try {
-      // Get current user and refetch profile
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
-        await dispatch(fetchUserProfile(user.id));
-      }
-
-      // Complete signup without payment info
-      dispatch(completeSignup());
-      await dispatch(clearPersistedSignupState());
-
-      // Navigate to home
-      router.replace("/(tabs)");
-    } catch (error) {
-      console.error("Error skipping:", error);
+      console.error("Error in signup-step4:", error);
+      setErrors({
+        general: "An unexpected error occurred. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
-    >
-      <View className="flex-1 px-6 pt-12 pb-8">
-        <AuthHeader title="Payment Setup" onBack={() => router.back()} />
-        <Stepper title="Payment Setup" currentStep={4} totalSteps={4} />
+    <AuthScreenLayout showHeader headerTitle="Sign Up" showScrollView={false}>
+      <Stepper title={content.stepTitle} currentStep={4} totalSteps={4} />
 
-        <View className="mb-8">
-          <CaptionText
-            className="mb-2 tracking-widest uppercase"
-            style={{ color: "#6B7280", fontWeight: "600", fontSize: 11 }}
-          >
-            Step 4 of 4
-          </CaptionText>
-          <HeadingBoldText
-            className="leading-tight mb-2"
-            style={{ fontSize: 32 }}
-          >
-            Payment Details
-          </HeadingBoldText>
-          <BodyRegularText
-            className="leading-relaxed"
-            style={{ color: "#6B7280", fontSize: 15 }}
-          >
-            Add your payment info so buyers can pay you
-          </BodyRegularText>
-        </View>
-
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {/* Info Banner */}
-          <View className="mb-6 p-4 bg-[#FEF3C7] rounded-2xl border-[2px] border-[#FCD34D]">
-            <View className="flex-row items-start">
-              <IconSymbol name="info.circle.fill" size={20} color="#D97706" />
-              <BodyRegularText
-                className="ml-3 flex-1 leading-5"
-                style={{ color: "#92400E", fontSize: 13 }}
+      <View className="flex-1">
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="px-6">
+            {/* Header */}
+            <View className="mb-6">
+              <Typography variation="h1" className="text-center py-2">
+                {content.heading}
+              </Typography>
+              <Typography
+                variation="body"
+                className="text-slate-500 text-center"
               >
-                Add your payment details so buyers can pay you directly. This
-                will be shown when someone wants to purchase your items.
-              </BodyRegularText>
+                {content.subheading}
+              </Typography>
             </View>
-          </View>
 
-          {/* Payment Username Field */}
-          <FormInput
-            label="Payment Account Name"
-            placeholder="e.g., eSewa: 9812345678 or Bank: John Doe"
-            value={paymentUsername}
-            onChangeText={(text) => {
-              setPaymentUsername(text);
-              if (error) setError("");
-            }}
-            error={error}
-            autoCapitalize="none"
-          />
-
-          <CaptionText className="mb-6 -mt-2" style={{ color: "#6B7280" }}>
-            Enter your eSewa number, bank account name, or any payment
-            identifier
-          </CaptionText>
-
-          {/* QR Code Upload */}
-          <View className="mb-6">
-            <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
-              Payment QR Code
-            </BodySemiboldText>
-
-            <TouchableOpacity
-              onPress={handleImageSelect}
-              activeOpacity={0.8}
-              className="border-2 border-dashed border-[#E5E7EB] rounded-2xl overflow-hidden"
-              style={{ height: 200 }}
-            >
-              {paymentQRImage ? (
-                <View className="flex-1 relative">
-                  <Image
-                    source={{ uri: paymentQRImage }}
-                    style={{ width: "100%", height: "100%" }}
-                    resizeMode="contain"
-                  />
-                  <View
-                    className="absolute top-2 right-2 bg-white rounded-full p-2"
-                    style={{
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 4,
-                      elevation: 3,
-                    }}
-                  >
-                    <IconSymbol
-                      name="square.and.pencil"
-                      size={16}
-                      color="#3B2F2F"
-                    />
-                  </View>
-                </View>
-              ) : (
-                <View className="flex-1 justify-center items-center bg-[#FAFAFA]">
-                  <View className="w-16 h-16 rounded-full bg-[#F3F4F6] justify-center items-center mb-3">
-                    <IconSymbol name="qrcode" size={28} color="#9CA3AF" />
-                  </View>
-                  <BodySemiboldText style={{ color: "#6B7280", fontSize: 14 }}>
-                    Upload QR Code
-                  </BodySemiboldText>
-                  <CaptionText style={{ color: "#9CA3AF" }} className="mt-1">
-                    Tap to add your payment QR
-                  </CaptionText>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Buttons */}
-          <View className="mt-auto pt-4">
-            <FormButton
-              title="Complete Setup"
-              onPress={handleComplete}
-              loading={loading}
-              variant="primary"
-              className="mb-4"
+            {/* Profile Image */}
+            <ProfileImagePicker
+              value={profileImage}
+              onChange={setProfileImage}
             />
 
-            <FormButton
-              title="Skip for Now"
-              onPress={handleSkip}
-              variant="outline"
-              disabled={loading}
+            {/* General Error */}
+            {errors.general && (
+              <InfoBox type="error" message={errors.general} />
+            )}
+
+            {/* Username / Store Name */}
+            <FormInput
+              label={content.usernameLabel}
+              placeholder={content.usernamePlaceholder}
+              value={username}
+              onChangeText={(text) => {
+                // Remove spaces and special chars except . and _
+                const cleaned = text.replace(/[^a-zA-Z0-9._]/g, "");
+                setUsername(cleaned);
+                clearError("username");
+              }}
+              error={errors.username}
+              autoCapitalize="none"
+              autoCorrect={false}
             />
+
+            {/* Bio */}
+            <FormTextarea
+              label={content.bioLabel}
+              placeholder={content.bioPlaceholder}
+              value={bio}
+              onChangeText={(text) => {
+                setBio(text);
+              }}
+              maxLength={BIO_MAX_LENGTH}
+            />
+
+            {/* Bio Hint - only for store type */}
+            {content.bioHint && (
+              <View className="-mt-3 mb-6 p-4 bg-[#FEF3C7] rounded-2xl flex-row items-start">
+                <Typography variation="body-sm" className="text-[#92400E]">
+                  {content.bioHint}
+                </Typography>
+              </View>
+            )}
+
+            {/* Instagram Handle - only for closet type */}
+            {!isStore && (
+              <FormInput
+                label="INSTAGRAM HANDLE"
+                placeholder="instagram.com/username"
+                value={instagramHandle}
+                onChangeText={(text) => {
+                  setInstagramHandle(text);
+                }}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            )}
+
+            {/* District Picker */}
+            <Select
+              label="DISTRICT"
+              placeholder={
+                isStore
+                  ? "Search districts..."
+                  : "Select your district"
+              }
+              value={district}
+              onChange={(value) => {
+                setDistrict(value);
+                clearError("district");
+              }}
+              options={districtOptions}
+              errorMessage={errors.district}
+              searchPlaceholder="Search districts..."
+            />
+
+            {isStore && (
+              <Typography
+                variation="caption"
+                className="text-slate-400 -mt-3 mb-4"
+              >
+                Select the creative neighborhood where your items ship from.
+              </Typography>
+            )}
           </View>
         </ScrollView>
+
+        {/* Continue Button - Sticky Bottom */}
+        <View className="px-6 py-6 border-t border-slate-200">
+          <Button
+            label={content.buttonLabel}
+            variant="primary"
+            onPress={handleContinue}
+            isLoading={loading}
+            disabled={loading}
+            fullWidth
+          />
+        </View>
       </View>
-    </KeyboardAvoidingView>
+    </AuthScreenLayout>
   );
 }

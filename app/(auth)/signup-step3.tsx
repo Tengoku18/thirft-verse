@@ -148,7 +148,7 @@ export default function SignupStep3Screen() {
             variant="primary"
             onPress={handleContinue}
             isLoading={loading}
-            // disabled={loading || !selectedType}
+            disabled={loading || !selectedType}
             fullWidth
           />
         </View>
