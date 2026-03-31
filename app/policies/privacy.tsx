@@ -1,116 +1,300 @@
-import { CustomHeader } from "@/components/navigation/CustomHeader";
-import { BodyBoldText, BodyRegularText, CaptionText } from "@/components/Typography";
+import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
+import { Typography } from "@/components/ui/Typography/Typography";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import React from "react";
-import { ScrollView, View } from "react-native";
+import { Linking, Pressable, ScrollView, View } from "react-native";
 
 export default function PrivacyScreen() {
   return (
-    <View className="flex-1 bg-white">
-      <CustomHeader title="Privacy Policy" showBackButton />
-
+    <AuthScreenLayout
+      showHeader
+      headerTitle="Privacy Policy"
+      headerAlignment="center"
+      backgroundColor="#FAF7F2"
+      showBackButton
+    >
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <View className="px-6 py-4">
-          <CaptionText className="mb-6" style={{ color: "#6B7280" }}>
-            Last updated: January 2025
-          </CaptionText>
+        <View className="px-6 py-6">
+          {/* Header */}
+          <View className="mb-6">
+            <Typography variation="body" className="leading-6 text-slate-600">
+              At ThriftVerse, your privacy is our priority. This policy outlines
+              how we collect, use, and protect your personal information within
+              our sustainable fashion marketplace.
+            </Typography>
+          </View>
 
-          <Section title="1. Information We Collect">
-            We collect information you provide directly to us, including:{"\n\n"}
-            • Account information (name, email, password){"\n"}
-            • Profile information (username, bio, profile picture){"\n"}
-            • Transaction data (purchases, sales, payment information){"\n"}
-            • Communications (messages between users){"\n"}
-            • Device information and usage data
-          </Section>
+          <Typography variation="caption" className="mb-8 text-slate-400">
+            LAST UPDATED: JANUARY 2025
+          </Typography>
 
-          <Section title="2. How We Use Your Information">
-            We use the information we collect to:{"\n\n"}
-            • Provide and maintain our services{"\n"}
-            • Process transactions and send related information{"\n"}
-            • Send promotional communications (with your consent){"\n"}
-            • Respond to your comments and questions{"\n"}
-            • Analyze usage patterns to improve our platform{"\n"}
-            • Detect and prevent fraudulent activity
-          </Section>
+          {/* Introduction */}
+          <SectionWithIcon title="1. Introduction" icon="info.circle">
+            <Typography
+              variation="body-sm"
+              className="leading-6 text-slate-600"
+            >
+              Welcome to Thriftverse. We respect your privacy and are committed
+              to protecting your personal data. This privacy policy explains how
+              we collect, use, and safeguard your information when you use our
+              platform to create and manage your thrift store.
+            </Typography>
+          </SectionWithIcon>
 
-          <Section title="3. Information Sharing">
-            We may share your information with:{"\n\n"}
-            • Other users (as necessary for transactions){"\n"}
-            • Service providers who assist in our operations{"\n"}
-            • Law enforcement when required by law{"\n"}
-            • Business partners with your consent{"\n\n"}
-            We do not sell your personal information to third parties.
-          </Section>
+          {/* Information We Collect */}
+          <SectionWithIcon title="2. Information Collection" icon="info.circle">
+            <View className="mb-4">
+              <Typography
+                variation="body-sm"
+                className="font-semibold text-slate-800 mb-2"
+              >
+                Information You Provide
+              </Typography>
+              <Typography
+                variation="body-sm"
+                className="leading-6 text-slate-600"
+              >
+                • Account information (name, email, password){"\n"}• Store
+                information (subdomain, bio, profile picture){"\n"}• Product
+                listings (photos, descriptions, prices){"\n"}• Payment
+                information (eSewa account details){"\n"}• Communication data
+                (messages, support requests)
+              </Typography>
+            </View>
 
-          <Section title="4. Data Security">
-            We implement appropriate security measures to protect your personal
-            information. However, no method of transmission over the Internet is
-            100% secure. We cannot guarantee absolute security of your data.
-          </Section>
+            <View>
+              <Typography
+                variation="body-sm"
+                className="font-semibold text-slate-800 mb-2"
+              >
+                Information We Collect Automatically
+              </Typography>
+              <Typography
+                variation="body-sm"
+                className="leading-6 text-slate-600"
+              >
+                • Usage data (pages visited, features used){"\n"}• Device
+                information (browser type, IP address){"\n"}• Analytics data
+                (store performance, sales metrics){"\n"}• Cookies and similar
+                tracking technologies
+              </Typography>
+            </View>
+          </SectionWithIcon>
 
-          <Section title="5. Your Rights">
-            You have the right to:{"\n\n"}
-            • Access your personal data{"\n"}
-            • Correct inaccurate data{"\n"}
-            • Delete your account and data{"\n"}
-            • Opt-out of marketing communications{"\n"}
-            • Export your data
-          </Section>
+          {/* How We Use Your Information */}
+          <SectionWithIcon title="3. How We Use Your Information" icon="gear">
+            <Typography
+              variation="body-sm"
+              className="leading-6 text-slate-600"
+            >
+              • Provide and maintain your storefront{"\n"}• Process transactions
+              and payments through eSewa{"\n"}• Send you important updates and
+              notifications{"\n"}• Improve our platform and develop new features
+              {"\n"}• Prevent fraud and ensure platform security{"\n"}• Provide
+              customer support{"\n"}• Analyze usage patterns and trends
+            </Typography>
+          </SectionWithIcon>
 
-          <Section title="6. Cookies and Tracking">
-            We use cookies and similar technologies to:{"\n\n"}
-            • Keep you logged in{"\n"}
-            • Remember your preferences{"\n"}
-            • Analyze platform usage{"\n"}
-            • Personalize your experience
-          </Section>
+          {/* Information Sharing */}
+          <SectionWithIcon
+            title="4. Information Sharing"
+            icon="square.on.square"
+          >
+            <Typography
+              variation="body-sm"
+              className="leading-6 text-slate-600"
+            >
+              We do not sell your personal information. We may share your data
+              with:
+            </Typography>
 
-          <Section title="7. Children's Privacy">
-            ThriftVerse is not intended for users under 13 years of age. We do
-            not knowingly collect personal information from children under 13.
-          </Section>
+            <View className="mt-4">
+              <Typography
+                variation="body-sm"
+                className="font-semibold text-slate-800 mb-2"
+              >
+                Payment Processors
+              </Typography>
+              <Typography
+                variation="body-sm"
+                className="leading-6 text-slate-600 mb-3"
+              >
+                eSewa and other payment gateways to process transactions
+              </Typography>
 
-          <Section title="8. International Data Transfers">
-            Your information may be transferred to and processed in countries
-            other than your own. We ensure appropriate safeguards are in place
-            for such transfers.
-          </Section>
+              <Typography
+                variation="body-sm"
+                className="font-semibold text-slate-800 mb-2"
+              >
+                Service Providers
+              </Typography>
+              <Typography
+                variation="body-sm"
+                className="leading-6 text-slate-600 mb-3"
+              >
+                Cloud hosting, analytics, and email services
+              </Typography>
 
-          <Section title="9. Changes to This Policy">
-            We may update this Privacy Policy from time to time. We will notify
-            you of any changes by posting the new policy on this page and
-            updating the "Last updated" date.
-          </Section>
+              <Typography
+                variation="body-sm"
+                className="font-semibold text-slate-800 mb-2"
+              >
+                Legal Requirements
+              </Typography>
+              <Typography
+                variation="body-sm"
+                className="leading-6 text-slate-600 mb-3"
+              >
+                When required by law or to protect our rights
+              </Typography>
 
-          <Section title="10. Contact Us">
-            If you have questions about this Privacy Policy, please contact us
-            at privacy@thriftverse.shop
-          </Section>
+              <Typography
+                variation="body-sm"
+                className="font-semibold text-slate-800 mb-2"
+              >
+                Public Information
+              </Typography>
+              <Typography
+                variation="body-sm"
+                className="leading-6 text-slate-600"
+              >
+                Your store profile and product listings are publicly visible
+              </Typography>
+            </View>
+          </SectionWithIcon>
+
+          {/* Data Security */}
+          <SectionWithIcon title="5. Data Security" icon="lock.shield">
+            <Typography
+              variation="body-sm"
+              className="leading-6 text-slate-600"
+            >
+              We implement industry-standard security measures to protect your
+              data, including:
+            </Typography>
+
+            <Typography
+              variation="body-sm"
+              className="leading-6 mt-3 text-slate-600"
+            >
+              • Encryption of data in transit and at rest{"\n"}• Regular
+              security audits and updates{"\n"}• Access controls and
+              authentication{"\n"}• Secure payment processing through certified
+              gateways
+            </Typography>
+          </SectionWithIcon>
+
+          {/* Your Rights */}
+          <SectionWithIcon title="6. Your Rights" icon="checkmark.shield">
+            <Typography
+              variation="body-sm"
+              className="leading-6 text-slate-600"
+            >
+              You have the right to:
+            </Typography>
+
+            <Typography
+              variation="body-sm"
+              className="leading-6 mt-3 text-slate-600"
+            >
+              • Access your personal data{"\n"}• Correct inaccurate information
+              {"\n"}• Request deletion of your data{"\n"}• Export your data
+              {"\n"}• Opt-out of marketing communications{"\n"}• Object to data
+              processing
+            </Typography>
+          </SectionWithIcon>
+
+          {/* Data Retention */}
+          <SectionWithIcon title="7. Data Retention" icon="calendar">
+            <Typography
+              variation="body-sm"
+              className="leading-6 text-slate-600"
+            >
+              We retain your information as long as your account is active or as
+              needed to provide services. After account deletion, we may retain
+              certain information for legal compliance, dispute resolution, and
+              fraud prevention.
+            </Typography>
+          </SectionWithIcon>
+
+          {/* Children's Privacy */}
+          <SectionWithIcon title="8. Children's Privacy" icon="person.circle">
+            <Typography
+              variation="body-sm"
+              className="leading-6 text-slate-600"
+            >
+              Thriftverse is not intended for users under 18 years of age. We do
+              not knowingly collect information from children. If we discover we
+              have collected data from a child, we will delete it immediately.
+            </Typography>
+          </SectionWithIcon>
+
+          {/* Changes to This Policy */}
+          <SectionWithIcon
+            title="9. Changes to This Policy"
+            icon="pencil.circle"
+          >
+            <Typography
+              variation="body-sm"
+              className="leading-6 text-slate-600"
+            >
+              We may update this privacy policy from time to time. We will
+              notify you of significant changes via email or through the
+              platform. Your continued use of Thriftverse after changes
+              constitutes acceptance.
+            </Typography>
+          </SectionWithIcon>
+
+          {/* Contact Us */}
+          <SectionWithIcon title="10. Contact Us" icon="envelope">
+            <Typography
+              variation="body-sm"
+              className="leading-6 text-slate-600 mb-3"
+            >
+              If you have questions about this privacy policy or your data,
+              please contact us at:
+            </Typography>
+
+            <Pressable
+              onPress={() =>
+                Linking.openURL("mailto:thriftverse.shop@gmail.com")
+              }
+              className="flex-row items-center gap-2 bg-slate-50 p-4 rounded-lg"
+            >
+              <IconSymbol name="envelope.fill" size={16} color="#3B2F2F" />
+              <Typography variation="body-sm" className="text-slate-800">
+                thriftverse.shop@gmail.com
+              </Typography>
+            </Pressable>
+          </SectionWithIcon>
         </View>
       </ScrollView>
-    </View>
+    </AuthScreenLayout>
   );
 }
 
-function Section({
+function SectionWithIcon({
   title,
+  icon,
   children,
 }: {
   title: string;
+  icon: string;
   children: React.ReactNode;
 }) {
   return (
-    <View className="mb-6">
-      <BodyBoldText className="mb-2" style={{ color: "#3B2F2F", fontSize: 16 }}>
-        {title}
-      </BodyBoldText>
-      <BodyRegularText className="leading-6" style={{ color: "#4B5563", fontSize: 14 }}>
-        {children}
-      </BodyRegularText>
+    <View className="mb-8">
+      <View className="flex-row items-center gap-3 mb-4">
+        <IconSymbol name={icon} size={24} color="#3B2F2F" />
+        <Typography variation="h4" className="font-sans-bold text-slate-800">
+          {title}
+        </Typography>
+      </View>
+      <View style={{ marginLeft: 36 }}>{children}</View>
     </View>
   );
 }

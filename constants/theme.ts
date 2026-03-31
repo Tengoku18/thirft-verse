@@ -36,6 +36,16 @@ export const Colors = {
   },
 };
 
+// Input Field Color Palette
+export const INPUT_COLORS = {
+  label: "#3B3030", // Label text 100%
+  border: "#3b303033", // Border 20%
+  borderFocus: "#3B3030", // Border on focus 100%
+  placeholder: "#3b303066", // Placeholder 40%
+  text: "#3B3030", // Input text 100%
+  icon: "#3b303099", // Icon 60%
+};
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */
@@ -233,3 +243,23 @@ export const typography = {
     color: primary,
   },
 };
+
+// Typography Intent Variants - Used by Typography component for semantic styling
+export type TextIntent =
+  | "default"
+  | "success"
+  | "error"
+  | "warning"
+  | "info"
+  | "muted"
+  | "inverse";
+
+export const TYPOGRAPHY_VARIANTS: Record<TextIntent, string> = {
+  default: "text-semantic-text-primary dark:text-semantic-text-inverse",
+  success: "text-status-success",
+  error: "text-status-error",
+  warning: "text-status-warning",
+  info: "text-status-info",
+  muted: "text-semantic-text-secondary",
+  inverse: "text-semantic-text-inverse",
+} as const;

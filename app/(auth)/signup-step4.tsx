@@ -8,6 +8,7 @@ import {
   HeadingBoldText,
 } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Stepper } from "@/components/ui/Stepper/Stepper";
 import {
   createMissingProfile,
   updateUserProfile,
@@ -173,6 +174,7 @@ export default function SignupStep4Screen() {
     >
       <View className="flex-1 px-6 pt-12 pb-8">
         <AuthHeader title="Payment Setup" onBack={() => router.back()} />
+        <Stepper title="Payment Setup" currentStep={4} totalSteps={4} />
 
         <View className="mb-8">
           <CaptionText

@@ -1,0 +1,222 @@
+import DoorInIcon from "@/components/icons/DoorInIcon";
+import MailIcon from "@/components/icons/MailIcon";
+import { Button } from "@/components/ui/Button";
+import { Link } from "@/components/ui/Link";
+import { Typography } from "@/components/ui/Typography/Typography";
+import { useAuth } from "@/contexts/AuthContext";
+import { LoginFormData, loginSchema } from "@/lib/validations/login";
+import { persistSignupState, setCurrentStep, setFormData } from "@/store";
+import { useAppDispatch } from "@/store/hooks";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { View } from "react-native";
+import { RHFInput } from "../ReactHookForm";
+import { RHFCheckbox } from "../ReactHookForm/RHFCheckbox";
+
+interface LoginFormProps {
+  onLoginSuccess?: () => void | Promise<void>;
+  isLoading?: boolean;
+}
+
+/**
+ * LoginForm Component
+ *
+ * A complete, production-ready login form with:
+ * - React Hook Form validation using Yup schema
+ * - Email & password validation
+ * - Password visibility toggle using MailIcon & EyeIcon
+ * - Remember me checkbox
+ * - Real-time validation feedback
+ * - Loading state management
+ * - Integration with AuthContext for actual authentication
+ * - Forgot password link
+ *
+ * @example
+ * ```tsx
+ * <LoginForm
+ *   onLoginSuccess={() => router.push("/(tabs)/")}
+ *   isLoading={false}
+ * />
+ * ```
+ */
+export function LoginForm({
+  onLoginSuccess,
+  isLoading = false,
+}: LoginFormProps) {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { signIn } = useAuth();
+  const [loading, setLoading] = useState(isLoading);
+  const [formError, setFormError] = useState<string>("");
+
+  const { control, handleSubmit } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+    mode: "onBlur",
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
+
+  /**
+   * Handle form submission with actual authentication
+   */
+  const onSubmit = async (data: LoginFormData): Promise<void> => {
+    try {
+      setLoading(true);
+      setFormError("");
+
+      // Call actual authentication API
+      const { error } = await signIn(data.email, data.password);
+
+      if (error) {
+        const errorMsg = error.message?.toLowerCase() || "";
+
+        // Check if email is not confirmed
+        if (
+          errorMsg.includes("email not confirmed") ||
+          errorMsg.includes("email_not_confirmed")
+        ) {
+          dispatch(
+            setFormData({
+              email: data.email,
+              password: data.password,
+              name: "",
+              username: "",
+              address: "",
+              profileImage: null,
+            }),
+          );
+          dispatch(setCurrentStep(2));
+          await dispatch(
+            persistSignupState({
+              currentStep: 2,
+              formData: {
+                email: data.email,
+                password: data.password,
+                name: "",
+                username: "",
+                address: "",
+                profileImage: null,
+              },
+              isSignupInProgress: true,
+            }),
+          );
+
+          setLoading(false);
+          router.replace("/(auth)/signup-step2");
+          return;
+        }
+
+        // Check if user doesn't exist
+        if (
+          errorMsg.includes("invalid login credentials") ||
+          errorMsg.includes("invalid_credentials") ||
+          errorMsg.includes("user not found")
+        ) {
+          setFormError(
+            "Account not found. Please sign up to create an account.",
+          );
+          setLoading(false);
+          return;
+        }
+
+        // Generic error
+        setFormError(error.message || "Invalid email or password");
+        setLoading(false);
+        return;
+      }
+
+      // Success - call the callback
+      setLoading(false);
+      await onLoginSuccess?.();
+    } catch (error: any) {
+      console.error("Login form error:", error);
+      setFormError(
+        error.message || "An unexpected error occurred. Please try again.",
+      );
+      setLoading(false);
+    }
+  };
+
+  const EmailIcon = (): React.ReactElement => (
+    <View className="p-1">
+      <MailIcon width={20} height={20} />
+    </View>
+  );
+
+  return (
+    <View className="gap-4">
+      {/* Email Input Field - Validation via Yup schema */}
+      <RHFInput
+        control={control}
+        name="email"
+        label="Email Address"
+        placeholder="name@example.com"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        editable={!loading}
+        rightIcon={<EmailIcon />}
+      />
+
+      {/* Password Input Field */}
+      <RHFInput
+        control={control}
+        name="password"
+        label="Password"
+        placeholder="Enter your password"
+        secureTextEntry={true}
+        editable={!loading}
+        autoCapitalize="none"
+      />
+
+      {/* Remember Me & Forgot Password Row */}
+      <View className="flex-row items-center justify-between gap-2">
+        <View className="flex-1">
+          <RHFCheckbox
+            control={control}
+            name="rememberMe"
+            label="Remember me"
+            labelClassName="text-slate-600 dark:text-slate-400 font-sans-regular text-sm"
+          />
+        </View>
+
+        <Link
+          label="Forgot Password?"
+          href="/(auth)/forgot-password"
+          variant="primary"
+          typographyVariation="body-sm"
+          className="text-brand-tan"
+          underline={false}
+        />
+      </View>
+
+      {/* Form Error Display */}
+      {formError && (
+        <View className="rounded-2xl border border-status-error bg-status-error-bg p-3">
+          <Typography variation="body-sm" className="text-status-error">
+            {formError}
+          </Typography>
+        </View>
+      )}
+
+      {/* Sign In Button */}
+      <View className="mt-1">
+        <Button
+          label="Sign In"
+          isLoading={loading}
+          disabled={loading}
+          onPress={handleSubmit(onSubmit)}
+          fullWidth
+          iconPosition="right"
+          icon={<DoorInIcon width={20} height={20} />}
+        />
+      </View>
+    </View>
+  );
+}
+
+export default LoginForm;

@@ -10,6 +10,7 @@ export interface SignupFormData {
   address: string;
   password: string;
   profileImage: string | null;
+  sellerType: "store" | "closet" | "";
 }
 
 export interface SignupPaymentData {
@@ -33,6 +34,7 @@ const initialFormData: SignupFormData = {
   address: "",
   password: "",
   profileImage: null,
+  sellerType: "",
 };
 
 const initialPaymentData: SignupPaymentData = {
