@@ -51,13 +51,13 @@ export function Input({
   // Get variant-specific styles
   const getContainerStyle = () => {
     const verticalPadding = Platform.OS === "ios" ? "py-4" : "";
-    const baseClasses = `flex-row items-center rounded-full px-4 bg-white ${verticalPadding}`;
+    const baseClasses = `flex-row items-center rounded-3xl px-4 bg-white ${verticalPadding}`;
 
     switch (variant) {
       case "disabled":
         return (
           baseClasses +
-          " border border-ui-border-light bg-brand-off-white opacity-50"
+          " border border-ui-border-light bg-brand-off-white opacity-50 "
         );
       default:
         return baseClasses + " border";

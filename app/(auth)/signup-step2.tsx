@@ -73,6 +73,10 @@ export default function SignupStep2Screen() {
     }
   };
 
+  const handleBack = () => {
+    router.push("/(auth)/signup-step1");
+  };
+
   const handleVerifyOtp = async () => {
     const otpCode = otp.join("");
 
@@ -189,8 +193,9 @@ export default function SignupStep2Screen() {
       showHeader
       headerTitle="Email Verification"
       showScrollView={false}
+      onBack={handleBack}
     >
-      <Stepper title="Verify Email" currentStep={2} totalSteps={4} />
+      <Stepper title="Verify Email" currentStep={2} totalSteps={6} />
 
       <View className="flex-1">
         <ScrollView

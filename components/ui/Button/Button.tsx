@@ -20,6 +20,7 @@ interface ButtonProps {
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   className?: string;
+  textClassName?: string;
   fullWidth?: boolean;
   testID?: string;
   icon?: React.ReactNode;
@@ -51,9 +52,8 @@ function getButtonStyles(
       };
 
     case "accent":
-      const accentHeight = size === "compact" ? "h-10" : "h-12";
       return {
-        container: `flex-row items-center justify-center ${accentHeight} ${widthClass} rounded-lg bg-brand-tan active:opacity-90 transition-all px-4`,
+        container: `${baseStyles} bg-brand-tan shadow-md active:opacity-90`,
         text: "text-white font-sans-bold text-base",
         indicator: "#FFFFFF",
       };
@@ -87,6 +87,7 @@ export function Button({
   disabled = false,
   style,
   className = "",
+  textClassName = "",
   fullWidth = true,
   testID,
   icon,
@@ -94,8 +95,7 @@ export function Button({
 }: ButtonProps) {
   const styles = getButtonStyles(variant, size, fullWidth, disabled);
   const containerClass = className || styles.container;
-
-  console.log({ styles, disabled });
+  const textClass = textClassName || styles.text;
 
   return (
     <View style={{ opacity: disabled ? 0.5 : 1 }}>
@@ -117,7 +117,7 @@ export function Button({
               </View>
             )}
             <Typography
-              className={styles.text}
+              className={textClass}
               variation="button"
               numberOfLines={1}
               allowFontScaling={false}

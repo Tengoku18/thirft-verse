@@ -14,6 +14,8 @@ export interface SignupFormData {
   bio: string;
   district: string;
   instagramHandle: string;
+  storeName: string;
+  referralCode: string;
 }
 
 export interface SignupPaymentData {
@@ -22,7 +24,7 @@ export interface SignupPaymentData {
 }
 
 interface SignupState {
-  currentStep: 1 | 2 | 3 | 4 | 5; // 5 means completed
+  currentStep: 1 | 2 | 3 | 4 | 5 | 6; // 6 means completed
   formData: SignupFormData;
   paymentData: SignupPaymentData;
   isSignupInProgress: boolean;
@@ -41,6 +43,8 @@ const initialFormData: SignupFormData = {
   bio: "",
   district: "",
   instagramHandle: "",
+  storeName: "",
+  referralCode: "",
 };
 
 const initialPaymentData: SignupPaymentData = {
@@ -117,7 +121,7 @@ const signupSlice = createSlice({
   name: "signup",
   initialState,
   reducers: {
-    setCurrentStep: (state, action: PayloadAction<1 | 2 | 3 | 4 | 5>) => {
+    setCurrentStep: (state, action: PayloadAction<1 | 2 | 3 | 4 | 5 | 6>) => {
       state.currentStep = action.payload;
     },
     setFormData: (state, action: PayloadAction<Partial<SignupFormData>>) => {

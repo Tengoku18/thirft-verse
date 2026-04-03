@@ -1,3 +1,4 @@
+import { ProfileImagePicker } from "@/components/atoms/ProfileImagePicker";
 import { RHFCheckbox, RHFInput } from "@/components/forms/ReactHookForm";
 import EyeCloseIcon from "@/components/icons/EyeCloseIcon";
 import EyeIcon from "@/components/icons/EyeIcon";
@@ -48,10 +49,18 @@ export default function SignupStep1Screen() {
   const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
 
+  const handleBack = () => {
+    // Go back to signin
+    router.back();
+  };
+
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(
+    signupState.formData.profileImage || null,
+  );
 
   const { control, handleSubmit, setError, clearErrors, watch } =
     useForm<SignupStep1FormData>({
@@ -120,11 +129,13 @@ export default function SignupStep1Screen() {
           password: data.password,
           username: "",
           address: "",
-          profileImage: null,
+          profileImage: profileImage,
           sellerType: "",
           bio: "",
           district: "",
           instagramHandle: "",
+          storeName: "",
+          referralCode: "",
         };
 
         dispatch(setFormData(formData));
@@ -157,8 +168,9 @@ export default function SignupStep1Screen() {
       headerTitle="Basic Info"
       headerAlignment="center"
       showScrollView={false}
+      onBack={handleBack}
     >
-      <Stepper title="User Details" currentStep={1} totalSteps={4} />
+      <Stepper title="User Details" currentStep={1} totalSteps={6} />
 
       <ScrollView
         className="flex-1"
@@ -166,6 +178,14 @@ export default function SignupStep1Screen() {
         keyboardShouldPersistTaps="handled"
       >
         <View className="px-6 pt-4 pb-8">
+          {/* Profile Image */}
+          <View className="mb-6">
+            <ProfileImagePicker
+              value={profileImage}
+              onChange={setProfileImage}
+            />
+          </View>
+
           {/* Form Fields */}
           <View className="gap-4">
             {/* Full Name */}

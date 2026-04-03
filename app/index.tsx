@@ -64,7 +64,7 @@ export default function Index() {
       if (
         signupState.isSignupInProgress &&
         signupState.currentStep >= 2 &&
-        signupState.currentStep <= 4
+        signupState.currentStep <= 6
       ) {
         setAppStatus("signup_incomplete");
         setStatusMessage("Completing your signup...");
@@ -110,10 +110,19 @@ export default function Index() {
     if (signupState.currentStep === 2) {
       return <Redirect href="/(auth)/signup-step2" />;
     }
+    if (signupState.currentStep === 3) {
+      return <Redirect href="/(auth)/signup-step3" />;
+    }
     if (signupState.currentStep === 4) {
       return <Redirect href="/(auth)/signup-step4" />;
     }
-    return <Redirect href="/(auth)/signup-step3" />;
+    if (signupState.currentStep === 5) {
+      return <Redirect href="/(auth)/signup-step5" />;
+    }
+    if (signupState.currentStep === 6) {
+      return <Redirect href="/(auth)/signup-step6" />;
+    }
+    return <Redirect href="/(auth)/signup-step2" />;
   }
 
   if (appStatus === "profile_incomplete") {

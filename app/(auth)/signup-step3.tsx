@@ -17,6 +17,11 @@ export default function SignupStep3Screen() {
   const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
 
+  const handleBack = () => {
+    // Decrement step and navigate to previous step
+    router.push("/(auth)/signup-step1");
+  };
+
   const [selectedType, setSelectedType] = useState<"store" | "closet" | "">(
     signupState.formData.sellerType || "",
   );
@@ -83,8 +88,13 @@ export default function SignupStep3Screen() {
   console.log("loading", loading, Boolean(!selectedType));
 
   return (
-    <AuthScreenLayout showHeader headerTitle="Sign Up" showScrollView={false}>
-      <Stepper title="Seller Type" currentStep={3} totalSteps={4} />
+    <AuthScreenLayout
+      showHeader
+      headerTitle="Sign Up"
+      showScrollView={false}
+      onBack={handleBack}
+    >
+      <Stepper title="Seller Type" currentStep={3} totalSteps={6} />
 
       <View className="flex-1">
         <ScrollView
@@ -142,7 +152,7 @@ export default function SignupStep3Screen() {
         </ScrollView>
 
         {/* Continue Button - Sticky Bottom */}
-        <View className="px-6 py-6 border-t border-slate-200">
+        <View className="px-6 py-6">
           <Button
             label="Continue"
             variant="primary"

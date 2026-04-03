@@ -62,22 +62,13 @@ export default function SignInScreen() {
   } = useAppleSignIn();
   const [loginError, setLoginError] = useState("");
 
-  /**
-   * Determine which error to display (prioritize login error, then social auth errors)
-   */
   const displayError = loginError || googleError || appleError;
 
-  /**
-   * Handle successful login - called from LoginForm component
-   */
   const handleLoginSuccess = async (): Promise<void> => {
     setLoginError("");
     router.replace("/(tabs)");
   };
 
-  /**
-   * Render UI JSX
-   */
   return (
     <AuthScreenLayout statusBarStyle="dark-content">
       {/* ============================================

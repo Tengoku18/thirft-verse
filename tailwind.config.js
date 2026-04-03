@@ -43,6 +43,7 @@ module.exports = {
           beige: "#E5E1DA", // Card backgrounds, borders
           "off-white": "#FAF7F2", // Main background
           surface: "#FFFFFF", // Cards, inputs
+          badge: "#E8DCC8", // Badge background (referral, etc)
         },
 
         // ============================================

@@ -176,7 +176,7 @@ export const createMissingProfile = async () => {
       user.email?.split("@")[0] ||
       `user_${user.id.slice(0, 8)}`;
     const profileImage = metadata.profile_image || null;
-    const address = metadata.address || "";
+    const address = metadata.address || "Kathmandu, Nepal"; // Default address
 
     // Create the profile
     const result = await createUserProfile({
@@ -319,6 +319,7 @@ interface UpdateProfileData {
   profile_image?: string;
   payment_username?: string;
   payment_qr_image?: string;
+  seller_data?: Record<string, any>;
 }
 
 export const updateUserProfile = async (data: UpdateProfileData) => {
@@ -335,6 +336,8 @@ export const updateUserProfile = async (data: UpdateProfileData) => {
       updateData.payment_username = data.payment_username;
     if (data.payment_qr_image !== undefined)
       updateData.payment_qr_image = data.payment_qr_image;
+    if (data.seller_data !== undefined)
+      updateData.seller_data = data.seller_data;
 
     const { error } = await supabase
       .from("profiles")

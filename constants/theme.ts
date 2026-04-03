@@ -25,6 +25,7 @@ export const Colors = {
     icon: accent1, // Muted olive icons
     tabIconDefault: border, // Subtle neutral for inactive tabs
     tabIconSelected: secondary, // Warm tan for active tabs
+    border: "#3b303033",
   },
   dark: {
     text: background, // Light text on dark background
@@ -33,6 +34,7 @@ export const Colors = {
     icon: accent2, // Clay blush icons
     tabIconDefault: border, // Subtle neutral for inactive tabs
     tabIconSelected: accent2, // Clay blush for active tabs
+    border: "#3b303033",
   },
 };
 
