@@ -7,7 +7,6 @@ import {
   StoreOverviewSection,
 } from "@/components/dashboard";
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
-import { Typography } from "@/components/ui/Typography/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getOrdersBySeller,
@@ -20,7 +19,6 @@ import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   RefreshControl,
   ScrollView,
   View,
@@ -265,19 +263,6 @@ export default function DashboardScreen() {
 
   return (
     <TabScreenLayout showTextLogo>
-      {/* TEST: Preview Success Screen Button */}
-      <Pressable
-        onPress={() => router.push("/(auth)/signup-success")}
-        className="bg-blue-500 px-4 py-2 rounded-lg mx-6 mb-4"
-      >
-        <Typography
-          variation="body-sm"
-          className="text-white font-sans-bold text-center"
-        >
-          TEST SIGNUP SUCCESS
-        </Typography>
-      </Pressable>
-
       {profile?.store_username && (
         <StoreLinkCard storeUsername={profile.store_username} />
       )}

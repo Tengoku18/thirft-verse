@@ -41,6 +41,35 @@ export const checkEmailExists = async (
 };
 
 /**
+ * Get the authentication method (provider) for a given email
+ * Returns 'google' if user signed up with Google, 'email' for email/password
+ * Requires RPC function 'get_user_auth_method' in Supabase
+ */
+export const getUserAuthMethod = async (
+  email: string,
+): Promise<"email" | "google" | null> => {
+  try {
+    const { data, error } = await supabase.rpc("get_user_auth_method", {
+      email_to_check: email.toLowerCase().trim(),
+    });
+
+    if (error) {
+      console.error("Error getting auth method:", error);
+      // If RPC doesn't exist, assume email auth
+      if (error.code === "PGRST202") {
+        return "email";
+      }
+      return null;
+    }
+
+    return data || "email";
+  } catch (error) {
+    console.error("Unexpected error getting auth method:", error);
+    return null;
+  }
+};
+
+/**
  * Check if store username already exists in the database
  */
 export const checkUsernameExists = async (

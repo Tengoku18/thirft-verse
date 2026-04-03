@@ -88,7 +88,7 @@ export function AuthScreenLayout({
           <View className="w-6">
             {showBackButton && (
               <Pressable onPress={handleBackPress}>
-                <BackIcon width={24} height={24} />
+                <BackIcon width={24} height={24} color={"#000"} />
               </Pressable>
             )}
           </View>
