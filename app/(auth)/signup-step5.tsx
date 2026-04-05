@@ -9,13 +9,7 @@ import { Button } from "@/components/ui/Button/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { supabase } from "@/lib/supabase";
-import {
-  clearPersistedSignupState,
-  completeSignup,
-  persistSignupState,
-  setCurrentStep,
-  setPaymentData,
-} from "@/store";
+import { persistSignupState, setCurrentStep, setPaymentData } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as ImagePicker from "expo-image-picker";
@@ -33,6 +27,7 @@ const step5Schema = yup.object({
     .min(3, "eSewa ID must be at least 3 characters")
     .max(100, "eSewa ID must be less than 100 characters")
     .required("eSewa ID/Username is required"),
+  paymentQRImage: yup.string().required("QR code image is required"),
 });
 
 type Step5FormData = yup.InferType<typeof step5Schema>;
@@ -58,15 +53,27 @@ export default function SignupStep5Screen() {
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Form setup with React Hook Form
-  const { control, handleSubmit } = useForm<Step5FormData>({
-    resolver: yupResolver(step5Schema as any),
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<Step5FormData>({
+    resolver: yupResolver(step5Schema),
     mode: "onBlur",
     defaultValues: {
       paymentUsername: signupState.paymentData.paymentUsername || "",
+      paymentQRImage: signupState.paymentData.paymentQRImage || "",
     },
   });
 
   const onSubmit = async (data: Step5FormData) => {
+    // Validate QR image is provided
+    if (!qrImage) {
+      setGeneralError("Please upload an eSewa QR code image");
+      return;
+    }
+
     setLoading(true);
     setGeneralError(null);
 
@@ -162,7 +169,10 @@ export default function SignupStep5Screen() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      setQrImage(result.assets[0].uri);
+      const imageUri = result.assets[0].uri;
+      setQrImage(imageUri);
+      // Update form field to clear validation error
+      setValue("paymentQRImage", imageUri);
     }
   };
 
@@ -180,11 +190,16 @@ export default function SignupStep5Screen() {
         return;
       }
 
-      // Complete signup without payment data
-      dispatch(completeSignup());
-      await dispatch(clearPersistedSignupState());
+      // Move to next step (Step 6 - Referral Code)
+      dispatch(setCurrentStep(6));
+      await dispatch(
+        persistSignupState({
+          currentStep: 6,
+          isSignupInProgress: true,
+        }),
+      );
 
-      router.replace("/(tabs)");
+      router.push("/(auth)/signup-step6");
     } catch (error) {
       console.error("Error skipping step 5:", error);
       setGeneralError("An unexpected error occurred. Please try again.");
@@ -249,6 +264,11 @@ export default function SignupStep5Screen() {
                 onPress={handleQRImagePick}
                 image={qrImage}
               />
+              {errors.paymentQRImage && (
+                <Typography variation="body-sm" className="text-red-500 mt-2">
+                  {errors.paymentQRImage.message}
+                </Typography>
+              )}
             </View>
 
             {/* Info Box */}

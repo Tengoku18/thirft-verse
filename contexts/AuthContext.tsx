@@ -15,17 +15,24 @@ import {
   setUser,
 } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Session, User } from "@supabase/supabase-js";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { makeRedirectUri } from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import React, { createContext, useContext, useEffect } from "react";
 
+const REMEMBER_ME_KEY = "@thriftverse:remember_me";
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (
+    email: string,
+    password: string,
+    rememberMe?: boolean,
+  ) => Promise<{ error: any }>;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<{ error: any }>;
@@ -54,6 +61,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
+        // If the user previously chose not to be remembered, clear any
+        // persisted session before restoring it.
+        const rememberMe = await AsyncStorage.getItem(REMEMBER_ME_KEY);
+        if (rememberMe === "false") {
+          await supabase.auth.signOut();
+          dispatch(clearAuth());
+          return;
+        }
+
         // Fetch session from Supabase and update Redux
         const result = await dispatch(fetchCurrentSession()).unwrap();
 
@@ -102,27 +118,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (event === "SIGNED_OUT") {
         dispatch(clearAuth());
         dispatch(clearProfile());
+        dispatch(clearNotifications());
+        dispatch(clearPersistedSignupState());
       }
     });
 
     return () => subscription.unsubscribe();
   }, [dispatch]);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe = true) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (!error && data.session) {
+      // Persist the remember-me preference so initializeAuth can honour it on
+      // the next app launch.
+      await AsyncStorage.setItem(
+        REMEMBER_ME_KEY,
+        rememberMe ? "true" : "false",
+      );
+
       dispatch(setSession(data.session));
       dispatch(setUser(data.user));
 
       if (data.user) {
         await dispatch(fetchUserProfile(data.user.id));
-        // Fetch unread notification count for badge
         dispatch(fetchUnreadCount(data.user.id));
-        // Save push token to profile (awaits token initialization if needed)
         await savePushTokenToProfile(data.user.id);
       }
     }
@@ -335,17 +358,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    // Unregister push token before signing out
     if (user?.id) {
       await unregisterPushToken(user.id);
     }
+    await AsyncStorage.removeItem(REMEMBER_ME_KEY);
     await supabase.auth.signOut();
-    // Clear Redux store
     dispatch(clearAuth());
     dispatch(clearProfile());
     dispatch(clearNotifications());
-    // Clear persisted signup state
-    dispatch(clearPersistedSignupState());
+    await dispatch(clearPersistedSignupState());
   };
 
   const resetPasswordForEmail = async (email: string) => {

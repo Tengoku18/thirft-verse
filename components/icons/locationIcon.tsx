@@ -3,7 +3,7 @@ import Svg, { G, Path, SvgProps } from "react-native-svg";
 const LocationIcon = (props: SvgProps) => (
   <Svg fill="none" viewBox="0 0 24 24" width={24} height={24} {...props}>
     <G
-      stroke="#3B3030"
+      stroke={props.color || "#3B3030"}
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}

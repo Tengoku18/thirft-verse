@@ -1,35 +1,47 @@
-import { FormButton } from "@/components/atoms/FormButton";
-import { FormInput } from "@/components/atoms/FormInput";
+import { InfoBox } from "@/components/atoms/InfoBox";
 import { ProfileImagePicker } from "@/components/atoms/ProfileImagePicker";
-import { AuthHeader } from "@/components/navigation/AuthHeader";
-import {
-  BodyRegularText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { RHFCheckbox, RHFInput } from "@/components/forms/ReactHookForm";
+import ForwardIcon from "@/components/icons/ForwardIcon";
+import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Link } from "@/components/ui/Link";
+import { Stepper } from "@/components/ui/Stepper/Stepper";
+import { Typography } from "@/components/ui/Typography/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   checkUsernameExists,
   createUserProfile,
   verifyProfileExists,
 } from "@/lib/database-helpers";
-import { fetchUserProfile, persistSignupState, setCurrentStep } from "@/store";
-import { useAppDispatch } from "@/store/hooks";
-import { useRouter } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
-import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  View,
-} from "react-native";
+  fetchUserProfile,
+  persistSignupState,
+  setCurrentStep,
+  setFormData,
+} from "@/store";
+import { useAppDispatch } from "@/store/hooks";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { ScrollView, View } from "react-native";
+import * as yup from "yup";
 
-WebBrowser.maybeCompleteAuthSession();
+const schema = yup.object({
+  name: yup
+    .string()
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must be less than 100 characters")
+    .required("Full name is required"),
+  acceptedTerms: yup
+    .boolean()
+    .oneOf([true], "You must accept the Terms & Conditions to continue")
+    .required(),
+});
 
-type UsernameStatus = "idle" | "checking" | "available" | "taken";
+type FormData = yup.InferType<typeof schema>;
 
 export default function GoogleProfileSetupScreen() {
   const router = useRouter();
@@ -40,86 +52,32 @@ export default function GoogleProfileSetupScreen() {
     user?.user_metadata?.full_name || user?.user_metadata?.name || "";
   const googleAvatar = user?.user_metadata?.avatar_url || null;
 
-  const [name, setName] = useState(googleName);
-  const [username, setUsername] = useState("");
-  const [address, setAddress] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(googleAvatar);
-  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Redirect if no user
-  useEffect(() => {
-    if (!user) {
-      router.replace("/(auth)/signin");
-    }
-  }, [user, router]);
+  const { control, handleSubmit } = useForm<FormData>({
+    resolver: yupResolver(schema),
+    mode: "onBlur",
+    defaultValues: {
+      name: googleName,
+      acceptedTerms: false,
+    },
+  });
 
-  // Username availability check with debounce
-  useEffect(() => {
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
+  if (!user) return null;
 
-    if (!username || username.length < 3) {
-      setUsernameStatus("idle");
-      return;
-    }
+  const handleBack = async () => {
+    await signOut();
+    router.replace("/(auth)/signin");
+  };
 
-    setUsernameStatus("checking");
-
-    debounceTimer.current = setTimeout(async () => {
-      try {
-        const exists = await checkUsernameExists(username);
-        setUsernameStatus(exists ? "taken" : "available");
-      } catch {
-        setUsernameStatus("idle");
-      }
-    }, 500);
-
-    return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-    };
-  }, [username]);
-
-  const handleSubmit = async () => {
-    if (!name.trim()) {
-      setErrorMessage("Please enter your name");
-      return;
-    }
-    if (!username.trim()) {
-      setErrorMessage("Please choose a username");
-      return;
-    }
-    if (username.length < 3) {
-      setErrorMessage("Username must be at least 3 characters");
-      return;
-    }
-    if (!/^[a-z0-9_]+$/.test(username)) {
-      setErrorMessage(
-        "Username can only contain lowercase letters, numbers, and underscores",
-      );
-      return;
-    }
-    if (usernameStatus === "taken") {
-      setErrorMessage("This username is already taken");
-      return;
-    }
-
+  const onSubmit = async (data: FormData) => {
     setLoading(true);
     setErrorMessage(null);
 
     try {
-      if (!user?.id) {
-        setErrorMessage("Session expired. Please sign in again.");
-        setLoading(false);
-        return;
-      }
-
-      // Check if profile already exists (e.g., same email used for email signup before)
+      // Guard: if profile already exists (e.g. user navigated back), go to tabs
       const profileExists = await verifyProfileExists(user.id);
       if (profileExists) {
         await dispatch(fetchUserProfile(user.id));
@@ -127,209 +85,162 @@ export default function GoogleProfileSetupScreen() {
         return;
       }
 
-      // Final uniqueness check to guard against race conditions
-      const usernameExists = await checkUsernameExists(username);
-      if (usernameExists) {
-        setErrorMessage("This username was just taken. Please choose another.");
-        setUsernameStatus("taken");
-        setLoading(false);
-        return;
+      // Derive a placeholder username from email — Step 4 will let user set the real one
+      const emailPrefix = user.email?.split("@")[0] || `user_${user.id.slice(0, 8)}`;
+      let placeholderUsername = emailPrefix.toLowerCase().replace(/[^a-z0-9_]/g, "_");
+
+      // Make sure the placeholder is unique (add suffix if taken)
+      const isTaken = await checkUsernameExists(placeholderUsername);
+      if (isTaken) {
+        placeholderUsername = `${placeholderUsername}_${user.id.slice(0, 4)}`;
       }
 
+      // Create the profile with confirmed name and placeholder username
       const result = await createUserProfile({
         userId: user.id,
-        name: name.trim(),
-        store_username: username.trim(),
+        name: data.name.trim(),
+        store_username: placeholderUsername,
         bio: "",
         profile_image: profileImage,
         currency: "NPR",
-        address: address.trim(),
+        address: "",
       });
 
       if (!result.success) {
-        console.error("Failed to create profile:", result.error);
+        console.error("❌ Failed to create profile:", result.error);
         setErrorMessage("Failed to create your profile. Please try again.");
         setLoading(false);
         return;
       }
 
-      // Refresh profile in Redux so route guard sees it
-      await dispatch(fetchUserProfile(user.id));
+      // Save name to signup state so later steps can read it
+      dispatch(setFormData({ name: data.name.trim(), profileImage }));
 
-      // Continue with dedicated referral step
+      // Mark signup in progress at step 3 (seller type)
       dispatch(setCurrentStep(3));
       await dispatch(
         persistSignupState({
           currentStep: 3,
+          formData: { name: data.name.trim(), profileImage },
           isSignupInProgress: true,
         }),
       );
+
       router.replace("/(auth)/signup-step3");
     } catch (error) {
-      console.error("Error creating profile:", error);
+      console.error("💥 Error in google-profile-setup:", error);
       setErrorMessage("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!user) return null;
-
   return (
-    <KeyboardAvoidingView
-      behavior="padding"
-      className="flex-1 bg-white"
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    <AuthScreenLayout
+      showHeader
+      headerTitle="Sign Up"
+      showScrollView={false}
+      onBack={handleBack}
     >
-      <View className="flex-1 px-6 pt-12 pb-8">
-        <AuthHeader
-          title="Complete Profile"
-          onBack={async () => {
-            await signOut();
-            router.replace("/(auth)/signin");
-          }}
-        />
+      <Stepper title="Your Profile" currentStep={1} totalSteps={5} />
 
-        <View className="mb-8">
-          <HeadingBoldText
-            className="leading-tight mb-2"
-            style={{ fontSize: 28 }}
-          >
-            Welcome to ThriftVerse
-          </HeadingBoldText>
-          <BodyRegularText
-            className="leading-relaxed"
-            style={{ color: "#6B7280", fontSize: 15 }}
-          >
-            Set up your store profile to start buying and selling
-          </BodyRegularText>
-        </View>
-
+      <View className="flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Profile Image */}
-          <ProfileImagePicker
-            value={profileImage}
-            onChange={setProfileImage}
-            name={name || "User"}
-          />
-
-          <View className="mt-4">
-            {/* Name Field */}
-            <FormInput
-              label="Full Name"
-              placeholder="Enter your full name"
-              autoCapitalize="words"
-              required
-              value={name}
-              onChangeText={(text) => {
-                setName(text);
-                if (errorMessage) setErrorMessage(null);
-              }}
-            />
-
-            {/* Email Field (read-only) */}
-            <FormInput
-              label="Email"
-              value={user?.email || ""}
-              editable={false}
-            />
-
-            {/* Username Field */}
-            <View>
-              <FormInput
-                label="Username"
-                placeholder="Choose a unique store username"
-                autoCapitalize="none"
-                autoCorrect={false}
-                required
-                value={username}
-                onChangeText={(text) => {
-                  setUsername(text.toLowerCase().replace(/[^a-z0-9_]/g, ""));
-                  if (errorMessage) setErrorMessage(null);
-                }}
-              />
-              {username && username.length >= 3 && (
-                <View className="flex-row items-center -mt-4 mb-4 ml-1">
-                  {usernameStatus === "checking" && (
-                    <>
-                      <ActivityIndicator size="small" color="#6B7280" />
-                      <CaptionText
-                        className="ml-2"
-                        style={{ color: "#6B7280" }}
-                      >
-                        Checking availability...
-                      </CaptionText>
-                    </>
-                  )}
-                  {usernameStatus === "available" && (
-                    <>
-                      <IconSymbol
-                        name="checkmark.circle.fill"
-                        size={16}
-                        color="#22C55E"
-                      />
-                      <CaptionText
-                        className="ml-2"
-                        style={{ color: "#22C55E" }}
-                      >
-                        Username is available
-                      </CaptionText>
-                    </>
-                  )}
-                  {usernameStatus === "taken" && (
-                    <>
-                      <IconSymbol
-                        name="xmark.circle.fill"
-                        size={16}
-                        color="#EF4444"
-                      />
-                      <CaptionText
-                        className="ml-2"
-                        style={{ color: "#EF4444" }}
-                      >
-                        Username is already taken
-                      </CaptionText>
-                    </>
-                  )}
-                </View>
-              )}
+          <View className="px-6 pt-4 pb-8">
+            {/* Header */}
+            <View className="mb-6">
+              <Typography variation="h1" className="text-center py-2">
+                Welcome to ThriftVerse
+              </Typography>
+              <Typography variation="body" className="text-slate-500 text-center">
+                Confirm your details to get started.
+              </Typography>
             </View>
 
-            {/* Address Field */}
-            <FormInput
-              label="Address"
-              placeholder="Enter your address"
-              autoCapitalize="words"
-              value={address}
-              onChangeText={(text) => {
-                setAddress(text);
-                if (errorMessage) setErrorMessage(null);
-              }}
-            />
+            {/* Profile Image */}
+            <View className="mb-6">
+              <ProfileImagePicker
+                value={profileImage}
+                onChange={setProfileImage}
+              />
+            </View>
 
-            {/* Error message */}
+            {/* Error */}
             {errorMessage && (
-              <View className="my-4 p-3 bg-red-50 rounded-lg border border-red-200">
-                <BodyRegularText style={{ color: "#EF4444", fontSize: 14 }}>
-                  {errorMessage}
-                </BodyRegularText>
-              </View>
+              <InfoBox type="error" message={errorMessage} className="mb-4" />
             )}
 
-            <FormButton
-              title="Complete Setup"
-              onPress={handleSubmit}
-              loading={loading}
-              variant="primary"
-            />
+            {/* Fields */}
+            <View className="gap-4">
+              <RHFInput
+                control={control}
+                name="name"
+                label="Full Name"
+                placeholder="Enter your full name"
+                autoCapitalize="words"
+                editable={!loading}
+              />
+
+              {/* Email — disabled input, same look as all other fields */}
+              <Input
+                label="Email Address"
+                value={user.email ?? ""}
+                variant="disabled"
+              />
+
+              {/* Terms & Conditions */}
+              <RHFCheckbox
+                control={control}
+                name="acceptedTerms"
+                label={
+                  <View className="flex-row flex-wrap gap-1">
+                    <Typography variation="body" className="text-slate-600">
+                      I accept the
+                    </Typography>
+                    <Link
+                      label="Terms & Conditions"
+                      href="/policies/terms"
+                      type="internal"
+                      underline
+                      variant="primary"
+                      typographyVariation="body-sm"
+                    />
+                    <Typography variation="body" className="text-slate-600">
+                      and
+                    </Typography>
+                    <Link
+                      label="Privacy Policy"
+                      href="/policies/privacy"
+                      type="internal"
+                      underline
+                      variant="primary"
+                      typographyVariation="body-sm"
+                    />
+                  </View>
+                }
+              />
+            </View>
           </View>
         </ScrollView>
+
+        {/* Sticky bottom button */}
+        <View className="px-6 py-6">
+          <Button
+            label="Next Step"
+            variant="primary"
+            onPress={handleSubmit(onSubmit)}
+            isLoading={loading}
+            disabled={loading}
+            fullWidth
+            iconPosition="right"
+            icon={<ForwardIcon width={20} height={20} />}
+          />
+        </View>
       </View>
-    </KeyboardAvoidingView>
+    </AuthScreenLayout>
   );
 }

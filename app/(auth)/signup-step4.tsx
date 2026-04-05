@@ -333,7 +333,7 @@ export default function SignupStep4Screen() {
               }
               options={districtOptions}
               searchable
-              leftIcon={<LocationIcon />}
+              leftIcon={<LocationIcon color="#3b303099" />}
               searchPlaceholder="Search districts..."
             />
           </View>

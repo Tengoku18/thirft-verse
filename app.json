@@ -4,7 +4,7 @@
     "slug": "thrift-verse",
     "version": "1.1.1",
     "orientation": "portrait",
-    "icon": "./assets/logo/ios-app-icon.png",
+    "icon": "./assets/logo/fav-icon.png",
     "scheme": "thriftverse",
     "userInterfaceStyle": "automatic",
     "ios": {

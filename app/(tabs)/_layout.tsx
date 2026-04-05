@@ -1,8 +1,12 @@
 import { Tabs } from "expo-router";
 import React from "react";
 
+import HomeIcon from "@/components/icons/HomeIcon";
+import CashIcon from "@/components/icons/CashIcon";
+import PlusIcon from "@/components/icons/PlusIcon";
+import SearchIcon from "@/components/icons/SearchIcon";
+import { UserIcon } from "@/components/icons/UserIcon";
 import { FloatingTabBar } from "@/components/navigation/FloatingTabBar";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 
 export default function TabLayout() {
   return (
@@ -19,17 +23,17 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <HomeIcon size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="my-products"
         options={{
-          title: "My Products",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="shippingbox.fill" color={color} />
+          title: "Search",
+          tabBarIcon: ({ color, size }) => (
+            <SearchIcon size={size} color={color} />
           ),
         }}
       />
@@ -37,30 +41,26 @@ export default function TabLayout() {
         name="product"
         options={{
           title: "Add",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="plus.circle.fill" color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <PlusIcon size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="orders"
         options={{
-          title: "Orders",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="bag.fill" color={color} />
+          title: "Cash",
+          tabBarIcon: ({ color, size }) => (
+            <CashIcon size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="earnings"
         options={{
-          title: "Earnings",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={28}
-              name="chart.line.uptrend.xyaxis"
-              color={color}
-            />
+          title: "Profile",
+          tabBarIcon: ({ color, size }) => (
+            <UserIcon size={size} color={color} />
           ),
         }}
       />

@@ -229,6 +229,7 @@ export default function SignInScreen() {
           ThriftVerse • Sustainable Fashion Marketplace
         </Typography>
       </View>
+
     </AuthScreenLayout>
   );
 }

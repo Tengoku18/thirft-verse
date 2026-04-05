@@ -5,12 +5,14 @@ import { getUserProfile, updateUserProfile, createUserProfile, CreateProfileData
 interface ProfileState {
   profile: Profile | null;
   loading: boolean;
+  initialized: boolean; // true after first fetch attempt completes (success or failure)
   error: string | null;
 }
 
 const initialState: ProfileState = {
   profile: null,
   loading: false,
+  initialized: false,
   error: null,
 };
 
@@ -74,6 +76,7 @@ const profileSlice = createSlice({
     },
     clearProfile: (state) => {
       state.profile = null;
+      state.initialized = false;
       state.error = null;
     },
     setError: (state, action: PayloadAction<string | null>) => {
@@ -88,10 +91,12 @@ const profileSlice = createSlice({
     });
     builder.addCase(fetchUserProfile.fulfilled, (state, action) => {
       state.loading = false;
+      state.initialized = true;
       state.profile = action.payload;
     });
     builder.addCase(fetchUserProfile.rejected, (state, action) => {
       state.loading = false;
+      state.initialized = true;
       state.error = (action.payload as any)?.message || 'Failed to fetch profile';
     });
 

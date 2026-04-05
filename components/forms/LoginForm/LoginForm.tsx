@@ -70,7 +70,7 @@ export function LoginForm({
       setFormError("");
 
       // Call actual authentication API
-      const { error } = await signIn(data.email, data.password);
+      const { error } = await signIn(data.email, data.password, data.rememberMe);
 
       if (error) {
         const errorMsg = error.message?.toLowerCase() || "";

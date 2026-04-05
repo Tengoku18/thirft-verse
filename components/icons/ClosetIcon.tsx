@@ -1,10 +1,19 @@
 import * as React from "react";
 import Svg, { Path, SvgProps } from "react-native-svg";
 
-const HangerIcon = (props: SvgProps) => (
-  <Svg fill="none" viewBox="0 0 24 24" width={24} height={24} {...props}>
+interface ClosetIconProps extends SvgProps {
+  size?: number;
+  color?: string;
+}
+
+const HangerIcon: React.FC<ClosetIconProps> = ({
+  size = 24,
+  color = "#0F172A",
+  ...props
+}) => (
+  <Svg fill="none" viewBox="0 0 24 24" width={size} height={size} {...props}>
     <Path
-      fill="#0F172A"
+      fill={color}
       d="M1.25 20a1.21 1.21 0 0 1-.89-.36 1.21 1.21 0 0 1-.36-.89c0-.208.042-.401.125-.578A.98.98 0 0 1 .5 17.75l10.75-8.063V7.5c0-.354.125-.651.375-.89.25-.24.552-.36.906-.36.521 0 .959-.188 1.313-.563a1.89 1.89 0 0 0 .531-1.343c0-.521-.182-.959-.547-1.313A1.835 1.835 0 0 0 12.5 2.5c-.52 0-.963.182-1.328.547a1.808 1.808 0 0 0-.547 1.328h-2.5c0-1.208.427-2.24 1.281-3.094C10.26.427 11.292 0 12.5 0s2.24.422 3.094 1.266c.854.843 1.281 1.87 1.281 3.078 0 .979-.287 1.854-.86 2.625a4.364 4.364 0 0 1-2.265 1.593v1.126L24.5 17.75a.98.98 0 0 1 .375.422c.083.177.125.37.125.578 0 .354-.12.651-.36.89-.239.24-.536.36-.89.36H1.25ZM5 17.5h15l-7.5-5.625L5 17.5Z"
     />
   </Svg>

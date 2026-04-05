@@ -21,6 +21,7 @@ export default function Index() {
   const { user, loading: authLoading } = useAuth();
   const profile = useAppSelector((state) => state.profile.profile);
   const profileLoading = useAppSelector((state) => state.profile.loading);
+  const profileInitialized = useAppSelector((state) => state.profile.initialized);
   const signupState = useAppSelector((state) => state.signup);
   const [appStatus, setAppStatus] = useState<AppStatus>("initializing");
   const [statusMessage, setStatusMessage] = useState("Starting up...");
@@ -71,8 +72,11 @@ export default function Index() {
         return;
       }
 
-      // Step 4: User exists, check profile
-      if (profileLoading) {
+      // Step 4: Wait until profile fetch has started AND completed.
+      // profileInitialized is false until the first fetchUserProfile resolves.
+      // Without this, profile=null + profileLoading=false (initial state) would
+      // incorrectly trigger the "profile_incomplete" branch before fetch even starts.
+      if (profileLoading || !profileInitialized) {
         setAppStatus("checking_profile");
         setStatusMessage("Loading your profile...");
         return;
