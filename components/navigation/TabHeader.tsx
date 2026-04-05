@@ -1,11 +1,10 @@
-import { BodyMediumText } from "@/components/Typography";
+import { BodyMediumText, HeadingBoldText } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { LOGOS } from "@/constants/logos";
 import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Image, StatusBar, TouchableOpacity, View } from "react-native";
-import { HeadingBoldText } from "../Typography";
 
 interface TabHeaderProps {
   title?: string;
@@ -27,7 +26,7 @@ export function TabHeader({
   const router = useRouter();
   const profile = useAppSelector((state) => state.profile.profile);
   const unreadCount = useAppSelector(
-    (state) => state.notifications.unreadCount
+    (state) => state.notifications.unreadCount,
   );
 
   const handleBack = () => {
@@ -120,7 +119,11 @@ export function TabHeader({
                       }}
                     >
                       <BodyMediumText
-                        style={{ color: "#FFFFFF", fontSize: 10, lineHeight: 14 }}
+                        style={{
+                          color: "#FFFFFF",
+                          fontSize: 10,
+                          lineHeight: 14,
+                        }}
                       >
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </BodyMediumText>

@@ -1,18 +1,76 @@
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import React, { useEffect } from "react";
+import React from "react";
 import { Platform, TouchableOpacity, View } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const CENTER_BUTTON_SIZE = 56;
-const CENTER_BUTTON_BORDER = 4;
-const CENTER_BUTTON_TOTAL = CENTER_BUTTON_SIZE + CENTER_BUTTON_BORDER * 2;
+const CENTER_TAB_INDEX = 2;
+const BAR_HEIGHT = 72;
+const CENTER_BUTTON_SIZE = 52;
+// 25% of button protrudes above the bar
+const CENTER_BUTTON_OVERFLOW = CENTER_BUTTON_SIZE * 0.1; // 14px
+
+function CenterTabButton({
+  isFocused,
+  options,
+  onPress,
+  onLongPress,
+}: {
+  isFocused: boolean;
+  options: any;
+  onPress: () => void;
+  onLongPress: () => void;
+}) {
+  const iconColor = "#FFFFFF";
+  const iconComponent = options.tabBarIcon
+    ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 24 })
+    : null;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      onLongPress={onLongPress}
+      activeOpacity={0.8}
+      style={{
+        position: "absolute",
+        top: -CENTER_BUTTON_OVERFLOW,
+        alignSelf: "center",
+        zIndex: 10,
+      }}
+    >
+      {/* Outer white halo ring */}
+      <View
+        style={{
+          width: CENTER_BUTTON_SIZE + 8,
+          height: CENTER_BUTTON_SIZE + 8,
+          borderRadius: (CENTER_BUTTON_SIZE + 8) / 2,
+          backgroundColor: "#ffffff",
+          alignItems: "center",
+          justifyContent: "center",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.2,
+          shadowRadius: 12,
+          elevation: 8,
+        }}
+      >
+        <View
+          style={{
+            width: CENTER_BUTTON_SIZE,
+            height: CENTER_BUTTON_SIZE,
+            borderRadius: CENTER_BUTTON_SIZE / 2,
+            backgroundColor: isFocused ? "#3B2F2F" : "#D4A373",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {iconComponent}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 function TabButton({
   isFocused,
@@ -20,52 +78,42 @@ function TabButton({
   onPress,
   onLongPress,
 }: {
-  index: number;
   isFocused: boolean;
   options: any;
   onPress: () => void;
   onLongPress: () => void;
 }) {
-  const scale = useSharedValue(isFocused ? 1 : 0.95);
-  const opacity = useSharedValue(isFocused ? 1 : 0);
+  const iconColor = isFocused ? "#FFFFFF" : "#3B2F2F";
+  const bgColor = isFocused ? "#3B2F2F" : "transparent";
 
-  useEffect(() => {
-    scale.value = withSpring(isFocused ? 1 : 0.95, {
-      damping: 15,
-      stiffness: 150,
-    });
-    opacity.value = withTiming(isFocused ? 1 : 0, { duration: 200 });
-  }, [isFocused]);
-
-  const animatedBackgroundStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
-  const iconColor = isFocused ? "#3B2F2F" : "#9CA3AF";
   const iconComponent = options.tabBarIcon
-    ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 22 })
+    ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 18 })
     : null;
 
   return (
     <TouchableOpacity
-      accessibilityRole="button"
-      accessibilityState={isFocused ? { selected: true } : {}}
-      accessibilityLabel={options.tabBarAccessibilityLabel}
-      testID={options.tabBarButtonTestID}
       onPress={onPress}
       onLongPress={onLongPress}
-      className="flex-1 items-center justify-center py-2.5 px-2 relative rounded-[20px] min-h-[50px]"
+      style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
       activeOpacity={0.7}
     >
-      {/* Active background pill */}
-      <Animated.View
-        className="absolute inset-0 bg-[rgba(59,47,47,0.1)] rounded-[22px]"
-        style={animatedBackgroundStyle}
-      />
-
-      {/* Icon — full opacity always, background pill handles the active state */}
-      <View>{iconComponent}</View>
+      <View
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: "100%",
+          backgroundColor: bgColor,
+          alignItems: "center",
+          justifyContent: "center",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: isFocused ? 0.18 : 0,
+          shadowRadius: 8,
+          elevation: isFocused ? 4 : 0,
+        }}
+      >
+        {iconComponent}
+      </View>
     </TouchableOpacity>
   );
 }
@@ -76,7 +124,7 @@ export function FloatingTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const bottomPadding = Math.max(insets.bottom, 12);
+  const bottomPadding = Math.max(insets.bottom - 100, 20);
 
   const visibleItems = state.routes
     .map((route, stateIndex) => ({ route, stateIndex }))
@@ -84,128 +132,136 @@ export function FloatingTabBar({
       ({ route }) => (descriptors[route.key].options as any).href !== null,
     );
 
-  const centerVisibleIndex = Math.floor(visibleItems.length / 2);
-  const centerItem = visibleItems[centerVisibleIndex];
-  const isCenterFocused = centerItem
-    ? state.index === centerItem.stateIndex
-    : false;
-  const centerButtonColor = isCenterFocused ? "#3B2F2F" : "#D4A373";
-
-  const handleCenterPress = () => {
-    if (Platform.OS === "ios") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    if (!centerItem) return;
-    const { route, stateIndex } = centerItem;
+  const buildHandlers = (route: any, stateIndex: number) => {
     const isFocused = state.index === stateIndex;
-    const event = navigation.emit({
-      type: "tabPress",
-      target: route.key,
-      canPreventDefault: true,
-    });
-    if (!isFocused && !event.defaultPrevented) {
-      navigation.navigate(route.name);
-    }
+    const onPress = () => {
+      if (Platform.OS === "ios") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      const event = navigation.emit({
+        type: "tabPress",
+        target: route.key,
+        canPreventDefault: true,
+      });
+      if (!isFocused && !event.defaultPrevented) {
+        navigation.navigate(route.name);
+      }
+    };
+    const onLongPress = () => {
+      navigation.emit({ type: "tabLongPress", target: route.key });
+    };
+    return { isFocused, onPress, onLongPress };
   };
+
+  const centerItem = visibleItems[CENTER_TAB_INDEX];
+  const leftItems = visibleItems.slice(0, CENTER_TAB_INDEX);
+  const rightItems = visibleItems.slice(CENTER_TAB_INDEX + 1);
 
   return (
     <View
-      className="absolute bottom-0 left-0 right-0 px-5"
-      style={{ paddingBottom: bottomPadding }}
+      style={{
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        alignItems: "center",
+        paddingBottom: bottomPadding,
+        zIndex: 50,
+      }}
     >
-      {/* paddingTop creates space for the elevated center button */}
-      <View style={{ paddingTop: CENTER_BUTTON_TOTAL / 2 }}>
-        {/* Elevated center button — floats above the tab bar */}
-        {centerItem && (
-          <View className="absolute top-0 left-0 right-0 items-center z-10">
-            <TouchableOpacity
-              className="items-center justify-center border-4 border-white rounded-full"
-              style={{
-                width: CENTER_BUTTON_TOTAL,
-                height: CENTER_BUTTON_TOTAL,
-                backgroundColor: centerButtonColor,
-                // Shadows use style — no Tailwind equivalent for custom color/offset
-                shadowColor: centerButtonColor,
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.45,
-                shadowRadius: 10,
-                elevation: 10,
-              }}
-              onPress={handleCenterPress}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel={
-                descriptors[centerItem.route.key].options
-                  .tabBarAccessibilityLabel
-              }
-            >
-              {descriptors[centerItem.route.key].options.tabBarIcon?.({
-                focused: isCenterFocused,
-                color: "#FFFFFF",
-                size: 24,
-              })}
-            </TouchableOpacity>
-          </View>
-        )}
+      {/* Wrapper that allows center button to overflow */}
+      <View
+        style={{
+          width: "96%",
+          maxWidth: 380,
+          // extra top space for the overflowing center button
+          paddingTop: CENTER_BUTTON_OVERFLOW,
+        }}
+      >
+        {/* Center button rendered above the bar */}
+        {centerItem &&
+          (() => {
+            const { route, stateIndex } = centerItem;
+            const { options } = descriptors[route.key];
+            const { isFocused, onPress, onLongPress } = buildHandlers(
+              route,
+              stateIndex,
+            );
+            return (
+              <CenterTabButton
+                key={route.key}
+                isFocused={isFocused}
+                options={options}
+                onPress={onPress}
+                onLongPress={onLongPress}
+              />
+            );
+          })()}
 
-        {/* Shadow wrapper — kept as style since Tailwind shadows don't support custom color/offset */}
-        <View
-          className="rounded-[30px]"
-          style={
-            Platform.OS === "ios"
-              ? {
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 8 },
-                  shadowOpacity: 0.12,
-                  shadowRadius: 20,
-                }
-              : { elevation: 20 }
-          }
+        {/* The pill bar */}
+        <BlurView
+          intensity={55}
+          tint="light"
+          style={{
+            height: BAR_HEIGHT,
+            borderRadius: BAR_HEIGHT / 2,
+            overflow: "hidden",
+            borderWidth: 1,
+            borderColor: "rgba(255, 255, 255, 0.4)",
+            shadowColor: "#3B2F2F",
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.1,
+            shadowRadius: 30,
+            elevation: 10,
+          }}
         >
-          {/* Tab bar pill */}
-          <View className="rounded-[30px] overflow-hidden bg-white/75">
-            <View className="flex-row py-2.5 px-3">
-              {visibleItems.map(({ route, stateIndex }, visibleIndex) => {
-                const { options } = descriptors[route.key];
-                const isFocused = state.index === stateIndex;
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              backgroundColor: "rgba(255, 255, 255, 0.25)",
+            }}
+          >
+            {/* Left tabs */}
+            {leftItems.map(({ route, stateIndex }) => {
+              const { options } = descriptors[route.key];
+              const { isFocused, onPress, onLongPress } = buildHandlers(
+                route,
+                stateIndex,
+              );
+              return (
+                <TabButton
+                  key={route.key}
+                  isFocused={isFocused}
+                  options={options}
+                  onPress={onPress}
+                  onLongPress={onLongPress}
+                />
+              );
+            })}
 
-                // Center tab: empty placeholder to keep even spacing
-                if (visibleIndex === centerVisibleIndex) {
-                  return <View key={route.key} className="flex-1" />;
-                }
+            {/* Empty space for center button */}
+            <View style={{ flex: 1 }} />
 
-                const onPress = () => {
-                  if (Platform.OS === "ios") {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  const event = navigation.emit({
-                    type: "tabPress",
-                    target: route.key,
-                    canPreventDefault: true,
-                  });
-                  if (!isFocused && !event.defaultPrevented) {
-                    navigation.navigate(route.name);
-                  }
-                };
-
-                const onLongPress = () => {
-                  navigation.emit({ type: "tabLongPress", target: route.key });
-                };
-
-                return (
-                  <TabButton
-                    key={route.key}
-                    index={visibleIndex}
-                    isFocused={isFocused}
-                    options={options}
-                    onPress={onPress}
-                    onLongPress={onLongPress}
-                  />
-                );
-              })}
-            </View>
+            {/* Right tabs */}
+            {rightItems.map(({ route, stateIndex }) => {
+              const { options } = descriptors[route.key];
+              const { isFocused, onPress, onLongPress } = buildHandlers(
+                route,
+                stateIndex,
+              );
+              return (
+                <TabButton
+                  key={route.key}
+                  isFocused={isFocused}
+                  options={options}
+                  onPress={onPress}
+                  onLongPress={onLongPress}
+                />
+              );
+            })}
           </View>
-        </View>
+        </BlurView>
       </View>
     </View>
   );
