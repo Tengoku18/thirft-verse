@@ -11,6 +11,7 @@ import { FloatingTabBar } from "@/components/navigation/FloatingTabBar";
 export default function TabLayout() {
   return (
     <Tabs
+      initialRouteName="home"
       tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
         headerShown: false,
@@ -20,12 +21,18 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: "Home",
           tabBarIcon: ({ color, size }) => (
             <HomeIcon size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
         }}
       />
       <Tabs.Screen

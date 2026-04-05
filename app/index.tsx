@@ -134,7 +134,7 @@ export default function Index() {
   }
 
   if (appStatus === "ready") {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/(tabs)/home" />;
   }
 
   // Show status screen for all intermediate states
