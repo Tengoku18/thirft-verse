@@ -3,7 +3,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
 import localFont from "next/font/local";
-import Head from "next/head";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { Suspense } from "react";
 import { Toaster } from 'react-hot-toast';
 import "./globals.css";
@@ -85,18 +85,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <Head>
-        {/* Explicit OG meta tags for scrapers */}
-        <meta property="og:title" content="Thriftverse — Your Finds. Your Store. Your Story." />
-        <meta property="og:description" content="Create your own thrift store and give every item a second life." />
-        <meta property="og:image" content="https://www.thriftverse.shop/images/horizontal-logo.png" />
-        <meta property="og:url" content="https://www.thriftverse.shop" />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Thriftverse — Your Finds. Your Store. Your Story." />
-        <meta name="twitter:description" content="Create your own thrift store and give every item a second life." />
-        <meta name="twitter:image" content="https://www.thriftverse.shop/images/horizontal-logo.png" />
-      </Head>
       <body
         className={`${nunitoSans.variable} ${folito.variable} antialiased`}
       >
@@ -130,6 +118,9 @@ export default function RootLayout({
           {children}
         </CartProvider>
       </body>
+      {process.env.NEXT_PUBLIC_GA_ID && (
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+      )}
     </html>
   );
 }

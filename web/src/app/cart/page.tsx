@@ -1,6 +1,7 @@
 'use client'
 
 import { useCart } from '@/contexts/CartContext'
+import { AnalyticsEvents, trackEvent } from '@/lib/analytics/events'
 import { formatProductPrice } from '@/utils/formatPrice'
 import { ArrowLeft, Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react'
 import Image from 'next/image'
@@ -61,7 +62,10 @@ function CartContent() {
   }
 
   const handleCheckout = () => {
-    // Navigate to checkout with cart items
+    trackEvent(AnalyticsEvents.CHECKOUT_START, {
+      store_id: storeId!,
+      item_count: cart.items.length,
+    });
     router.push(`/checkout?storeId=${storeId}`)
   }
 
