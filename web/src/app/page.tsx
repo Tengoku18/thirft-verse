@@ -4,7 +4,7 @@ import LandingPage from '@/_components/landing/LandingPage';
 import { getProductsByStoreId, getProfileByStoreUsername } from '@/actions';
 import { getSubDomain } from '@/utils/domainHelpers';
 import { pluralize } from '@/utils/textHelpers';
-import { BadgeCheck, Compass, Gem, MapPin, Store } from 'lucide-react';
+import { BadgeCheck, Compass, Crown, MapPin, Store } from 'lucide-react';
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Image from 'next/image';
@@ -170,6 +170,8 @@ export default async function Home() {
                   </div>
                 )}
               </div>
+
+
               </div>
             </div>
 
@@ -185,8 +187,9 @@ export default async function Home() {
               </div>
               {profile?.is_founder && (
                 <div className="mb-3 flex justify-center sm:justify-start">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-linear-to-r from-amber-400/15 to-amber-600/10 px-3 py-1 text-xs font-semibold tracking-wide text-amber-700 backdrop-blur-sm">
-                    <Gem className="h-3.5 w-3.5" strokeWidth={2} />
+                  <span className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-amber-400/50 bg-linear-to-r from-amber-500/20 via-yellow-400/15 to-amber-500/20 px-4 py-1.5 text-xs font-bold tracking-wide text-amber-800 shadow-sm shadow-amber-200/50 animate-founder-glow">
+                    <span className="absolute inset-0 -translate-x-full animate-founder-shimmer bg-linear-to-r from-transparent via-white/40 to-transparent" />
+                    <Crown className="h-4 w-4 text-amber-600" strokeWidth={2.5} />
                     Founder Member
                   </span>
                 </div>
