@@ -21,6 +21,7 @@ import { districtsOfNepal } from '@/lib/constants/districts';
 import { CheckoutFormData, checkoutSchema } from '@/lib/validations/checkout';
 import { Product, ShippingAddress } from '@/types/database';
 import { AppliedOfferCodeSummary } from '@/types/offer-codes';
+import { AnalyticsEvents, trackEvent } from '@/lib/analytics/events';
 import { formatCheckoutPrice, formatProductPrice } from '@/utils/formatPrice';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -255,6 +256,12 @@ function CheckoutContent() {
       setCurrentStep(1);
       return;
     }
+
+    trackEvent(AnalyticsEvents.PLACE_ORDER, {
+      payment_method: paymentMethod,
+      total_amount: totalAmount,
+      currency: currency ?? undefined,
+    });
 
     setIsProcessing(true);
 
