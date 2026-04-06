@@ -30,6 +30,10 @@
   /* Fonts */
   --font-sans: var(--font-nunito-sans);
   --font-heading: var(--font-folito);
+
+  /* Animations */
+  --animate-founder-shimmer: founder-shimmer 3s ease-in-out infinite;
+  --animate-founder-glow: founder-glow 2.5s ease-in-out infinite;
 }
 
 body {
@@ -76,6 +80,22 @@ body {
   box-shadow: 0 0 15px #D4A373, 0 0 8px #D4A373;
   opacity: 1;
   transform: rotate(3deg) translate(0px, -4px);
+}
+
+@keyframes founder-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes founder-glow {
+  0%, 100% {
+    border-color: rgb(251 191 36 / 0.5);
+    box-shadow: 0 1px 3px rgb(251 191 36 / 0.2);
+  }
+  50% {
+    border-color: rgb(251 191 36 / 0.8);
+    box-shadow: 0 2px 8px rgb(251 191 36 / 0.35);
+  }
 }
 
 @keyframes gradient-shift {
