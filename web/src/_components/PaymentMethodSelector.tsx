@@ -1,5 +1,6 @@
 'use client'
 
+import { AnalyticsEvents, trackEvent } from '@/lib/analytics/events'
 import { Check, Truck } from 'lucide-react'
 import { useState } from 'react'
 
@@ -67,7 +68,10 @@ export default function PaymentMethodSelector({
             <button
               key={method.id}
               type="button"
-              onClick={() => onMethodChange(method.id)}
+              onClick={() => {
+                trackEvent(AnalyticsEvents.PAYMENT_METHOD_SELECT, { method: method.id });
+                onMethodChange(method.id);
+              }}
               onMouseEnter={() => setHoveredMethod(method.id)}
               onMouseLeave={() => setHoveredMethod(null)}
               className={`
