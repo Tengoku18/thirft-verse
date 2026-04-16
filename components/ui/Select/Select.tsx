@@ -1,6 +1,8 @@
+import CheckIcon from "@/components/icons/CheckIcon";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Colors, INPUT_COLORS } from "@/constants/theme";
+import { BlurView } from "expo-blur";
 import React, { useRef, useState } from "react";
 import {
   Dimensions,
@@ -8,6 +10,7 @@ import {
   ListRenderItem,
   Modal,
   Pressable,
+  StyleSheet,
   TextInput,
   TouchableOpacity,
   View,
@@ -116,7 +119,7 @@ export function Select({
           )}
         </View>
         {isSelected && (
-          <IconSymbol name="checkmark" size={20} color="#FFFFFF" />
+          <CheckIcon width={20} height={20} color={INPUT_COLORS.icon} />
         )}
       </TouchableOpacity>
     );
@@ -193,78 +196,83 @@ export function Select({
         animationType="slide"
         onRequestClose={handleClose}
       >
-        <Pressable
-          className="flex-1 bg-black/50 justify-end"
-          onPress={handleClose}
-        >
+        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill}>
+          {/* Semi-transparent dark overlay */}
           <Pressable
-            className="bg-white rounded-t-3xl"
-            style={{ height: MODAL_HEIGHT }}
-            onPress={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <View className="border-b border-gray-200 px-6 py-4">
-              <View className="flex-row items-center justify-between mb-3">
-                <Typography variation="h3" className="font-heading-bold">
-                  {modalTitle || label || "Select an option"}
-                </Typography>
-                <TouchableOpacity
-                  onPress={handleClose}
-                  className="w-8 h-8 items-center justify-center"
-                >
-                  <IconSymbol name="xmark" size={20} color="#6B7280" />
-                </TouchableOpacity>
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: "rgba(0,0,0,0.6)" },
+            ]}
+            onPress={handleClose}
+          />
+          <Pressable className="flex-1 justify-end" onPress={handleClose}>
+            <Pressable
+              className="bg-white rounded-t-3xl"
+              style={{ height: MODAL_HEIGHT }}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <View className="px-6 py-4">
+                <View className="py-4 border-b border-gray-100 mb-4">
+                  <Typography variation="h2" className="font-heading-bold">
+                    {modalTitle || label || "Select an option"}
+                  </Typography>
+                </View>
+
+                {/* Search */}
+                {searchable && options.length > 5 && (
+                  <SearchInput
+                    ref={searchInputRef}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder={searchPlaceholder}
+                    clearable
+                    onClear={() => searchInputRef.current?.focus()}
+                  />
+                )}
               </View>
 
-              {/* Search */}
-              {searchable && options.length > 5 && (
-                <SearchInput
-                  ref={searchInputRef}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  placeholder={searchPlaceholder}
-                  clearable
-                  onClear={() => searchInputRef.current?.focus()}
-                />
-              )}
-            </View>
-
-            {/* Options List */}
-            <FlatList
-              data={filteredOptions}
-              renderItem={renderOption}
-              keyExtractor={(item) => item.value}
-              contentContainerStyle={{
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                flexGrow: 1,
-              }}
-              keyboardShouldPersistTaps="handled"
-              ListEmptyComponent={
-                <View className="flex-1 justify-center items-center py-12">
-                  <IconSymbol
-                    name="magnifyingglass"
-                    size={40}
-                    color="#D1D5DB"
-                  />
-                  <Typography variation="body" className="text-gray-500 mt-3">
-                    {searchQuery.trim()
-                      ? `No results for "${searchQuery.trim()}"`
-                      : "No options available"}
-                  </Typography>
-                  {searchQuery.trim() && (
-                    <Typography
-                      variation="body-sm"
-                      className="text-gray-400 mt-1"
-                    >
-                      Try a different search term
+              {/* Options List */}
+              <FlatList
+                data={filteredOptions}
+                renderItem={renderOption}
+                keyExtractor={(item) => item.value}
+                contentContainerStyle={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  flexGrow: 1,
+                }}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                ItemSeparatorComponent={() => (
+                  <View className="h-px bg-gray-100" />
+                )}
+                ListEmptyComponent={
+                  <View className="flex-1 justify-center items-center py-12">
+                    <IconSymbol
+                      name="magnifyingglass"
+                      size={40}
+                      color="#D1D5DB"
+                    />
+                    <Typography variation="body" className="text-gray-500 mt-3">
+                      {searchQuery.trim()
+                        ? `No results for "${searchQuery.trim()}"`
+                        : "No options available"}
                     </Typography>
-                  )}
-                </View>
-              }
-            />
+                    {searchQuery.trim() && (
+                      <Typography
+                        variation="body-sm"
+                        className="text-gray-400 mt-1"
+                      >
+                        Try a different search term
+                      </Typography>
+                    )}
+                  </View>
+                }
+              />
+            </Pressable>
           </Pressable>
-        </Pressable>
+        </BlurView>
       </Modal>
     </View>
   );

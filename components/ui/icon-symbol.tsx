@@ -3,7 +3,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SymbolWeight } from "expo-symbols";
 import { ComponentProps } from "react";
-import { OpaqueColorValue, type StyleProp, type ViewStyle } from "react-native";
+import { OpaqueColorValue, type StyleProp, type TextStyle } from "react-native";
 
 type IconMapping = Record<string, ComponentProps<typeof Ionicons>["name"]>;
 
@@ -114,6 +114,20 @@ const MAPPING: IconMapping = {
 
   // Search
   magnifyingglass: "search",
+
+  // Help & Support
+  forum: "chatbubbles-outline",
+  mail: "mail-outline",
+  call: "call-outline",
+  camera_alt: "camera-outline",
+  movie: "film-outline",
+  language: "globe-outline",
+  rocket_launch: "rocket-outline",
+  storefront: "storefront-outline",
+  payments: "card-outline",
+  local_shipping: "cube-outline",
+  shield_person: "shield-checkmark-outline",
+  arrow_forward: "arrow-forward",
 };
 
 /**
@@ -130,7 +144,7 @@ export function IconSymbol({
   name: string;
   size?: number;
   color: string | OpaqueColorValue;
-  style?: StyleProp<ViewStyle>;
+  style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
   const ionIconName = MAPPING[name] || "help-circle-outline";

@@ -1,3 +1,5 @@
+import AddPhotoIcon from "@/components/icons/AddPhotoIcon";
+import PlusIcon from "@/components/icons/PlusIcon";
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import { ConfirmModal } from "@/components/molecules/ConfirmModal";
 import {
@@ -98,7 +100,7 @@ function ProductCard({ product, onPress, onEdit, onDelete }: ProductCardProps) {
             />
           ) : (
             <View className="w-24 h-24 rounded-xl bg-[#F3F4F6] justify-center items-center">
-              <IconSymbol name="photo" size={28} color="#9CA3AF" />
+              <AddPhotoIcon width={24} height={24} color="#9CA3AF" />
             </View>
           )}
 
@@ -180,7 +182,7 @@ function EmptyState({ onAddProduct }: { onAddProduct: () => void }) {
         className="bg-[#3B2F2F] px-6 py-3 rounded-full flex-row items-center"
         activeOpacity={0.7}
       >
-        <IconSymbol name="plus" size={18} color="#FFFFFF" />
+        <PlusIcon width={14} height={14} color="#FFFFFF" />
         <BodySemiboldText style={{ color: "#FFFFFF", marginLeft: 8 }}>
           Add Product
         </BodySemiboldText>
@@ -221,7 +223,7 @@ export default function MyProductsScreen() {
       if (user) {
         dispatch(fetchUserProducts(user.id));
       }
-    }, [user, dispatch])
+    }, [user, dispatch]),
   );
 
   const onRefresh = useCallback(async () => {
@@ -241,7 +243,7 @@ export default function MyProductsScreen() {
 
     try {
       await dispatch(
-        deleteProduct({ productId: productToDelete.id, storeId: user.id })
+        deleteProduct({ productId: productToDelete.id, storeId: user.id }),
       ).unwrap();
 
       setShowDeleteModal(false);
@@ -252,7 +254,7 @@ export default function MyProductsScreen() {
       setProductToDelete(null);
       Alert.alert(
         "Error",
-        error || "Failed to delete product. Please try again."
+        error || "Failed to delete product. Please try again.",
       );
     }
   };
@@ -286,7 +288,7 @@ export default function MyProductsScreen() {
   // Calculate total value
   const totalValue = filteredProducts.reduce(
     (sum, p) => sum + p.price * p.availability_count,
-    0
+    0,
   );
 
   if (loading) {

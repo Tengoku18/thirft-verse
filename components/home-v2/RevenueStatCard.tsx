@@ -21,30 +21,24 @@ export const RevenueStatCard: React.FC<RevenueStatCardProps> = ({
 }) => {
   return (
     <View
-      className="flex-1 p-3 rounded-2xl"
+      className="flex-1 p-4 rounded-2xl"
       style={{
         backgroundColor: bgColor,
         borderWidth: 1,
         borderColor: borderColor,
       }}
     >
-      <View style={{ marginBottom: 8 }}>{icon}</View>
+      <View className="mb-2">{icon}</View>
       <Typography
-        variation="caption"
-        style={{
-          fontSize: 10,
-          fontWeight: "700",
-          letterSpacing: 0.5,
-          color: labelColor,
-          textTransform: "uppercase",
-        }}
+        variation="body-xs"
+        className="tracking-wider uppercase !font-sans-bold"
       >
         {label}
       </Typography>
       <Typography
-        variation="h5"
+        variation="h4"
         numberOfLines={1}
-        style={{ fontSize: 16, color: "#3B2F2F", marginTop: 2 }}
+        className="text-primary !font-extrabold mt-2"
       >
         {amount}
       </Typography>

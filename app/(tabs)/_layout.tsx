@@ -1,10 +1,10 @@
 import { Tabs } from "expo-router";
 import React from "react";
 
-import HomeIcon from "@/components/icons/HomeIcon";
+import BagIcon from "@/components/icons/BagIcon";
 import CashIcon from "@/components/icons/CashIcon";
+import HomeIcon from "@/components/icons/HomeIcon";
 import PlusIcon from "@/components/icons/PlusIcon";
-import SearchIcon from "@/components/icons/SearchIcon";
 import { UserIcon } from "@/components/icons/UserIcon";
 import { FloatingTabBar } from "@/components/navigation/FloatingTabBar";
 
@@ -38,9 +38,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="my-products"
         options={{
-          title: "Search",
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="orders"
+        options={{
+          title: "Orders",
           tabBarIcon: ({ color, size }) => (
-            <SearchIcon size={size} color={color} />
+            <BagIcon size={size} color={color} />
           ),
         }}
       />
@@ -53,8 +59,9 @@ export default function TabLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
-        name="orders"
+        name="earnings"
         options={{
           title: "Cash",
           tabBarIcon: ({ color, size }) => (
@@ -63,18 +70,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="earnings"
+        name="settings"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
         options={{
           title: "Profile",
           tabBarIcon: ({ color, size }) => (
             <UserIcon size={size} color={color} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          href: null,
         }}
       />
     </Tabs>

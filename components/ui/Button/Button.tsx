@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Typography } from "../Typography/Typography";
 
-export type ButtonVariant = "primary" | "secondary" | "accent";
+export type ButtonVariant = "primary" | "secondary" | "accent" | "tertiary";
 export type ButtonSize = "large" | "compact";
 
 interface ButtonProps {
@@ -25,6 +25,7 @@ interface ButtonProps {
   testID?: string;
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
+  noShadow?: boolean;
 }
 
 interface ButtonStyles {
@@ -38,12 +39,20 @@ function getButtonStyles(
   size: ButtonSize,
   fullWidth: boolean,
   disabled: boolean,
+  noShadow: boolean,
 ): ButtonStyles {
   const heightClass = size === "compact" ? "h-14" : "h-16";
   const widthClass = fullWidth ? "" : "";
   const baseStyles = `flex-row items-center justify-center ${heightClass} ${widthClass} rounded-3xl active:scale-95 transition-all`;
 
   switch (variant) {
+    case "tertiary":
+      return {
+        container: `${baseStyles} bg-gray-100 active:opacity-70`,
+        text: "text-brand-espresso font-sans-bold text-base",
+        indicator: "#3B3030",
+      };
+
     case "secondary":
       return {
         container: `${baseStyles} border border-brand-espresso bg-transparent active:opacity-80`,
@@ -53,7 +62,7 @@ function getButtonStyles(
 
     case "accent":
       return {
-        container: `${baseStyles} bg-brand-tan shadow-md active:opacity-90`,
+        container: `${baseStyles} bg-brand-tan ${noShadow ? "" : "shadow-md"} active:opacity-90`,
         text: "text-white font-sans-bold text-base",
         indicator: "#FFFFFF",
       };
@@ -61,7 +70,7 @@ function getButtonStyles(
     case "primary":
     default:
       return {
-        container: `${baseStyles} bg-brand-espresso shadow-md active:opacity-90`,
+        container: `${baseStyles} bg-brand-espresso ${noShadow ? "" : "shadow-md"} active:opacity-90`,
         text: "text-white font-sans-extrabold text-base",
         indicator: "#FFFFFF",
       };
@@ -70,13 +79,14 @@ function getButtonStyles(
 
 /**
  * Button Component - Unified implementation with variants
- * Variants: primary | secondary | accent
+ * Variants: primary | secondary | accent | tertiary
  * Sizes: large (56px) | compact (48px)
  *
  * Usage:
  * <Button label="Sign In" variant="primary" onPress={() => {}} />
  * <Button label="Skip" variant="secondary" size="compact" />
  * <Button label="View" variant="accent" icon={<Icon />} />
+ * <Button label="Cancel" variant="tertiary" onPress={() => {}} />
  */
 export function Button({
   label,
@@ -92,8 +102,9 @@ export function Button({
   testID,
   icon,
   iconPosition = "left",
+  noShadow = false,
 }: ButtonProps) {
-  const styles = getButtonStyles(variant, size, fullWidth, disabled);
+  const styles = getButtonStyles(variant, size, fullWidth, disabled, noShadow);
   const containerClass = className || styles.container;
   const textClass = textClassName || styles.text;
 

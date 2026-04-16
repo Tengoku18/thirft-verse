@@ -1,5 +1,5 @@
 import { InfoBox } from "@/components/atoms/InfoBox";
-import CheckmarkIcon from "@/components/icons/CheckmarkIcon";
+import CheckMarkCircleIcon from "@/components/icons/CheckMarkCircleIcon";
 import ForwardIcon from "@/components/icons/ForwardIcon";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Button } from "@/components/ui/Button";
@@ -227,7 +227,7 @@ function RequirementItem({ met, text }: { met: boolean; text: string }) {
     <View className="flex-row items-center gap-3">
       {met ? (
         <View className="w-5 h-5">
-          <CheckmarkIcon size={20} color="#22C55E" />
+          <CheckMarkCircleIcon size={20} color="#22C55E" />
         </View>
       ) : (
         <View className="w-5 h-5 rounded-full bg-slate-300" />

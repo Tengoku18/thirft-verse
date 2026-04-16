@@ -1,7 +1,9 @@
 import TrendingUpIcon from "@/components/icons/TrendingUpIcon";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
+import { useRouter } from "expo-router";
 import React from "react";
-import { View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { WeeklyBarChart } from "./WeeklyBarChart";
 
 interface WeeklyPerformanceCardProps {
@@ -19,10 +21,13 @@ export const WeeklyPerformanceCard: React.FC<WeeklyPerformanceCardProps> = ({
 }) => {
   const isPositive = growthPercent >= 0;
   const sign = isPositive ? "+" : "";
+  const router = useRouter();
 
   return (
     <View className="mx-5 mt-5">
-      <View
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => router.push("/performance" as any)}
         className="bg-white p-5 rounded-2xl"
         style={{
           shadowColor: "#000",
@@ -41,15 +46,22 @@ export const WeeklyPerformanceCard: React.FC<WeeklyPerformanceCardProps> = ({
           >
             Weekly Performance
           </Typography>
-          <View className="flex-row items-center" style={{ gap: 4 }}>
-            <TrendingUpIcon size={14} color="#D4A373" />
-            <Typography
-              variation="label"
-              style={{ fontSize: 12, fontWeight: "700", color: "#D4A373" }}
-            >
-              {sign}
-              {growthPercent}%
-            </Typography>
+          <View className="flex-row items-center" style={{ gap: 8 }}>
+            <View className="flex-row items-center" style={{ gap: 4 }}>
+              <TrendingUpIcon size={14} color="#D4A373" />
+              <Typography
+                variation="label"
+                style={{ fontSize: 12, fontWeight: "700", color: "#D4A373" }}
+              >
+                {sign}
+                {growthPercent}%
+              </Typography>
+            </View>
+            <IconSymbol
+              name="chevron.right"
+              size={14}
+              color="rgba(59,47,47,0.3)"
+            />
           </View>
         </View>
 
@@ -58,7 +70,7 @@ export const WeeklyPerformanceCard: React.FC<WeeklyPerformanceCardProps> = ({
           labels={labels}
           highlightIndex={highlightIndex}
         />
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };

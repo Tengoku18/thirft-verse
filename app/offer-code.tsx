@@ -1,12 +1,8 @@
-import { FormButton } from "@/components/atoms/FormButton";
-import { FormInput } from "@/components/atoms/FormInput";
 import { CustomHeader } from "@/components/navigation/CustomHeader";
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
+import { Button } from "@/components/ui/Button/Button";
+import { Card } from "@/components/ui/Card/Card";
+import { Input } from "@/components/ui/Input/Input";
+import { Typography } from "@/components/ui/Typography";
 import { useToast } from "@/contexts/ToastContext";
 import {
   deleteMyOfferCode,
@@ -189,209 +185,214 @@ export default function OfferCodeScreen() {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-[#FAFAFA]"
+      className="flex-1 bg-brand-off-white"
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Stack.Screen options={{ headerShown: false }} />
       <CustomHeader title="Offer Code" showBackButton />
 
-      {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#3B2F2F" />
-        </View>
-      ) : (
-        <ScrollView
+      <ScrollView
           className="flex-1"
           contentContainerStyle={{ paddingBottom: 120, paddingTop: 16 }}
           showsVerticalScrollIndicator={false}
         >
-          <View className="mx-4 mb-6 rounded-2xl bg-white p-5">
-            <CaptionText
-              style={{
-                color: "#6B7280",
-                fontWeight: "600",
-                fontSize: 12,
-                textTransform: "uppercase",
-                letterSpacing: 0.8,
-              }}
-            >
-              Store Promotion
-            </CaptionText>
-            <HeadingBoldText
-              style={{ fontSize: 24, marginTop: 8, marginBottom: 8 }}
-            >
-              Create one active offer code for your store
-            </HeadingBoldText>
-            <BodyRegularText style={{ color: "#6B7280", lineHeight: 22 }}>
-              Buyers can apply this code during website checkout. Discounts only
-              apply to the product subtotal, never shipping.
-            </BodyRegularText>
+          {/* Info Section */}
+          <View className="mx-4 mb-6">
+            <Card variant="elevated">
+              <View className="gap-3">
+                <Typography
+                  variation="caption"
+                  intent="muted"
+                  className="uppercase tracking-wider"
+                >
+                  Store Promotion
+                </Typography>
+                <Typography
+                  variation="h3"
+                  intent="default"
+                  className="font-sans-bold"
+                >
+                  Create one active offer code for your store
+                </Typography>
+                <Typography
+                  variation="body"
+                  intent="muted"
+                  className="leading-6"
+                >
+                  Buyers can apply this code during website checkout. Discounts
+                  only apply to the product subtotal, never shipping.
+                </Typography>
+              </View>
+            </Card>
           </View>
 
-          <View className="mx-4 mb-6 rounded-2xl bg-white p-5">
-            <CaptionText
-              style={{
-                color: "#6B7280",
-                fontWeight: "600",
-                fontSize: 12,
-                textTransform: "uppercase",
-                letterSpacing: 0.8,
-              }}
-            >
-              Current Status
-            </CaptionText>
-            {currentOffer ? (
-              <>
-                <HeadingBoldText style={{ fontSize: 22, marginTop: 8 }}>
-                  {currentOffer.code}
-                </HeadingBoldText>
-                <BodySemiboldText
-                  style={{
-                    color: isExpired ? "#DC2626" : "#059669",
-                    marginTop: 6,
-                  }}
+          {/* Current Status Section */}
+          <View className="mx-4 mb-6">
+            <Card variant="elevated">
+              <View className="gap-3">
+                <Typography
+                  variation="caption"
+                  intent="muted"
+                  className="uppercase tracking-wider"
                 >
-                  {isExpired
-                    ? "Expired"
-                    : `${currentOffer.discountPercent}% off is live`}
-                </BodySemiboldText>
-                <BodyRegularText
-                  style={{ color: "#6B7280", marginTop: 6, lineHeight: 22 }}
-                >
-                  Expires {new Date(currentOffer.expiresAt).toLocaleString()}
-                </BodyRegularText>
-              </>
-            ) : (
-              <BodyRegularText
-                style={{ color: "#6B7280", marginTop: 8, lineHeight: 22 }}
-              >
-                No active offer code yet.
-              </BodyRegularText>
-            )}
-          </View>
-
-          <View className="mx-4 rounded-2xl bg-white p-5">
-            <CaptionText
-              style={{
-                color: "#6B7280",
-                fontWeight: "600",
-                fontSize: 12,
-                textTransform: "uppercase",
-                letterSpacing: 0.8,
-              }}
-            >
-              Configure Code
-            </CaptionText>
-
-            <View className="mt-4">
-              <FormInput
-                label="Offer Code"
-                value={code}
-                onChangeText={(text) =>
-                  setCode(text.toUpperCase().replace(/[^A-Z0-9_-]/g, ""))
-                }
-                autoCapitalize="characters"
-                autoCorrect={false}
-                placeholder="e.g. NIKHIL10"
-              />
-
-              <FormInput
-                label="Discount Percentage"
-                value={discountPercent}
-                onChangeText={setDiscountPercent}
-                keyboardType="number-pad"
-                placeholder="1 - 90"
-              />
-
-              <CaptionText
-                style={{
-                  color: "#6B7280",
-                  fontWeight: "600",
-                  fontSize: 12,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.8,
-                  marginBottom: 10,
-                }}
-              >
-                Valid For
-              </CaptionText>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 8, paddingBottom: 4 }}
-                style={{ marginBottom: 16 }}
-              >
-                {DURATION_OPTIONS.map((option) => {
-                  const selected = selectedHours === option.hours;
-                  return (
-                    <TouchableOpacity
-                      key={option.hours}
-                      onPress={() => setSelectedHours(option.hours)}
-                      style={{
-                        paddingHorizontal: 14,
-                        paddingVertical: 8,
-                        borderRadius: 20,
-                        borderWidth: 1.5,
-                        borderColor: selected ? "#3B2F2F" : "#D1D5DB",
-                        backgroundColor: selected ? "#3B2F2F" : "#F9FAFB",
-                      }}
+                  Current Status
+                </Typography>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#3B3030" />
+                ) : currentOffer ? (
+                  <>
+                    <Typography
+                      variation="h3"
+                      className="font-sans-bold text-2xl"
                     >
-                      <BodySemiboldText
-                        style={{
-                          fontSize: 13,
-                          color: selected ? "#FFFFFF" : "#374151",
-                        }}
-                      >
-                        {option.label}
-                      </BodySemiboldText>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+                      {currentOffer.code}
+                    </Typography>
+                    <Typography
+                      variation="body"
+                      className={`font-sans-semibold ${
+                        isExpired ? "text-status-error" : "text-status-success"
+                      }`}
+                    >
+                      {isExpired
+                        ? "Expired"
+                        : `${currentOffer.discountPercent}% off is live`}
+                    </Typography>
+                    <Typography
+                      variation="body"
+                      intent="muted"
+                      className="leading-6"
+                    >
+                      Expires{" "}
+                      {new Date(currentOffer.expiresAt).toLocaleString()}
+                    </Typography>
+                  </>
+                ) : (
+                  <Typography
+                    variation="body"
+                    intent="muted"
+                    className="leading-6"
+                  >
+                    No active offer code yet.
+                  </Typography>
+                )}
+              </View>
+            </Card>
+          </View>
 
-              <BodyRegularText
-                style={{
-                  color: "#6B7280",
-                  lineHeight: 22,
-                  marginTop: -8,
-                  marginBottom: 8,
-                }}
-              >
-                Maximum discount is 90% so the platform&apos;s 5% product
-                commission remains protected.
-              </BodyRegularText>
+          {/* Configure Code Section */}
+          <View className="mx-4 rounded-2xl">
+            <Card variant="elevated">
+              <View className="gap-4">
+                <Typography
+                  variation="caption"
+                  intent="muted"
+                  className="uppercase tracking-wider"
+                >
+                  Configure Code
+                </Typography>
 
-              <BodyRegularText
-                style={{ color: "#6B7280", lineHeight: 22, marginBottom: 20 }}
-              >
-                Updating an active offer resets its expiry from now using the
-                selected duration.
-              </BodyRegularText>
-
-              <FormButton
-                title={
-                  profile?.offer_code_object
-                    ? "Update Offer Code"
-                    : "Create Offer Code"
-                }
-                onPress={handleSave}
-                loading={saving}
-                variant="primary"
-              />
-
-              {profile?.offer_code_object && (
-                <FormButton
-                  title="Delete Offer Code"
-                  onPress={handleDelete}
-                  loading={deleting}
-                  variant="outline"
-                  className="mt-4"
+                <Input
+                  label="Offer Code"
+                  value={code}
+                  onChangeText={(text) =>
+                    setCode(text.toUpperCase().replace(/[^A-Z0-9_-]/g, ""))
+                  }
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  placeholder="e.g. NIKHIL10"
                 />
-              )}
-            </View>
+
+                <Input
+                  label="Discount Percentage"
+                  value={discountPercent}
+                  onChangeText={setDiscountPercent}
+                  keyboardType="number-pad"
+                  placeholder="1 - 90"
+                />
+
+                <View>
+                  <Typography
+                    variation="caption"
+                    intent="muted"
+                    className="uppercase tracking-wider mb-3"
+                  >
+                    Valid For
+                  </Typography>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ gap: 8 }}
+                    style={{ marginBottom: 8 }}
+                  >
+                    {DURATION_OPTIONS.map((option) => {
+                      const selected = selectedHours === option.hours;
+                      return (
+                        <TouchableOpacity
+                          key={option.hours}
+                          onPress={() => setSelectedHours(option.hours)}
+                          className={`px-4 py-2 rounded-full border ${
+                            selected
+                              ? "border-brand-espresso bg-brand-espresso"
+                              : "border-ui-border-light bg-brand-off-white"
+                          }`}
+                        >
+                          <Typography
+                            variation="body-xs"
+                            className={`font-sans-semibold ${
+                              selected ? "text-white" : "text-ui-secondary"
+                            }`}
+                          >
+                            {option.label}
+                          </Typography>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+
+                <Typography
+                  variation="body-xs"
+                  intent="muted"
+                  className="leading-6"
+                >
+                  Maximum discount is 90% so the platform&apos;s 5% product
+                  commission remains protected.
+                </Typography>
+
+                <Typography
+                  variation="body-xs"
+                  intent="muted"
+                  className="leading-6"
+                >
+                  Updating an active offer resets its expiry from now using the
+                  selected duration.
+                </Typography>
+
+                <View className="gap-3 mt-2">
+                  <Button
+                    label={
+                      profile?.offer_code_object
+                        ? "Update Offer Code"
+                        : "Create Offer Code"
+                    }
+                    onPress={handleSave}
+                    isLoading={saving}
+                    variant="primary"
+                  />
+
+                  {profile?.offer_code_object && (
+                    <Button
+                      label="Delete Offer Code"
+                      onPress={handleDelete}
+                      isLoading={deleting}
+                      variant="secondary"
+                    />
+                  )}
+                </View>
+              </View>
+            </Card>
           </View>
         </ScrollView>
-      )}
     </KeyboardAvoidingView>
   );
 }

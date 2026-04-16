@@ -1,11 +1,7 @@
+import { BlurModal } from "@/components/ui/BlurModal";
+import { Button } from "@/components/ui/Button/Button";
 import React from "react";
-import {
-  ActivityIndicator,
-  Modal,
-  Pressable,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Pressable, View } from "react-native";
 import { Typography } from "../Typography/Typography";
 
 interface ActionModalProps {
@@ -21,6 +17,8 @@ interface ActionModalProps {
   primaryLoading?: boolean;
   /** Tapping the dim backdrop calls onSecondary by default. Set false to disable. */
   dismissOnBackdrop?: boolean;
+  /** Show close button (X icon) in top-right corner. Defaults to true. */
+  showCloseButton?: boolean;
 }
 
 /**
@@ -37,6 +35,7 @@ interface ActionModalProps {
  *   secondaryLabel="Stay Logged In"
  *   onPrimary={handleSignOut}
  *   onSecondary={() => setShowModal(false)}
+ *   showCloseButton={true}
  * />
  * ```
  */
@@ -51,81 +50,59 @@ export function ActionModal({
   onSecondary,
   primaryLoading = false,
   dismissOnBackdrop = true,
+  showCloseButton = true,
 }: ActionModalProps) {
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      statusBarTranslucent
-    >
-      {/* Dim backdrop */}
+    <BlurModal visible={visible} onDismiss={onSecondary}>
       <Pressable
-        className="flex-1 bg-black/40 items-center justify-center px-6"
-        onPress={dismissOnBackdrop ? onSecondary : undefined}
+        className="w-full bg-white rounded-3xl px-6 pt-8 pb-6 gap-4"
+        onPress={(e) => e.stopPropagation()}
       >
-        {/* Card — stopPropagation prevents backdrop tap from closing when tapping inside */}
-        <Pressable
-          className="w-full bg-white rounded-3xl px-6 pt-8 pb-6 items-center"
-          onPress={(e) => e.stopPropagation()}
+        {/* Icon badge */}
+        <View className="w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-5 self-center">
+          {icon}
+        </View>
+
+        {/* Title */}
+        <Typography
+          variation="h2"
+          className="text-brand-espresso text-center mb-3"
         >
-          {/* Icon badge */}
-          <View className="w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-5">
-            {icon}
-          </View>
+          {title}
+        </Typography>
 
-          {/* Title */}
-          <Typography
-            variation="h2"
-            className="text-brand-espresso text-center mb-3"
-          >
-            {title}
-          </Typography>
+        {/* Description */}
+        <Typography
+          variation="body"
+          className="text-slate-500 text-center leading-relaxed mb-7"
+        >
+          {description}
+        </Typography>
 
-          {/* Description */}
-          <Typography
-            variation="body-sm"
-            className="text-slate-500 text-center leading-relaxed mb-7"
-          >
-            {description}
-          </Typography>
+        {/* Primary action */}
+        <Button
+          label={primaryLabel}
+          variant="primary"
+          size="large"
+          onPress={onPrimary}
+          isLoading={primaryLoading}
+          disabled={primaryLoading}
+          fullWidth
+          noShadow
+        />
 
-          {/* Primary action */}
-          <TouchableOpacity
-            className="w-full h-14 bg-brand-espresso rounded-2xl items-center justify-center mb-3 active:opacity-80"
-            onPress={onPrimary}
-            disabled={primaryLoading}
-            activeOpacity={0.85}
-          >
-            {primaryLoading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Typography
-                variation="button"
-                className="text-white font-sans-extrabold"
-              >
-                {primaryLabel}
-              </Typography>
-            )}
-          </TouchableOpacity>
-
-          {/* Secondary action */}
-          <TouchableOpacity
-            className="w-full h-14 bg-gray-100 rounded-2xl items-center justify-center active:opacity-70"
-            onPress={onSecondary}
-            disabled={primaryLoading}
-            activeOpacity={0.85}
-          >
-            <Typography
-              variation="button"
-              className="text-brand-espresso font-sans-bold"
-            >
-              {secondaryLabel}
-            </Typography>
-          </TouchableOpacity>
-        </Pressable>
+        {/* Secondary action */}
+        <Button
+          label={secondaryLabel}
+          variant="tertiary"
+          size="large"
+          onPress={onSecondary}
+          disabled={primaryLoading}
+          fullWidth
+          noShadow
+        />
       </Pressable>
-    </Modal>
+    </BlurModal>
   );
 }
 

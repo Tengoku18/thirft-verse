@@ -1,6 +1,7 @@
 // Central export file for all icons
 export { default as BagIcon } from "./BagIcon";
 export { CameraIcon } from "./CameraIcon";
+export { default as CheckMarkCircleIcon } from "./CheckMarkCircleIcon";
 export { default as CheckmarkIcon } from "./CheckmarkIcon";
 export { default as GiftIcon } from "./GiftIcon";
 export { default as IIcon } from "./IIcon";

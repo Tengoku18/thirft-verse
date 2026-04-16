@@ -6,25 +6,78 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { Image, StatusBar, TouchableOpacity, View } from "react-native";
 
+export type TabHeaderVariant = "dark" | "light";
+
 interface TabHeaderProps {
   title?: string;
   showBackButton?: boolean;
   onBack?: () => void;
   rightComponent?: React.ReactNode;
-  showDefaultIcons?: boolean; // Show search & profile icons (Messenger-style)
-  showTextLogo?: boolean; // Show text logo instead of icon + title (for dashboard)
+  showDefaultIcons?: boolean;
+  showTextLogo?: boolean;
+  variant?: TabHeaderVariant;
 }
 
-export function TabHeader({
+// ─── Light variant ─── clean cream header with title + help icon
+function LightTabHeader({
   title,
-  showBackButton = false,
+  rightComponent,
+}: Pick<TabHeaderProps, "title" | "rightComponent">) {
+  const router = useRouter();
+
+  return (
+    <View
+      style={{
+        backgroundColor: "#FAF7F2",
+        paddingHorizontal: 20,
+        paddingVertical: 14,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderBottomWidth: 1,
+        borderBottomColor: "rgba(59,48,48,0.07)",
+      }}
+    >
+      <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" />
+
+      {/* Title */}
+      <HeadingBoldText
+        style={{ fontSize: 20, color: "#3B2F2F", letterSpacing: -0.3 }}
+      >
+        {title ?? ""}
+      </HeadingBoldText>
+
+      {/* Right — custom or default help icon */}
+      {rightComponent ? (
+        rightComponent
+      ) : (
+        <TouchableOpacity
+          activeOpacity={0.65}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <IconSymbol name="questionmark.circle" size={22} color="#3B2F2F" />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
+// ─── Dark variant ─── existing espresso header
+function DarkTabHeader({
+  title,
+  showBackButton,
   onBack,
   rightComponent,
-  showDefaultIcons = true,
-  showTextLogo = false,
-}: TabHeaderProps) {
+  showDefaultIcons,
+  showTextLogo,
+}: Omit<TabHeaderProps, "variant">) {
   const router = useRouter();
-  const profile = useAppSelector((state) => state.profile.profile);
   const unreadCount = useAppSelector(
     (state) => state.notifications.unreadCount,
   );
@@ -38,13 +91,10 @@ export function TabHeader({
   };
 
   return (
-    <View
-      className="px-4 pb-4 bg-red-500"
-      style={{ backgroundColor: "#3B2F2F" }}
-    >
+    <View className="px-4 pb-4" style={{ backgroundColor: "#3B2F2F" }}>
       <StatusBar barStyle="light-content" backgroundColor="#3B2F2F" />
       <View className="flex-row items-center justify-between h-10">
-        {/* Left - Logo + Title or Back Button */}
+        {/* Left */}
         <View className="flex-row items-center">
           {showBackButton ? (
             <>
@@ -83,7 +133,7 @@ export function TabHeader({
           )}
         </View>
 
-        {/* Right - Icons or Custom Component */}
+        {/* Right */}
         <View className="flex-row items-center" style={{ gap: 16 }}>
           {rightComponent ? (
             rightComponent
@@ -149,5 +199,31 @@ export function TabHeader({
         </View>
       </View>
     </View>
+  );
+}
+
+// ─── Public component ───
+export function TabHeader({
+  variant = "dark",
+  title,
+  showBackButton,
+  onBack,
+  rightComponent,
+  showDefaultIcons = true,
+  showTextLogo = false,
+}: TabHeaderProps) {
+  if (variant === "light") {
+    return <LightTabHeader title={title} rightComponent={rightComponent} />;
+  }
+
+  return (
+    <DarkTabHeader
+      title={title}
+      showBackButton={showBackButton}
+      onBack={onBack}
+      rightComponent={rightComponent}
+      showDefaultIcons={showDefaultIcons}
+      showTextLogo={showTextLogo}
+    />
   );
 }

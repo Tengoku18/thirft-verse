@@ -22,7 +22,7 @@ export const StorefrontCard: React.FC<StorefrontCardProps> = ({
   const [qrVisible, setQrVisible] = useState(false);
 
   const fullUrl = `https://${storeUsername}.thriftverse.shop`;
-  const displayUrl = `thriftverse.shop/${storeUsername}`;
+  const displayUrl = `${storeUsername}.thriftverse.shop`;
 
   const handleCopy = async () => {
     try {

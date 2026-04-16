@@ -175,14 +175,6 @@ export default Sentry.wrap(function RootLayout() {
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen
-                  name="edit-profile"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="change-password"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
                   name="modal"
                   options={{ presentation: "modal", title: "Modal" }}
                 />
@@ -216,6 +208,14 @@ export default Sentry.wrap(function RootLayout() {
                 />
                 <Stack.Screen
                   name="founder-circle"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="earnings"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="performance"
                   options={{ headerShown: false }}
                 />
               </Stack>

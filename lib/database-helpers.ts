@@ -2496,3 +2496,135 @@ export const getReferredUsers = async (
     return [];
   }
 };
+
+/**
+ * Get top selling products by seller for analytics/performance
+ * Returns products sorted by total quantity sold
+ */
+interface TopSellingProduct {
+  id: string;
+  title: string;
+  coverImage: string | null;
+  totalQuantity: number;
+  totalEarnings: number;
+}
+
+export const getTopSellingProducts = async (
+  sellerId: string,
+  limit: number = 3,
+): Promise<TopSellingProduct[]> => {
+  try {
+    // Get orders for this seller
+    const { data: orders, error: ordersError } = await supabase
+      .from("orders")
+      .select(
+        `
+        id,
+        product_id,
+        quantity,
+        sellers_earning,
+        product:product_id(id, title, cover_image)
+      `,
+      )
+      .eq("seller_id", sellerId)
+      .in("status", ["completed", "pending"]); // Only completed or pending orders
+
+    if (ordersError) {
+      console.error("❌ Error fetching top products:", ordersError);
+      return [];
+    }
+
+    // Get order_items for multi-product orders
+    const multiProductOrderIds = (orders || [])
+      .filter((o: any) => !o.product_id)
+      .map((o: any) => o.id);
+
+    let orderItems: any[] = [];
+    if (multiProductOrderIds.length > 0) {
+      const { data: items, error: itemsError } = await supabase
+        .from("order_items")
+        .select("product_id, quantity, price, order_id");
+
+      if (!itemsError && items) {
+        orderItems = items;
+      }
+    }
+
+    // Get product details for order_items
+    let productsMap: Record<string, any> = {};
+    if (orderItems.length > 0) {
+      const productIds = [...new Set(orderItems.map((i) => i.product_id))];
+      const { data: products } = await supabase
+        .from("products")
+        .select("id, title, cover_image")
+        .in("id", productIds);
+
+      if (products) {
+        products.forEach((p: any) => {
+          productsMap[p.id] = p;
+        });
+      }
+    }
+
+    // Aggregate sales by product
+    const productMap = new Map<
+      string,
+      {
+        title: string;
+        coverImage: string | null;
+        quantity: number;
+        earnings: number;
+      }
+    >();
+
+    // Process regular orders
+    (orders || []).forEach((order: any) => {
+      if (order.product_id && order.product) {
+        const key = order.product_id;
+        const existing = productMap.get(key) || {
+          title: order.product.title,
+          coverImage: order.product.cover_image,
+          quantity: 0,
+          earnings: 0,
+        };
+        existing.quantity += order.quantity || 1;
+        existing.earnings += order.sellers_earning || 0;
+        productMap.set(key, existing);
+      }
+    });
+
+    // Process order_items
+    orderItems.forEach((item: any) => {
+      const key = item.product_id;
+      const product = productsMap[key];
+      if (product) {
+        const existing = productMap.get(key) || {
+          title: product.title,
+          coverImage: product.cover_image,
+          quantity: 0,
+          earnings: 0,
+        };
+        existing.quantity += item.quantity || 1;
+        existing.earnings += item.price * (item.quantity || 1);
+        productMap.set(key, existing);
+      }
+    });
+
+    // Convert to array and sort by total quantity (descending)
+    const topProducts = Array.from(productMap.entries())
+      .map(([id, data]) => ({
+        id,
+        title: data.title,
+        coverImage: data.coverImage,
+        totalQuantity: data.quantity,
+        totalEarnings: data.earnings,
+      }))
+      .sort((a, b) => b.totalQuantity - a.totalQuantity)
+      .slice(0, limit);
+
+    return topProducts;
+  } catch (error) {
+    console.error("💥 Error in getTopSellingProducts:", error);
+    return [];
+  }
+};

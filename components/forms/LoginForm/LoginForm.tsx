@@ -8,12 +8,16 @@ import { LoginFormData, loginSchema } from "@/lib/validations/login";
 import { persistSignupState, setCurrentStep, setFormData } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { View } from "react-native";
 import { RHFInput } from "../ReactHookForm";
 import { RHFCheckbox } from "../ReactHookForm/RHFCheckbox";
+
+const SAVED_EMAIL_KEY = "@thriftverse:saved_email";
+const REMEMBER_ME_KEY = "@thriftverse:remember_me";
 
 interface LoginFormProps {
   onLoginSuccess?: () => void | Promise<void>;
@@ -51,7 +55,7 @@ export function LoginForm({
   const [loading, setLoading] = useState(isLoading);
   const [formError, setFormError] = useState<string>("");
 
-  const { control, handleSubmit } = useForm<LoginFormData>({
+  const { control, handleSubmit, setValue } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
     mode: "onBlur",
     defaultValues: {
@@ -60,6 +64,36 @@ export function LoginForm({
       rememberMe: false,
     },
   });
+
+  // Load saved email and remember me preference on component mount
+  useEffect(() => {
+    const loadSavedData = async () => {
+      try {
+        const [savedEmail, rememberMeEnabled] = await Promise.all([
+          AsyncStorage.getItem(SAVED_EMAIL_KEY),
+          AsyncStorage.getItem(REMEMBER_ME_KEY),
+        ]);
+
+        if (savedEmail) {
+          setValue("email", savedEmail);
+          console.log("✅ Loaded saved email:", savedEmail);
+        }
+
+        // Load remember me preference - defaults to false if not set
+        if (rememberMeEnabled === "true") {
+          setValue("rememberMe", true);
+          console.log("✅ Remember me was previously enabled");
+        } else if (rememberMeEnabled === "false") {
+          setValue("rememberMe", false);
+          console.log("✅ Remember me was previously disabled");
+        }
+      } catch (error) {
+        console.error("Error loading saved form data:", error);
+      }
+    };
+
+    loadSavedData();
+  }, [setValue]);
 
   /**
    * Handle form submission with actual authentication
@@ -70,7 +104,11 @@ export function LoginForm({
       setFormError("");
 
       // Call actual authentication API
-      const { error } = await signIn(data.email, data.password, data.rememberMe);
+      const { error } = await signIn(
+        data.email,
+        data.password,
+        data.rememberMe,
+      );
 
       if (error) {
         const errorMsg = error.message?.toLowerCase() || "";

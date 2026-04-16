@@ -1,13 +1,9 @@
+import ChevronRightIcon from "@/components/icons/ChevronRightIcons";
 import { VerifyFounderModal } from "@/components/modals/VerifyFounderModal";
 import { ConfirmModal } from "@/components/molecules/ConfirmModal";
 import { FounderBadge } from "@/components/molecules/FounderBadge";
 import { CustomHeader } from "@/components/navigation/CustomHeader";
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
+import { Typography } from "@/components/ui/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { getProfileImageUrl } from "@/lib/storage-helpers";
@@ -63,21 +59,23 @@ function SettingsItem({
         <IconSymbol name={icon as any} size={20} color={iconColor} />
       </View>
       <View className="flex-1">
-        <BodySemiboldText
+        <Typography
+          variation="body-sm"
           style={{ color: danger ? "#DC2626" : "#3B2F2F", fontSize: 15 }}
         >
           {title}
-        </BodySemiboldText>
+        </Typography>
         {subtitle && (
-          <CaptionText style={{ color: "#6B7280", marginTop: 2 }}>
+          <Typography
+            variation="caption"
+            style={{ color: "#6B7280", marginTop: 2 }}
+          >
             {subtitle}
-          </CaptionText>
+          </Typography>
         )}
       </View>
       {rightElement}
-      {showArrow && onPress && (
-        <IconSymbol name="chevron.right" size={16} color="#9CA3AF" />
-      )}
+      {showArrow && onPress && <ChevronRightIcon color="#9CA3AF" />}
     </TouchableOpacity>
   );
 }
@@ -91,12 +89,13 @@ function SettingsSection({
 }) {
   return (
     <View className="mb-6">
-      <CaptionText
+      <Typography
+        variation="caption"
         className="px-4 mb-2"
         style={{ color: "#6B7280", fontWeight: "600", fontSize: 12 }}
       >
         {title.toUpperCase()}
-      </CaptionText>
+      </Typography>
       <View className="bg-white rounded-2xl mx-4 overflow-hidden">
         {children}
       </View>
@@ -260,23 +259,27 @@ export default function SettingsScreen() {
             />
           ) : (
             <View className="w-16 h-16 rounded-full bg-[#3B2F2F] justify-center items-center">
-              <BodySemiboldText style={{ color: "#FFFFFF", fontSize: 24 }}>
+              <Typography
+                variation="h3"
+                style={{ color: "#FFFFFF", fontSize: 24 }}
+              >
                 {profile?.name?.charAt(0)?.toUpperCase() || "U"}
-              </BodySemiboldText>
+              </Typography>
             </View>
           )}
           <View className="flex-1 ml-4">
             <View className="flex-row items-center gap-2">
-              <HeadingBoldText style={{ fontSize: 18 }}>
+              <Typography variation="h4" style={{ fontSize: 18 }}>
                 {profile?.name || "User"}
-              </HeadingBoldText>
+              </Typography>
             </View>
 
-            <BodyRegularText
+            <Typography
+              variation="body-sm"
               style={{ color: "#6B7280", fontSize: 14, marginTop: 2 }}
             >
               @{profile?.store_username || "username"}
-            </BodyRegularText>
+            </Typography>
             {profile?.is_founder && (
               <View className="mt-2">
                 <FounderBadge

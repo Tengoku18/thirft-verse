@@ -10,7 +10,7 @@ export default function SignupSuccessScreen() {
   const router = useRouter();
 
   const handleGoToDashboard = () => {
-    router.replace("/(tabs)");
+    router.replace("/(tabs)/home");
   };
 
   const handleAddFirstProduct = () => {

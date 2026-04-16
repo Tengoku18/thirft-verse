@@ -1,16 +1,32 @@
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  HeadingBoldText,
-} from "@/components/Typography";
+import { BlurModal } from "@/components/ui/BlurModal";
+import { Button } from "@/components/ui/Button";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import React from "react";
-import { Modal, Pressable, TouchableOpacity, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 interface CompleteProfileModalProps {
   visible: boolean;
   onGoToProfile: () => void;
   onCancel: () => void;
+}
+
+interface RequirementRowProps {
+  icon: string;
+  label: string;
+}
+
+function RequirementRow({ icon, label }: RequirementRowProps) {
+  return (
+    <View className="flex-row items-center gap-2.5">
+      <View className="w-7 h-7 rounded-full bg-brand-beige items-center justify-center">
+        <IconSymbol name={icon as any} size={14} color="#3B3030" />
+      </View>
+      <Typography variation="body-sm" className="text-ui-secondary flex-1">
+        {label}
+      </Typography>
+    </View>
+  );
 }
 
 export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
@@ -19,136 +35,80 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
   onCancel,
 }) => {
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onCancel}
-    >
+    <BlurModal visible={visible} onDismiss={onCancel}>
       <Pressable
-        className="flex-1 bg-black/50 justify-center items-center px-6"
-        onPress={onCancel}
+        className="bg-brand-surface rounded-3xl w-full overflow-hidden"
+        onPress={(e) => e.stopPropagation()}
       >
-        <Pressable
-          className="bg-white rounded-3xl w-full max-w-sm overflow-hidden"
-          onPress={(e) => e.stopPropagation()}
-        >
-          <View className="p-6">
-            {/* Icon */}
-            <View className="items-center mb-4">
-              <View
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 28,
-                  backgroundColor: "#FEF3C7",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <IconSymbol
-                  name="person.crop.circle.badge.exclamationmark"
-                  size={28}
-                  color="#D97706"
-                />
-              </View>
-            </View>
+        {/* Amber accent strip at top */}
+        <View className="h-1 bg-status-warning rounded-t-3xl" />
 
-            {/* Title */}
-            <HeadingBoldText
-              className="text-center mb-2"
-              style={{ fontSize: 20 }}
+        <View className="px-6 pt-7 pb-6 gap-5">
+          {/* Icon badge */}
+          <View className="items-center">
+            <View className="w-16 h-16 rounded-full bg-status-warning-bg items-center justify-center">
+              <IconSymbol
+                name="person.crop.circle.badge.exclamationmark"
+                size={30}
+                color="#D97706"
+              />
+            </View>
+          </View>
+
+          {/* Title + description */}
+          <View className="items-center gap-1.5">
+            <Typography
+              variation="h4"
+              className="text-brand-espresso font-folito-bold text-center"
             >
               Complete Your Profile
-            </HeadingBoldText>
-
-            {/* Message */}
-            <BodyRegularText
-              className="text-center mb-4"
-              style={{ color: "#6B7280", lineHeight: 22 }}
+            </Typography>
+            <Typography
+              variation="body-sm"
+              className="text-ui-secondary text-center leading-relaxed"
             >
               To list products, you need to add your payment details so buyers
               can pay you.
-            </BodyRegularText>
-
-            {/* Requirements List */}
-            <View
-              className="mb-6 p-4 rounded-2xl"
-              style={{ backgroundColor: "#F9FAFB" }}
-            >
-              <BodySemiboldText
-                className="mb-3"
-                style={{ color: "#374151", fontSize: 13 }}
-              >
-                Please add:
-              </BodySemiboldText>
-              <View className="flex-row items-center mb-2">
-                <IconSymbol name="person.fill" size={16} color="#9CA3AF" />
-                <BodyRegularText
-                  className="ml-2"
-                  style={{ color: "#6B7280", fontSize: 14 }}
-                >
-                  Payment Account Holder Name
-                </BodyRegularText>
-              </View>
-              <View className="flex-row items-center">
-                <IconSymbol name="qrcode" size={16} color="#9CA3AF" />
-                <BodyRegularText
-                  className="ml-2"
-                  style={{ color: "#6B7280", fontSize: 14 }}
-                >
-                  Payment QR Code Image
-                </BodyRegularText>
-              </View>
-            </View>
-
-            {/* Action Buttons */}
-            <View style={{ gap: 12 }}>
-              {/* Go to Profile Button */}
-              <TouchableOpacity
-                onPress={onGoToProfile}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#3B2F2F",
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                }}
-                activeOpacity={0.8}
-              >
-                <IconSymbol
-                  name="arrow.right"
-                  size={18}
-                  color="#FFFFFF"
-                  style={{ marginRight: 8 }}
-                />
-                <BodySemiboldText style={{ color: "#FFFFFF" }}>
-                  Complete your payment profile
-                </BodySemiboldText>
-              </TouchableOpacity>
-
-              {/* Cancel Button */}
-              <TouchableOpacity
-                onPress={onCancel}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#F3F4F6",
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                }}
-                activeOpacity={0.8}
-              >
-                <BodySemiboldText style={{ color: "#3B2F2F" }}>
-                  Cancel
-                </BodySemiboldText>
-              </TouchableOpacity>
-            </View>
+            </Typography>
           </View>
-        </Pressable>
+
+          {/* Requirements card */}
+          <View className="bg-brand-off-white rounded-2xl p-4 gap-3 border border-brand-beige">
+            <Typography
+              variation="label"
+              className="text-brand-espresso font-sans-semibold"
+            >
+              Required to proceed:
+            </Typography>
+            <RequirementRow
+              icon="person.fill"
+              label="Payment Account Holder Name"
+            />
+            <RequirementRow
+              icon="qrcode"
+              label="Payment QR Code Image"
+            />
+          </View>
+
+          {/* Actions */}
+          <View className="gap-3">
+            <Button
+              label="Complete Payment Profile"
+              variant="primary"
+              fullWidth
+              onPress={onGoToProfile}
+              icon={<IconSymbol name="arrow.right" size={16} color="#FFFFFF" />}
+              iconPosition="right"
+            />
+            <Button
+              label="Cancel"
+              variant="secondary"
+              fullWidth
+              onPress={onCancel}
+            />
+          </View>
+        </View>
       </Pressable>
-    </Modal>
+    </BlurModal>
   );
 };

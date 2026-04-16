@@ -38,42 +38,38 @@ export function Textarea({
   editable = true,
   maxLength = 500,
   numberOfLines = 6,
+  informationMessage,
+  infoMessageType = "default",
   value = "",
   ...props
 }: TextareaProps) {
   const [isFocused, setIsFocused] = useState(false);
   const isDisabled = variant === "disabled" || !editable;
 
-  // Get variant-specific styles
   const getContainerStyle = () => {
     const baseClasses = `rounded-3xl px-4 py-4 bg-white`;
-
-    switch (variant) {
-      case "disabled":
-        return (
-          baseClasses +
-          " border border-ui-border-light bg-brand-off-white opacity-50"
-        );
-      default:
-        return baseClasses + " border";
+    if (variant === "disabled") {
+      return baseClasses + " border border-ui-border-light bg-brand-off-white opacity-50";
     }
+    return baseClasses + " border";
   };
 
-  // Determine border color based on focus and error state
   const borderColor = isFocused
     ? INPUT_COLORS.borderFocus
     : errorMessage
       ? "#DC2626"
       : INPUT_COLORS.border;
 
-  // Calculate character count
   const characterCount = typeof value === "string" ? value.length : 0;
   const charCounterColor =
     characterCount >= (maxLength || 500) ? "#DC2626" : "#9CA3AF";
 
+  // Line height 22 per line + internal padding
+  const inputMinHeight = numberOfLines * 22 + 16;
+
   return (
     <View>
-      {/* Label with Character Counter */}
+      {/* Label + character counter */}
       <View className="flex-row items-center justify-between mb-2">
         {label && (
           <Typography
@@ -94,32 +90,25 @@ export function Textarea({
         )}
       </View>
 
-      {/* Textarea Container */}
+      {/* Textarea container */}
       <View
         className={containerClassName || getContainerStyle()}
-        style={[
-          {
-            borderColor,
-          },
-          containerStyle,
-        ]}
+        style={[{ borderColor }, containerStyle]}
       >
-        {/* Text Input */}
         <TextInput
           style={{
             color: INPUT_COLORS.text,
-            fontSize: 16,
+            fontSize: 15,
+            lineHeight: 22,
             textAlignVertical: "top",
+            minHeight: inputMinHeight,
           }}
-          className={
-            inputClassName || "font-sans-regular text-input-text flex-1"
-          }
+          className={inputClassName || "font-sans-regular text-input-text"}
           placeholder={placeholder}
           placeholderTextColor={INPUT_COLORS.placeholder}
           editable={!isDisabled}
-          scrollEnabled={true}
-          multiline={true}
-          numberOfLines={8}
+          scrollEnabled={false}
+          multiline
           maxLength={maxLength}
           value={value}
           onFocus={() => setIsFocused(true)}
@@ -128,10 +117,23 @@ export function Textarea({
         />
       </View>
 
-      {/* Error Message */}
+      {/* Error message */}
       {errorMessage && (
-        <Typography variation="caption" className="text-status-error mt-2">
+        <Typography variation="caption" className="text-status-error mt-2 ml-1">
           {errorMessage}
+        </Typography>
+      )}
+
+      {/* Info message — only shown when no error */}
+      {!errorMessage && informationMessage && (
+        <Typography
+          variation="caption"
+          className="mt-2 ml-1"
+          style={{
+            color: infoMessageType === "secondary" ? "#9CA3AF" : "#6B7280",
+          }}
+        >
+          {informationMessage}
         </Typography>
       )}
     </View>

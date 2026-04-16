@@ -23,6 +23,7 @@ import * as WebBrowser from "expo-web-browser";
 import React, { createContext, useContext, useEffect } from "react";
 
 const REMEMBER_ME_KEY = "@thriftverse:remember_me";
+const SAVED_EMAIL_KEY = "@thriftverse:saved_email";
 
 interface AuthContextType {
   user: User | null;
@@ -38,11 +39,17 @@ interface AuthContextType {
   resetPasswordForEmail: (email: string) => Promise<{ error: any }>;
   verifyOtp: (email: string, token: string) => Promise<{ error: any }>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<{ error: any }>;
   verifyOtpAndResetPassword: (
     email: string,
     token: string,
     newPassword: string,
   ) => Promise<{ error: any }>;
+  hasPasswordAuth: () => boolean;
+  getAuthProvider: () => string | null;
   signInWithGoogle: () => Promise<{ error: any }>;
   signInWithApple: () => Promise<{ error: any }>;
   refreshProfile: () => Promise<void>;
@@ -57,23 +64,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loading = useAppSelector((state) => state.auth.loading);
 
   useEffect(() => {
-    // Check active session on mount
+    // Initialize Auth on App Launch
+    // Restores session ONLY if user explicitly checked "Remember me" on previous login
 
     const initializeAuth = async () => {
       try {
-        // If the user previously chose not to be remembered, clear any
-        // persisted session before restoring it.
-        const rememberMe = await AsyncStorage.getItem(REMEMBER_ME_KEY);
-        if (rememberMe === "false") {
-          await supabase.auth.signOut();
-          dispatch(clearAuth());
+        // Check if user enabled "Remember me" on previous login
+        const rememberMeEnabled = await AsyncStorage.getItem(REMEMBER_ME_KEY);
+
+        // ONLY restore session if user explicitly enabled Remember me
+        // This prevents auto-login on first launch or after unchecking the box
+        if (rememberMeEnabled !== "true") {
+          console.log(
+            "ℹ️  Remember me not enabled - user must sign in manually",
+          );
           return;
         }
 
-        // Fetch session from Supabase and update Redux
+        console.log(
+          "✅ Remember me enabled - attempting to restore session...",
+        );
+
+        // Try to fetch existing session from Supabase
         const result = await dispatch(fetchCurrentSession()).unwrap();
 
         if (result) {
+          console.log("✅ Session restored successfully!");
           // Fetch user profile data
           await dispatch(fetchUserProfile(result.user.id));
           // Fetch unread notification count for badge
@@ -81,27 +97,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Save push token to profile (awaits token initialization if needed)
           await savePushTokenToProfile(result.user.id);
         } else {
-          console.log("ℹ️  No active session found - user is not logged in");
+          console.log("ℹ️  No active session found - user must sign in");
+          // Clear the remember me flag since session is invalid
+          await AsyncStorage.removeItem(REMEMBER_ME_KEY);
         }
       } catch (err) {
-        // Check if it's just "no session" which is normal, not an error
+        // Session restoration failed or no session exists
         const errorMessage = (err as any)?.message || String(err);
+
         if (
           errorMessage.toLowerCase().includes("no active session") ||
           errorMessage.toLowerCase().includes("not logged in")
         ) {
           console.log("ℹ️  No active session - user is not logged in");
         } else {
-          // This is an actual error, log it
-          console.error("💥 AuthContext: Error initializing auth:", err);
+          console.error("❌ Auth initialization error:", err);
         }
+
+        // Clear remember me flag on any error to prevent infinite loops
+        await AsyncStorage.removeItem(REMEMBER_ME_KEY);
         dispatch(clearAuth());
       }
     };
 
     initializeAuth();
 
-    // Listen for auth changes
+    // Listen for auth changes from Supabase
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -126,19 +147,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, [dispatch]);
 
-  const signIn = async (email: string, password: string, rememberMe = true) => {
+  const signIn = async (
+    email: string,
+    password: string,
+    rememberMe = false,
+  ) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (!error && data.session) {
-      // Persist the remember-me preference so initializeAuth can honour it on
-      // the next app launch.
-      await AsyncStorage.setItem(
-        REMEMBER_ME_KEY,
-        rememberMe ? "true" : "false",
-      );
+      // Persist the remember-me preference for app relaunches
+      // Save the checkbox state (true/false) so it persists user's preference
+      if (rememberMe) {
+        console.log(
+          "✅ Remember me enabled - session will be restored on next launch",
+        );
+        await AsyncStorage.setItem(REMEMBER_ME_KEY, "true");
+        // Save email for pre-filling the signin form
+        await AsyncStorage.setItem(SAVED_EMAIL_KEY, email);
+      } else {
+        console.log("❌ Remember me disabled - preference saved");
+        // Explicitly save as false to persist user's preference
+        await AsyncStorage.setItem(REMEMBER_ME_KEY, "false");
+        // But don't save email when unchecked
+        await AsyncStorage.removeItem(SAVED_EMAIL_KEY);
+      }
 
       dispatch(setSession(data.session));
       dispatch(setUser(data.user));
@@ -358,15 +393,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    console.log("🚪 Signing out user...");
+
+    // Unregister push token
     if (user?.id) {
       await unregisterPushToken(user.id);
     }
-    await AsyncStorage.removeItem(REMEMBER_ME_KEY);
+
+    // Keep remember me preference but clear the flag to prevent auto-login
+    // Set to false so user sees unchecked checkbox on next signin screen
+    await AsyncStorage.setItem(REMEMBER_ME_KEY, "false");
+    // Also clear saved email for security - user should re-enter it on next login
+    await AsyncStorage.removeItem(SAVED_EMAIL_KEY);
+
+    // Sign out from Supabase
     await supabase.auth.signOut();
+
+    // Clear all auth/profile data from Redux
     dispatch(clearAuth());
     dispatch(clearProfile());
     dispatch(clearNotifications());
     await dispatch(clearPersistedSignupState());
+
+    console.log("✅ Sign out complete");
   };
 
   const resetPasswordForEmail = async (email: string) => {
@@ -391,6 +440,78 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password: newPassword,
     });
     return { error };
+  };
+
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ) => {
+    try {
+      // Get the current user's email
+      const email = user?.email;
+      if (!email) {
+        return { error: { message: "User email not found" } };
+      }
+
+      // First, verify the current password by attempting to sign in
+      const { data: signInData, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password: currentPassword,
+        });
+
+      if (signInError) {
+        return {
+          error: {
+            message: "Current password is incorrect",
+            code: signInError.code,
+          },
+        };
+      }
+
+      // If sign in was successful, update to the new password
+      if (signInData.session) {
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
+
+        if (updateError) {
+          return { error: updateError };
+        }
+
+        // Refresh the current session to ensure it's still valid
+        await dispatch(fetchCurrentSession());
+      }
+
+      return { error: null };
+    } catch (err) {
+      console.error("❌ changePassword error:", err);
+      return {
+        error: {
+          message: "An unexpected error occurred",
+        },
+      };
+    }
+  };
+
+  /**
+   * Checks if user has email/password authentication
+   * Returns false for OAuth-only users (Google, Apple)
+   */
+  const hasPasswordAuth = (): boolean => {
+    if (!user?.identities) return false;
+    // Check if user has 'password' identity type
+    return user.identities.some((identity) => identity.provider === "email");
+  };
+
+  /**
+   * Gets the primary authentication provider
+   * Returns 'email', 'google', 'apple', or null
+   */
+  const getAuthProvider = (): string | null => {
+    if (!user?.identities || user.identities.length === 0) return null;
+    // Return the first (primary) provider
+    return user.identities[0]?.provider || null;
   };
 
   const verifyOtpAndResetPassword = async (
@@ -438,6 +559,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         resetPasswordForEmail,
         verifyOtp,
         updatePassword,
+        changePassword,
+        hasPasswordAuth,
+        getAuthProvider,
         verifyOtpAndResetPassword,
         refreshProfile,
       }}

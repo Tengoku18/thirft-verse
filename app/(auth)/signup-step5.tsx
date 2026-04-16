@@ -1,9 +1,7 @@
 import { InfoBox } from "@/components/atoms/InfoBox";
-import { UploadBox } from "@/components/atoms/UploadBox";
-import { RHFInput } from "@/components/forms/ReactHookForm";
-import { QRCodeIcon, RightArrowIcon } from "@/components/icons";
+import { EsewaPaymentFields } from "@/components/payment/EsewaPaymentFields";
+import { RightArrowIcon } from "@/components/icons";
 import IIcon from "@/components/icons/IIcon";
-import { UserIcon } from "@/components/icons/UserIcon";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Button } from "@/components/ui/Button/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
@@ -239,36 +237,15 @@ export default function SignupStep5Screen() {
             {/* General Error */}
             {generalError && <InfoBox type="error" message={generalError} />}
 
-            {/* eSewa ID / Username */}
+            {/* eSewa Fields */}
             <View className="mb-6">
-              <RHFInput
+              <EsewaPaymentFields
                 control={control}
-                name="paymentUsername"
-                label="ESEWA ID / USERNAME"
-                placeholder="Enter your eSewa ID"
-                autoCapitalize="none"
-                autoCorrect={false}
-                leftIcon={<UserIcon />}
+                esewaIdFieldName="paymentUsername"
+                qrImage={qrImage}
+                onPickQRImage={handleQRImagePick}
+                qrError={errors.paymentQRImage?.message}
               />
-            </View>
-
-            {/* eSewa QR Code */}
-            <View className="mb-6">
-              <Typography variation="body" className="font-sans-semibold mb-3">
-                ESEWA QR CODE
-              </Typography>
-              <UploadBox
-                icon={<QRCodeIcon size={32} />}
-                title="Upload QR Image"
-                subtitle="PNG, JPG up to 5MB"
-                onPress={handleQRImagePick}
-                image={qrImage}
-              />
-              {errors.paymentQRImage && (
-                <Typography variation="body-sm" className="text-red-500 mt-2">
-                  {errors.paymentQRImage.message}
-                </Typography>
-              )}
             </View>
 
             {/* Info Box */}

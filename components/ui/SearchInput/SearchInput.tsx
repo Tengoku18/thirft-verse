@@ -1,5 +1,5 @@
 import SearchIcon from "@/components/icons/SearchIcon";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import XIcon from "@/components/icons/XIcon";
 import { INPUT_COLORS } from "@/constants/theme";
 import React, { forwardRef } from "react";
 import {
@@ -61,7 +61,9 @@ export const SearchInput = forwardRef<TextInput, SearchInputProps>(
     return (
       <View className="flex-row items-center bg-gray-100 rounded-full px-6">
         {/* Search Icon */}
-        {showSearchIcon && <SearchIcon width={24} height={24} />}
+        {showSearchIcon && (
+          <SearchIcon width={20} height={20} color={INPUT_COLORS.icon} />
+        )}
 
         {/* Text Input */}
         <TextInput
@@ -74,7 +76,7 @@ export const SearchInput = forwardRef<TextInput, SearchInputProps>(
             showSearchIcon ? "ml-2" : ""
           }`}
           style={{
-            fontSize: 15,
+            fontSize: 20,
             color: INPUT_COLORS.text,
             textAlignVertical: "center",
           }}
@@ -86,14 +88,10 @@ export const SearchInput = forwardRef<TextInput, SearchInputProps>(
         {clearable && showClearIcon && value.length > 0 && (
           <TouchableOpacity
             onPress={handleClear}
-            className="p-1 ml-2"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="ml-2"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 4 }}
           >
-            <IconSymbol
-              name="xmark.circle.fill"
-              size={18}
-              color={INPUT_COLORS.icon}
-            />
+            <XIcon width={18} height={18} color={INPUT_COLORS.icon} />
           </TouchableOpacity>
         )}
       </View>

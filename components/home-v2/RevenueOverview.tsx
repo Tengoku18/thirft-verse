@@ -1,7 +1,8 @@
 import CashIcon from "@/components/icons/CashIcon";
-import CheckmarkIcon from "@/components/icons/CheckmarkIcon";
+import CheckMarkCircleIcon from "@/components/icons/CheckMarkCircleIcon";
 import ClockIcon from "@/components/icons/ClockIcon";
 import { Typography } from "@/components/ui/Typography";
+import { formatAmount } from "@/lib/format-currency";
 import React from "react";
 import { View } from "react-native";
 import { RevenueStatCard } from "./RevenueStatCard";
@@ -12,12 +13,6 @@ interface RevenueOverviewProps {
   withdrawnAmount: number;
   currencySymbol?: string;
 }
-
-const formatCurrency = (amount: number, symbol: string): string => {
-  if (amount >= 1000000) return `${symbol}${(amount / 1000000).toFixed(1)}M`;
-  if (amount >= 1000) return `${symbol}${(amount / 1000).toFixed(1)}k`;
-  return `${symbol}${amount.toFixed(2)}`;
-};
 
 export const RevenueOverview: React.FC<RevenueOverviewProps> = ({
   pendingAmount,
@@ -36,25 +31,23 @@ export const RevenueOverview: React.FC<RevenueOverviewProps> = ({
       <View className="flex-row" style={{ gap: 12 }}>
         <RevenueStatCard
           label="Pending"
-          amount={formatCurrency(pendingAmount, currencySymbol)}
-          icon={
-            <ClockIcon size={20} color="#D97706" />
-          }
+          amount={formatAmount(pendingAmount, currencySymbol)}
+          icon={<ClockIcon size={20} color="#D97706" />}
           bgColor="#FFFBEB"
           borderColor="#FEF3C7"
           labelColor="#B45309"
         />
         <RevenueStatCard
           label="Confirmed"
-          amount={formatCurrency(confirmedAmount, currencySymbol)}
-          icon={<CheckmarkIcon size={20} color="#059669" />}
+          amount={formatAmount(confirmedAmount, currencySymbol)}
+          icon={<CheckMarkCircleIcon size={20} color="#059669" />}
           bgColor="#ECFDF5"
           borderColor="#D1FAE5"
           labelColor="#047857"
         />
         <RevenueStatCard
           label="Withdrawn"
-          amount={formatCurrency(withdrawnAmount, currencySymbol)}
+          amount={formatAmount(withdrawnAmount, currencySymbol)}
           icon={<CashIcon size={20} color="#64748B" />}
           bgColor="#F1F5F9"
           borderColor="#E2E8F0"

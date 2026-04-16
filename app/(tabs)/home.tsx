@@ -1,3 +1,4 @@
+import { RefreshScrollView } from "@/components/atoms/RefreshScrollView";
 import {
   HomeGreetingHeader,
   HomeRecentOrders,
@@ -6,6 +7,7 @@ import {
   WeeklyPerformanceCard,
 } from "@/components/home-v2";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRefresh } from "@/hooks/useRefresh";
 import {
   getOrdersBySeller,
   getProductsByStoreId,
@@ -16,13 +18,7 @@ import { fetchUserProfile } from "@/store/profileSlice";
 import dayjs from "dayjs";
 import { useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StatusBar,
-  View,
-} from "react-native";
+import { ActivityIndicator, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface ProfileRevenue {
@@ -77,7 +73,6 @@ export default function HomeScreen() {
   const [recentOrders, setRecentOrders] = useState<OrderData[]>([]);
   const [weeklyData, setWeeklyData] = useState<WeeklyData>(initialWeekly);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   const loadDashboardData = useCallback(async () => {
     if (!user) {
@@ -159,11 +154,7 @@ export default function HomeScreen() {
     }, [loadDashboardData]),
   );
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadDashboardData();
-    setRefreshing(false);
-  }, [loadDashboardData]);
+  const { refreshing, onRefresh } = useRefresh(loadDashboardData);
 
   const revenue = profile?.revenue as ProfileRevenue | undefined;
   const firstName = (profile?.name || "there").split(" ")[0];
@@ -193,18 +184,7 @@ export default function HomeScreen() {
       edges={["top"]}
     >
       <StatusBar barStyle="dark-content" />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 140 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#3B2F2F"
-            colors={["#3B2F2F"]}
-          />
-        }
-      >
+      <RefreshScrollView refreshing={refreshing} onRefresh={onRefresh}>
         <HomeGreetingHeader
           name={firstName}
           avatarUrl={avatarUrl}
@@ -232,7 +212,7 @@ export default function HomeScreen() {
         />
 
         <HomeRecentOrders orders={recentOrders} />
-      </ScrollView>
+      </RefreshScrollView>
     </SafeAreaView>
   );
 }

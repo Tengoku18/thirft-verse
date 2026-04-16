@@ -66,7 +66,7 @@ export default function SignInScreen() {
 
   const handleLoginSuccess = async (): Promise<void> => {
     setLoginError("");
-    router.replace("/(tabs)");
+    router.replace("/(tabs)/home");
   };
 
   return (
@@ -229,7 +229,6 @@ export default function SignInScreen() {
           ThriftVerse • Sustainable Fashion Marketplace
         </Typography>
       </View>
-
     </AuthScreenLayout>
   );
 }
