@@ -130,8 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       dispatch(setSession(session));
       dispatch(setUser(session?.user ?? null));
 
-      // On SIGNED_IN, fetch user profile (fire-and-forget to avoid blocking setSession)
-      if (event === "SIGNED_IN" && session) {
+      // On SIGNED_IN or INITIAL_SESSION, fetch user profile
+      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
         dispatch(fetchUserProfile(session.user.id));
       }
 

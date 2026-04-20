@@ -1,11 +1,10 @@
-import { BodyMediumText, HeadingBoldText } from "@/components/Typography";
 import { useAuth } from "@/contexts/AuthContext";
-import { loadSignupState } from "@/store";
+import { supabase } from "@/lib/supabase";
+import { clearAuth, clearPersistedSignupState, clearProfile, loadSignupState } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { Redirect } from "expo-router";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { router } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, useRef, useState } from "react";
 
 type AppStatus =
   | "initializing" // Checking auth state
@@ -24,8 +23,9 @@ export default function Index() {
   const profileInitialized = useAppSelector((state) => state.profile.initialized);
   const signupState = useAppSelector((state) => state.signup);
   const [appStatus, setAppStatus] = useState<AppStatus>("initializing");
-  const [statusMessage, setStatusMessage] = useState("Starting up...");
   const [signupLoaded, setSignupLoaded] = useState(false);
+  // Tracks the last verified user ID so we only call getUser() once per session
+  const verifiedUserIdRef = useRef<string | null>(null);
 
   // Load signup state on mount
   useEffect(() => {
@@ -41,34 +41,44 @@ export default function Index() {
       // Step 0: Wait for signup state to load
       if (!signupLoaded) {
         setAppStatus("initializing");
-        setStatusMessage("Starting up...");
         return;
       }
 
       // Step 1: Check auth state
       if (authLoading) {
         setAppStatus("initializing");
-        setStatusMessage("Checking authentication...");
         return;
       }
 
       // Step 2: No user - redirect to signin
-      // (No need to check signup state - signin will handle unverified email redirect)
       if (!user) {
         setAppStatus("unauthenticated");
-        setStatusMessage("Please sign in");
         return;
       }
 
+      // Step 2.5: Verify user still exists on server (once per session)
+      // Catches deleted accounts with stale local sessions before checking
+      // persisted signup state, which would otherwise redirect to signup screens.
+      if (verifiedUserIdRef.current !== user.id) {
+        const { error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          await supabase.auth.signOut();
+          dispatch(clearAuth());
+          dispatch(clearProfile());
+          await dispatch(clearPersistedSignupState());
+          setAppStatus("unauthenticated");
+          return;
+        }
+        verifiedUserIdRef.current = user.id;
+      }
+
       // Step 3: User exists but might be in signup flow
-      // If signup is in progress, route to the saved step.
       if (
         signupState.isSignupInProgress &&
         signupState.currentStep >= 2 &&
         signupState.currentStep <= 6
       ) {
         setAppStatus("signup_incomplete");
-        setStatusMessage("Completing your signup...");
         return;
       }
 
@@ -78,14 +88,12 @@ export default function Index() {
       // incorrectly trigger the "profile_incomplete" branch before fetch even starts.
       if (profileLoading || !profileInitialized) {
         setAppStatus("checking_profile");
-        setStatusMessage("Loading your profile...");
         return;
       }
 
       // Step 5: Check if profile exists
       if (!profile) {
         setAppStatus("profile_incomplete");
-        setStatusMessage("Setting up your store...");
         return;
       }
 
@@ -93,82 +101,40 @@ export default function Index() {
       const isProfileComplete = profile.name && profile.store_username;
       if (!isProfileComplete) {
         setAppStatus("profile_incomplete");
-        setStatusMessage("Complete your profile to continue");
         return;
       }
 
-      // All checks passed
       setAppStatus("ready");
-      setStatusMessage("Welcome back!");
     };
 
     determineStatus();
-  }, [authLoading, user, profileLoading, profile, signupState, signupLoaded]);
+  }, [authLoading, user, profileLoading, profile, profileInitialized, signupState, signupLoaded, dispatch]);
 
-  // Handle redirects based on status
-  if (appStatus === "unauthenticated") {
-    return <Redirect href="/(auth)/signin" />;
-  }
+  // Hide the native splash screen and navigate when status is resolved
+  useEffect(() => {
+    const navigate = async () => {
+      if (appStatus === "unauthenticated") {
+        await SplashScreen.hideAsync();
+        router.replace("/(auth)/signin");
+      } else if (appStatus === "signup_incomplete") {
+        await SplashScreen.hideAsync();
+        const step = signupState.currentStep;
+        if (step === 3) router.replace("/(auth)/signup-step3");
+        else if (step === 4) router.replace("/(auth)/signup-step4");
+        else if (step === 5) router.replace("/(auth)/signup-step5");
+        else if (step === 6) router.replace("/(auth)/signup-step6");
+        else router.replace("/(auth)/signup-step2");
+      } else if (appStatus === "profile_incomplete") {
+        await SplashScreen.hideAsync();
+        router.replace("/(auth)/google-profile-setup" as any);
+      } else if (appStatus === "ready") {
+        await SplashScreen.hideAsync();
+        router.replace("/(tabs)/home");
+      }
+    };
+    navigate();
+  }, [appStatus, signupState.currentStep]);
 
-  if (appStatus === "signup_incomplete") {
-    if (signupState.currentStep === 2) {
-      return <Redirect href="/(auth)/signup-step2" />;
-    }
-    if (signupState.currentStep === 3) {
-      return <Redirect href="/(auth)/signup-step3" />;
-    }
-    if (signupState.currentStep === 4) {
-      return <Redirect href="/(auth)/signup-step4" />;
-    }
-    if (signupState.currentStep === 5) {
-      return <Redirect href="/(auth)/signup-step5" />;
-    }
-    if (signupState.currentStep === 6) {
-      return <Redirect href="/(auth)/signup-step6" />;
-    }
-    return <Redirect href="/(auth)/signup-step2" />;
-  }
-
-  if (appStatus === "profile_incomplete") {
-    return <Redirect href={"/(auth)/google-profile-setup" as any} />;
-  }
-
-  if (appStatus === "ready") {
-    return <Redirect href="/(tabs)/home" />;
-  }
-
-  // Show status screen for all intermediate states
-  return (
-    <View className="flex-1 bg-[#FAF7F2] justify-center items-center px-8">
-      <Animated.View
-        entering={FadeIn.duration(300)}
-        exiting={FadeOut.duration(200)}
-        className="items-center"
-      >
-        {/* Logo */}
-        <View className="w-24 h-24 rounded-full bg-[#3B2F2F] justify-center items-center mb-8">
-          <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 32 }}>
-            TV
-          </HeadingBoldText>
-        </View>
-
-        {/* App Name */}
-        <HeadingBoldText
-          style={{ fontSize: 28, color: "#3B2F2F", marginBottom: 8 }}
-        >
-          ThriftVerse
-        </HeadingBoldText>
-
-        {/* Status Message */}
-        <BodyMediumText
-          style={{ color: "#6B7280", marginBottom: 24, textAlign: "center" }}
-        >
-          {statusMessage}
-        </BodyMediumText>
-
-        {/* Loading Indicator */}
-        <ActivityIndicator size="large" color="#3B2F2F" />
-      </Animated.View>
-    </View>
-  );
+  // Native splash screen is visible while loading — no custom UI needed
+  return null;
 }

@@ -142,12 +142,6 @@ export default Sentry.wrap(function RootLayout() {
     NunitoSans_900Black,
   });
 
-  useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
   if (!fontsLoaded) {
     return null;
   }
@@ -160,6 +154,7 @@ export default Sentry.wrap(function RootLayout() {
             <ThemeProvider
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
+              <StatusBar style="dark" />
               <Stack>
                 <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -219,7 +214,6 @@ export default Sentry.wrap(function RootLayout() {
                   options={{ headerShown: false }}
                 />
               </Stack>
-              <StatusBar style="dark" />
             </ThemeProvider>
           </ToastProvider>
         </AuthProvider>

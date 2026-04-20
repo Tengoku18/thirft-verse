@@ -7,13 +7,13 @@ import { Image, TouchableOpacity, View } from "react-native";
 interface HomeGreetingHeaderProps {
   name: string;
   avatarUrl?: string | null;
-  hasUnread?: boolean;
+  unreadCount?: number;
 }
 
 export const HomeGreetingHeader: React.FC<HomeGreetingHeaderProps> = ({
   name,
   avatarUrl,
-  hasUnread = false,
+  unreadCount = 0,
 }) => {
   const router = useRouter();
 
@@ -74,20 +74,27 @@ export const HomeGreetingHeader: React.FC<HomeGreetingHeaderProps> = ({
         }}
       >
         <NotificationIcon width={22} height={22} fill="#3B2F2F" />
-        {hasUnread && (
+        {unreadCount > 0 && (
           <View
             style={{
               position: "absolute",
-              top: 8,
-              right: 8,
-              width: 9,
-              height: 9,
-              borderRadius: 5,
+              top: 6,
+              right: 6,
+              minWidth: 16,
+              height: 16,
+              borderRadius: 8,
               backgroundColor: "#EF4444",
-              borderWidth: 2,
+              borderWidth: 1.5,
               borderColor: "#FFFFFF",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 3,
             }}
-          />
+          >
+            <Typography variation="body-xs" style={{ color: "#FFFFFF", fontSize: 9, lineHeight: 12 }}>
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </Typography>
+          </View>
         )}
       </TouchableOpacity>
     </View>

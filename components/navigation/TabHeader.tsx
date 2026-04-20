@@ -1,10 +1,12 @@
-import { BodyMediumText, HeadingBoldText } from "@/components/Typography";
+import { HeadingBoldText } from "@/components/Typography";
+import NotificationIcon from "@/components/icons/NotificationIcon";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import { LOGOS } from "@/constants/logos";
 import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Image, StatusBar, TouchableOpacity, View } from "react-native";
+import { Image, StatusBar, TouchableOpacity, View, ViewStyle } from "react-native";
 
 export type TabHeaderVariant = "dark" | "light";
 
@@ -18,12 +20,57 @@ interface TabHeaderProps {
   variant?: TabHeaderVariant;
 }
 
-// ─── Light variant ─── clean cream header with title + help icon
+// ─── Shared style for all icon buttons in the light tab header ───
+export const TAB_ICON_BTN_STYLE: ViewStyle = {
+  width: 36,
+  height: 36,
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "#FFFFFF",
+  borderRadius: 10,
+  borderWidth: 1,
+  borderColor: "rgba(59,47,47,0.06)",
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.05,
+  shadowRadius: 6,
+  elevation: 2,
+};
+
+// ─── Shared unread badge ───
+function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <View
+      style={{
+        position: "absolute",
+        top: 5,
+        right: 5,
+        minWidth: 16,
+        height: 16,
+        borderRadius: 8,
+        backgroundColor: "#EF4444",
+        borderWidth: 1.5,
+        borderColor: "#FFFFFF",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 3,
+      }}
+    >
+      <Typography variation="body-xs" style={{ color: "#FFFFFF", fontSize: 9, lineHeight: 12 }}>
+        {count > 99 ? "99+" : count}
+      </Typography>
+    </View>
+  );
+}
+
+// ─── Light variant ─── cream header: title + notification + optional right ───
 function LightTabHeader({
   title,
   rightComponent,
 }: Pick<TabHeaderProps, "title" | "rightComponent">) {
   const router = useRouter();
+  const unreadCount = useAppSelector((state) => state.notifications.unreadCount);
 
   return (
     <View
@@ -41,34 +88,29 @@ function LightTabHeader({
       <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" />
 
       {/* Title */}
-      <HeadingBoldText
-        style={{ fontSize: 20, color: "#3B2F2F", letterSpacing: -0.3 }}
-      >
+      <HeadingBoldText style={{ fontSize: 20, color: "#3B2F2F", letterSpacing: -0.3 }}>
         {title ?? ""}
       </HeadingBoldText>
 
-      {/* Right — custom or default help icon */}
-      {rightComponent ? (
-        rightComponent
-      ) : (
+      {/* Right — notification + optional custom icon(s) */}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <TouchableOpacity
-          activeOpacity={0.65}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          onPress={() => router.push("/notifications" as never)}
+          activeOpacity={0.8}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={TAB_ICON_BTN_STYLE}
         >
-          <IconSymbol name="questionmark.circle" size={22} color="#3B2F2F" />
+          <NotificationIcon width={20} height={20} fill="#3B2F2F" />
+          <UnreadBadge count={unreadCount} />
         </TouchableOpacity>
-      )}
+
+        {rightComponent}
+      </View>
     </View>
   );
 }
 
-// ─── Dark variant ─── existing espresso header
+// ─── Dark variant ─── espresso header (home screen) ───
 function DarkTabHeader({
   title,
   showBackButton,
@@ -78,9 +120,7 @@ function DarkTabHeader({
   showTextLogo,
 }: Omit<TabHeaderProps, "variant">) {
   const router = useRouter();
-  const unreadCount = useAppSelector(
-    (state) => state.notifications.unreadCount,
-  );
+  const unreadCount = useAppSelector((state) => state.notifications.unreadCount);
 
   const handleBack = () => {
     if (onBack) {
@@ -124,9 +164,7 @@ function DarkTabHeader({
                 style={{ width: 32, height: 32 }}
                 resizeMode="contain"
               />
-              <HeadingBoldText
-                style={{ fontSize: 20, color: "#FFFFFF", marginLeft: 10 }}
-              >
+              <HeadingBoldText style={{ fontSize: 20, color: "#FFFFFF", marginLeft: 10 }}>
                 {title || "ThriftVerse"}
               </HeadingBoldText>
             </View>
@@ -168,15 +206,9 @@ function DarkTabHeader({
                         paddingHorizontal: 4,
                       }}
                     >
-                      <BodyMediumText
-                        style={{
-                          color: "#FFFFFF",
-                          fontSize: 10,
-                          lineHeight: 14,
-                        }}
-                      >
+                      <Typography variation="body-xs" style={{ color: "#FFFFFF", fontSize: 10, lineHeight: 14 }}>
                         {unreadCount > 99 ? "99+" : unreadCount}
-                      </BodyMediumText>
+                      </Typography>
                     </View>
                   )}
                 </View>
@@ -184,13 +216,6 @@ function DarkTabHeader({
               <TouchableOpacity
                 onPress={() => router.push("/settings")}
                 className="rounded-full items-center justify-center"
-                style={{
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.06,
-                  shadowRadius: 4,
-                  elevation: 2,
-                }}
               >
                 <IconSymbol name="gearshape.fill" size={24} color="#FFFFFF" />
               </TouchableOpacity>

@@ -60,6 +60,33 @@ cat > "$MIGRATION_FILE" << 'EOF'
 BEGIN;
 
 -- ============================================================
+-- Step 0: Create any tables that don't exist yet in prod
+-- ============================================================
+
+EOF
+
+# Generate CREATE TABLE IF NOT EXISTS for every table in dev (no constraints, columns added in Step 1)
+psql "$DEV_DB_URL" -t -A << 'QUERY' >> "$MIGRATION_FILE"
+SELECT
+    'CREATE TABLE IF NOT EXISTS ' || table_name || ' (' ||
+    string_agg(
+        column_name || ' ' || udt_name ||
+        CASE WHEN is_nullable = 'NO' AND column_default IS NOT NULL THEN ' NOT NULL DEFAULT ' || column_default
+             WHEN is_nullable = 'NO' THEN ' NOT NULL'
+             ELSE ''
+        END,
+        ', ' ORDER BY ordinal_position
+    ) || ');'
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND udt_name NOT IN ('vector')
+GROUP BY table_name
+ORDER BY table_name;
+QUERY
+
+cat >> "$MIGRATION_FILE" << 'EOF'
+
+-- ============================================================
 -- Step 1: Add new columns to existing tables
 -- ============================================================
 -- These ALTER TABLE statements will only add columns that don't already exist
@@ -68,14 +95,14 @@ EOF
 
 # Query dev database for all columns in all tables
 psql "$DEV_DB_URL" -t -A << 'QUERY' >> "$MIGRATION_FILE"
-SELECT 
-    'ALTER TABLE ' || t.table_name || ' ADD COLUMN IF NOT EXISTS ' || 
+SELECT
+    'ALTER TABLE ' || t.table_name || ' ADD COLUMN IF NOT EXISTS ' ||
     c.column_name || ' ' || c.udt_name ||
     CASE WHEN c.is_nullable = 'NO' THEN ' NOT NULL' ELSE '' END ||
     CASE WHEN c.column_default IS NOT NULL THEN ' DEFAULT ' || c.column_default ELSE '' END || ';'
 FROM information_schema.tables t
 JOIN information_schema.columns c ON t.table_name = c.table_name
-WHERE t.table_schema = 'public' 
+WHERE t.table_schema = 'public'
   AND t.table_type = 'BASE TABLE'
   AND c.udt_name NOT IN ('vector')  -- Exclude pgvector and other extension types
 ORDER BY t.table_name, c.ordinal_position;

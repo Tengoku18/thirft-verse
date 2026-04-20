@@ -188,7 +188,7 @@ export default function HomeScreen() {
         <HomeGreetingHeader
           name={firstName}
           avatarUrl={avatarUrl}
-          hasUnread={unreadCount > 0}
+          unreadCount={unreadCount}
         />
 
         {profile?.store_username && (

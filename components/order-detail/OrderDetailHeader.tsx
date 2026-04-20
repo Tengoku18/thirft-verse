@@ -1,4 +1,4 @@
-import { CustomHeader } from "@/components/navigation/CustomHeader";
+import { ScreenHeader } from "@/components/navigation/ScreenHeader";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import Typography from "@/components/ui/Typography";
 import React from "react";
@@ -16,8 +16,8 @@ export function OrderDetailHeader({
   orderCode, isEditable, isSeller, onEdit, onGuide,
 }: OrderDetailHeaderProps) {
   return (
-    <CustomHeader
-      title={orderCode}
+    <ScreenHeader
+      title="Order Details"
       showBackButton
       rightComponent={
         isSeller ? (

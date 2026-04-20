@@ -1,4 +1,5 @@
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
+import { TAB_ICON_BTN_STYLE } from "@/components/navigation/TabHeader";
 import {
   StoreProductGrid,
   StoreProfileActions,
@@ -62,16 +63,11 @@ export default function ProfileV2Screen() {
   const settingsButton = (
     <TouchableOpacity
       onPress={() => router.push("/settings" as any)}
-      activeOpacity={0.65}
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
+      activeOpacity={0.8}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      style={TAB_ICON_BTN_STYLE}
     >
-      <IconSymbol name="ellipsis" size={20} color="#3B2F2F" />
+      <IconSymbol name="gearshape.fill" size={20} color="#3B2F2F" />
     </TouchableOpacity>
   );
 

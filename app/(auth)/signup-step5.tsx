@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { supabase } from "@/lib/supabase";
+import { uploadPaymentQRImage } from "@/lib/storage-helpers";
 import { persistSignupState, setCurrentStep, setPaymentData } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -89,22 +90,14 @@ export default function SignupStep5Screen() {
       // Upload QR image if provided
       let qrImagePath: string | null = null;
       if (qrImage) {
-        const timestamp = Date.now();
-        const fileName = `${user.id}-esewa-qr-${timestamp}.jpg`;
-
-        const { error: uploadError, data: uploadData } = await supabase.storage
-          .from("profile-images")
-          .upload(fileName, {
-            uri: qrImage,
-            type: "image/jpeg",
-            name: fileName,
-          } as any);
-
-        if (!uploadError && uploadData) {
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("profile-images").getPublicUrl(fileName);
-          qrImagePath = publicUrl;
+        const { success, url, error: uploadError } = await uploadPaymentQRImage(user.id, qrImage);
+        if (success && url) {
+          qrImagePath = url;
+        } else {
+          console.error("Failed to upload QR image:", uploadError);
+          setGeneralError("Failed to upload QR code image. Please try again.");
+          setLoading(false);
+          return;
         }
       }
 

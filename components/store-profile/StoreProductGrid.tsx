@@ -24,7 +24,7 @@ function ProductItem({ product }: ProductItemProps) {
       className="flex-1 m-1.5"
     >
       {/* Image container */}
-      <View className="rounded-[18px] overflow-hidden bg-primary/5 aspect-[3/4]">
+      <View className="rounded-[18px] overflow-hidden bg-primary/5 aspect-square">
         {imageUri ? (
           <Image
             source={{ uri: imageUri }}

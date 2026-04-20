@@ -1,4 +1,3 @@
-import { CustomHeader } from "@/components/navigation/CustomHeader";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import Typography from "@/components/ui/Typography";
 import { Stack } from "expo-router";
@@ -39,16 +38,13 @@ function Bone({ width, height, borderRadius = 8 }: { width: number | string; hei
 function SkeletonCard({ children, style }: { children: React.ReactNode; style?: object }) {
   return (
     <View
+      className="bg-white rounded-[20px] p-4 gap-3"
       style={[{
-        backgroundColor: "#FFFFFF",
-        borderRadius: 20,
-        padding: 16,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 8,
         elevation: 2,
-        gap: 12,
       }, style]}
     >
       {children}
@@ -60,8 +56,6 @@ export function OrderDetailLoading() {
   return (
     <View className="flex-1 bg-[#FAF7F2]">
       <Stack.Screen options={{ headerShown: false }} />
-      <CustomHeader title="Order Details" showBackButton />
-
       <ScrollView
         scrollEnabled={false}
         contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}
@@ -136,7 +130,6 @@ export function OrderDetailError() {
   return (
     <View className="flex-1 bg-[#FAF7F2]">
       <Stack.Screen options={{ headerShown: false }} />
-      <CustomHeader title="Order Details" showBackButton />
       <View className="flex-1 items-center justify-center px-8 gap-4">
         <View
           className="items-center justify-center rounded-full bg-red-100"
