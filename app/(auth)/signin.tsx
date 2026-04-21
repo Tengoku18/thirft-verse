@@ -1,11 +1,13 @@
 import { OnboardingCard } from "@/components/_atomic/OnboardingCard";
 import { LoginForm } from "@/components/forms/LoginForm";
 import { SocialAuthButton } from "@/components/forms/SocialAuthButton";
+import { CompleteYourProfileModal } from "@/components/modals/CompleteYourProfileModal";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Link } from "@/components/ui/Link";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { useAppleSignIn } from "@/hooks/useAppleSignIn";
 import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useState } from "react";
@@ -61,12 +63,64 @@ export default function SignInScreen() {
     error: appleError,
   } = useAppleSignIn();
   const [loginError, setLoginError] = useState("");
+  const [showCompleteProfileModal, setShowCompleteProfileModal] =
+    useState(false);
+  const [nextSignupStep, setNextSignupStep] = useState(2);
 
   const displayError = loginError || googleError || appleError;
 
   const handleLoginSuccess = async (): Promise<void> => {
     setLoginError("");
-    router.replace("/(tabs)/home");
+
+    try {
+      // Check user's signup status
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        // Fetch user's profile to check signup progress
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("signup_step, auth_completed")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError || !profile) {
+          console.error("Failed to fetch profile:", profileError);
+          // If we can't check status, redirect to home
+          router.replace("/(tabs)/home");
+          return;
+        }
+
+        // Check if signup is complete
+        const isSignupComplete =
+          (profile.signup_step ?? 0) >= 6 && profile.auth_completed === true;
+
+        if (!isSignupComplete) {
+          // Show "Complete Your Profile" modal
+          const nextStep = Math.min(
+            6,
+            Math.max(2, (profile.signup_step ?? 1) + 1)
+          );
+          setNextSignupStep(nextStep);
+          setShowCompleteProfileModal(true);
+          console.log(
+            "[SignIn] Signup incomplete, showing modal. Next step:",
+            nextStep
+          );
+          return;
+        }
+
+        // Signup is complete, navigate to home
+        console.log("[SignIn] Signup complete, navigating to home");
+        router.replace("/(tabs)/home");
+      }
+    } catch (error) {
+      console.error("[SignIn] Error checking signup status:", error);
+      // On error, redirect to home anyway
+      router.replace("/(tabs)/home");
+    }
   };
 
   return (
@@ -229,6 +283,15 @@ export default function SignInScreen() {
           ThriftVerse • Sustainable Fashion Marketplace
         </Typography>
       </View>
+
+      {/* ============================================
+          COMPLETE YOUR PROFILE MODAL
+          ============================================ */}
+      <CompleteYourProfileModal
+        visible={showCompleteProfileModal}
+        nextStep={nextSignupStep}
+        onClose={() => setShowCompleteProfileModal(false)}
+      />
     </AuthScreenLayout>
   );
 }

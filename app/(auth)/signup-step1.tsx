@@ -8,12 +8,13 @@ import { Button } from "@/components/ui/Button";
 import { Link } from "@/components/ui/Link/Link";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
+import { useSignupFormRestore } from "@/hooks/useSignupFormRestore";
 import { supabase } from "@/lib/supabase";
 import {
   UserDetailsFormData,
   userDetailsSchema,
 } from "@/lib/validations/signup-step1";
-import { persistSignupState, setCurrentStep, setFormData } from "@/store";
+import { setFormData } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import type { SignupFormData } from "@/store/signupSlice";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -48,6 +49,7 @@ export default function SignupStep1Screen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
+  const profileState = useAppSelector((state) => state.profile);
 
   const handleBack = () => {
     // Go back to signin
@@ -61,15 +63,21 @@ export default function SignupStep1Screen() {
   const [profileImage, setProfileImage] = useState<string | null>(
     signupState.formData.profileImage || null,
   );
+  // Determine if resuming signup (has name in Redux) or starting fresh
+  const isResuming = !!signupState.formData.name;
 
-  const { control, handleSubmit, setError, clearErrors, watch } =
+  // Email should be disabled if resuming OR if email already verified (signup_step >= 2)
+  const isEmailDisabled =
+    isResuming || (profileState.profile?.signup_step ?? 0) >= 2;
+
+  const { control, handleSubmit, setError, clearErrors, watch, setValue } =
     useForm<SignupStep1FormData>({
       resolver: yupResolver(userDetailsSchema as any),
       mode: "onBlur",
       defaultValues: {
         name: signupState.formData.name || "",
         email: signupState.formData.email || "",
-        password: signupState.formData.password || "",
+        password: "", // Never restore password - it's transient
         confirmPassword: "",
         acceptedTerms: false,
       },
@@ -77,6 +85,34 @@ export default function SignupStep1Screen() {
 
   const password = watch("password");
   const passwordStrength = getPasswordStrength(password);
+
+  // Fetch auth email if resuming signup
+  useEffect(() => {
+    if (isResuming) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user?.email) {
+          // Set email field from auth (disabled)
+          setValue("email", data.user.email, { shouldDirty: false });
+          console.log(
+            "[SignupStep1] Resuming - email from auth:",
+            data.user.email,
+          );
+        }
+      });
+    }
+  }, [isResuming, setValue]);
+
+  // Debug: Log Redux state on mount
+  useEffect(() => {
+    console.log("[SignupStep1] Component mounted:", {
+      isResuming,
+      name: signupState.formData.name,
+      email: signupState.formData.email,
+    });
+  }, [signupState.formData, isResuming]);
+
+  // Restore form data from Redux when navigating back (name only, not email/password)
+  useSignupFormRestore(setValue, signupState.formData, "Step 1");
 
   useEffect(() => {
     if (password) {
@@ -89,6 +125,47 @@ export default function SignupStep1Screen() {
     setErrorMessage(null);
 
     try {
+      // If resuming signup, skip auth creation and navigate intelligently
+      if (isResuming) {
+        console.log("[SignupStep1] Resuming signup - skipping auth creation");
+
+        // Validate name
+        if (!data.name?.trim()) {
+          setErrorMessage("Please enter your name");
+          setLoading(false);
+          return;
+        }
+
+        // Update name if changed
+        if (data.name !== signupState.formData.name) {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (user) {
+            await supabase
+              .from("profiles")
+              .update({ name: data.name })
+              .eq("id", user.id);
+          }
+        }
+
+        // Navigate to next incomplete step based on signup_step
+        const currentStep = profileState.profile?.signup_step ?? 1;
+        console.log("[SignupStep1] Current signup_step:", currentStep);
+
+        if (currentStep >= 3) {
+          // Email already verified, go directly to seller type (Step 3)
+          console.log("[SignupStep1] Email verified, redirecting to Step 3");
+          router.push("/(auth)/signup-step3");
+        } else {
+          // Still need email verification, go to Step 2
+          console.log("[SignupStep1] Redirecting to Step 2 for verification");
+          router.push("/(auth)/signup-step2");
+        }
+        return;
+      }
+
+      // NEW SIGNUP FLOW - Create auth account
       // Create Supabase auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
@@ -123,6 +200,26 @@ export default function SignupStep1Screen() {
       }
 
       if (authData.user) {
+        // Create user profile in database with signup_step: 1
+        const { error: profileError } = await supabase.from("profiles").insert({
+          id: authData.user.id,
+          name: data.name,
+          store_username: data.name.toLowerCase().replace(/\s+/g, "_"),
+          signup_step: 1,
+          auth_completed: false,
+          bio: "",
+          profile_image: profileImage,
+          currency: "NPR",
+          address: "",
+        });
+
+        if (profileError) {
+          console.error("Profile creation error:", profileError);
+          setErrorMessage("Failed to create your profile. Please try again.");
+          return;
+        }
+
+        // Save form data to Redux for later steps
         const formData: SignupFormData = {
           name: data.name,
           email: data.email,
@@ -138,16 +235,15 @@ export default function SignupStep1Screen() {
           referralCode: "",
         };
 
-        dispatch(setFormData(formData));
-        dispatch(setCurrentStep(2));
-        await dispatch(
-          persistSignupState({
-            currentStep: 2,
-            formData,
-            isSignupInProgress: true,
-          }),
-        );
+        console.log("[SignupStep1] Saving form data to Redux:", {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        });
 
+        dispatch(setFormData(formData));
+
+        // Navigate to step 2
         router.push("/(auth)/signup-step2");
       } else {
         setErrorMessage(
@@ -206,22 +302,89 @@ export default function SignupStep1Screen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              editable={!isEmailDisabled}
+              variant={isEmailDisabled ? "disabled" : "default"}
+              helperText={
+                isEmailDisabled
+                  ? "Email cannot be changed after verification"
+                  : undefined
+              }
             />
 
-            {/* Password */}
-            <View>
+            {/* Password - Only show if starting fresh (not resuming) */}
+            {!isResuming && (
+              <View>
+                <RHFInput
+                  control={control}
+                  name="password"
+                  label="Password"
+                  placeholder="Create a strong password"
+                  secureTextEntry={!showPassword}
+                  rightIcon={
+                    <Pressable
+                      onPress={() => setShowPassword(!showPassword)}
+                      className="p-1"
+                    >
+                      {showPassword ? (
+                        <EyeIcon width={20} height={20} />
+                      ) : (
+                        <EyeCloseIcon width={20} height={20} />
+                      )}
+                    </Pressable>
+                  }
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+
+                {/* Password Strength Indicator */}
+                {watch("password") && (
+                  <View className="mt-2">
+                    <Typography
+                      variation="caption"
+                      className="text-slate-600 mb-1"
+                    >
+                      Password strength:{" "}
+                      <Typography
+                        variation="caption"
+                        className="font-bold"
+                        style={{ color: passwordStrength.color }}
+                      >
+                        {passwordStrength.label}
+                      </Typography>
+                    </Typography>
+                    <View className="flex-row gap-1 h-1">
+                      {[0, 1, 2, 3].map((index) => (
+                        <View
+                          key={index}
+                          className="flex-1 bg-slate-300 rounded-full"
+                          style={{
+                            backgroundColor:
+                              index < passwordStrength.score
+                                ? passwordStrength.color
+                                : "#D1D5DB",
+                          }}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Confirm Password - Only show if starting fresh */}
+            {!isResuming && (
               <RHFInput
                 control={control}
-                name="password"
-                label="Password"
-                placeholder="Create a strong password"
-                secureTextEntry={!showPassword}
+                name="confirmPassword"
+                label="Confirm Password"
+                placeholder="Re-enter your password"
+                secureTextEntry={!showConfirmPassword}
                 rightIcon={
                   <Pressable
-                    onPress={() => setShowPassword(!showPassword)}
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="p-1"
                   >
-                    {showPassword ? (
+                    {showConfirmPassword ? (
                       <EyeIcon width={20} height={20} />
                     ) : (
                       <EyeCloseIcon width={20} height={20} />
@@ -231,95 +394,41 @@ export default function SignupStep1Screen() {
                 autoCapitalize="none"
                 autoCorrect={false}
               />
+            )}
 
-              {/* Password Strength Indicator */}
-              {watch("password") && (
-                <View className="mt-2">
-                  <Typography
-                    variation="caption"
-                    className="text-slate-600 mb-1"
-                  >
-                    Password strength:{" "}
-                    <Typography
-                      variation="caption"
-                      className="font-bold"
-                      style={{ color: passwordStrength.color }}
-                    >
-                      {passwordStrength.label}
+            {/* Terms & Conditions - Only show if starting fresh */}
+            {!isResuming && (
+              <RHFCheckbox
+                control={control}
+                name="acceptedTerms"
+                label={
+                  <View className="flex-row flex-wrap gap-1">
+                    <Typography variation="body" className="text-slate-600">
+                      I accept the
                     </Typography>
-                  </Typography>
-                  <View className="flex-row gap-1 h-1">
-                    {[0, 1, 2, 3].map((index) => (
-                      <View
-                        key={index}
-                        className="flex-1 bg-slate-300 rounded-full"
-                        style={{
-                          backgroundColor:
-                            index < passwordStrength.score
-                              ? passwordStrength.color
-                              : "#D1D5DB",
-                        }}
-                      />
-                    ))}
+                    <Link
+                      label="Terms & Conditions"
+                      href="/policies/terms"
+                      type="internal"
+                      underline
+                      variant="primary"
+                      typographyVariation="body-sm"
+                    />
+                    <Typography variation="body" className="text-slate-600">
+                      and
+                    </Typography>
+                    <Link
+                      label="Privacy Policy"
+                      href="/policies/privacy"
+                      type="internal"
+                      underline
+                      variant="primary"
+                      typographyVariation="body-sm"
+                    />
                   </View>
-                </View>
-              )}
-            </View>
-
-            {/* Confirm Password */}
-            <RHFInput
-              control={control}
-              name="confirmPassword"
-              label="Confirm Password"
-              placeholder="Re-enter your password"
-              secureTextEntry={!showConfirmPassword}
-              rightIcon={
-                <Pressable
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="p-1"
-                >
-                  {showConfirmPassword ? (
-                    <EyeIcon width={20} height={20} />
-                  ) : (
-                    <EyeCloseIcon width={20} height={20} />
-                  )}
-                </Pressable>
-              }
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
-            {/* Terms & Conditions */}
-            <RHFCheckbox
-              control={control}
-              name="acceptedTerms"
-              label={
-                <View className="flex-row flex-wrap gap-1">
-                  <Typography variation="body" className="text-slate-600">
-                    I accept the
-                  </Typography>
-                  <Link
-                    label="Terms & Conditions"
-                    href="/policies/terms"
-                    type="internal"
-                    underline
-                    variant="primary"
-                    typographyVariation="body-sm"
-                  />
-                  <Typography variation="body" className="text-slate-600">
-                    and
-                  </Typography>
-                  <Link
-                    label="Privacy Policy"
-                    href="/policies/privacy"
-                    type="internal"
-                    underline
-                    variant="primary"
-                    typographyVariation="body-sm"
-                  />
-                </View>
-              }
-            />
+                }
+              />
+            )}
 
             {/* Error Message */}
             {errorMessage && (
@@ -333,9 +442,30 @@ export default function SignupStep1Screen() {
             {/* Next Step Button */}
             <View className="mt-10">
               <Button
-                label="Next Step"
+                label={isResuming ? "Continue" : "Next Step"}
                 variant="primary"
-                onPress={handleSubmit(onSubmit)}
+                onPress={() => {
+                  if (isResuming) {
+                    // When resuming, manually validate name and call onSubmit
+                    const nameValue = watch("name");
+                    if (!nameValue?.trim()) {
+                      setErrorMessage("Please enter your name");
+                      return;
+                    }
+                    // Call onSubmit directly with form values
+                    const formValues = {
+                      name: nameValue,
+                      email: watch("email"),
+                      password: "",
+                      confirmPassword: "",
+                      acceptedTerms: false,
+                    };
+                    onSubmit(formValues);
+                  } else {
+                    // When fresh signup, use full form validation
+                    handleSubmit(onSubmit)();
+                  }
+                }}
                 isLoading={loading}
                 fullWidth
                 iconPosition="right"

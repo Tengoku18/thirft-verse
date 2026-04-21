@@ -6,11 +6,11 @@ import { supabase } from "@/lib/supabase";
 import {
   clearAuth,
   clearNotifications,
-  clearPersistedSignupState,
   clearProfile,
   fetchCurrentSession,
   fetchUnreadCount,
   fetchUserProfile,
+  resetSignup,
   setSession,
   setUser,
 } from "@/store";
@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         dispatch(clearAuth());
         dispatch(clearProfile());
         dispatch(clearNotifications());
-        dispatch(clearPersistedSignupState());
+        dispatch(resetSignup());
       }
     });
 
@@ -229,12 +229,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // setSession triggers onAuthStateChange which handles Redux updates
-      const { error: sessionError } = await supabase.auth.setSession({
+      const { error: sessionError, data: sessionData } = await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken,
       });
 
-      if (sessionError) return { error: sessionError };
+      // Check for email conflict error
+      if (sessionError) {
+        // Supabase returns specific errors for email conflicts
+        if (
+          sessionError.message &&
+          (sessionError.message.toLowerCase().includes("email") ||
+            sessionError.message.toLowerCase().includes("already"))
+        ) {
+          return {
+            error: {
+              message: "Account exists with this email, please use email/password",
+            },
+          };
+        }
+        return { error: sessionError };
+      }
 
       return { error: null };
     } catch (error) {
@@ -276,6 +291,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (authError) {
         console.error("❌ Apple Sign-In Auth Error:", authError);
+        // Check for email conflict error
+        if (
+          authError.message &&
+          (authError.message.toLowerCase().includes("email") ||
+            authError.message.toLowerCase().includes("already"))
+        ) {
+          return {
+            error: {
+              message: "Account exists with this email, please use email/password",
+            },
+          };
+        }
         return { error: authError };
       }
 
@@ -366,12 +393,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // setSession triggers onAuthStateChange which handles Redux updates
-      const { error: sessionError } = await supabase.auth.setSession({
+      const { error: sessionError, data: sessionData } = await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken,
       });
 
-      if (sessionError) return { error: sessionError };
+      // Check for email conflict error
+      if (sessionError) {
+        // Supabase returns specific errors for email conflicts
+        if (
+          sessionError.message &&
+          (sessionError.message.toLowerCase().includes("email") ||
+            sessionError.message.toLowerCase().includes("already"))
+        ) {
+          return {
+            error: {
+              message: "Account exists with this email, please use email/password",
+            },
+          };
+        }
+        return { error: sessionError };
+      }
 
       return { error: null };
     } catch (error) {
@@ -413,7 +455,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     dispatch(clearAuth());
     dispatch(clearProfile());
     dispatch(clearNotifications());
-    await dispatch(clearPersistedSignupState());
+    dispatch(resetSignup());
 
     console.log("✅ Sign out complete");
   };

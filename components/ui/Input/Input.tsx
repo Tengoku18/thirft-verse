@@ -48,6 +48,8 @@ export function Input({
   const isDisabled = variant === "disabled" || !editable;
   const [showPassword, setShowPassword] = useState(secureTextEntry);
 
+  console.log("label", label, "variant", variant);
+
   // Get variant-specific styles
   const getContainerStyle = () => {
     const verticalPadding = Platform.OS === "ios" ? "py-4" : "";

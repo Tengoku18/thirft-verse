@@ -5,7 +5,6 @@ import { Link } from "@/components/ui/Link";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginFormData, loginSchema } from "@/lib/validations/login";
-import { persistSignupState, setCurrentStep, setFormData } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -118,34 +117,10 @@ export function LoginForm({
           errorMsg.includes("email not confirmed") ||
           errorMsg.includes("email_not_confirmed")
         ) {
-          dispatch(
-            setFormData({
-              email: data.email,
-              password: data.password,
-              name: "",
-              username: "",
-              address: "",
-              profileImage: null,
-            }),
+          setFormError(
+            "Please confirm your email before logging in. Check your email for the confirmation link.",
           );
-          dispatch(setCurrentStep(2));
-          await dispatch(
-            persistSignupState({
-              currentStep: 2,
-              formData: {
-                email: data.email,
-                password: data.password,
-                name: "",
-                username: "",
-                address: "",
-                profileImage: null,
-              },
-              isSignupInProgress: true,
-            }),
-          );
-
           setLoading(false);
-          router.replace("/(auth)/signup-step2");
           return;
         }
 

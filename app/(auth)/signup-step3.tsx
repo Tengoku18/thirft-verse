@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { supabase } from "@/lib/supabase";
-import { persistSignupState, setCurrentStep, setFormData } from "@/store";
+import { setFormData } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -17,16 +17,15 @@ export default function SignupStep3Screen() {
   const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
 
-  const handleBack = () => {
-    // Decrement step and navigate to previous step
-    router.push("/(auth)/signup-step1");
-  };
-
   const [selectedType, setSelectedType] = useState<"store" | "closet" | "">(
     signupState.formData.sellerType || "",
   );
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleBack = () => {
+    router.push("/(auth)/signup-step1");
+  };
 
   const handleContinue = async () => {
     if (!selectedType) {
@@ -38,14 +37,6 @@ export default function SignupStep3Screen() {
     setErrorMessage(null);
 
     try {
-      // Save seller type to Redux
-      await dispatch(
-        setFormData({
-          sellerType: selectedType,
-        }),
-      );
-
-      // Update profile in Supabase
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -58,7 +49,7 @@ export default function SignupStep3Screen() {
 
       const { error } = await supabase
         .from("profiles")
-        .update({ seller_type: selectedType })
+        .update({ seller_type: selectedType, signup_step: 3 })
         .eq("id", user.id);
 
       if (error) {
@@ -68,14 +59,7 @@ export default function SignupStep3Screen() {
         return;
       }
 
-      // Move to next step
-      dispatch(setCurrentStep(4));
-      await dispatch(
-        persistSignupState({
-          currentStep: 4,
-          isSignupInProgress: true,
-        }),
-      );
+      dispatch(setFormData({ sellerType: selectedType }));
 
       router.push("/(auth)/signup-step4");
     } catch (error) {
@@ -85,12 +69,10 @@ export default function SignupStep3Screen() {
     }
   };
 
-  console.log("loading", loading, Boolean(!selectedType));
-
   return (
     <AuthScreenLayout
       showHeader
-      headerTitle="Sign Up"
+      headerTitle="Seller Type"
       showScrollView={false}
       onBack={handleBack}
     >
@@ -125,7 +107,7 @@ export default function SignupStep3Screen() {
                 }}
                 icon={<ShopIcon />}
                 title="Open a Store"
-                description="Best for professional vintage curators,boutique owners, and regular high-volume sellers."
+                description="Best for professional vintage curators, boutique owners, and regular high-volume sellers."
               />
 
               <SellerTypeCard

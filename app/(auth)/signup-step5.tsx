@@ -1,14 +1,15 @@
 import { InfoBox } from "@/components/atoms/InfoBox";
-import { EsewaPaymentFields } from "@/components/payment/EsewaPaymentFields";
 import { RightArrowIcon } from "@/components/icons";
 import IIcon from "@/components/icons/IIcon";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
+import { EsewaPaymentFields } from "@/components/payment/EsewaPaymentFields";
 import { Button } from "@/components/ui/Button/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
-import { supabase } from "@/lib/supabase";
+import { useSignupFormRestore } from "@/hooks/useSignupFormRestore";
 import { uploadPaymentQRImage } from "@/lib/storage-helpers";
-import { persistSignupState, setCurrentStep, setPaymentData } from "@/store";
+import { supabase } from "@/lib/supabase";
+import { setPaymentData } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as ImagePicker from "expo-image-picker";
@@ -26,10 +27,13 @@ const step5Schema = yup.object({
     .min(3, "eSewa ID must be at least 3 characters")
     .max(100, "eSewa ID must be less than 100 characters")
     .required("eSewa ID/Username is required"),
-  paymentQRImage: yup.string().required("QR code image is required"),
+  paymentQRImage: yup.string().optional(), // Optional - user might already have one stored
 });
 
-type Step5FormData = yup.InferType<typeof step5Schema>;
+type Step5FormData = {
+  paymentUsername: string;
+  paymentQRImage?: string;
+};
 
 export default function SignupStep5Screen() {
   const router = useRouter();
@@ -37,9 +41,6 @@ export default function SignupStep5Screen() {
   const signupState = useAppSelector((state) => state.signup);
 
   const handleBack = () => {
-    // Decrement step and navigate to previous step
-    dispatch(setCurrentStep(4));
-    dispatch(persistSignupState({ currentStep: 4, isSignupInProgress: true }));
     router.push("/(auth)/signup-step4");
   };
 
@@ -58,7 +59,7 @@ export default function SignupStep5Screen() {
     setValue,
     formState: { errors },
   } = useForm<Step5FormData>({
-    resolver: yupResolver(step5Schema),
+    resolver: yupResolver(step5Schema as any),
     mode: "onBlur",
     defaultValues: {
       paymentUsername: signupState.paymentData.paymentUsername || "",
@@ -66,13 +67,10 @@ export default function SignupStep5Screen() {
     },
   });
 
-  const onSubmit = async (data: Step5FormData) => {
-    // Validate QR image is provided
-    if (!qrImage) {
-      setGeneralError("Please upload an eSewa QR code image");
-      return;
-    }
+  // Restore form data from Redux when navigating back
+  useSignupFormRestore(setValue, signupState.paymentData as any, "Step 5");
 
+  const onSubmit = async (data: Step5FormData) => {
     setLoading(true);
     setGeneralError(null);
 
@@ -87,27 +85,52 @@ export default function SignupStep5Screen() {
         return;
       }
 
-      // Upload QR image if provided
+      // Check if QR image is new (file URI) vs stored URL
+      const isNewQRImage = qrImage && !qrImage.startsWith("http");
+
+      // Upload QR image ONLY if it's a new file (not a stored URL)
       let qrImagePath: string | null = null;
-      if (qrImage) {
-        const { success, url, error: uploadError } = await uploadPaymentQRImage(user.id, qrImage);
+      if (isNewQRImage) {
+        const {
+          success,
+          url,
+          error: uploadError,
+        } = await uploadPaymentQRImage(user.id, qrImage);
         if (success && url) {
           qrImagePath = url;
+          console.log("[SignupStep5] Uploaded new QR image:", url);
         } else {
           console.error("Failed to upload QR image:", uploadError);
           setGeneralError("Failed to upload QR code image. Please try again.");
           setLoading(false);
           return;
         }
+      } else if (!qrImage) {
+        // No QR image at all
+        setGeneralError("Please upload an eSewa QR code image");
+        setLoading(false);
+        return;
       }
 
-      // Update profile with payment data
+      // Update profile with payment data only if changed
+      const updatePayload: Record<string, any> = { signup_step: 5 };
+
+      const newPaymentUsername = data.paymentUsername.trim();
+      const oldPaymentUsername = signupState.paymentData.paymentUsername;
+      if (newPaymentUsername !== oldPaymentUsername) {
+        updatePayload.payment_username = newPaymentUsername;
+        console.log("[SignupStep5] Updating payment username");
+      }
+
+      // Only update QR image if a new one was uploaded
+      if (qrImagePath) {
+        updatePayload.payment_qr_image = qrImagePath;
+        console.log("[SignupStep5] Updating payment QR image");
+      }
+
       const { error } = await supabase
         .from("profiles")
-        .update({
-          payment_username: data.paymentUsername.trim(),
-          payment_qr_image: qrImagePath,
-        })
+        .update(updatePayload)
         .eq("id", user.id);
 
       if (error) {
@@ -119,20 +142,10 @@ export default function SignupStep5Screen() {
         return;
       }
 
-      // Save to Redux
       dispatch(
         setPaymentData({
           paymentUsername: data.paymentUsername.trim(),
           paymentQRImage: qrImagePath || qrImage,
-        }),
-      );
-
-      // Move to next step (Step 6)
-      dispatch(setCurrentStep(6));
-      await dispatch(
-        persistSignupState({
-          currentStep: 6,
-          isSignupInProgress: true,
         }),
       );
 
@@ -181,14 +194,10 @@ export default function SignupStep5Screen() {
         return;
       }
 
-      // Move to next step (Step 6 - Referral Code)
-      dispatch(setCurrentStep(6));
-      await dispatch(
-        persistSignupState({
-          currentStep: 6,
-          isSignupInProgress: true,
-        }),
-      );
+      await supabase
+        .from("profiles")
+        .update({ signup_step: 5 })
+        .eq("id", user.id);
 
       router.push("/(auth)/signup-step6");
     } catch (error) {

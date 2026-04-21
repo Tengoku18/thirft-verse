@@ -1,5 +1,4 @@
 import { InfoBox } from "@/components/atoms/InfoBox";
-import { ProfileImagePicker } from "@/components/atoms/ProfileImagePicker";
 import {
   RHFInput,
   RHFSelect,
@@ -13,24 +12,20 @@ import { Button } from "@/components/ui/Button/Button";
 import { SelectOption } from "@/components/ui/Select/Select";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
+import { useSignupFormRestore } from "@/hooks/useSignupFormRestore";
 import { districtsOfNepal } from "@/lib/constants/districts";
 import {
   checkUsernameExists,
   createMissingProfile,
   updateUserProfile,
 } from "@/lib/database-helpers";
-import { uploadProfileImage } from "@/lib/storage-helpers";
+
 import { supabase } from "@/lib/supabase";
 import {
   SignupStep4FormData,
   signupStep4Schema,
 } from "@/lib/validations/signup-step4";
-import {
-  fetchUserProfile,
-  persistSignupState,
-  setCurrentStep,
-  setFormData,
-} from "@/store";
+import { fetchUserProfile, setFormData } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
@@ -81,25 +76,26 @@ export default function SignupStep4Screen() {
   const content = CONTENT[sellerType as "store" | "closet"] || CONTENT.closet;
   const isStore = sellerType === "store";
 
-  // Store avatar state (separate from personal profile image from step 1)
-  const [storeAvatar, setStoreAvatar] = useState<string | null>(null);
-
   const [loading, setLoading] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Form setup with React Hook Form
-  const { control, handleSubmit, setError } = useForm<SignupStep4FormData>({
-    resolver: yupResolver(signupStep4Schema as any),
-    mode: "onBlur",
-    defaultValues: {
-      username: signupState.formData.username || "",
-      bio: signupState.formData.bio || "",
-      district: signupState.formData.district || "",
-      instagramHandle: signupState.formData.instagramHandle || "",
-      storeName: signupState.formData.storeName || "",
-      address: signupState.formData.address || "",
-    },
-  });
+  const { control, handleSubmit, setError, setValue } =
+    useForm<SignupStep4FormData>({
+      resolver: yupResolver(signupStep4Schema as any),
+      mode: "onBlur",
+      defaultValues: {
+        username: signupState.formData.username || "",
+        bio: signupState.formData.bio || "",
+        district: signupState.formData.district || "",
+        instagramHandle: signupState.formData.instagramHandle || "",
+        storeName: signupState.formData.storeName || "",
+        address: signupState.formData.address || "",
+      },
+    });
+
+  // Restore form data from Redux when navigating back
+  useSignupFormRestore(setValue, signupState.formData, "Step 4");
 
   // District options for Select
   const districtOptions: SelectOption[] = useMemo(
@@ -122,15 +118,28 @@ export default function SignupStep4Screen() {
         return;
       }
 
-      // Check username uniqueness
-      const usernameExists = await checkUsernameExists(data.username.trim());
-      if (usernameExists) {
-        setError("username", {
-          type: "manual",
-          message: "This username is already taken",
+      // Check username uniqueness ONLY if username was changed
+      const newUsername = data.username.trim().toLowerCase();
+      const oldUsername = signupState.formData.username?.toLowerCase();
+
+      if (newUsername !== oldUsername) {
+        console.log("[SignupStep4] Username changed, checking uniqueness:", {
+          oldUsername,
+          newUsername,
         });
-        setLoading(false);
-        return;
+        const usernameExists = await checkUsernameExists(newUsername);
+        if (usernameExists) {
+          setError("username", {
+            type: "manual",
+            message: "This username is already taken",
+          });
+          setLoading(false);
+          return;
+        }
+      } else {
+        console.log(
+          "[SignupStep4] Username unchanged, skipping uniqueness check",
+        );
       }
 
       // Ensure profile exists
@@ -141,55 +150,88 @@ export default function SignupStep4Screen() {
         return;
       }
 
-      // Upload profile image if provided
-      let profileImagePath: string | null = null;
-      if (storeAvatar) {
-        const uploadResult = await uploadProfileImage(user.id, storeAvatar);
-        if (uploadResult.success && uploadResult.url) {
-          profileImagePath = uploadResult.url;
-        }
-      }
-
-      // Update profile in Supabase
-      const sellerData: Record<string, any> = {
-        district: data.district,
-        address: data.address.trim(),
-      };
-
-      if (data.storeName) {
-        sellerData.store_name = data.storeName.trim();
-      }
-
-      if (data.instagramHandle) {
-        sellerData.instagram_handle = data.instagramHandle.trim();
-      }
-
-      if (profileImagePath) {
-        sellerData.store_image = profileImagePath;
-      }
-
-      const updateData: {
-        userId: string;
-        store_username: string;
-        bio: string;
-        address: string;
-        profile_image?: string;
-        seller_data?: Record<string, any>;
-      } = {
+      // Update profile in Supabase - only changed fields
+      const updateData: Record<string, any> = {
         userId: user.id,
-        store_username: data.username.trim().toLowerCase(),
-        bio: data.bio.trim(),
-        address: data.district,
-        seller_data: sellerData,
       };
 
-      const result = await updateUserProfile(updateData);
-
-      if (!result.success) {
-        setGeneralError("Failed to save your profile. Please try again.");
-        setLoading(false);
-        return;
+      // Only include username if it changed (already checked above)
+      if (newUsername !== oldUsername) {
+        updateData.store_username = newUsername;
+        console.log("[SignupStep4] Updating username:", {
+          old: oldUsername,
+          new: newUsername,
+        });
       }
+
+      const newBio = data.bio.trim();
+      const oldBio = signupState.formData.bio;
+      if (newBio !== oldBio) {
+        updateData.bio = newBio;
+        console.log("[SignupStep4] Updating bio");
+      }
+
+      // Address field - direct profile table field (NOT in seller_data)
+      const newAddress = data.address.trim();
+      const oldAddress = signupState.formData.address;
+      if (newAddress !== oldAddress) {
+        updateData.address = newAddress;
+        console.log("[SignupStep4] Updating address");
+      }
+
+      // Build seller_data with changed fields only
+      const sellerData: Record<string, any> = {};
+      let hasSellerDataChanges = false;
+
+      // District field
+      if (data.district !== signupState.formData.district) {
+        sellerData.district = data.district;
+        hasSellerDataChanges = true;
+        console.log("[SignupStep4] Updating district");
+      }
+
+      // Store Name field
+      const newStoreName = data.storeName?.trim() || "";
+      const oldStoreName = signupState.formData.storeName || "";
+      if (newStoreName !== oldStoreName) {
+        sellerData.store_name = newStoreName;
+        hasSellerDataChanges = true;
+        console.log("[SignupStep4] Updating store name");
+      }
+
+      // Instagram Handle field
+      const newInstagram = data.instagramHandle?.trim() || "";
+      const oldInstagram = signupState.formData.instagramHandle || "";
+      if (newInstagram !== oldInstagram) {
+        sellerData.instagram_handle = newInstagram;
+        hasSellerDataChanges = true;
+        console.log("[SignupStep4] Updating instagram handle");
+      }
+
+      if (hasSellerDataChanges) {
+        updateData.seller_data = sellerData;
+      }
+
+      // Only update if there are changes
+      if (Object.keys(updateData).length > 1) {
+        // More than just userId
+        console.log("[SignupStep4] Updating profile with changes");
+        const result = await updateUserProfile(updateData as any);
+
+        if (!result.success) {
+          setGeneralError("Failed to save your profile. Please try again.");
+          setLoading(false);
+          return;
+        }
+      } else {
+        console.log("[SignupStep4] No changes detected, skipping update");
+      }
+
+      // Advance signup progress in DB
+      await supabase
+        .from("profiles")
+        .update({ signup_step: 4 })
+        .eq("id", user.id);
 
       // Save to Redux
       dispatch(
@@ -200,21 +242,10 @@ export default function SignupStep4Screen() {
           address: data.address.trim(),
           instagramHandle: data.instagramHandle?.trim() || "",
           storeName: data.storeName?.trim() || "",
-          profileImage: profileImagePath || null,
         }),
       );
 
-      // Refetch profile
       await dispatch(fetchUserProfile(user.id));
-
-      // Move to next step (Step 5)
-      dispatch(setCurrentStep(5));
-      await dispatch(
-        persistSignupState({
-          currentStep: 5,
-          isSignupInProgress: true,
-        }),
-      );
 
       router.push("/(auth)/signup-step5");
     } catch (error) {
@@ -243,15 +274,6 @@ export default function SignupStep4Screen() {
             <Typography variation="body" className="text-slate-500 text-center">
               {content.subheading}
             </Typography>
-          </View>
-
-          {/* Store Avatar */}
-          <View className="mb-6">
-            <ProfileImagePicker
-              value={storeAvatar}
-              onChange={setStoreAvatar}
-              label={isStore ? "Store Avatar" : "Profile Avatar"}
-            />
           </View>
 
           {/* General Error */}

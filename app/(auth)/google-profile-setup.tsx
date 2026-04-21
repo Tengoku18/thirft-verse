@@ -14,12 +14,7 @@ import {
   createUserProfile,
   verifyProfileExists,
 } from "@/lib/database-helpers";
-import {
-  fetchUserProfile,
-  persistSignupState,
-  setCurrentStep,
-  setFormData,
-} from "@/store";
+import { fetchUserProfile, setFormData } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
@@ -113,18 +108,13 @@ export default function GoogleProfileSetupScreen() {
         return;
       }
 
-      // Save name to signup state so later steps can read it
       dispatch(setFormData({ name: data.name.trim(), profileImage }));
 
-      // Mark signup in progress at step 3 (seller type)
-      dispatch(setCurrentStep(3));
-      await dispatch(
-        persistSignupState({
-          currentStep: 3,
-          formData: { name: data.name.trim(), profileImage },
-          isSignupInProgress: true,
-        }),
-      );
+      // Google users skip OTP; mark step 2 done so resume routing lands on step 3
+      await supabase
+        .from("profiles")
+        .update({ signup_step: 2 })
+        .eq("id", user.id);
 
       router.replace("/(auth)/signup-step3");
     } catch (error) {

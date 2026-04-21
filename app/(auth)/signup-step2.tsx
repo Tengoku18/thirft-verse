@@ -8,24 +8,18 @@ import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { useToast } from "@/contexts/ToastContext";
 import { supabase } from "@/lib/supabase";
-import {
-  clearPersistedSignupState,
-  persistSignupState,
-  setCurrentStep,
-} from "@/store";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { ScrollView, TextInput, View } from "react-native";
 
 export default function SignupStep2Screen() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
-  const profile = useAppSelector((state) => state.profile.profile);
 
   const toast = useToast();
-  const email = signupState.formData.email;
+  // Use Redux draft email if available, otherwise fall back to the authenticated session
+  const [email, setEmail] = useState(signupState.formData.email || "");
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
@@ -36,12 +30,17 @@ export default function SignupStep2Screen() {
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
+  // Resolve email from the active session when Redux draft is empty
   useEffect(() => {
-    // If no email in state, redirect back
-    if (!email) {
-      router.replace("/(auth)/signin");
-    }
-  }, [email, router]);
+    if (email) return;
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) {
+        setEmail(data.user.email);
+      } else {
+        router.replace("/(auth)/signin");
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (timer > 0) {
@@ -102,7 +101,6 @@ export default function SignupStep2Screen() {
       });
 
       if (error) {
-        console.error("Verification error:", error);
         const isExpiredError =
           error.message?.toLowerCase().includes("expired") ||
           error.message?.toLowerCase().includes("invalid");
@@ -116,25 +114,13 @@ export default function SignupStep2Screen() {
       }
 
       if (data.user) {
-        // Check if user has completed step 3 (payment setup)
-        // If payment_username exists in profile, they've completed step 3
-        const hasCompletedPaymentStep = profile?.payment_username;
+        // Mark OTP step as complete in DB, then proceed to seller type selection
+        await supabase
+          .from("profiles")
+          .update({ signup_step: 2 })
+          .eq("id", data.user.id);
 
-        if (hasCompletedPaymentStep) {
-          // User already completed signup before, go to home
-          await dispatch(clearPersistedSignupState());
-          router.push("/(tabs)");
-        } else {
-          // User needs to complete step 3
-          dispatch(setCurrentStep(3));
-          await dispatch(
-            persistSignupState({
-              currentStep: 3,
-              isSignupInProgress: true,
-            }),
-          );
-          router.push("/(auth)/signup-step3");
-        }
+        router.push("/(auth)/signup-step3");
       } else {
         setErrorMessage("Verification failed. Please try again.");
         setLoading(false);
@@ -162,7 +148,6 @@ export default function SignupStep2Screen() {
       });
 
       if (error) {
-        console.error("Resend error:", error);
         setErrorMessage(
           error.message || "Failed to resend code. Please try again.",
         );

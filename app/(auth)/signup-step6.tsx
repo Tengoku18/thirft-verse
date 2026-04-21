@@ -6,14 +6,7 @@ import { Button } from "@/components/ui/Button/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { supabase } from "@/lib/supabase";
-import {
-  clearPersistedSignupState,
-  completeSignup,
-  fetchUserProfile,
-  persistSignupState,
-  setCurrentStep,
-  setFormData,
-} from "@/store";
+import { fetchUserProfile } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
@@ -46,9 +39,6 @@ export default function SignupStep6Screen() {
   const signupState = useAppSelector((state) => state.signup);
 
   const handleBack = () => {
-    // Decrement step and navigate to previous step
-    dispatch(setCurrentStep(5));
-    dispatch(persistSignupState({ currentStep: 5, isSignupInProgress: true }));
     router.push("/(auth)/signup-step5");
   };
 
@@ -121,36 +111,28 @@ export default function SignupStep6Screen() {
         return;
       }
 
-      // Update referral code if provided
+      // Save referral code if provided, and mark signup as complete in DB
+      const profileUpdate: Record<string, any> = {
+        signup_step: 6,
+        auth_completed: true,
+      };
       if (referralCode?.trim()) {
-        const { error } = await supabase
-          .from("profiles")
-          .update({
-            referral_code_used: referralCode.trim().toUpperCase(),
-          })
-          .eq("id", user.id);
-
-        if (error) {
-          console.error("Failed to save referral code:", error);
-          setGeneralError("Failed to save referral code. Please try again.");
-          setLoading(false);
-          return;
-        }
+        profileUpdate.referral_code_used = referralCode.trim().toUpperCase();
       }
 
-      // Save to Redux
-      dispatch(
-        setFormData({
-          referralCode: referralCode?.trim() || "",
-        }),
-      );
+      const { error } = await supabase
+        .from("profiles")
+        .update(profileUpdate)
+        .eq("id", user.id);
 
-      // Refetch profile
+      if (error) {
+        console.error("Failed to complete signup:", error);
+        setGeneralError("Failed to complete signup. Please try again.");
+        setLoading(false);
+        return;
+      }
+
       await dispatch(fetchUserProfile(user.id));
-
-      // Complete signup
-      dispatch(completeSignup());
-      await dispatch(clearPersistedSignupState());
 
       router.replace("/(auth)/signup-success");
     } catch (error) {
@@ -175,9 +157,19 @@ export default function SignupStep6Screen() {
         return;
       }
 
-      // Complete signup without referral code
-      dispatch(completeSignup());
-      await dispatch(clearPersistedSignupState());
+      const { error } = await supabase
+        .from("profiles")
+        .update({ signup_step: 6, auth_completed: true })
+        .eq("id", user.id);
+
+      if (error) {
+        console.error("Failed to complete signup:", error);
+        setGeneralError("Failed to complete signup. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      await dispatch(fetchUserProfile(user.id));
 
       router.replace("/(auth)/signup-success");
     } catch (error) {
