@@ -1,161 +1,113 @@
-import { BodyMediumText, HeadingBoldText } from "@/components/Typography";
-import { useAuth } from "@/contexts/AuthContext";
-import { loadSignupState } from "@/store";
+import { CompleteYourProfileModal } from "@/components/modals/CompleteYourProfileModal";
+import { initializeApp, loadFromProfile, setProfile, setUser } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { Redirect } from "expo-router";
+import { router } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { View } from "react-native";
 
 type AppStatus =
-  | "initializing" // Checking auth state
-  | "checking_profile" // User authenticated, checking profile
-  | "checking_signup" // Checking if signup is in progress
-  | "signup_incomplete" // Signup in progress, redirect to appropriate step
-  | "profile_incomplete" // Profile exists but incomplete
-  | "ready" // All checks passed
-  | "unauthenticated"; // No user session
+  | "initializing"
+  | "oauth_profile_setup"
+  | "signup_incomplete"
+  | "profile_incomplete"
+  | "ready"
+  | "unauthenticated";
 
 export default function Index() {
   const dispatch = useAppDispatch();
-  const { user, loading: authLoading } = useAuth();
-  const profile = useAppSelector((state) => state.profile.profile);
-  const profileLoading = useAppSelector((state) => state.profile.loading);
-  const signupState = useAppSelector((state) => state.signup);
   const [appStatus, setAppStatus] = useState<AppStatus>("initializing");
-  const [statusMessage, setStatusMessage] = useState("Starting up...");
-  const [signupLoaded, setSignupLoaded] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+  const [showCompleteProfileModal, setShowCompleteProfileModal] =
+    useState(false);
+  const [nextSignupStep, setNextSignupStep] = useState(2);
 
-  // Load signup state on mount
+  // Keep profile reference for routing
+  const profile = useAppSelector((state) => state.profile.profile);
+
+  // ──────────────────────────────────────────────────────────────
+  // INITIALIZE APP ON MOUNT
+  // ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    const loadState = async () => {
-      await dispatch(loadSignupState());
-      setSignupLoaded(true);
+    const initApp = async () => {
+      try {
+        console.log("\n🎯 Calling initialization thunk from Index...\n");
+
+        // Dispatch the initialization thunk which fetches user and profile
+        const result = await dispatch(initializeApp()).unwrap();
+
+        console.log(`\n📍 Initialization complete. Status: ${result.status}\n`);
+
+        // Store user and profile in Redux for app-wide access
+        if (result.user) {
+          dispatch(setUser(result.user));
+        }
+        if (result.profile) {
+          dispatch(setProfile(result.profile));
+          // Load profile data into signup Redux slice for form restoration on back navigation
+          console.log(
+            "[Index] Loading profile data into signup Redux:",
+            result.profile.store_username,
+          );
+          dispatch(loadFromProfile(result.profile));
+        }
+
+        setAppStatus(result.status as AppStatus);
+        setInitialized(true);
+      } catch (error) {
+        console.error("❌ Initialization failed:", error);
+        setAppStatus("unauthenticated");
+        setInitialized(true);
+      }
     };
-    loadState();
+
+    initApp();
   }, [dispatch]);
 
+  // ──────────────────────────────────────────────────────────────
+  // NAVIGATE BASED ON APP STATUS
+  // ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    const determineStatus = async () => {
-      // Step 0: Wait for signup state to load
-      if (!signupLoaded) {
-        setAppStatus("initializing");
-        setStatusMessage("Starting up...");
-        return;
-      }
+    if (!initialized) return;
 
-      // Step 1: Check auth state
-      if (authLoading) {
-        setAppStatus("initializing");
-        setStatusMessage("Checking authentication...");
-        return;
-      }
+    const navigate = async () => {
+      console.log(`\n🚦 Navigating based on status: ${appStatus}\n`);
 
-      // Step 2: No user - redirect to signin
-      // (No need to check signup state - signin will handle unverified email redirect)
-      if (!user) {
-        setAppStatus("unauthenticated");
-        setStatusMessage("Please sign in");
-        return;
+      if (appStatus === "unauthenticated") {
+        await SplashScreen.hideAsync();
+        router.replace("/(auth)/signin");
+      } else if (appStatus === "oauth_profile_setup") {
+        await SplashScreen.hideAsync();
+        router.replace("/(auth)/google-profile-setup");
+      } else if (appStatus === "signup_incomplete" && profile) {
+        // Show "Complete Your Profile" modal, then redirect to next incomplete step
+        const nextStep = Math.min(
+          6,
+          Math.max(2, (profile.signup_step ?? 1) + 1),
+        );
+        setNextSignupStep(nextStep);
+        setShowCompleteProfileModal(true);
+        await SplashScreen.hideAsync();
+      } else if (appStatus === "profile_incomplete") {
+        await SplashScreen.hideAsync();
+        router.replace("/(auth)/google-profile-setup");
+      } else if (appStatus === "ready") {
+        await SplashScreen.hideAsync();
+        router.replace("/(tabs)/home");
       }
-
-      // Step 3: User exists but might be in signup flow
-      // If signup is in progress, route to the saved step.
-      if (
-        signupState.isSignupInProgress &&
-        signupState.currentStep >= 2 &&
-        signupState.currentStep <= 4
-      ) {
-        setAppStatus("signup_incomplete");
-        setStatusMessage("Completing your signup...");
-        return;
-      }
-
-      // Step 4: User exists, check profile
-      if (profileLoading) {
-        setAppStatus("checking_profile");
-        setStatusMessage("Loading your profile...");
-        return;
-      }
-
-      // Step 5: Check if profile exists
-      if (!profile) {
-        setAppStatus("profile_incomplete");
-        setStatusMessage("Setting up your store...");
-        return;
-      }
-
-      // Step 6: Check required profile fields
-      const isProfileComplete = profile.name && profile.store_username;
-      if (!isProfileComplete) {
-        setAppStatus("profile_incomplete");
-        setStatusMessage("Complete your profile to continue");
-        return;
-      }
-
-      // All checks passed
-      setAppStatus("ready");
-      setStatusMessage("Welcome back!");
     };
 
-    determineStatus();
-  }, [authLoading, user, profileLoading, profile, signupState, signupLoaded]);
+    navigate();
+  }, [appStatus, initialized, profile]);
 
-  // Handle redirects based on status
-  if (appStatus === "unauthenticated") {
-    return <Redirect href="/(auth)/signin" />;
-  }
-
-  if (appStatus === "signup_incomplete") {
-    if (signupState.currentStep === 2) {
-      return <Redirect href="/(auth)/signup-step2" />;
-    }
-    if (signupState.currentStep === 4) {
-      return <Redirect href="/(auth)/signup-step4" />;
-    }
-    return <Redirect href="/(auth)/signup-step3" />;
-  }
-
-  if (appStatus === "profile_incomplete") {
-    return <Redirect href={"/(auth)/google-profile-setup" as any} />;
-  }
-
-  if (appStatus === "ready") {
-    return <Redirect href="/(tabs)" />;
-  }
-
-  // Show status screen for all intermediate states
+  // Native splash screen is visible while loading — no custom UI needed
   return (
-    <View className="flex-1 bg-[#FAF7F2] justify-center items-center px-8">
-      <Animated.View
-        entering={FadeIn.duration(300)}
-        exiting={FadeOut.duration(200)}
-        className="items-center"
-      >
-        {/* Logo */}
-        <View className="w-24 h-24 rounded-full bg-[#3B2F2F] justify-center items-center mb-8">
-          <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 32 }}>
-            TV
-          </HeadingBoldText>
-        </View>
-
-        {/* App Name */}
-        <HeadingBoldText
-          style={{ fontSize: 28, color: "#3B2F2F", marginBottom: 8 }}
-        >
-          ThriftVerse
-        </HeadingBoldText>
-
-        {/* Status Message */}
-        <BodyMediumText
-          style={{ color: "#6B7280", marginBottom: 24, textAlign: "center" }}
-        >
-          {statusMessage}
-        </BodyMediumText>
-
-        {/* Loading Indicator */}
-        <ActivityIndicator size="large" color="#3B2F2F" />
-      </Animated.View>
+    <View>
+      <CompleteYourProfileModal
+        visible={showCompleteProfileModal}
+        nextStep={nextSignupStep}
+        onClose={() => setShowCompleteProfileModal(false)}
+      />
     </View>
   );
 }

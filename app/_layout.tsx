@@ -21,9 +21,11 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import "../global.css";
 
+import { ForceUpdateModal } from "@/components/modals/ForceUpdateModal";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useVersionCheck } from "@/hooks/useVersionCheck";
 import {
   addNotificationReceivedListener,
   addNotificationResponseReceivedListener,
@@ -68,6 +70,7 @@ function handleNotificationNavigation(data: Record<string, string>) {
 
 export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
+  const { needsUpdate } = useVersionCheck();
   // Initialize push notifications on app launch (request permission + get token)
   useEffect(() => {
     initializePushNotifications();
@@ -142,24 +145,20 @@ export default Sentry.wrap(function RootLayout() {
     NunitoSans_900Black,
   });
 
-  useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
   if (!fontsLoaded) {
     return null;
   }
 
   return (
     <SafeAreaProvider>
+      <ForceUpdateModal visible={needsUpdate} />
       <Provider store={store}>
         <AuthProvider>
           <ToastProvider>
             <ThemeProvider
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
+              <StatusBar style="dark" />
               <Stack>
                 <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -172,14 +171,6 @@ export default Sentry.wrap(function RootLayout() {
                 />
                 <Stack.Screen
                   name="policies"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="edit-profile"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="change-password"
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen
@@ -218,8 +209,15 @@ export default Sentry.wrap(function RootLayout() {
                   name="founder-circle"
                   options={{ headerShown: false }}
                 />
+                <Stack.Screen
+                  name="earnings"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="performance"
+                  options={{ headerShown: false }}
+                />
               </Stack>
-              <StatusBar style="dark" />
             </ThemeProvider>
           </ToastProvider>
         </AuthProvider>

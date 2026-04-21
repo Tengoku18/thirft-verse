@@ -25,6 +25,7 @@ export const Colors = {
     icon: accent1, // Muted olive icons
     tabIconDefault: border, // Subtle neutral for inactive tabs
     tabIconSelected: secondary, // Warm tan for active tabs
+    border: "#3b303033",
   },
   dark: {
     text: background, // Light text on dark background
@@ -33,7 +34,18 @@ export const Colors = {
     icon: accent2, // Clay blush icons
     tabIconDefault: border, // Subtle neutral for inactive tabs
     tabIconSelected: accent2, // Clay blush for active tabs
+    border: "#3b303033",
   },
+};
+
+// Input Field Color Palette
+export const INPUT_COLORS = {
+  label: "#3B3030", // Label text 100%
+  border: "#3b303033", // Border 20%
+  borderFocus: "#3B3030", // Border on focus 100%
+  placeholder: "#3b303066", // Placeholder 40%
+  text: "#3B3030", // Input text 100%
+  icon: "#3b303099", // Icon 60%
 };
 
 export const Fonts = Platform.select({
@@ -233,3 +245,23 @@ export const typography = {
     color: primary,
   },
 };
+
+// Typography Intent Variants - Used by Typography component for semantic styling
+export type TextIntent =
+  | "default"
+  | "success"
+  | "error"
+  | "warning"
+  | "info"
+  | "muted"
+  | "inverse";
+
+export const TYPOGRAPHY_VARIANTS: Record<TextIntent, string> = {
+  default: "text-semantic-text-primary dark:text-semantic-text-inverse",
+  success: "text-status-success",
+  error: "text-status-error",
+  warning: "text-status-warning",
+  info: "text-status-info",
+  muted: "text-semantic-text-secondary",
+  inverse: "text-semantic-text-inverse",
+} as const;

@@ -1,19 +1,11 @@
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
+import { BlurModal } from "@/components/ui/BlurModal";
+import { Button } from "@/components/ui/Button";
+import { Link } from "@/components/ui/Link";
+import { Typography } from "@/components/ui/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import React from "react";
-import {
-  Image,
-  Modal,
-  Pressable,
-  Share,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { getProductImageUrl } from "@/lib/storage-helpers";
+import React, { ReactNode, useEffect, useRef } from "react";
+import { Animated, Image, View } from "react-native";
 
 interface ProductSuccessModalProps {
   visible: boolean;
@@ -24,244 +16,240 @@ interface ProductSuccessModalProps {
     cover_image: string;
   } | null;
   storeUsername?: string;
-  onShare: () => void;
-  onViewProduct: () => void;
+  children?: ReactNode;
+  /** "Add Another Product" — resets form and closes */
   onClose: () => void;
+  /** "View My Products" — navigates to seller's products list */
+  onViewMyProducts: () => void;
+  /** "View on Marketplace" — navigates to the product page */
+  onViewProduct: () => void;
 }
 
 export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
   visible,
   product,
   storeUsername,
-  onShare,
-  onViewProduct,
+  children,
   onClose,
+  onViewMyProducts,
 }) => {
-  const handleShare = async () => {
-    if (!product) return;
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-    try {
-      const productUrl = storeUsername
-        ? `https://${storeUsername}.thriftverse.shop/product/${product.id}`
-        : `https://thriftverse.shop/product/${product.id}`;
-      await Share.share({
-        message: `Check out "${product.title}" on Thriftverse!\n\n${productUrl}`,
-        title: product.title,
-      });
-      onShare();
-    } catch (error) {
-      console.error("Error sharing:", error);
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          tension: 60,
+          friction: 10,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 280,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      scaleAnim.setValue(0);
+      fadeAnim.setValue(0);
     }
-  };
+  }, [visible, scaleAnim, fadeAnim]);
 
-  const displayStoreDomain = storeUsername
-    ? `${storeUsername}.thriftverse.com`
-    : "your-store.thriftverse.com";
+  const marketplaceUrl = product
+    ? storeUsername
+      ? `https://${storeUsername}.thriftverse.shop/product/${product.id}`
+      : `https://thriftverse.shop/product/${product.id}`
+    : "https://thriftverse.shop";
+
+  const coverUri = product?.cover_image
+    ? getProductImageUrl(product.cover_image)
+    : null;
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <Pressable
-        className="flex-1 bg-black/50 justify-center items-center px-6"
-        onPress={onClose}
-      >
-        <Pressable
-          className="bg-white rounded-3xl w-full max-w-sm overflow-hidden"
-          onPress={(e) => e.stopPropagation()}
-        >
-          {/* Product Image */}
-          {product && (
-            <Image
-              source={{ uri: product.cover_image }}
-              style={{ width: "100%", height: 200 }}
-              resizeMode="cover"
-            />
-          )}
-
-          {/* Content */}
-          <View className="p-6">
-            {/* Success Icon */}
-            <View className="items-center mb-4">
-              <View
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 28,
-                  backgroundColor: "#10B981",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginTop: -52,
-                  borderWidth: 4,
-                  borderColor: "#FFFFFF",
-                }}
-              >
-                <IconSymbol name="checkmark" size={28} color="#FFFFFF" />
-              </View>
-            </View>
-
-            <HeadingBoldText
-              className="text-center mb-2"
-              style={{ fontSize: 20 }}
-            >
-              Product Listed!
-            </HeadingBoldText>
-
-            {product && (
-              <View className="items-center mb-4">
-                <BodySemiboldText
-                  className="text-center"
-                  style={{ color: "#3B2F2F" }}
-                >
-                  {product.title}
-                </BodySemiboldText>
-                <BodyRegularText style={{ color: "#6B7280", marginTop: 4 }}>
-                  NPR {product.price.toLocaleString()}
-                </BodyRegularText>
-              </View>
-            )}
-
+    <BlurModal visible={visible} onDismiss={onClose}>
+      <View className="w-full">
+        {/* Animated success badge — overlaps card top */}
+        <View className="items-center">
+          <Animated.View
+            style={{
+              transform: [{ scale: scaleAnim }],
+              opacity: fadeAnim,
+              zIndex: 10,
+              marginBottom: -38,
+            }}
+          >
             <View
               style={{
-                borderWidth: 1,
-                borderColor: "#E2E8F0",
-                borderRadius: 12,
-                overflow: "hidden",
-                marginTop: 8,
-                marginBottom: 20,
-                backgroundColor: "#FFFFFF",
+                width: 76,
+                height: 76,
+                borderRadius: 38,
+                backgroundColor: "#DCFCE7",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 4,
+                borderColor: "#FFFFFF",
+                shadowColor: "#16A34A",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.18,
+                shadowRadius: 10,
+                elevation: 6,
               }}
             >
+              <IconSymbol
+                name="checkmark.circle.fill"
+                size={52}
+                color="#16A34A"
+              />
+            </View>
+          </Animated.View>
+        </View>
+
+        {/* Card */}
+        <View
+          className="w-full bg-white rounded-3xl pt-14 pb-6 px-6"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.08,
+            shadowRadius: 20,
+            elevation: 8,
+          }}
+        >
+          {/* Heading */}
+          <Typography
+            variation="h2"
+            className="text-center mb-1.5"
+            style={{ color: "#3B2F2F", fontSize: 24 }}
+          >
+            Product Listed!
+          </Typography>
+
+          {/* Subheading */}
+          <Typography
+            variation="body-sm"
+            className="text-center mb-6"
+            style={{ color: "rgba(59,47,47,0.55)", lineHeight: 20 }}
+          >
+            Your item is live on your store.{"\n"}Admin approval required to show on marketplace.
+          </Typography>
+
+          {/* Product preview */}
+          {product && !children && (
+            <View
+              className="flex-row items-center gap-3 p-3 rounded-2xl mb-5"
+              style={{ backgroundColor: "#FAF7F2" }}
+            >
+              {/* Thumbnail */}
               <View
+                className="w-[60px] h-[60px] rounded-xl overflow-hidden flex-shrink-0"
                 style={{
-                  flexDirection: "row",
-                  alignItems: "flex-start",
-                  gap: 10,
-                  padding: 12,
-                  backgroundColor: "#F8FAFC",
+                  borderWidth: 1,
+                  borderColor: "rgba(59,47,47,0.08)",
                 }}
               >
-                <View
-                  style={{
-                    width: 26,
-                    height: 26,
-                    borderRadius: 13,
-                    backgroundColor: "#DBEAFE",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    marginTop: 1,
-                  }}
-                >
-                  <IconSymbol name="storefront" size={12} color="#1D4ED8" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <CaptionText style={{ color: "#475569", lineHeight: 18 }}>
-                    The product will be visible on your store (
-                    {displayStoreDomain}) immediately.
-                  </CaptionText>
-                </View>
+                {coverUri ? (
+                  <Image
+                    source={{ uri: coverUri }}
+                    style={{ width: "100%", height: "100%" }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View
+                    className="w-full h-full items-center justify-center"
+                    style={{ backgroundColor: "rgba(59,47,47,0.06)" }}
+                  >
+                    <IconSymbol
+                      name="bag.fill"
+                      size={26}
+                      color="rgba(59,47,47,0.22)"
+                    />
+                  </View>
+                )}
               </View>
 
-              <View style={{ height: 1, backgroundColor: "#E2E8F0" }} />
+              {/* Info */}
+              <View className="flex-1" style={{ gap: 4 }}>
+                <Typography
+                  variation="label"
+                  numberOfLines={2}
+                  style={{ color: "#3B2F2F", fontSize: 14, lineHeight: 19 }}
+                >
+                  {product.title}
+                </Typography>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "flex-start",
-                  gap: 10,
-                  padding: 12,
-                  backgroundColor: "#FFFFFF",
-                }}
-              >
-                <View
+                <Typography
+                  variation="label"
                   style={{
-                    width: 26,
-                    height: 26,
-                    borderRadius: 13,
-                    backgroundColor: "#F1F5F9",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    marginTop: 1,
+                    color: "#D4A373",
+                    fontSize: 14,
+                    fontWeight: "700",
                   }}
                 >
-                  <IconSymbol name="clock" size={12} color="#475569" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <CaptionText style={{ color: "#475569", lineHeight: 18 }}>
-                    It will appear on the main marketplace (thriftverse.com)
-                    after it is verified by our team.
-                  </CaptionText>
+                  रु {product.price.toLocaleString("en-IN")}
+                </Typography>
+
+                {/* Status pill */}
+                <View
+                  className="self-start px-2 py-0.5 rounded-md"
+                  style={{ backgroundColor: "#DCFCE7" }}
+                >
+                  <Typography
+                    variation="caption"
+                    style={{ color: "#15803D", fontSize: 11, fontWeight: "600" }}
+                  >
+                    Pending Approval
+                  </Typography>
                 </View>
               </View>
             </View>
+          )}
 
-            {/* Action Buttons */}
-            <View style={{ gap: 12 }}>
-              {/* Share Button */}
-              <TouchableOpacity
-                onPress={handleShare}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#3B2F2F",
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  gap: 8,
-                }}
-                activeOpacity={0.8}
-              >
-                <IconSymbol
-                  name="square.and.arrow.up"
-                  size={18}
-                  color="#FFFFFF"
-                />
-                <BodySemiboldText style={{ color: "#FFFFFF" }}>
-                  Share Product
-                </BodySemiboldText>
-              </TouchableOpacity>
+          {/* Custom slot */}
+          {children && (
+            <View className="items-center mb-5">{children}</View>
+          )}
 
-              {/* View Product Button */}
-              <TouchableOpacity
-                onPress={onViewProduct}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#F3F4F6",
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  gap: 8,
-                }}
-                activeOpacity={0.8}
-              >
-                <IconSymbol name="eye" size={18} color="#3B2F2F" />
-                <BodySemiboldText style={{ color: "#3B2F2F" }}>
-                  View Product
-                </BodySemiboldText>
-              </TouchableOpacity>
+          {/* Divider */}
+          <View
+            className="mb-5"
+            style={{ height: 1, backgroundColor: "rgba(59,47,47,0.07)" }}
+          />
 
-              {/* Done Button */}
-              <TouchableOpacity
-                onPress={onClose}
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingVertical: 12,
-                }}
-                activeOpacity={0.7}
-              >
-                <BodyRegularText style={{ color: "#6B7280" }}>
-                  Done
-                </BodyRegularText>
-              </TouchableOpacity>
+          {/* Actions */}
+          <View style={{ gap: 10 }}>
+            <Button
+              label="Add Another Product"
+              variant="primary"
+              size="large"
+              onPress={onClose}
+              fullWidth
+              noShadow
+            />
+
+            <Button
+              label="View My Products"
+              variant="tertiary"
+              size="large"
+              onPress={onViewMyProducts}
+              fullWidth
+              noShadow
+            />
+
+            <View className="items-center pt-1">
+              <Link
+                label="View on your website →"
+                href={marketplaceUrl}
+                type="external"
+                variant="secondary"
+                underline={false}
+                typographyVariation="body-sm"
+              />
             </View>
           </View>
-        </Pressable>
-      </Pressable>
-    </Modal>
+        </View>
+      </View>
+    </BlurModal>
   );
 };

@@ -3,6 +3,7 @@ import authReducer from './authSlice';
 import notificationsReducer from './notificationsSlice';
 import productsReducer from './productsSlice';
 import profileReducer from './profileSlice';
+import reportIssueReducer from './reportIssueSlice';
 import signupReducer from './signupSlice';
 
 export const store = configureStore({
@@ -12,6 +13,7 @@ export const store = configureStore({
     signup: signupReducer,
     products: productsReducer,
     notifications: notificationsReducer,
+    reportIssue: reportIssueReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

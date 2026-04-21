@@ -55,7 +55,8 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
         const commentsArray = Array.isArray(result.data) ? result.data : [];
         // Sort by added_time descending (newest first)
         const sorted = commentsArray.sort(
-          (a, b) => new Date(b.added_time).getTime() - new Date(a.added_time).getTime()
+          (a, b) =>
+            new Date(b.added_time).getTime() - new Date(a.added_time).getTime(),
         );
         setComments(sorted);
       }
@@ -130,9 +131,11 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
   };
 
   return (
-    <View className="mx-4 mt-5">
+    <View className="mt-4">
       {/* Section Header */}
-      <BodySemiboldText style={{ fontSize: 15, marginBottom: 10, color: "#374151" }}>
+      <BodySemiboldText
+        style={{ fontSize: 15, marginBottom: 10, color: "#374151" }}
+      >
         NCM Comments
       </BodySemiboldText>
 
@@ -154,7 +157,12 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
           activeOpacity={0.7}
         >
           <View className="flex-row items-center">
-            <IconSymbol name="bubble.left.fill" size={16} color="#9CA3AF" style={{ marginRight: 10 }} />
+            <IconSymbol
+              name="bubble.left.fill"
+              size={16}
+              color="#9CA3AF"
+              style={{ marginRight: 10 }}
+            />
             <BodyRegularText style={{ color: "#6B7280", fontSize: 14 }}>
               Communication with NCM
             </BodyRegularText>
@@ -184,7 +192,11 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
             <View className="px-4 py-3" style={{ backgroundColor: "#F9FAFB" }}>
               <View
                 className="flex-row items-end rounded-xl overflow-hidden"
-                style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E5E7EB" }}
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  borderWidth: 1,
+                  borderColor: "#E5E7EB",
+                }}
               >
                 <TextInput
                   value={newComment}
@@ -214,11 +226,17 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
                   {submitting ? (
                     <ActivityIndicator size="small" color="#3B82F6" />
                   ) : (
-                    <IconSymbol name="paperplane.fill" size={18} color="#3B82F6" />
+                    <IconSymbol
+                      name="paperplane.fill"
+                      size={18}
+                      color="#3B82F6"
+                    />
                   )}
                 </TouchableOpacity>
               </View>
-              <CaptionText style={{ color: "#9CA3AF", marginTop: 4, textAlign: "right" }}>
+              <CaptionText
+                style={{ color: "#9CA3AF", marginTop: 4, textAlign: "right" }}
+              >
                 {newComment.length}/500
               </CaptionText>
             </View>
@@ -234,7 +252,11 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
                 </View>
               ) : comments.length === 0 ? (
                 <View className="py-6 items-center">
-                  <IconSymbol name="bubble.left.and.bubble.right" size={32} color="#D1D5DB" />
+                  <IconSymbol
+                    name="bubble.left.and.bubble.right"
+                    size={32}
+                    color="#D1D5DB"
+                  />
                   <CaptionText style={{ color: "#9CA3AF", marginTop: 8 }}>
                     No comments yet
                   </CaptionText>
@@ -259,7 +281,12 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
                             className="px-2 py-0.5 rounded-full"
                             style={{ backgroundColor: authorConfig.bgColor }}
                           >
-                            <CaptionText style={{ color: authorConfig.color, fontSize: 11 }}>
+                            <CaptionText
+                              style={{
+                                color: authorConfig.color,
+                                fontSize: 11,
+                              }}
+                            >
                               {authorConfig.label}
                             </CaptionText>
                           </View>
@@ -269,7 +296,13 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
                         </View>
 
                         {/* Comment Content */}
-                        <BodyRegularText style={{ color: "#374151", fontSize: 14, lineHeight: 20 }}>
+                        <BodyRegularText
+                          style={{
+                            color: "#374151",
+                            fontSize: 14,
+                            lineHeight: 20,
+                          }}
+                        >
                           {comment.comments}
                         </BodyRegularText>
                       </View>
@@ -277,7 +310,6 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
                   })}
                 </View>
               )}
-
             </View>
           </View>
         )}

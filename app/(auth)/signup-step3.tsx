@@ -1,31 +1,40 @@
-import { FormButton } from "@/components/atoms/FormButton";
-import { FormInput } from "@/components/atoms/FormInput";
-import { AuthHeader } from "@/components/navigation/AuthHeader";
-import {
-  BodyRegularText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { applyReferralCode } from "@/lib/database-helpers";
+import { SellerTypeCard } from "@/components/atoms/SellerTypeCard";
+import HangerIcon from "@/components/icons/ClosetIcon";
+import ShopIcon from "@/components/icons/StoreIcon";
+import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
+import { Button } from "@/components/ui/Button";
+import { Stepper } from "@/components/ui/Stepper/Stepper";
+import { Typography } from "@/components/ui/Typography/Typography";
 import { supabase } from "@/lib/supabase";
-import { persistSignupState, setCurrentStep } from "@/store";
-import { useAppDispatch } from "@/store/hooks";
+import { setFormData } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { KeyboardAvoidingView, Platform, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 export default function SignupStep3Screen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const signupState = useAppSelector((state) => state.signup);
 
-  const [referralCode, setReferralCode] = useState("");
+  const [selectedType, setSelectedType] = useState<"store" | "closet" | "">(
+    signupState.formData.sellerType || "",
+  );
   const [loading, setLoading] = useState(false);
-  const [referralError, setReferralError] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleBack = () => {
+    router.push("/(auth)/signup-step1");
+  };
 
   const handleContinue = async () => {
+    if (!selectedType) {
+      setErrorMessage("Please select a seller type to continue");
+      return;
+    }
+
     setLoading(true);
-    setReferralError("");
+    setErrorMessage(null);
 
     try {
       const {
@@ -33,142 +42,109 @@ export default function SignupStep3Screen() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setReferralError("User not found. Please sign in again.");
+        setErrorMessage("User not found. Please sign in again.");
         setLoading(false);
         return;
       }
 
-      if (referralCode.trim()) {
-        const referralResult = await applyReferralCode(
-          referralCode.trim(),
-          user.id,
-          user.email ?? "",
-        );
+      const { error } = await supabase
+        .from("profiles")
+        .update({ seller_type: selectedType, signup_step: 3 })
+        .eq("id", user.id);
 
-        if (!referralResult.success) {
-          setReferralError(
-            referralResult.error || "Failed to apply referral code.",
-          );
-          setLoading(false);
-          return;
-        }
+      if (error) {
+        console.error("Failed to save seller type:", error);
+        setErrorMessage("Failed to save seller type. Please try again.");
+        setLoading(false);
+        return;
       }
 
-      dispatch(setCurrentStep(4));
-      await dispatch(
-        persistSignupState({
-          currentStep: 4,
-          isSignupInProgress: true,
-        }),
-      );
+      dispatch(setFormData({ sellerType: selectedType }));
+
       router.push("/(auth)/signup-step4");
     } catch (error) {
-      console.error("Error applying referral code:", error);
-      setReferralError("Failed to apply referral code. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSkip = async () => {
-    setLoading(true);
-    setReferralError("");
-
-    try {
-      dispatch(setCurrentStep(4));
-      await dispatch(
-        persistSignupState({
-          currentStep: 4,
-          isSignupInProgress: true,
-        }),
-      );
-      router.push("/(auth)/signup-step4");
-    } catch (error) {
-      console.error("Error moving to payment step:", error);
-      setReferralError("Failed to continue. Please try again.");
-    } finally {
+      console.error("Error in signup-step3:", error);
+      setErrorMessage("An unexpected error occurred. Please try again.");
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
+    <AuthScreenLayout
+      showHeader
+      headerTitle="Seller Type"
+      showScrollView={false}
+      onBack={handleBack}
     >
-      <View className="flex-1 px-6 pt-12 pb-8">
-        <AuthHeader title="Referral Code" onBack={() => router.back()} />
+      <Stepper title="Seller Type" currentStep={3} totalSteps={6} />
 
-        <View className="mb-8">
-          <CaptionText
-            className="mb-2 tracking-widest uppercase"
-            style={{ color: "#6B7280", fontWeight: "600", fontSize: 11 }}
-          >
-            Step 3 of 4
-          </CaptionText>
-          <HeadingBoldText
-            className="leading-tight mb-2"
-            style={{ fontSize: 32 }}
-          >
-            Got a Referral Code?
-          </HeadingBoldText>
-          <BodyRegularText
-            className="leading-relaxed"
-            style={{ color: "#6B7280", fontSize: 15 }}
-          >
-            Enter it now to connect your signup with the person who referred you
-          </BodyRegularText>
-        </View>
-
-        <View className="flex-1">
-          <View className="mb-6 p-4 bg-[#ECFDF5] rounded-2xl border-[2px] border-[#A7F3D0]">
-            <View className="flex-row items-start">
-              <IconSymbol name="gift.fill" size={20} color="#059669" />
-              <BodyRegularText
-                className="ml-3 flex-1 leading-5"
-                style={{ color: "#065F46", fontSize: 13 }}
+      <View className="flex-1">
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="px-6">
+            <View className="mb-8">
+              <Typography variation="h1" className="text-center py-4">
+                How do you want to sell?
+              </Typography>
+              <Typography
+                variation="body"
+                className="text-slate-500 text-center"
               >
-                If a friend invited you, enter their code here so they get
-                referral credit.
-              </BodyRegularText>
+                Choose the seller profile that fits your goals.
+              </Typography>
             </View>
-          </View>
 
-          <FormInput
-            label="Referral Code (Optional)"
-            placeholder="Enter referral code"
-            value={referralCode}
-            onChangeText={(text) => {
-              setReferralCode(text.toUpperCase());
-              if (referralError) setReferralError("");
-            }}
-            autoCapitalize="characters"
+            {/* Seller Type Options */}
+            <View className="mb-8 gap-1">
+              <SellerTypeCard
+                isSelected={selectedType === "store"}
+                onPress={() => {
+                  setSelectedType("store");
+                  setErrorMessage(null);
+                }}
+                icon={<ShopIcon />}
+                title="Open a Store"
+                description="Best for professional vintage curators, boutique owners, and regular high-volume sellers."
+              />
+
+              <SellerTypeCard
+                isSelected={selectedType === "closet"}
+                onPress={() => {
+                  setSelectedType("closet");
+                  setErrorMessage(null);
+                }}
+                icon={<HangerIcon />}
+                title="Sell Your Closet"
+                description="Perfect for liquidating your personal wardrobe and selling individual one-level items."
+              />
+            </View>
+
+            {/* Error Message */}
+            {errorMessage && (
+              <View className="mb-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                <Typography variation="body-sm" className="text-red-600">
+                  {errorMessage}
+                </Typography>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+
+        {/* Continue Button - Sticky Bottom */}
+        <View className="px-6 py-6">
+          <Button
+            label="Continue"
+            variant="primary"
+            onPress={handleContinue}
+            isLoading={loading}
+            disabled={loading || !selectedType}
+            fullWidth
           />
-
-          {!!referralError && (
-            <CaptionText className="mb-4 -mt-2" style={{ color: "#DC2626" }}>
-              {referralError}
-            </CaptionText>
-          )}
-
-          <View className="mt-auto pt-4">
-            <FormButton
-              title="Continue to Payment"
-              onPress={handleContinue}
-              loading={loading}
-              variant="primary"
-              className="mb-4"
-            />
-
-            <FormButton
-              title="I Don't Have a Code"
-              onPress={handleSkip}
-              variant="outline"
-              disabled={loading}
-            />
-          </View>
         </View>
       </View>
-    </KeyboardAvoidingView>
+    </AuthScreenLayout>
   );
 }

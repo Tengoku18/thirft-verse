@@ -3,11 +3,11 @@ import {
   BodySemiboldText,
   HeadingBoldText,
 } from "@/components/Typography";
+import { BlurModal } from "@/components/ui/BlurModal";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import React from "react";
 import {
   ActivityIndicator,
-  Modal,
   Pressable,
   TouchableOpacity,
   View,
@@ -75,16 +75,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   const displayIcon = icon || config.defaultIcon;
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onCancel}
-    >
-      <Pressable
-        className="flex-1 bg-black/50 justify-center items-center px-6"
-        onPress={onCancel}
-      >
+    <BlurModal visible={visible} onDismiss={onCancel}>
         <Pressable
           className="bg-white rounded-3xl w-full max-w-sm overflow-hidden"
           onPress={(e) => e.stopPropagation()}
@@ -170,7 +161,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             </View>
           </View>
         </Pressable>
-      </Pressable>
-    </Modal>
+    </BlurModal>
   );
 };

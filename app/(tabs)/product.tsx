@@ -1,6 +1,6 @@
-import React from 'react';
-import { ProductCreationForm } from '@/components/organisms/ProductCreationForm';
+import { AddProductForm } from "@/components/add-product";
+import React from "react";
 
 export default function ProductScreen() {
-  return <ProductCreationForm />;
+  return <AddProductForm />;
 }
