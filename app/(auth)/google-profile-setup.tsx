@@ -14,6 +14,7 @@ import {
   createUserProfile,
   verifyProfileExists,
 } from "@/lib/database-helpers";
+import { supabase } from "@/lib/supabase";
 import { fetchUserProfile, setFormData } from "@/store";
 import { useAppDispatch } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -76,13 +77,16 @@ export default function GoogleProfileSetupScreen() {
       const profileExists = await verifyProfileExists(user.id);
       if (profileExists) {
         await dispatch(fetchUserProfile(user.id));
-        router.replace("/(tabs)");
+        router.replace("/(tabs)/home");
         return;
       }
 
       // Derive a placeholder username from email — Step 4 will let user set the real one
-      const emailPrefix = user.email?.split("@")[0] || `user_${user.id.slice(0, 8)}`;
-      let placeholderUsername = emailPrefix.toLowerCase().replace(/[^a-z0-9_]/g, "_");
+      const emailPrefix =
+        user.email?.split("@")[0] || `user_${user.id.slice(0, 8)}`;
+      let placeholderUsername = emailPrefix
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, "_");
 
       // Make sure the placeholder is unique (add suffix if taken)
       const isTaken = await checkUsernameExists(placeholderUsername);
@@ -146,7 +150,10 @@ export default function GoogleProfileSetupScreen() {
               <Typography variation="h1" className="text-center py-2">
                 Welcome to ThriftVerse
               </Typography>
-              <Typography variation="body" className="text-slate-500 text-center">
+              <Typography
+                variation="body"
+                className="text-slate-500 text-center"
+              >
                 Confirm your details to get started.
               </Typography>
             </View>
