@@ -33,6 +33,8 @@ export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
       }
 
       // Launch image picker
+      // On Android: disable cropper to avoid dark UI theme
+      // On iOS: enable cropper for better UX
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,
@@ -64,6 +66,8 @@ export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
       }
 
       // Launch camera
+      // On Android: disable cropper to avoid dark UI theme
+      // On iOS: enable cropper for better UX
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [1, 1],
@@ -129,7 +133,7 @@ export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
 
         {/* Add/Edit Icon */}
         <View className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#D4A373] border-2 border-white justify-center items-center">
-          <CameraIcon size={16} color="#FFFFFF" />
+          <CameraIcon width={16} height={16} color="#FFFFFF" />
         </View>
       </TouchableOpacity>
 

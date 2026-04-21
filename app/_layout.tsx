@@ -21,9 +21,11 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import "../global.css";
 
+import { ForceUpdateModal } from "@/components/modals/ForceUpdateModal";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useVersionCheck } from "@/hooks/useVersionCheck";
 import {
   addNotificationReceivedListener,
   addNotificationResponseReceivedListener,
@@ -68,6 +70,7 @@ function handleNotificationNavigation(data: Record<string, string>) {
 
 export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
+  const { needsUpdate } = useVersionCheck();
   // Initialize push notifications on app launch (request permission + get token)
   useEffect(() => {
     initializePushNotifications();
@@ -148,6 +151,7 @@ export default Sentry.wrap(function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <ForceUpdateModal visible={needsUpdate} />
       <Provider store={store}>
         <AuthProvider>
           <ToastProvider>
