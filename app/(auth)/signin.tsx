@@ -1,8 +1,8 @@
 import { OnboardingCard } from "@/components/_atomic/OnboardingCard";
 import { LoginForm } from "@/components/forms/LoginForm";
 import { SocialAuthButton } from "@/components/forms/SocialAuthButton";
-import { CompleteYourProfileModal } from "@/components/modals/CompleteYourProfileModal";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
+import { CompleteYourProfileModal } from "@/components/modals/CompleteYourProfileModal";
 import { Link } from "@/components/ui/Link";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { useAppleSignIn } from "@/hooks/useAppleSignIn";
@@ -101,13 +101,13 @@ export default function SignInScreen() {
           // Show "Complete Your Profile" modal
           const nextStep = Math.min(
             6,
-            Math.max(2, (profile.signup_step ?? 1) + 1)
+            Math.max(2, (profile.signup_step ?? 1) + 1),
           );
           setNextSignupStep(nextStep);
           setShowCompleteProfileModal(true);
           console.log(
             "[SignIn] Signup incomplete, showing modal. Next step:",
-            nextStep
+            nextStep,
           );
           return;
         }

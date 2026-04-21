@@ -37,7 +37,7 @@ export function CompleteYourProfileModal({
 
       const targetStep = stepMap[nextStep] || "/(auth)/signup-step2";
       console.log(
-        `[CompleteYourProfileModal] Redirecting to ${targetStep} (step ${nextStep})`
+        `[CompleteYourProfileModal] Redirecting to ${targetStep} (step ${nextStep})`,
       );
       router.replace(targetStep as any);
 
@@ -66,10 +66,7 @@ export function CompleteYourProfileModal({
             >
               Complete Your Profile
             </Typography>
-            <Typography
-              variation="body"
-              className="text-center text-slate-600"
-            >
+            <Typography variation="body" className="text-center text-slate-600">
               Finish setting up your account to start using Thriftverse
             </Typography>
           </View>

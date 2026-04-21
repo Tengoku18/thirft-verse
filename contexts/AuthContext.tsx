@@ -229,10 +229,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // setSession triggers onAuthStateChange which handles Redux updates
-      const { error: sessionError, data: sessionData } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
+      const { error: sessionError, data: sessionData } =
+        await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
 
       // Check for email conflict error
       if (sessionError) {
@@ -244,7 +245,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ) {
           return {
             error: {
-              message: "Account exists with this email, please use email/password",
+              message:
+                "Account exists with this email, please use email/password",
             },
           };
         }
@@ -299,7 +301,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ) {
           return {
             error: {
-              message: "Account exists with this email, please use email/password",
+              message:
+                "Account exists with this email, please use email/password",
             },
           };
         }
@@ -393,10 +396,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // setSession triggers onAuthStateChange which handles Redux updates
-      const { error: sessionError, data: sessionData } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
+      const { error: sessionError, data: sessionData } =
+        await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
 
       // Check for email conflict error
       if (sessionError) {
@@ -408,7 +412,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ) {
           return {
             error: {
-              message: "Account exists with this email, please use email/password",
+              message:
+                "Account exists with this email, please use email/password",
             },
           };
         }

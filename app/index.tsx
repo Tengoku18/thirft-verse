@@ -1,6 +1,6 @@
+import { CompleteYourProfileModal } from "@/components/modals/CompleteYourProfileModal";
 import { initializeApp, loadFromProfile, setProfile, setUser } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { CompleteYourProfileModal } from "@/components/modals/CompleteYourProfileModal";
 import { router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
