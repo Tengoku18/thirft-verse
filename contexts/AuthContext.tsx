@@ -104,7 +104,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (err) {
         // Session restoration failed or no session exists
         const errorMessage = (err as any)?.message || String(err);
-
         if (
           errorMessage.toLowerCase().includes("no active session") ||
           errorMessage.toLowerCase().includes("not logged in")

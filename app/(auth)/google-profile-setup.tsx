@@ -1,5 +1,6 @@
 import { InfoBox } from "@/components/atoms/InfoBox";
 import { ProfileImagePicker } from "@/components/atoms/ProfileImagePicker";
+<<<<<<< HEAD
 import { RHFCheckbox, RHFInput } from "@/components/forms/ReactHookForm";
 import ForwardIcon from "@/components/icons/ForwardIcon";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
@@ -8,14 +9,27 @@ import { Input } from "@/components/ui/Input";
 import { Link } from "@/components/ui/Link";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
+=======
+import { AuthHeader } from "@/components/navigation/AuthHeader";
+import {
+  BodyRegularText,
+  CaptionText,
+  HeadingBoldText,
+} from "@/components/Typography";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+>>>>>>> 253640e330315f4769e701bd44e1cbce5cedcaff
 import { useAuth } from "@/contexts/AuthContext";
 import {
   checkUsernameExists,
   createUserProfile,
   verifyProfileExists,
 } from "@/lib/database-helpers";
+<<<<<<< HEAD
 import { supabase } from "@/lib/supabase";
 import { fetchUserProfile, setFormData } from "@/store";
+=======
+import { fetchUserProfile, persistSignupState, setCurrentStep } from "@/store";
+>>>>>>> 253640e330315f4769e701bd44e1cbce5cedcaff
 import { useAppDispatch } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
@@ -63,10 +77,59 @@ export default function GoogleProfileSetupScreen() {
 
   if (!user) return null;
 
+<<<<<<< HEAD
   const handleBack = async () => {
     await signOut();
     router.replace("/(auth)/signin");
   };
+=======
+    if (!username || username.length < 3) {
+      setUsernameStatus("idle");
+      return;
+    }
+
+    setUsernameStatus("checking");
+
+    debounceTimer.current = setTimeout(async () => {
+      try {
+        const exists = await checkUsernameExists(username);
+        setUsernameStatus(exists ? "taken" : "available");
+      } catch {
+        setUsernameStatus("idle");
+      }
+    }, 500);
+
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, [username]);
+
+  const handleSubmit = async () => {
+    if (!name.trim()) {
+      setErrorMessage("Please enter your name");
+      return;
+    }
+    if (!username.trim()) {
+      setErrorMessage("Please choose a username");
+      return;
+    }
+    if (username.length < 3) {
+      setErrorMessage("Username must be at least 3 characters");
+      return;
+    }
+    if (!/^[a-z0-9_]+$/.test(username)) {
+      setErrorMessage(
+        "Username can only contain lowercase letters, numbers, and underscores",
+      );
+      return;
+    }
+    if (usernameStatus === "taken") {
+      setErrorMessage("This username is already taken");
+      return;
+    }
+>>>>>>> 253640e330315f4769e701bd44e1cbce5cedcaff
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
@@ -120,6 +183,17 @@ export default function GoogleProfileSetupScreen() {
         .update({ signup_step: 2 })
         .eq("id", user.id);
 
+<<<<<<< HEAD
+=======
+      // Continue with dedicated referral step
+      dispatch(setCurrentStep(3));
+      await dispatch(
+        persistSignupState({
+          currentStep: 3,
+          isSignupInProgress: true,
+        }),
+      );
+>>>>>>> 253640e330315f4769e701bd44e1cbce5cedcaff
       router.replace("/(auth)/signup-step3");
     } catch (error) {
       console.error("💥 Error in google-profile-setup:", error);
@@ -158,6 +232,7 @@ export default function GoogleProfileSetupScreen() {
               </Typography>
             </View>
 
+<<<<<<< HEAD
             {/* Profile Image */}
             <View className="mb-6">
               <ProfileImagePicker
@@ -165,6 +240,19 @@ export default function GoogleProfileSetupScreen() {
                 onChange={setProfileImage}
               />
             </View>
+=======
+            {/* Address Field */}
+            <FormInput
+              label="Address"
+              placeholder="Enter your address"
+              autoCapitalize="words"
+              value={address}
+              onChangeText={(text) => {
+                setAddress(text);
+                if (errorMessage) setErrorMessage(null);
+              }}
+            />
+>>>>>>> 253640e330315f4769e701bd44e1cbce5cedcaff
 
             {/* Error */}
             {errorMessage && (

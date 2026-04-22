@@ -151,10 +151,16 @@ export default function ProductDetailScreen() {
     return (
       <SafeAreaView className="flex-1 bg-[#F5F5F5] justify-center items-center px-6">
         <IconSymbol name="exclamationmark.triangle" size={48} color="#9CA3AF" />
-        <Typography variation="h3" className="text-brand-espresso mt-4 text-center">
+        <Typography
+          variation="h3"
+          className="text-brand-espresso mt-4 text-center"
+        >
           Product Not Found
         </Typography>
-        <Typography variation="body-sm" className="text-ui-secondary mt-2 text-center">
+        <Typography
+          variation="body-sm"
+          className="text-ui-secondary mt-2 text-center"
+        >
           This product may have been removed or is no longer available.
         </Typography>
         <TouchableOpacity
@@ -220,7 +226,11 @@ export default function ProductDetailScreen() {
             className="flex-row items-center gap-1.5 px-3 py-1 rounded-full"
             style={{ backgroundColor: currentStatus.bg }}
           >
-            <IconSymbol name="checkmark.circle.fill" size={14} color={currentStatus.text} />
+            <IconSymbol
+              name="checkmark.circle.fill"
+              size={14}
+              color={currentStatus.text}
+            />
             <Typography
               variation="caption"
               style={{ color: currentStatus.text, fontWeight: "700" }}
@@ -230,7 +240,10 @@ export default function ProductDetailScreen() {
           </View>
           <Typography variation="body-sm" className="text-ui-secondary">
             Category:{" "}
-            <Typography variation="body-sm" className="text-brand-tan font-semibold">
+            <Typography
+              variation="body-sm"
+              className="text-brand-tan font-semibold"
+            >
               {product.category}
             </Typography>
           </Typography>
@@ -238,7 +251,10 @@ export default function ProductDetailScreen() {
 
         {/* Title + Price */}
         <View className="gap-1">
-          <Typography variation="h2" className="text-brand-espresso leading-tight">
+          <Typography
+            variation="h2"
+            className="text-brand-espresso leading-tight"
+          >
             {product.title}
           </Typography>
           <Typography variation="h1" className="text-brand-espresso">
@@ -266,7 +282,11 @@ export default function ProductDetailScreen() {
             >
               Category
             </Typography>
-            <Typography variation="h4" className="text-brand-espresso" numberOfLines={1}>
+            <Typography
+              variation="h4"
+              className="text-brand-espresso"
+              numberOfLines={1}
+            >
               {product.category}
             </Typography>
           </Card>
@@ -278,7 +298,10 @@ export default function ProductDetailScreen() {
             <Typography variation="h5" className="text-brand-espresso mb-2">
               Description
             </Typography>
-            <Typography variation="body-sm" className="text-ui-secondary leading-relaxed">
+            <Typography
+              variation="body-sm"
+              className="text-ui-secondary leading-relaxed"
+            >
               {product.description}
             </Typography>
           </Card>
@@ -291,7 +314,13 @@ export default function ProductDetailScreen() {
               label="Edit Product"
               variant="primary"
               onPress={handleEdit}
-              icon={<IconSymbol name="square.and.pencil" size={18} color="#FFFFFF" />}
+              icon={
+                <IconSymbol
+                  name="square.and.pencil"
+                  size={18}
+                  color="#FFFFFF"
+                />
+              }
               noShadow
             />
             <View className="flex-row gap-3">
@@ -300,7 +329,13 @@ export default function ProductDetailScreen() {
                   label="Share"
                   variant="secondary"
                   onPress={handleShare}
-                  icon={<IconSymbol name="square.and.arrow.up" size={18} color="#3B3030" />}
+                  icon={
+                    <IconSymbol
+                      name="square.and.arrow.up"
+                      size={18}
+                      color="#3B3030"
+                    />
+                  }
                   noShadow
                 />
               </View>
@@ -329,10 +364,16 @@ export default function ProductDetailScreen() {
 
         {/* Timestamps */}
         <View className="flex-row justify-between pt-2 border-t border-brand-beige/60">
-          <Typography variation="body-xs" className="text-ui-secondary/60 italic">
+          <Typography
+            variation="body-xs"
+            className="text-ui-secondary/60 italic"
+          >
             Created: {formatDate(product.created_at)}
           </Typography>
-          <Typography variation="body-xs" className="text-ui-secondary/60 italic">
+          <Typography
+            variation="body-xs"
+            className="text-ui-secondary/60 italic"
+          >
             Updated: {formatDate(product.updated_at)}
           </Typography>
         </View>

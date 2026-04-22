@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { InfoBox } from "@/components/atoms/InfoBox";
 import { OTPInput } from "@/components/atoms/OTPInput";
 import { ResendCodeSection } from "@/components/atoms/ResendCodeSection";
@@ -6,12 +7,34 @@ import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Button } from "@/components/ui/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
+=======
+import { FormButton } from "@/components/atoms/FormButton";
+import { AuthHeader } from "@/components/navigation/AuthHeader";
+import {
+  BodyRegularText,
+  BodySemiboldText,
+  CaptionText,
+  HeadingBoldText,
+} from "@/components/Typography";
+>>>>>>> 253640e330315f4769e701bd44e1cbce5cedcaff
 import { useToast } from "@/contexts/ToastContext";
 import { supabase } from "@/lib/supabase";
 import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
+<<<<<<< HEAD
 import { ScrollView, TextInput, View } from "react-native";
+=======
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+>>>>>>> 253640e330315f4769e701bd44e1cbce5cedcaff
 
 export default function SignupStep2Screen() {
   const router = useRouter();
