@@ -13,12 +13,7 @@ import { getOrdersBySeller } from "@/lib/database-helpers";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Linking,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Linking, TouchableOpacity, View } from "react-native";
 
 // ─────────────── Guide banner ───────────────
 function GuideBanner({ onDismiss }: { onDismiss: () => void }) {
@@ -60,9 +55,7 @@ function GuideBanner({ onDismiss }: { onDismiss: () => void }) {
           <BodySemiboldText style={{ fontSize: 14, color: "#92400E" }}>
             New to selling?
           </BodySemiboldText>
-          <BodyMediumText
-            style={{ fontSize: 12, color: "#A16207", marginTop: 2 }}
-          >
+          <BodyMediumText style={{ fontSize: 12, color: "#A16207", marginTop: 2 }}>
             Learn how to handle orders step by step
           </BodyMediumText>
         </View>
@@ -108,11 +101,7 @@ export default function OrdersScreen() {
 
   useEffect(() => {
     const valid: StatusFilter[] = [
-      "pending",
-      "processing",
-      "completed",
-      "cancelled",
-      "refunded",
+      "pending", "processing", "completed", "cancelled", "refunded",
     ];
     if (valid.includes(filterParam as StatusFilter)) {
       setStatusFilter(filterParam as StatusFilter);
@@ -153,14 +142,10 @@ export default function OrdersScreen() {
         }
 
         const itemsSubtotal = order.items_subtotal ?? productPrice;
-        const discountedItemsTotal =
-          order.discounted_items_total ?? itemsSubtotal;
+        const discountedItemsTotal = order.discounted_items_total ?? itemsSubtotal;
         const offerDiscountAmount =
           order.offer_discount_amount ??
-          Math.max(
-            0,
-            Math.round((itemsSubtotal - discountedItemsTotal) * 100) / 100,
-          );
+          Math.max(0, Math.round((itemsSubtotal - discountedItemsTotal) * 100) / 100);
 
         return {
           id: order.id,
@@ -203,12 +188,12 @@ export default function OrdersScreen() {
 
   // ── Derived state ──
   const counts: Record<StatusFilter, number> = {
-    all: items.length,
-    pending: items.filter((i) => i.status === "pending").length,
+    all:        items.length,
+    pending:    items.filter((i) => i.status === "pending").length,
     processing: items.filter((i) => i.status === "processing").length,
-    completed: items.filter((i) => i.status === "completed").length,
-    cancelled: items.filter((i) => i.status === "cancelled").length,
-    refunded: items.filter((i) => i.status === "refunded").length,
+    completed:  items.filter((i) => i.status === "completed").length,
+    cancelled:  items.filter((i) => i.status === "cancelled").length,
+    refunded:   items.filter((i) => i.status === "refunded").length,
   };
 
   const filteredItems =
@@ -238,9 +223,7 @@ export default function OrdersScreen() {
         stickyComponent={filterBar}
         scrollable={false}
       >
-        <View
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        >
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <ActivityIndicator size="large" color="#3B2F2F" />
           <BodyMediumText style={{ color: "#9CA3AF", marginTop: 12 }}>
             Loading orders...

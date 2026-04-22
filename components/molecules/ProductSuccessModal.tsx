@@ -67,10 +67,6 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
     ? getProductImageUrl(product.cover_image)
     : null;
 
-  const displayStoreDomain = storeUsername
-    ? `${storeUsername}.thriftverse.com`
-    : "your-store.thriftverse.com";
-
   return (
     <BlurModal visible={visible} onDismiss={onClose}>
       <View className="w-full">
@@ -136,8 +132,7 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
             className="text-center mb-6"
             style={{ color: "rgba(59,47,47,0.55)", lineHeight: 20 }}
           >
-            Your item is live on your store.{"\n"}Admin approval required to
-            show on marketplace.
+            Your item is live on your store.{"\n"}Admin approval required to show on marketplace.
           </Typography>
 
           {/* Product preview */}
@@ -202,11 +197,7 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
                 >
                   <Typography
                     variation="caption"
-                    style={{
-                      color: "#15803D",
-                      fontSize: 11,
-                      fontWeight: "600",
-                    }}
+                    style={{ color: "#15803D", fontSize: 11, fontWeight: "600" }}
                   >
                     Pending Approval
                   </Typography>
@@ -216,7 +207,9 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
           )}
 
           {/* Custom slot */}
-          {children && <View className="items-center mb-5">{children}</View>}
+          {children && (
+            <View className="items-center mb-5">{children}</View>
+          )}
 
           {/* Divider */}
           <View

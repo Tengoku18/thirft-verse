@@ -405,11 +405,6 @@ export default function SettingsScreen() {
             title="Terms of Service"
             onPress={handleTermsOfService}
           />
-          <SettingsItem
-            icon="doc.plaintext.fill"
-            title="Terms of Service"
-            onPress={handleTermsOfService}
-          />
         </SettingsSection>
 
         {/* Danger Zone */}

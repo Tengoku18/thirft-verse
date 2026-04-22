@@ -152,24 +152,26 @@ export default async function Home() {
             {/* Profile Photo with Enhanced Style */}
             <div className="shrink-0">
               <div className="relative">
-                <div className="bg-background ring-secondary/10 relative h-32 w-32 overflow-hidden rounded-full border-4 border-white/50 shadow-xl ring-4 transition-transform duration-300 hover:scale-105 sm:h-40 sm:w-40">
-                  {profile?.profile_image ? (
-                    <Image
-                      src={profile.profile_image}
-                      alt={profile.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 128px, 160px"
-                      priority
-                    />
-                  ) : (
-                    <div className="from-accent-2 to-secondary flex h-full w-full items-center justify-center bg-linear-to-br">
-                      <span className="font-heading text-surface text-4xl font-bold sm:text-5xl">
-                        {profile?.name.charAt(0)}
-                      </span>
-                    </div>
-                  )}
-                </div>
+              <div className="bg-background ring-secondary/10 relative h-32 w-32 overflow-hidden rounded-full border-4 border-white/50 shadow-xl ring-4 transition-transform duration-300 hover:scale-105 sm:h-40 sm:w-40">
+                {profile?.profile_image ? (
+                  <Image
+                    src={profile.profile_image}
+                    alt={profile.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 128px, 160px"
+                    priority
+                  />
+                ) : (
+                  <div className="from-accent-2 to-secondary flex h-full w-full items-center justify-center bg-linear-to-br">
+                    <span className="font-heading text-surface text-4xl font-bold sm:text-5xl">
+                      {profile?.name.charAt(0)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+
               </div>
             </div>
 
@@ -185,12 +187,9 @@ export default async function Home() {
               </div>
               {profile?.is_founder && (
                 <div className="mb-3 flex justify-center sm:justify-start">
-                  <span className="group animate-founder-glow relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-amber-400/50 bg-linear-to-r from-amber-500/20 via-yellow-400/15 to-amber-500/20 px-4 py-1.5 text-xs font-bold tracking-wide text-amber-800 shadow-sm shadow-amber-200/50">
-                    <span className="animate-founder-shimmer absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/40 to-transparent" />
-                    <Crown
-                      className="h-4 w-4 text-amber-600"
-                      strokeWidth={2.5}
-                    />
+                  <span className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-amber-400/50 bg-linear-to-r from-amber-500/20 via-yellow-400/15 to-amber-500/20 px-4 py-1.5 text-xs font-bold tracking-wide text-amber-800 shadow-sm shadow-amber-200/50 animate-founder-glow">
+                    <span className="absolute inset-0 -translate-x-full animate-founder-shimmer bg-linear-to-r from-transparent via-white/40 to-transparent" />
+                    <Crown className="h-4 w-4 text-amber-600" strokeWidth={2.5} />
                     Founder Member
                   </span>
                 </div>

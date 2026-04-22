@@ -187,9 +187,7 @@ export default function EarningsScreen() {
         headerVariant="light"
         scrollable={false}
       >
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color="#3B2F2F" />
           <BodyMediumText style={{ color: "#9CA3AF", marginTop: 12 }}>
             Loading your earnings...
@@ -292,11 +290,7 @@ export default function EarningsScreen() {
 
       {confirmedBalance <= 0 && (
         <CaptionText
-          style={{
-            textAlign: "center",
-            color: "rgba(59,48,48,0.4)",
-            marginTop: -8,
-          }}
+          style={{ textAlign: "center", color: "rgba(59,48,48,0.4)", marginTop: -8 }}
         >
           No confirmed balance available for withdrawal
         </CaptionText>
@@ -354,18 +348,12 @@ export default function EarningsScreen() {
                 marginBottom: 12,
               }}
             >
-              <IconSymbol
-                name="clock.arrow.circlepath"
-                size={24}
-                color="#9CA3AF"
-              />
+              <IconSymbol name="clock.arrow.circlepath" size={24} color="#9CA3AF" />
             </View>
             <BodyMediumText style={{ color: "#6B7280", textAlign: "center" }}>
               No withdrawal requests yet
             </BodyMediumText>
-            <CaptionText
-              style={{ color: "#9CA3AF", textAlign: "center", marginTop: 4 }}
-            >
+            <CaptionText style={{ color: "#9CA3AF", textAlign: "center", marginTop: 4 }}>
               Your requests will appear here
             </CaptionText>
           </View>

@@ -7,7 +7,7 @@ import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { supabase } from "@/lib/supabase";
 import { setFormData } from "@/store";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, View } from "react-native";
@@ -15,6 +15,8 @@ import { ScrollView, View } from "react-native";
 export default function SignupStep3Screen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const signupState = useAppSelector((state) => state.signup);
+
   const [selectedType, setSelectedType] = useState<"store" | "closet" | "">(
     signupState.formData.sellerType || "",
   );
@@ -30,6 +32,7 @@ export default function SignupStep3Screen() {
       setErrorMessage("Please select a seller type to continue");
       return;
     }
+
     setLoading(true);
     setErrorMessage(null);
 
