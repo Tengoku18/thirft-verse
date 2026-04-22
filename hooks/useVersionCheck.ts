@@ -48,11 +48,10 @@ export function useVersionCheck() {
   useEffect(() => {
     async function check() {
       try {
-        const latestVersion = "2.1.3";
-        // const latestVersion =
-        //   Platform.OS === "ios"
-        //     ? await fetchAppStoreVersion()
-        //     : await fetchPlayStoreVersion();
+        const latestVersion =
+          Platform.OS === "ios"
+            ? await fetchAppStoreVersion()
+            : await fetchPlayStoreVersion();
 
         console.log("latestVersion", Platform.OS, latestVersion);
 
