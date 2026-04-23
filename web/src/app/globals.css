@@ -43,6 +43,13 @@
   --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-soft-pulse: soft-pulse 2.4s ease-in-out infinite;
   --animate-underline-sweep: underline-sweep 1.4s ease-in-out infinite;
+
+  /* Landing motion */
+  --animate-breathe: breathe 6s ease-in-out infinite;
+  --animate-tilt-slow: tilt-slow 12s ease-in-out infinite;
+  --animate-float-soft: float-soft 7s ease-in-out infinite;
+  --animate-drift: drift 18s linear infinite;
+  --animate-blink-dot: blink-dot 2s ease-in-out infinite;
 }
 
 body {
@@ -151,6 +158,33 @@ body {
   100% { transform: translateX(110%); }
 }
 
+/* ── Landing page motion ── */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.75; }
+  50%      { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes tilt-slow {
+  0%, 100% { transform: rotate(-1.2deg) translate3d(0, 0, 0); }
+  50%      { transform: rotate(1.2deg) translate3d(0, -6px, 0); }
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -10px, 0); }
+}
+
+@keyframes drift {
+  0%   { transform: translate3d(-8%, 0, 0); }
+  50%  { transform: translate3d(8%, -4%, 0); }
+  100% { transform: translate3d(-8%, 0, 0); }
+}
+
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
+}
+
 .animate-marquee      { animation: var(--animate-marquee); }
 .animate-marquee-slow { animation: var(--animate-marquee-slow); }
 .animate-float-slow   { animation: var(--animate-float-slow); }
@@ -158,6 +192,20 @@ body {
 .animate-fade-up      { animation: var(--animate-fade-up); }
 .animate-soft-pulse   { animation: var(--animate-soft-pulse); }
 .animate-underline-sweep { animation: var(--animate-underline-sweep); }
+.animate-breathe      { animation: var(--animate-breathe); }
+.animate-tilt-slow    { animation: var(--animate-tilt-slow); }
+.animate-float-soft   { animation: var(--animate-float-soft); }
+.animate-drift        { animation: var(--animate-drift); }
+.animate-blink-dot    { animation: var(--animate-blink-dot); }
+
+/* Warm grain overlay for premium paper feel */
+.texture-grain {
+  background-image:
+    radial-gradient(rgba(59, 47, 47, 0.06) 1px, transparent 1px),
+    radial-gradient(rgba(59, 47, 47, 0.04) 1px, transparent 1px);
+  background-size: 3px 3px, 7px 7px;
+  background-position: 0 0, 1px 2px;
+}
 
 .pause-on-hover:hover .animate-marquee,
 .pause-on-hover:hover .animate-marquee-slow {
@@ -171,7 +219,12 @@ body {
   .animate-shine,
   .animate-soft-pulse,
   .animate-underline-sweep,
-  .animate-fade-up {
+  .animate-fade-up,
+  .animate-breathe,
+  .animate-tilt-slow,
+  .animate-float-soft,
+  .animate-drift,
+  .animate-blink-dot {
     animation: none !important;
   }
 }

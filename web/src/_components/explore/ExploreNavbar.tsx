@@ -130,10 +130,6 @@ export default function ExploreNavbar() {
                   aria-hidden
                   className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/25 to-transparent"
                 />
-                <Sparkles
-                  className="relative h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-12 sm:h-4 sm:w-4"
-                  strokeWidth={2.4}
-                />
                 <span className="relative hidden sm:inline">Start selling</span>
                 <span className="relative sm:hidden">Sell</span>
                 <ArrowRight
