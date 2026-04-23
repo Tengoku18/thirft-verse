@@ -4,4 +4,5 @@ export { default as SortSelect, PRODUCT_SORT_OPTIONS, STORE_SORT_OPTIONS } from 
 export { default as AvailabilityFilter } from './AvailabilityFilter'
 export { default as ExploreTabs } from './ExploreTabs'
 export { default as ExploreNavbar } from './ExploreNavbar'
+export { default as ExploreSellerCTA } from './ExploreSellerCTA'
 export type { ExploreTab } from './ExploreTabs'
