@@ -72,7 +72,7 @@ export function QuantitySelector({
           type="button"
           onClick={handleDecrement}
           disabled={isDecrementDisabled}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/50 bg-background transition-all hover:border-secondary hover:bg-secondary/10 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border/50 disabled:hover:bg-background"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-border/50 bg-background transition-all hover:border-secondary hover:bg-secondary/10 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border/50 disabled:hover:bg-background"
           aria-label="Decrease quantity"
         >
           <Minus className="h-4 w-4 text-primary" />
@@ -93,7 +93,7 @@ export function QuantitySelector({
           type="button"
           onClick={handleIncrement}
           disabled={isIncrementDisabled}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/50 bg-background transition-all hover:border-secondary hover:bg-secondary/10 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border/50 disabled:hover:bg-background"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-border/50 bg-background transition-all hover:border-secondary hover:bg-secondary/10 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border/50 disabled:hover:bg-background"
           aria-label="Increase quantity"
         >
           <Plus className="h-4 w-4 text-primary" />

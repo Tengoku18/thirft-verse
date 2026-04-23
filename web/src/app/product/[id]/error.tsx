@@ -33,7 +33,7 @@ export default function ProductError({
         <div className="flex w-full flex-col gap-3 sm:flex-row">
           <button
             onClick={reset}
-            className="flex-1 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            className="flex-1 cursor-pointer rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
           >
             Try again
           </button>

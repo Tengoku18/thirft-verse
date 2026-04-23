@@ -38,7 +38,7 @@ export default function BuyNowButton({
       <button
         onClick={handleBuyNow}
         disabled={isOutOfStock}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 font-semibold text-surface shadow-lg transition-all hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 font-semibold text-surface shadow-lg transition-all hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
       >
         <ShoppingCart className="h-5 w-5" />
         {isOutOfStock ? 'Out of Stock' : 'Buy Now'}
