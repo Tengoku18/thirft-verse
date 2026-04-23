@@ -8,7 +8,7 @@ import SectionDivider from '@/_components/store/SectionDivider'
 import StoreMinimalFooter from '@/_components/store/StoreMinimalFooter'
 import { formatProductPrice, getCurrencySymbol } from '@/utils/formatPrice'
 import BackButton from '@/_components/BackButton'
-import { ArrowUpRight, Mail, ShieldCheck, Store, Truck } from 'lucide-react'
+import { ArrowUpRight, Compass, Mail, ShieldCheck, Store, Truck } from 'lucide-react'
 import { Metadata } from 'next'
 import { headers } from 'next/headers'
 import Link from 'next/link'
@@ -122,10 +122,23 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Back strip */}
-      <div className="bg-surface">
-        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
+      {/* Top navigation bar: back action + Thriftverse brand */}
+      <div className="border-border/60 bg-surface border-b">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
           <BackButton />
+
+          <Link
+            href="/explore"
+            aria-label="Explore more Thriftverse stores"
+            className="group border-border/70 bg-surface text-primary/85 hover:border-primary/40 hover:text-primary inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-sans text-xs font-semibold tracking-wide transition-colors sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
+          >
+            <Compass className="h-3.5 w-3.5" strokeWidth={2.5} />
+            <span>Explore more</span>
+            <ArrowUpRight
+              className="text-primary/40 group-hover:text-primary hidden h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 sm:inline-block"
+              strokeWidth={2.5}
+            />
+          </Link>
         </div>
       </div>
 
