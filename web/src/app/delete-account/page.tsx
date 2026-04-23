@@ -1,13 +1,13 @@
 'use client';
 
-import { requestAccountDeletion } from '@/actions/account-deletion';
 import Button from '@/_components/common/Button';
 import Header from '@/_components/common/Header';
-import Footer from '@/_components/landing/Footer';
 import { FormInput, FormTextarea } from '@/_components/forms';
+import Footer from '@/_components/landing/Footer';
+import { requestAccountDeletion } from '@/actions/account-deletion';
 import {
-  AccountDeletionFormData,
-  accountDeletionSchema,
+    AccountDeletionFormData,
+    accountDeletionSchema,
 } from '@/lib/validations/account-deletion';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { AlertTriangle, CheckCircle, Trash2 } from 'lucide-react';
@@ -54,28 +54,28 @@ export default function DeleteAccountPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="bg-background min-h-screen">
         <Header />
         <div className="flex min-h-[calc(100vh-200px)] items-center justify-center px-4 pt-20">
           <div className="max-w-md text-center">
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <h2 className="font-heading mb-4 text-2xl font-bold text-primary">
+            <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
               Request Submitted Successfully
             </h2>
-            <p className="mb-6 text-primary/70">
+            <p className="text-primary/70 mb-6">
               Your account deletion request has been submitted. We will process
               your request within 30 days. You will receive an email
               confirmation once your account has been deleted.
             </p>
-            <p className="mb-8 text-sm text-primary/50">
+            <p className="text-primary/50 mb-8 text-sm">
               If you change your mind, please contact us at{' '}
               <a
-                href="mailto:thriftverse.shop@gmail.com"
+                href="mailto:thriiftverse.shop@gmail.com"
                 className="text-secondary hover:underline"
               >
-                thriftverse.shop@gmail.com
+                thriiftverse.shop@gmail.com
               </a>
             </p>
             <Link href="/">
@@ -91,16 +91,16 @@ export default function DeleteAccountPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <Header />
 
       {/* Page Header */}
-      <div className="border-b border-border bg-linear-to-br from-surface to-secondary/5 pt-20">
+      <div className="border-border from-surface to-secondary/5 border-b bg-linear-to-br pt-20">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <h1 className="font-heading mb-4 text-4xl font-bold text-primary sm:text-5xl">
+          <h1 className="font-heading text-primary mb-4 text-4xl font-bold sm:text-5xl">
             Delete Account
           </h1>
-          <p className="max-w-3xl text-lg text-primary/70">
+          <p className="text-primary/70 max-w-3xl text-lg">
             Request to permanently delete your Thriftverse account.
           </p>
         </div>
@@ -136,12 +136,12 @@ export default function DeleteAccountPage() {
           </div>
 
           {/* Deletion Form */}
-          <div className="rounded-xl border border-border bg-surface p-8">
+          <div className="border-border bg-surface rounded-xl border p-8">
             <div className="mb-6 flex items-center gap-3">
-              <div className="rounded-full bg-primary/10 p-2">
-                <Trash2 className="h-6 w-6 text-primary" />
+              <div className="bg-primary/10 rounded-full p-2">
+                <Trash2 className="text-primary h-6 w-6" />
               </div>
-              <h2 className="font-heading text-xl font-bold text-primary">
+              <h2 className="font-heading text-primary text-xl font-bold">
                 Request Account Deletion
               </h2>
             </div>
@@ -165,8 +165,8 @@ export default function DeleteAccountPage() {
                 required
               />
 
-              <div className="rounded-lg bg-primary/5 p-4">
-                <p className="text-sm text-primary/70">
+              <div className="bg-primary/5 rounded-lg p-4">
+                <p className="text-primary/70 text-sm">
                   By submitting this request, you confirm that you understand
                   the consequences of account deletion and wish to proceed. Your
                   request will be processed within 30 days.
@@ -187,7 +187,7 @@ export default function DeleteAccountPage() {
 
           {/* Help Section */}
           <div className="mt-8 text-center">
-            <p className="text-sm text-primary/60">
+            <p className="text-primary/60 text-sm">
               Having issues with your account?{' '}
               <a href="/contact" className="text-secondary hover:underline">
                 Contact our support team

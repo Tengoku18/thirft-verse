@@ -62,7 +62,7 @@ const ImageGallery = ({ images, productTitle }: ImageGalleryProps) => {
             <button
               key={index}
               onClick={() => setSelectedImageIndex(index)}
-              className={`relative aspect-square overflow-hidden rounded-xl bg-white shadow-md transition-all duration-200 ${
+              className={`relative aspect-square cursor-pointer overflow-hidden rounded-xl bg-white shadow-md transition-all duration-200 ${
                 selectedImageIndex === index
                   ? 'ring-4 ring-secondary scale-95'
                   : 'hover:scale-105 hover:shadow-lg'

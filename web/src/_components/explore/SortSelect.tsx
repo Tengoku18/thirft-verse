@@ -1,7 +1,7 @@
 'use client'
 
 import { ProductSortOption, StoreSortOption } from '@/utils/exploreHelpers'
-import { ArrowDownUp } from 'lucide-react'
+import { ArrowUpDown, ChevronDown } from 'lucide-react'
 
 interface SortSelectProps<T extends ProductSortOption | StoreSortOption> {
   value: T
@@ -17,11 +17,18 @@ export default function SortSelect<T extends ProductSortOption | StoreSortOption
   className = '',
 }: SortSelectProps<T>) {
   return (
-    <div className={`relative ${className}`}>
+    <div className={`group relative ${className}`}>
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3.5">
+        <ArrowUpDown
+          className="text-primary/50 group-hover:text-primary/80 h-3.5 w-3.5 transition-colors duration-200"
+          strokeWidth={2.2}
+        />
+      </div>
+
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="w-full appearance-none rounded-lg border border-neutral-200 bg-white py-2 pl-3 pr-9 text-sm text-neutral-900 focus:border-neutral-300 focus:outline-none focus:ring-1 focus:ring-neutral-200 cursor-pointer transition-all"
+        className="border-border/70 bg-surface text-primary hover:border-primary/30 focus:border-secondary/70 focus:ring-secondary/20 relative w-full cursor-pointer appearance-none rounded-full border py-2 pr-9 pl-9 font-sans text-sm font-medium transition-all duration-200 focus:ring-4 focus:outline-none"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -31,36 +38,25 @@ export default function SortSelect<T extends ProductSortOption | StoreSortOption
       </select>
 
       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-        <svg
-          className="h-4 w-4 text-neutral-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
+        <ChevronDown
+          className="text-primary/50 group-hover:text-primary h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5"
+          strokeWidth={2.2}
+        />
       </div>
     </div>
   )
 }
 
-// Predefined sort options for products
 export const PRODUCT_SORT_OPTIONS = [
-  { value: 'newest' as const, label: 'Newest First' },
-  { value: 'price-low' as const, label: 'Price: Low to High' },
-  { value: 'price-high' as const, label: 'Price: High to Low' },
-  { value: 'name-az' as const, label: 'Name: A-Z' },
-  { value: 'name-za' as const, label: 'Name: Z-A' },
+  { value: 'newest' as const, label: 'Newest first' },
+  { value: 'price-low' as const, label: 'Price: Low to high' },
+  { value: 'price-high' as const, label: 'Price: High to low' },
+  { value: 'name-az' as const, label: 'Name: A–Z' },
+  { value: 'name-za' as const, label: 'Name: Z–A' },
 ]
 
-// Predefined sort options for stores
 export const STORE_SORT_OPTIONS = [
-  { value: 'newest' as const, label: 'Newest First' },
-  { value: 'name-az' as const, label: 'Name: A-Z' },
-  { value: 'name-za' as const, label: 'Name: Z-A' },
+  { value: 'newest' as const, label: 'Newest first' },
+  { value: 'name-az' as const, label: 'Name: A–Z' },
+  { value: 'name-za' as const, label: 'Name: Z–A' },
 ]

@@ -1,133 +1,116 @@
 'use client';
 
-import { UserPlus, Upload, Share2, TrendingUp } from 'lucide-react';
+import { Camera, Download, Share2, Truck } from 'lucide-react';
 
+/**
+ * Four-step story. Each card is a vertical "card stack" with an icon, step number,
+ * and a two-line scenario that maps to what a seller actually does.
+ */
 const steps = [
   {
     number: '01',
-    icon: UserPlus,
-    title: 'Create Your Account',
-    description:
-      'Sign up in seconds and claim your unique storefront URL. No credit card required to start.',
+    icon: Download,
+    tag: 'Day 1 · 2 min',
+    title: 'Grab the seller app.',
+    body: 'Download Thriftverse for iOS or Android. Pick a username — that becomes your store URL.',
   },
   {
     number: '02',
-    icon: Upload,
-    title: 'Add Your Items',
-    description:
-      'Upload photos of your thrift finds, add descriptions, set prices, and organize your collection.',
+    icon: Camera,
+    tag: 'Day 1 · 10 min',
+    title: 'List your first drop.',
+    body: 'Snap photos, write a story, set a price. Your storefront goes live the moment you publish.',
   },
   {
     number: '03',
     icon: Share2,
-    title: 'Share Your Store',
-    description:
-      'Share your unique store link with your community on Instagram, TikTok, or anywhere you connect.',
+    tag: 'Day 1 · afternoon',
+    title: 'Share the link.',
+    body: 'Drop yourname.thriftverse.shop in your bio. Buyers browse, pay with eSewa, you get notified.',
   },
   {
     number: '04',
-    icon: TrendingUp,
-    title: 'Start Selling',
-    description:
-      'Accept payments through eSewa, manage orders, and watch your thrift business grow.',
+    icon: Truck,
+    tag: 'Next day',
+    title: 'Drop at NCM.',
+    body: 'We generate the shipping label for you. Print it, tape it, hand the parcel to Nepal Can Move — we track the rest.',
   },
 ];
 
 export default function HowItWorks() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-      {/* Section Header */}
-      <div className="mb-16 text-center">
-        <h2 className="font-heading mb-4 text-4xl font-bold text-primary sm:text-5xl">
-          How It Works
+      <div className="mx-auto mb-14 max-w-2xl text-center lg:mb-20">
+        <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-surface/70 px-3 py-1 font-sans text-[11px] font-bold tracking-[0.22em] text-primary/65 uppercase backdrop-blur-sm">
+          How it works
+        </span>
+        <h2 className="font-heading mt-5 text-4xl font-bold tracking-tight text-primary sm:text-5xl">
+          From thrifter to storefront <br className="hidden sm:inline" />
+          <span className="italic font-medium text-secondary">in one afternoon.</span>
         </h2>
-        <p className="mx-auto max-w-2xl text-lg text-primary/70">
-          Get your thrift store online in minutes. It's as easy as 1-2-3-4.
-        </p>
       </div>
 
-      {/* Steps */}
+      {/* Card rail with dotted connector */}
       <div className="relative">
-        {/* Connection line */}
-        <div className="absolute left-8 top-0 hidden h-full w-0.5 bg-gradient-to-b from-secondary via-accent-2 to-accent-1 lg:block"></div>
+        {/* Dotted connector line — desktop only */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute top-24 left-0 right-0 hidden lg:block"
+        >
+          <svg
+            className="w-full text-secondary/40"
+            height="12"
+            fill="none"
+            preserveAspectRatio="none"
+            viewBox="0 0 1000 12"
+          >
+            <path
+              d="M 0 6 L 1000 6"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeDasharray="2 10"
+            />
+          </svg>
+        </div>
 
-        <div className="space-y-12 lg:space-y-16">
-          {steps.map((step, index) => {
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+          {steps.map((step, i) => {
             const Icon = step.icon;
-            const isEven = index % 2 === 0;
-
             return (
               <div
-                key={index}
-                className={`relative flex flex-col gap-8 lg:flex-row lg:items-center ${
-                  isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'
-                }`}
+                key={step.number}
+                className="animate-fade-up group relative"
+                style={{ animationDelay: `${i * 120}ms` }}
               >
-                {/* Step number circle (for desktop) */}
-                <div className="absolute left-0 top-0 hidden lg:block">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-surface bg-secondary shadow-lg animate-pulse-slow">
-                    <span className="font-heading text-xl font-bold text-surface">
-                      {step.number}
-                    </span>
-                  </div>
+                {/* Step-number chip — floats above card */}
+                <div className="relative z-10 mx-auto flex h-12 w-12 items-center justify-center rounded-full border-4 border-background bg-secondary shadow-lg shadow-secondary/30 transition-all duration-500 group-hover:scale-110 group-hover:shadow-secondary/50">
+                  <span className="font-heading text-sm font-bold text-surface">
+                    {step.number}
+                  </span>
                 </div>
 
-                {/* Content */}
-                <div
-                  className={`flex-1 rounded-2xl border border-border bg-surface p-8 shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1 lg:ml-24 ${
-                    isEven ? 'lg:ml-24' : 'lg:mr-24 lg:ml-0'
-                  }`}
-                >
-                  <div className="flex items-start gap-6">
-                    {/* Mobile step number */}
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-secondary lg:hidden">
-                      <span className="font-heading text-lg font-bold text-surface">
-                        {step.number}
-                      </span>
-                    </div>
-
-                    <div className="flex-1">
-                      {/* Icon */}
-                      <div className="mb-4 inline-flex rounded-xl bg-secondary/10 p-3">
-                        <Icon className="h-6 w-6 text-secondary" />
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="font-heading mb-3 text-2xl font-bold text-primary">
-                        {step.title}
-                      </h3>
-
-                      {/* Description */}
-                      <p className="text-primary/70 leading-relaxed">
-                        {step.description}
-                      </p>
-                    </div>
+                {/* Card */}
+                <div className="-mt-6 flex h-full flex-col rounded-3xl border border-border/60 bg-surface p-6 pt-10 shadow-[0_10px_30px_-22px_rgba(59,47,47,0.25)] transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_22px_50px_-22px_rgba(59,47,47,0.35)] sm:p-7 sm:pt-12">
+                  <div className="bg-secondary/10 text-secondary mb-5 inline-flex h-10 w-10 items-center justify-center self-start rounded-xl transition-transform duration-500 group-hover:-rotate-6">
+                    <Icon className="h-5 w-5" strokeWidth={2.2} />
                   </div>
-                </div>
 
-                {/* Placeholder for alignment on alternating rows */}
-                <div className="hidden flex-1 lg:block"></div>
+                  <p className="font-sans text-[10px] font-bold tracking-[0.22em] text-accent-1 uppercase">
+                    {step.tag}
+                  </p>
+                  <h3 className="font-heading mt-1.5 text-xl font-bold leading-tight text-primary">
+                    {step.title}
+                  </h3>
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-primary/70">
+                    {step.body}
+                  </p>
+                </div>
               </div>
             );
           })}
         </div>
       </div>
-
-      {/* Custom animations */}
-      <style jsx>{`
-        @keyframes pulse-slow {
-          0%,
-          100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.05);
-          }
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 3s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ShoppingCart, Shield, ShoppingBag } from 'lucide-react'
+import { ShoppingBag, ShoppingCart } from 'lucide-react'
 import { QuantitySelector } from './QuantitySelector'
 import { formatCheckoutPrice } from '@/utils/formatPrice'
 import { useCart } from '@/contexts/CartContext'
@@ -32,7 +32,7 @@ export default function ProductPurchaseSection({
   coverImage,
 }: ProductPurchaseSectionProps) {
   const router = useRouter()
-  const { addItem, isInCart, getItemQuantity } = useCart()
+  const { addItem, getItemQuantity } = useCart()
   const [quantity, setQuantity] = useState(1)
 
   const handleBuyNow = () => {
@@ -108,7 +108,7 @@ export default function ProductPurchaseSection({
           <button
             onClick={handleAddToCart}
             disabled={isBuyDisabled}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-secondary bg-transparent px-8 py-4 font-semibold text-secondary shadow-lg transition-all hover:bg-secondary hover:text-surface hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-transparent disabled:hover:text-secondary"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-secondary bg-transparent px-8 py-4 font-semibold text-secondary shadow-lg transition-all hover:bg-secondary hover:text-surface hover:scale-[1.02] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-transparent disabled:hover:text-secondary"
           >
             <ShoppingBag className="h-5 w-5" />
             Add to Cart
@@ -119,16 +119,11 @@ export default function ProductPurchaseSection({
         <button
           onClick={handleBuyNow}
           disabled={isBuyDisabled}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 font-semibold text-surface shadow-lg transition-all hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 font-semibold text-surface shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
         >
           <ShoppingCart className="h-5 w-5" />
           {isOutOfStock ? 'Out of Stock' : 'Buy Now'}
         </button>
-
-        <div className="flex items-center justify-center gap-1.5 text-sm text-primary/60">
-          <Shield className="h-4 w-4" />
-          <span>Secure payment with eSewa</span>
-        </div>
       </div>
     </div>
   )

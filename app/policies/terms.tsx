@@ -33,14 +33,17 @@ export default function TermsScreen() {
           </Typography>
 
           {/* 1. Acceptance of Terms */}
-          <SectionWithIcon title="1. Acceptance of Terms" icon="checkmark.circle">
+          <SectionWithIcon
+            title="1. Acceptance of Terms"
+            icon="checkmark.circle"
+          >
             <Typography
               variation="body-sm"
               className="leading-6 text-slate-600"
             >
-              By accessing and using Thriftverse, you accept and agree to be bound
-              by these Terms of Service. If you do not agree to these terms,
-              please do not use our platform.
+              By accessing and using Thriftverse, you accept and agree to be
+              bound by these Terms of Service. If you do not agree to these
+              terms, please do not use our platform.
             </Typography>
           </SectionWithIcon>
 
@@ -296,9 +299,9 @@ export default function TermsScreen() {
               className="leading-6 text-slate-600"
             >
               You agree to indemnify and hold Thriftverse harmless from any
-              claims, damages, or expenses arising from your use of the platform,
-              your violation of these terms, or your violation of any rights of
-              others.
+              claims, damages, or expenses arising from your use of the
+              platform, your violation of these terms, or your violation of any
+              rights of others.
             </Typography>
           </SectionWithIcon>
 
@@ -336,13 +339,13 @@ export default function TermsScreen() {
 
             <Pressable
               onPress={() =>
-                Linking.openURL("mailto:thriftverse.shop@gmail.com")
+                Linking.openURL("mailto:thriiftverse.shop@gmail.com")
               }
               className="flex-row items-center gap-2 bg-slate-50 p-4 rounded-lg"
             >
               <IconSymbol name="envelope.fill" size={16} color="#3B2F2F" />
               <Typography variation="body-sm" className="text-slate-800">
-                thriftverse.shop@gmail.com
+                thriiftverse.shop@gmail.com
               </Typography>
             </Pressable>
           </SectionWithIcon>

@@ -4,9 +4,11 @@ import ImageGallery from '@/_components/ImageGallery'
 import ProductCard from '@/_components/ProductCard'
 import ExpandableDescription from '@/_components/ExpandableDescription'
 import CartButton from '@/_components/cart/CartButton'
-import { formatProductPrice } from '@/utils/formatPrice'
+import SectionDivider from '@/_components/store/SectionDivider'
+import StoreMinimalFooter from '@/_components/store/StoreMinimalFooter'
+import { formatProductPrice, getCurrencySymbol } from '@/utils/formatPrice'
 import BackButton from '@/_components/BackButton'
-import { Store } from 'lucide-react'
+import { ArrowUpRight, Compass, Mail, ShieldCheck, Store, Truck } from 'lucide-react'
 import { Metadata } from 'next'
 import { headers } from 'next/headers'
 import Link from 'next/link'
@@ -110,60 +112,94 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // Filter out the current product and limit to 3 items
   const relatedProducts = moreProducts.filter((p) => p.id !== product.id).slice(0, 3)
 
+  const isOutOfStock = product.status === 'out_of_stock' || product.availability_count === 0
+  const isLowStock = !isOutOfStock && product.availability_count > 0 && product.availability_count <= 3
+  const currencySymbol = getCurrencySymbol(currency)
+  const priceAmount = formatProductPrice(product.price, currency, false).replace(
+    new RegExp(`^${currencySymbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*`),
+    ''
+  )
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with Back Button */}
-      <div className="border-b border-border/50 bg-linear-to-b from-secondary/10 via-accent-2/5 to-background">
-        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
+      {/* Top navigation bar: back action + Thriftverse brand */}
+      <div className="border-border/60 bg-surface border-b">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
           <BackButton />
+
+          <Link
+            href="/explore"
+            aria-label="Explore more Thriftverse stores"
+            className="group border-border/70 bg-surface text-primary/85 hover:border-primary/40 hover:text-primary inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-sans text-xs font-semibold tracking-wide transition-colors sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
+          >
+            <Compass className="h-3.5 w-3.5" strokeWidth={2.5} />
+            <span>Explore more</span>
+            <ArrowUpRight
+              className="text-primary/40 group-hover:text-primary hidden h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 sm:inline-block"
+              strokeWidth={2.5}
+            />
+          </Link>
         </div>
       </div>
 
       {/* Product Details */}
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
+      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-14">
           {/* Image Gallery */}
           <ImageGallery images={allImages} productTitle={product.title} />
 
           {/* Product Info */}
           <div className="flex flex-col">
-            {/* Store Badge */}
+            {/* Eyebrow: Visit Store */}
             {product.store && (
               <Link
-                href={`/`}
-                className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-secondary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-secondary/20"
+                href="/"
+                className="group border-border/70 bg-surface text-primary/80 hover:border-primary/40 hover:text-primary mb-5 inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 font-sans text-xs font-semibold tracking-wide transition-colors sm:text-sm"
               >
-                <Store className="h-4 w-4" />
-                {product.store.name}
+                <Store className="h-3.5 w-3.5" strokeWidth={2} />
+                <span>{product.store.name}</span>
+                <ArrowUpRight
+                  className="text-primary/40 group-hover:text-primary h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  strokeWidth={2.5}
+                />
               </Link>
             )}
 
+            {/* Category eyebrow */}
+            <p className="text-primary/60 mb-2 font-sans text-[11px] font-semibold tracking-[0.22em] uppercase">
+              {product.category}
+            </p>
+
             {/* Product Title */}
-            <h1 className="font-heading mb-4 text-3xl font-bold text-primary sm:text-4xl lg:text-5xl">
+            <h1 className="font-heading text-primary mb-5 text-2xl leading-tight font-bold tracking-tight sm:text-4xl lg:text-[44px]">
               {product.title}
             </h1>
 
-            {/* Price */}
-            <div className="mb-6 flex items-baseline gap-3">
-              <div className="flex items-baseline gap-2">
-                <span className="font-heading text-xl font-semibold text-[#e8b647] sm:text-2xl">
-                  {currency === 'USD' ? '$' : currency}
+            {/* Price + availability */}
+            <div className="mb-6 flex flex-wrap items-baseline gap-x-4 gap-y-2">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-secondary font-heading text-base font-semibold sm:text-xl">
+                  {currencySymbol}
                 </span>
-                <span className="font-heading text-5xl font-bold text-[#e8b647] sm:text-6xl">
-                  {formatProductPrice(product.price, currency, false).replace(/^[^\d,]+\s*/, '')}
+                <span className="text-secondary font-heading text-4xl font-bold tracking-tight sm:text-5xl">
+                  {priceAmount}
                 </span>
               </div>
-              {product.availability_count === 0 ? (
-                <span className="rounded-full bg-red-500/20 px-4 py-1.5 text-sm font-bold text-red-600 dark:text-red-400">
-                  SOLD OUT
+
+              {isOutOfStock ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-[11px] font-bold tracking-wide text-red-700 uppercase">
+                  <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
+                  Sold out
                 </span>
-              ) : product.status === 'available' && product.availability_count > 0 ? (
-                <span className="rounded-full bg-secondary/20 px-3 py-1 text-sm font-medium text-primary">
-                  In Stock
+              ) : isLowStock ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-bold tracking-wide text-amber-800 uppercase">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  Only {product.availability_count} left
                 </span>
               ) : (
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary/70">
-                  Out of Stock
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-bold tracking-wide text-emerald-800 uppercase">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  In stock
                 </span>
               )}
             </div>
@@ -175,21 +211,28 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
             )}
 
-            {/* Product Details Grid */}
-            <div className="mb-8 grid grid-cols-2 gap-4 rounded-2xl bg-linear-to-br from-secondary/5 to-accent-2/5 p-6">
-              <div>
-                <p className="mb-1 text-sm text-primary/60">Category</p>
-                <p className="font-semibold text-primary">{product.category}</p>
+            {/* Meta key/value row */}
+            <dl className="border-border/60 mb-8 grid grid-cols-2 divide-x divide-border/60 overflow-hidden rounded-2xl border bg-surface">
+              <div className="p-4 sm:p-5">
+                <dt className="text-primary/60 mb-1 font-sans text-[10px] font-semibold tracking-[0.18em] uppercase">
+                  Category
+                </dt>
+                <dd className="text-primary font-sans text-sm font-semibold capitalize sm:text-base">
+                  {product.category}
+                </dd>
               </div>
-              <div>
-                <p className="mb-1 text-sm text-primary/60">Availability</p>
-                <p className="font-semibold text-primary">
-                  {product.availability_count} {product.availability_count === 1 ? 'item' : 'items'}
-                </p>
+              <div className="p-4 sm:p-5">
+                <dt className="text-primary/60 mb-1 font-sans text-[10px] font-semibold tracking-[0.18em] uppercase">
+                  Availability
+                </dt>
+                <dd className="text-primary font-sans text-sm font-semibold sm:text-base">
+                  {product.availability_count}{' '}
+                  {product.availability_count === 1 ? 'item' : 'items'}
+                </dd>
               </div>
-            </div>
+            </dl>
 
-            {/* Action Button */}
+            {/* Purchase actions */}
             <div className="mt-auto">
               <ProductPurchaseSection
                 productId={product.id}
@@ -197,29 +240,58 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 price={product.price}
                 currency={currency}
                 availabilityCount={product.availability_count}
-                isOutOfStock={product.status === 'out_of_stock' || product.availability_count === 0}
+                isOutOfStock={isOutOfStock}
                 storeId={product.store_id}
                 storeName={product.store?.name || product.store?.store_username || 'Store'}
                 coverImage={product.cover_image}
               />
+
+              {/* Trust row */}
+              <ul className="text-primary/65 mt-6 grid grid-cols-3 gap-2 border-t border-border/60 pt-5 text-center">
+                <li className="flex flex-col items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4" strokeWidth={2} />
+                  <span className="font-sans text-[11px] font-medium leading-tight">
+                    Secure checkout
+                  </span>
+                </li>
+                <li className="flex flex-col items-center gap-1.5">
+                  <Truck className="h-4 w-4" strokeWidth={2} />
+                  <span className="font-sans text-[11px] font-medium leading-tight">
+                    Shipped via NCM
+                  </span>
+                </li>
+                <li className="flex flex-col items-center gap-1.5">
+                  <Mail className="h-4 w-4" strokeWidth={2} />
+                  <span className="font-sans text-[11px] font-medium leading-tight">
+                    Email tracking
+                  </span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* More from this store */}
       {relatedProducts.length > 0 && (
-        <div className="border-t border-border/50 bg-linear-to-b from-secondary/10 via-accent-2/5 to-background">
-          <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-            <div className="mb-8 flex items-center justify-between">
-              <h2 className="font-heading text-2xl font-bold text-primary sm:text-3xl">
-                More from {product.store?.name}
-              </h2>
+        <>
+          <SectionDivider />
+          <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
+            <div className="mb-6 flex items-end justify-between gap-3 sm:mb-8">
+              <div className="min-w-0">
+                <p className="text-primary/60 mb-1 font-sans text-[10px] font-semibold tracking-[0.22em] uppercase sm:text-[11px]">
+                  Keep exploring
+                </p>
+                <h2 className="font-heading text-primary truncate text-xl font-bold tracking-tight sm:text-3xl">
+                  More from {product.store?.name}
+                </h2>
+              </div>
               <Link
                 href="/"
-                className="text-sm font-medium text-secondary transition-colors hover:text-secondary/80"
+                className="text-primary/70 hover:text-primary inline-flex shrink-0 items-center gap-1 font-sans text-xs font-semibold tracking-wide transition-colors sm:text-sm"
               >
                 View all
+                <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />
               </Link>
             </div>
 
@@ -232,9 +304,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 />
               ))}
             </div>
-          </div>
-        </div>
+          </section>
+        </>
       )}
+
+      {/* Minimal brand footer */}
+      <SectionDivider spacing="sm" />
+      <footer className="mx-auto max-w-6xl px-4 pb-8 sm:px-6 sm:pb-10 lg:px-8">
+        <StoreMinimalFooter />
+      </footer>
 
       {/* Floating Cart Button */}
       <CartButton storeId={product.store_id} />

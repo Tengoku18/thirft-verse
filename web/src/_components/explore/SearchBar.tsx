@@ -1,7 +1,7 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import { useState, useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { debounce } from '@/utils/exploreHelpers'
 
 interface SearchBarProps {
@@ -18,8 +18,9 @@ export default function SearchBar({
   className = '',
 }: SearchBarProps) {
   const [value, setValue] = useState('')
+  const [focused, setFocused] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  // Create debounced search function
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
     debounce((query: string) => {
@@ -28,7 +29,6 @@ export default function SearchBar({
     [onSearch, debounceMs]
   )
 
-  // Call debounced search when value changes
   useEffect(() => {
     debouncedSearch(value)
   }, [value, debouncedSearch])
@@ -36,29 +36,46 @@ export default function SearchBar({
   const handleClear = () => {
     setValue('')
     onSearch('')
+    inputRef.current?.focus()
   }
 
   return (
-    <div className={`relative ${className}`}>
-      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-        <Search className="h-5 w-5 text-neutral-400" />
+    <div className={`group relative ${className}`}>
+      {/* Subtle glow ring on focus */}
+      <div
+        aria-hidden
+        className={`from-secondary/30 via-accent-2/20 pointer-events-none absolute -inset-0.5 rounded-full bg-linear-to-r to-transparent opacity-0 blur-md transition-opacity duration-300 ${
+          focused ? 'opacity-100' : ''
+        }`}
+      />
+
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
+        <Search
+          className={`h-4 w-4 transition-all duration-300 ${
+            focused ? 'text-secondary scale-110' : 'text-primary/45'
+          }`}
+          strokeWidth={2}
+        />
       </div>
 
       <input
+        ref={inputRef}
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-neutral-200 bg-white py-2.5 pl-11 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-300 focus:outline-none focus:ring-1 focus:ring-neutral-200 transition-all"
+        className="border-border/70 bg-surface text-primary placeholder:text-primary/40 focus:border-secondary/70 focus:ring-secondary/20 relative w-full rounded-full border py-2.5 pr-11 pl-10 font-sans text-sm transition-all duration-200 focus:ring-4 focus:outline-none"
       />
 
       {value && (
         <button
           onClick={handleClear}
-          className="absolute inset-y-0 right-0 flex items-center pr-4 text-neutral-400 hover:text-neutral-700 transition-colors"
+          className="text-primary/40 hover:text-primary hover:bg-background/80 absolute inset-y-0 right-1.5 z-10 my-auto flex h-7 w-7 cursor-pointer items-center justify-center rounded-full transition-all duration-200 hover:scale-105 active:scale-90"
           aria-label="Clear search"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" strokeWidth={2.4} />
         </button>
       )}
     </div>
