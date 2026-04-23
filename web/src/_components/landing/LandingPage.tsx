@@ -1,36 +1,38 @@
 import Header from '@/_components/common/Header';
-import Hero from './Hero';
-import Features from './Features';
-import HowItWorks from './HowItWorks';
 import CTA from './CTA';
+import Features from './Features';
 import Footer from './Footer';
+import Hero from './Hero';
+import HowItWorks from './HowItWorks';
 import Section from './Section';
+import SustainabilityStory from './SustainabilityStory';
+import TrustStrip from './TrustStrip';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen">
-      {/* Header */}
+    <div className="min-h-screen bg-background">
       <Header />
 
-      {/* Hero Section */}
       <Hero />
 
-      {/* Features Section */}
+      <TrustStrip />
+
       <Section background="default" id="features">
         <Features />
       </Section>
 
-      {/* How It Works Section */}
       <Section background="surface" id="how-it-works">
         <HowItWorks />
       </Section>
 
-      {/* CTA Section */}
+      <Section background="default" id="sustainability">
+        <SustainabilityStory />
+      </Section>
+
       <Section background="default" id="get-started">
         <CTA />
       </Section>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

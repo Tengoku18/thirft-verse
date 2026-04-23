@@ -7,36 +7,34 @@ export default function CookiePolicyPage() {
       description="How we use cookies and similar technologies"
     >
       <div className="prose prose-primary mx-auto max-w-4xl py-12">
-        <p className="text-primary/70 italic">
-          Last Updated: January 2025
-        </p>
+        <p className="text-primary/70 italic">Last Updated: January 2025</p>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             1. What Are Cookies?
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
+          <p className="text-primary/80 mb-4 leading-relaxed">
             Cookies are small text files that are placed on your device when you
-            visit our website. They help us provide you with a better
-            experience by remembering your preferences and understanding how you
-            use Thriftverse.
+            visit our website. They help us provide you with a better experience
+            by remembering your preferences and understanding how you use
+            Thriftverse.
           </p>
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             2. Types of Cookies We Use
           </h2>
 
           <div className="mb-6">
-            <h3 className="font-heading text-xl font-semibold text-primary mb-3">
+            <h3 className="font-heading text-primary mb-3 text-xl font-semibold">
               2.1 Essential Cookies
             </h3>
-            <p className="text-primary/80 leading-relaxed mb-3">
+            <p className="text-primary/80 mb-3 leading-relaxed">
               These cookies are necessary for the website to function properly.
               They enable core functionality such as:
             </p>
-            <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+            <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
               <li>User authentication and account access</li>
               <li>Security and fraud prevention</li>
               <li>Session management</li>
@@ -49,14 +47,14 @@ export default function CookiePolicyPage() {
           </div>
 
           <div className="mb-6">
-            <h3 className="font-heading text-xl font-semibold text-primary mb-3">
+            <h3 className="font-heading text-primary mb-3 text-xl font-semibold">
               2.2 Analytics Cookies
             </h3>
-            <p className="text-primary/80 leading-relaxed mb-3">
+            <p className="text-primary/80 mb-3 leading-relaxed">
               These cookies help us understand how visitors interact with our
               website by collecting information such as:
             </p>
-            <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+            <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
               <li>Pages visited and time spent on pages</li>
               <li>Navigation paths through the site</li>
               <li>Device and browser information</li>
@@ -68,14 +66,14 @@ export default function CookiePolicyPage() {
           </div>
 
           <div className="mb-6">
-            <h3 className="font-heading text-xl font-semibold text-primary mb-3">
+            <h3 className="font-heading text-primary mb-3 text-xl font-semibold">
               2.3 Functionality Cookies
             </h3>
-            <p className="text-primary/80 leading-relaxed mb-3">
+            <p className="text-primary/80 mb-3 leading-relaxed">
               These cookies allow us to remember your preferences and provide
               enhanced features:
             </p>
-            <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+            <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
               <li>Language preferences</li>
               <li>Display settings</li>
               <li>Store customization options</li>
@@ -84,14 +82,14 @@ export default function CookiePolicyPage() {
           </div>
 
           <div className="mb-6">
-            <h3 className="font-heading text-xl font-semibold text-primary mb-3">
+            <h3 className="font-heading text-primary mb-3 text-xl font-semibold">
               2.4 Marketing Cookies
             </h3>
-            <p className="text-primary/80 leading-relaxed mb-3">
+            <p className="text-primary/80 mb-3 leading-relaxed">
               These cookies track your activity across websites to help us
               deliver more relevant advertising:
             </p>
-            <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+            <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
               <li>Social media integration (Facebook, Instagram)</li>
               <li>Advertising network cookies</li>
               <li>Retargeting and remarketing</li>
@@ -104,14 +102,14 @@ export default function CookiePolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             3. Third-Party Cookies
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
+          <p className="text-primary/80 mb-4 leading-relaxed">
             We use services from third-party providers that may set their own
             cookies:
           </p>
-          <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+          <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
             <li>
               <strong>eSewa:</strong> Payment processing and transaction
               security
@@ -128,14 +126,14 @@ export default function CookiePolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             4. Cookie Duration
           </h2>
           <div className="mb-6">
-            <h3 className="font-heading text-xl font-semibold text-primary mb-3">
+            <h3 className="font-heading text-primary mb-3 text-xl font-semibold">
               Session Cookies
             </h3>
-            <p className="text-primary/80 leading-relaxed mb-4">
+            <p className="text-primary/80 mb-4 leading-relaxed">
               These are temporary cookies that expire when you close your
               browser. They help maintain your session while navigating the
               site.
@@ -143,10 +141,10 @@ export default function CookiePolicyPage() {
           </div>
 
           <div className="mb-6">
-            <h3 className="font-heading text-xl font-semibold text-primary mb-3">
+            <h3 className="font-heading text-primary mb-3 text-xl font-semibold">
               Persistent Cookies
             </h3>
-            <p className="text-primary/80 leading-relaxed mb-4">
+            <p className="text-primary/80 mb-4 leading-relaxed">
               These remain on your device for a set period or until you delete
               them. They remember your preferences and settings for future
               visits.
@@ -155,22 +153,22 @@ export default function CookiePolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             5. Managing Cookies
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
+          <p className="text-primary/80 mb-4 leading-relaxed">
             You can control and manage cookies in several ways:
           </p>
 
           <div className="mb-6">
-            <h3 className="font-heading text-xl font-semibold text-primary mb-3">
+            <h3 className="font-heading text-primary mb-3 text-xl font-semibold">
               Browser Settings
             </h3>
-            <p className="text-primary/80 leading-relaxed mb-4">
+            <p className="text-primary/80 mb-4 leading-relaxed">
               Most browsers allow you to refuse cookies or delete existing ones.
               Instructions vary by browser:
             </p>
-            <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+            <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
               <li>Chrome: Settings &gt; Privacy and security &gt; Cookies</li>
               <li>Firefox: Options &gt; Privacy &amp; Security &gt; Cookies</li>
               <li>Safari: Preferences &gt; Privacy &gt; Cookies</li>
@@ -179,17 +177,17 @@ export default function CookiePolicyPage() {
           </div>
 
           <div className="mb-6">
-            <h3 className="font-heading text-xl font-semibold text-primary mb-3">
+            <h3 className="font-heading text-primary mb-3 text-xl font-semibold">
               Cookie Consent Tool
             </h3>
-            <p className="text-primary/80 leading-relaxed mb-4">
+            <p className="text-primary/80 mb-4 leading-relaxed">
               When you first visit Thriftverse, you can choose which categories
               of cookies to accept through our cookie consent banner. You can
               change your preferences at any time through our cookie settings.
             </p>
           </div>
 
-          <div className="rounded-lg bg-accent-1/10 border border-accent-1/20 p-6 mb-4">
+          <div className="bg-accent-1/10 border-accent-1/20 mb-4 rounded-lg border p-6">
             <p className="text-primary/80">
               <strong>Note:</strong> Disabling certain cookies may limit your
               ability to use some features of Thriftverse. Essential cookies
@@ -200,37 +198,38 @@ export default function CookiePolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             6. Do Not Track
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
-            Some browsers have a &quot;Do Not Track&quot; feature. Currently, there is no
-            industry standard for how to respond to these signals, so we do not
-            respond to Do Not Track requests at this time.
+          <p className="text-primary/80 mb-4 leading-relaxed">
+            Some browsers have a &quot;Do Not Track&quot; feature. Currently,
+            there is no industry standard for how to respond to these signals,
+            so we do not respond to Do Not Track requests at this time.
           </p>
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             7. Updates to This Policy
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
+          <p className="text-primary/80 mb-4 leading-relaxed">
             We may update this Cookie Policy from time to time to reflect
             changes in technology or legal requirements. We will post the
-            updated policy on this page with a new &quot;Last Updated&quot; date.
+            updated policy on this page with a new &quot;Last Updated&quot;
+            date.
           </p>
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             8. Contact Us
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
+          <p className="text-primary/80 mb-4 leading-relaxed">
             If you have questions about our use of cookies, please contact us:
           </p>
-          <div className="rounded-lg bg-surface border border-border p-6">
+          <div className="bg-surface border-border rounded-lg border p-6">
             <p className="text-primary/80">
-              <strong>Email:</strong> thriftverse.shop@gmail.com
+              <strong>Email:</strong> thriiftverse.shop@gmail.com
             </p>
           </div>
         </section>

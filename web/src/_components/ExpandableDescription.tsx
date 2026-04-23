@@ -49,7 +49,7 @@ export default function ExpandableDescription({
       {needsExpansion && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-secondary transition-colors hover:text-secondary/80"
+          className="mt-3 inline-flex cursor-pointer items-center gap-1.5 text-sm font-medium text-secondary transition-colors hover:text-secondary/80"
         >
           {isExpanded ? (
             <>

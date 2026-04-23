@@ -7,15 +7,13 @@ export default function PrivacyPolicyPage() {
       description="How we collect, use, and protect your personal information"
     >
       <div className="prose prose-primary mx-auto max-w-4xl py-12">
-        <p className="text-primary/70 italic">
-          Last Updated: January 2025
-        </p>
+        <p className="text-primary/70 italic">Last Updated: January 2025</p>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             1. Introduction
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
+          <p className="text-primary/80 mb-4 leading-relaxed">
             Welcome to Thriftverse. We respect your privacy and are committed to
             protecting your personal data. This privacy policy explains how we
             collect, use, and safeguard your information when you use our
@@ -24,13 +22,13 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             2. Information We Collect
           </h2>
-          <h3 className="font-heading text-xl font-semibold text-primary mb-3">
+          <h3 className="font-heading text-primary mb-3 text-xl font-semibold">
             2.1 Information You Provide
           </h3>
-          <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+          <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
             <li>Account information (name, email, password)</li>
             <li>Store information (subdomain, bio, profile picture)</li>
             <li>Product listings (photos, descriptions, prices)</li>
@@ -38,10 +36,10 @@ export default function PrivacyPolicyPage() {
             <li>Communication data (messages, support requests)</li>
           </ul>
 
-          <h3 className="font-heading text-xl font-semibold text-primary mb-3">
+          <h3 className="font-heading text-primary mb-3 text-xl font-semibold">
             2.2 Information We Collect Automatically
           </h3>
-          <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+          <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
             <li>Usage data (pages visited, features used)</li>
             <li>Device information (browser type, IP address)</li>
             <li>Analytics data (store performance, sales metrics)</li>
@@ -50,13 +48,13 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             3. How We Use Your Information
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-3">
+          <p className="text-primary/80 mb-3 leading-relaxed">
             We use your information to:
           </p>
-          <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+          <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
             <li>Provide and maintain your storefront</li>
             <li>Process transactions and payments through eSewa</li>
             <li>Send you important updates and notifications</li>
@@ -68,13 +66,14 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             4. Information Sharing
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-3">
-            We do not sell your personal information. We may share your data with:
+          <p className="text-primary/80 mb-3 leading-relaxed">
+            We do not sell your personal information. We may share your data
+            with:
           </p>
-          <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+          <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
             <li>
               <strong>Payment Processors:</strong> eSewa and other payment
               gateways to process transactions
@@ -95,14 +94,14 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             5. Data Security
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
+          <p className="text-primary/80 mb-4 leading-relaxed">
             We implement industry-standard security measures to protect your
             data, including:
           </p>
-          <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+          <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
             <li>Encryption of data in transit and at rest</li>
             <li>Regular security audits and updates</li>
             <li>Access controls and authentication</li>
@@ -111,13 +110,13 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             6. Your Rights
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-3">
+          <p className="text-primary/80 mb-3 leading-relaxed">
             You have the right to:
           </p>
-          <ul className="list-disc pl-6 text-primary/80 space-y-2 mb-4">
+          <ul className="text-primary/80 mb-4 list-disc space-y-2 pl-6">
             <li>Access your personal data</li>
             <li>Correct inaccurate information</li>
             <li>Request deletion of your data</li>
@@ -128,10 +127,10 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             7. Data Retention
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
+          <p className="text-primary/80 mb-4 leading-relaxed">
             We retain your information as long as your account is active or as
             needed to provide services. After account deletion, we may retain
             certain information for legal compliance, dispute resolution, and
@@ -140,10 +139,10 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             8. Children&apos;s Privacy
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
+          <p className="text-primary/80 mb-4 leading-relaxed">
             Thriftverse is not intended for users under 18 years of age. We do
             not knowingly collect information from children. If we discover we
             have collected data from a child, we will delete it immediately.
@@ -151,10 +150,10 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             9. Changes to This Policy
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
+          <p className="text-primary/80 mb-4 leading-relaxed">
             We may update this privacy policy from time to time. We will notify
             you of significant changes via email or through the platform. Your
             continued use of Thriftverse after changes constitutes acceptance.
@@ -162,16 +161,16 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <section className="mb-8">
-          <h2 className="font-heading text-2xl font-bold text-primary mb-4">
+          <h2 className="font-heading text-primary mb-4 text-2xl font-bold">
             10. Contact Us
           </h2>
-          <p className="text-primary/80 leading-relaxed mb-4">
+          <p className="text-primary/80 mb-4 leading-relaxed">
             If you have questions about this privacy policy or your data, please
             contact us at:
           </p>
-          <div className="rounded-lg bg-surface border border-border p-6">
+          <div className="bg-surface border-border rounded-lg border p-6">
             <p className="text-primary/80">
-              <strong>Email:</strong> thriftverse.shop@gmail.com
+              <strong>Email:</strong> thriiftverse.shop@gmail.com
             </p>
           </div>
         </section>

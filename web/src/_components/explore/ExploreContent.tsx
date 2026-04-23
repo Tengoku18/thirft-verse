@@ -7,7 +7,7 @@ import {
   filterStoresBySearch, ProductSortOption, sortProducts,
   sortStores, StoreSortOption
 } from '@/utils/exploreHelpers'
-import { Package, Store } from 'lucide-react'
+import { Package, RotateCcw, Sparkles, Store } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ProductCard from '../ProductCard'
@@ -15,6 +15,7 @@ import StoreCard from '../StoreCard'
 import type { ExploreTab } from './index'
 import {
   ExploreNavbar,
+  ExploreSellerCTA,
   ExploreTabs,
   PRODUCT_SORT_OPTIONS,
   SearchBar,
@@ -33,7 +34,6 @@ export default function ExploreContent({
   initialProducts,
   initialStores,
 }: ExploreContentProps) {
-  // Tab state — driven by ?tab= URL param, defaults to 'products'
   const searchParams = useSearchParams()
   const router = useRouter()
   const activeTab = (searchParams.get('tab') as ExploreTab) || 'products'
@@ -47,22 +47,15 @@ export default function ExploreContent({
     router.push(`?${params.toString()}`, { scroll: false })
   }
 
-  // Search state
   const [searchQuery, setSearchQuery] = useState('')
-
-  // Product filters
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [inStockOnly, setInStockOnly] = useState(false)
   const [productSortBy, setProductSortBy] = useState<ProductSortOption>('newest')
-
-  // Store filters
   const [storeSortBy, setStoreSortBy] = useState<StoreSortOption>('newest')
 
-  // Sentinel refs
   const productSentinelRef = useRef<HTMLDivElement>(null)
   const storeSentinelRef = useRef<HTMLDivElement>(null)
 
-  // Filter and sort products
   const filteredProducts = useMemo(() => {
     let filtered = initialProducts
     filtered = filterProductsBySearch(filtered, searchQuery)
@@ -72,7 +65,6 @@ export default function ExploreContent({
     return filtered
   }, [initialProducts, searchQuery, selectedCategories, inStockOnly, productSortBy])
 
-  // Filter and sort stores
   const filteredStores = useMemo(() => {
     let filtered = initialStores
     filtered = filterStoresBySearch(filtered, searchQuery)
@@ -80,7 +72,6 @@ export default function ExploreContent({
     return filtered
   }, [initialStores, searchQuery, storeSortBy])
 
-  // Visible counts keyed to filter identity — resets automatically when filters change
   const productFilterKey = `${searchQuery}|${selectedCategories.join(',')}|${inStockOnly}|${productSortBy}`
   const storeFilterKey = `${searchQuery}|${storeSortBy}`
   const [productScroll, setProductScroll] = useState({ key: productFilterKey, count: PAGE_SIZE })
@@ -88,7 +79,6 @@ export default function ExploreContent({
   const visibleProductCount = productScroll.key === productFilterKey ? productScroll.count : PAGE_SIZE
   const visibleStoreCount = storeScroll.key === storeFilterKey ? storeScroll.count : PAGE_SIZE
 
-  // IntersectionObserver for products
   useEffect(() => {
     const sentinel = productSentinelRef.current
     if (!sentinel) return
@@ -110,7 +100,6 @@ export default function ExploreContent({
     return () => observer.disconnect()
   }, [filteredProducts.length, activeTab, productFilterKey])
 
-  // IntersectionObserver for stores
   useEffect(() => {
     const sentinel = storeSentinelRef.current
     if (!sentinel) return
@@ -132,7 +121,6 @@ export default function ExploreContent({
     return () => observer.disconnect()
   }, [filteredStores.length, activeTab, storeFilterKey])
 
-  // Reset filters
   const resetFilters = () => {
     setSearchQuery('')
     setSelectedCategories([])
@@ -142,7 +130,7 @@ export default function ExploreContent({
   }
 
   const hasActiveFilters =
-    searchQuery ||
+    Boolean(searchQuery) ||
     selectedCategories.length > 0 ||
     inStockOnly ||
     productSortBy !== 'newest' ||
@@ -151,26 +139,27 @@ export default function ExploreContent({
   const displayedProducts = filteredProducts.slice(0, visibleProductCount)
   const displayedStores = filteredStores.slice(0, visibleStoreCount)
 
+  const totalForTab = activeTab === 'products' ? filteredProducts.length : filteredStores.length
+
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* Navbar */}
+    <div className="bg-background min-h-screen">
       <ExploreNavbar />
 
-      {/* Main Content */}
-      <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
-        {/* Top Bar */}
-        <div className="mb-8 flex flex-col gap-6">
-          {/* Search and Tabs */}
-          <div className="flex flex-col sm:flex-row items-center gap-4 justify-between">
-            {/* Search */}
-            <div className="w-full sm:w-96">
+      {/* Sticky marketplace filter bar — soft shadow instead of hard border */}
+      <div className="bg-background/92 sticky top-14 z-40 shadow-[0_10px_24px_-20px_rgba(59,47,47,0.25)] backdrop-blur-md sm:top-16">
+        <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+          {/* Row 1: search + tabs */}
+          <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div className="w-full sm:max-w-md sm:flex-1">
               <SearchBar
-                placeholder={`Search ${activeTab}...`}
+                placeholder={
+                  activeTab === 'products'
+                    ? 'Search products, styles, or stores…'
+                    : 'Search store names, handles…'
+                }
                 onSearch={setSearchQuery}
               />
             </div>
-
-            {/* Tabs */}
             <ExploreTabs
               activeTab={activeTab}
               onTabChange={setActiveTab}
@@ -179,158 +168,240 @@ export default function ExploreContent({
             />
           </div>
 
-          {/* Filters Bar */}
+          {/* Row 2: categories (products only) */}
           {activeTab === 'products' && (
-            <div className="flex flex-col gap-4">
-              {/* Categories - Horizontal Scroll */}
-              <div className="flex flex-col gap-2">
-                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wide">Categories</span>
-                <div className="overflow-x-auto hide-scrollbar">
-                  <div className="flex gap-2 pb-1">
-                    {PRODUCT_CATEGORIES.map((category) => {
-                      const isSelected = selectedCategories.includes(category)
-                      return (
-                        <button
-                          key={category}
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedCategories(selectedCategories.filter(c => c !== category))
-                            } else {
-                              setSelectedCategories([...selectedCategories, category])
-                            }
-                          }}
-                          className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-neutral-900 text-white'
-                              : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200'
-                          }`}
-                        >
-                          {category}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
+            <div className="hide-scrollbar mt-3 flex items-center gap-2 overflow-x-auto pb-0.5">
+              {PRODUCT_CATEGORIES.map((category, i) => {
+                const isSelected = selectedCategories.includes(category)
+                return (
+                  <button
+                    key={category}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedCategories(
+                          selectedCategories.filter((c) => c !== category)
+                        )
+                      } else {
+                        setSelectedCategories([...selectedCategories, category])
+                      }
+                    }}
+                    style={{ animationDelay: `${i * 25}ms` }}
+                    className={`animate-fade-up shrink-0 cursor-pointer rounded-full border px-3.5 py-1.5 font-sans text-xs font-semibold tracking-wide whitespace-nowrap transition-all duration-200 sm:text-[13px] ${
+                      isSelected
+                        ? 'border-primary bg-primary text-surface shadow-sm'
+                        : 'border-border/70 bg-surface text-primary/75 hover:border-secondary/50 hover:bg-secondary/10 hover:text-primary'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                )
+              })}
+            </div>
+          )}
 
-              {/* Controls */}
-              <div className="flex items-center justify-between gap-4 pb-4 border-b border-neutral-200">
-                <div className="flex items-center gap-4">
-                  {/* In Stock Toggle */}
-                  <label className="flex items-center gap-2 cursor-pointer">
+          {/* Row 3: meta controls */}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              <span className="text-primary/60 font-sans text-xs font-semibold tabular-nums sm:text-sm">
+                <span className="text-primary">{totalForTab.toLocaleString()}</span>{' '}
+                {activeTab === 'products'
+                  ? totalForTab === 1
+                    ? 'item'
+                    : 'items'
+                  : totalForTab === 1
+                    ? 'store'
+                    : 'stores'}
+              </span>
+
+              {activeTab === 'products' && (
+                <label className="group flex cursor-pointer items-center gap-2">
+                  <span className="relative inline-flex h-4 w-4 shrink-0">
                     <input
                       type="checkbox"
                       checked={inStockOnly}
                       onChange={(e) => setInStockOnly(e.target.checked)}
-                      className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 focus:ring-offset-0"
+                      className="peer border-border/80 checked:border-primary checked:bg-primary focus:ring-secondary/30 bg-surface h-4 w-4 cursor-pointer appearance-none rounded border transition-all duration-200 focus:ring-4 focus:outline-none"
                     />
-                    <span className="text-sm text-neutral-700">In stock only</span>
-                  </label>
-
-                  {/* Clear Filters */}
-                  {hasActiveFilters && (
-                    <button
-                      onClick={resetFilters}
-                      className="text-sm font-medium text-neutral-900 hover:text-neutral-600 transition-colors underline"
+                    <svg
+                      className="text-surface pointer-events-none absolute inset-0 m-auto hidden h-3 w-3 peer-checked:block"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
                     >
-                      Clear all
-                    </button>
-                  )}
-                </div>
-
-                {/* Results & Sort */}
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-neutral-500">
-                    {filteredProducts.length} products
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
                   </span>
-                  <div className="w-44">
-                    <SortSelect
-                      value={productSortBy}
-                      onChange={setProductSortBy}
-                      options={PRODUCT_SORT_OPTIONS}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+                  <span className="text-primary/75 group-hover:text-primary font-sans text-xs font-medium transition-colors sm:text-sm">
+                    In stock only
+                  </span>
+                </label>
+              )}
 
-          {/* Store Controls */}
-          {activeTab === 'stores' && (
-            <div className="flex items-center justify-between pb-4 border-b border-neutral-200">
-              <span className="text-sm text-neutral-500">
-                {filteredStores.length} stores
-              </span>
-              <div className="w-44">
+              {hasActiveFilters && (
+                <button
+                  onClick={resetFilters}
+                  className="animate-fade-up text-primary/70 hover:text-primary inline-flex cursor-pointer items-center gap-1.5 font-sans text-xs font-semibold underline-offset-4 transition-colors hover:underline sm:text-sm"
+                >
+                  <RotateCcw className="h-3 w-3" strokeWidth={2.4} />
+                  Clear filters
+                </button>
+              )}
+            </div>
+
+            <div className="w-40 sm:w-44">
+              {activeTab === 'products' ? (
+                <SortSelect
+                  value={productSortBy}
+                  onChange={setProductSortBy}
+                  options={PRODUCT_SORT_OPTIONS}
+                />
+              ) : (
                 <SortSelect
                   value={storeSortBy}
                   onChange={setStoreSortBy}
                   options={STORE_SORT_OPTIONS}
                 />
-              </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
+      </div>
 
-        {/* Results */}
+      {/* Grid */}
+      <section className="mx-auto max-w-6xl px-4 pt-6 pb-10 sm:px-6 sm:pt-8 sm:pb-14 lg:px-8">
         {activeTab === 'products' ? (
           filteredProducts.length === 0 ? (
-            <div className="py-32 text-center">
-              <Package className="mx-auto mb-4 h-16 w-16 text-neutral-300" />
-              <p className="text-lg font-medium text-neutral-900 mb-1">
-                No products found
-              </p>
-              <p className="text-sm text-neutral-500">
-                Try adjusting your filters
-              </p>
-            </div>
+            <EmptyState
+              icon={<Package className="h-8 w-8" strokeWidth={1.6} />}
+              title="No products match your filters"
+              description="Try clearing a filter, widening your search, or browsing a different category — there's more to find."
+              onReset={hasActiveFilters ? resetFilters : undefined}
+            />
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-                {displayedProducts.map((product) => (
-                  <ProductCard
+              <div
+                key={productFilterKey}
+                className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4"
+              >
+                {displayedProducts.map((product, i) => (
+                  <div
                     key={product.id}
-                    product={product}
-                    currency={product.store?.currency || 'USD'}
-                  />
+                    className="animate-fade-up"
+                    style={{ animationDelay: `${Math.min(i, 11) * 30}ms` }}
+                  >
+                    <ProductCard
+                      product={product}
+                      currency={product.store?.currency || 'USD'}
+                    />
+                  </div>
                 ))}
               </div>
               <div ref={productSentinelRef} className="h-1" />
               {visibleProductCount < filteredProducts.length && (
-                <div className="py-8 text-center">
-                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900" />
+                <div className="py-10 text-center">
+                  <div className="border-border/80 border-t-primary inline-block h-6 w-6 animate-spin rounded-full border-2" />
                 </div>
               )}
             </>
           )
+        ) : filteredStores.length === 0 ? (
+          <EmptyState
+            icon={<Store className="h-8 w-8" strokeWidth={1.6} />}
+            title="No stores match your search"
+            description="Try a different name or handle — more makers are joining Thriftverse every week."
+            onReset={hasActiveFilters ? resetFilters : undefined}
+          />
         ) : (
-          filteredStores.length === 0 ? (
-            <div className="py-32 text-center">
-              <Store className="mx-auto mb-4 h-16 w-16 text-neutral-300" />
-              <p className="text-lg font-medium text-neutral-900 mb-1">
-                No stores found
-              </p>
-              <p className="text-sm text-neutral-500">
-                Try adjusting your search
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-                {displayedStores.map((store) => (
-                  <StoreCard key={store.id} profile={store} />
-                ))}
-              </div>
-              <div ref={storeSentinelRef} className="h-1" />
-              {visibleStoreCount < filteredStores.length && (
-                <div className="py-8 text-center">
-                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900" />
+          <>
+            <div
+              key={storeFilterKey}
+              className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4"
+            >
+              {displayedStores.map((store, i) => (
+                <div
+                  key={store.id}
+                  className="animate-fade-up"
+                  style={{ animationDelay: `${Math.min(i, 11) * 30}ms` }}
+                >
+                  <StoreCard profile={store} />
                 </div>
-              )}
-            </>
-          )
+              ))}
+            </div>
+            <div ref={storeSentinelRef} className="h-1" />
+            {visibleStoreCount < filteredStores.length && (
+              <div className="py-10 text-center">
+                <div className="border-border/80 border-t-primary inline-block h-6 w-6 animate-spin rounded-full border-2" />
+              </div>
+            )}
+          </>
         )}
-      </div>
+      </section>
+
+      <SectionOrnament />
+
+      <ExploreSellerCTA />
+    </div>
+  )
+}
+
+function SectionOrnament() {
+  return (
+    <div
+      aria-hidden
+      className="mx-auto flex max-w-6xl items-center justify-center gap-3 px-4 py-8 sm:px-6 sm:py-12 lg:px-8"
+    >
+      <span className="via-secondary/50 h-px w-16 bg-linear-to-r from-transparent to-transparent sm:w-28" />
+      <span className="flex items-center gap-1.5">
+        <span className="bg-secondary/30 h-1 w-1 rounded-full" />
+        <span className="bg-secondary h-1.5 w-1.5 rounded-full" />
+        <span className="bg-secondary/30 h-1 w-1 rounded-full" />
+      </span>
+      <span className="via-secondary/50 h-px w-16 bg-linear-to-r from-transparent to-transparent sm:w-28" />
+    </div>
+  )
+}
+
+interface EmptyStateProps {
+  icon: React.ReactNode
+  title: string
+  description: string
+  onReset?: () => void
+}
+
+function EmptyState({ icon, title, description, onReset }: EmptyStateProps) {
+  return (
+    <div className="border-border/60 bg-surface animate-fade-up mx-auto flex max-w-xl flex-col items-center rounded-3xl border border-dashed px-6 py-14 text-center sm:px-10 sm:py-20">
+      <span className="border-secondary/40 bg-secondary/10 text-secondary animate-soft-pulse mb-5 inline-flex h-14 w-14 items-center justify-center rounded-full border sm:mb-6 sm:h-16 sm:w-16">
+        {icon}
+      </span>
+      <p className="text-primary/60 mb-1.5 font-sans text-[10px] font-semibold tracking-[0.22em] uppercase sm:text-[11px]">
+        Nothing here — yet
+      </p>
+      <h3 className="font-heading text-primary mb-2 text-xl font-bold tracking-tight sm:text-2xl">
+        {title}
+      </h3>
+      <p className="text-primary/70 mb-6 max-w-sm font-sans text-sm leading-relaxed sm:mb-7 sm:text-base">
+        {description}
+      </p>
+      {onReset && (
+        <button
+          onClick={onReset}
+          className="group bg-primary text-surface hover:bg-primary/90 relative inline-flex cursor-pointer items-center gap-2 overflow-hidden rounded-full px-5 py-2.5 font-sans text-sm font-semibold tracking-wide shadow-sm transition-colors duration-200"
+        >
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full"
+            style={{ transition: 'transform 900ms cubic-bezier(0.22, 1, 0.36, 1)' }}
+          >
+            <span className="absolute inset-y-0 left-0 w-1/3 bg-white/20 blur-md" />
+          </span>
+          <Sparkles className="relative h-3.5 w-3.5" strokeWidth={2.4} />
+          <span className="relative">Reset filters</span>
+        </button>
+      )}
     </div>
   )
 }
