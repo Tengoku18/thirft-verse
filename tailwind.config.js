@@ -34,21 +34,108 @@ module.exports = {
     },
     extend: {
       colors: {
-        // Primary - Rich espresso brown (vintage and warmth)
+        // ============================================
+        // BRAND COLORS (New Definitive Palette)
+        // ============================================
+        brand: {
+          espresso: "#3B3030", // Primary text, buttons
+          tan: "#D4A373", // Call-to-action, accents
+          beige: "#E5E1DA", // Card backgrounds, borders
+          "off-white": "#FAF7F2", // Main background
+          surface: "#FFFFFF", // Cards, inputs
+          badge: "#E8DCC8", // Badge background (referral, etc)
+        },
+
+        // ============================================
+        // STATUS & FEEDBACK COLORS
+        // ============================================
+        status: {
+          success: "#059669",
+          "success-bg": "#D1FAE5",
+          error: "#DC2626",
+          "error-bg": "#FEE2E2",
+          warning: "#D97706",
+          "warning-bg": "#FEF3C7",
+          info: "#2563EB",
+          "info-bg": "#DBEAFE",
+          refund: "#7C3AED",
+          "refund-bg": "#E9D5FF",
+        },
+
+        // ============================================
+        // UI ACCENTS & NEUTRALS
+        // ============================================
+        ui: {
+          secondary: "#6B7280",
+          tertiary: "#9CA3AF",
+          "border-light": "#E5E7EB",
+          "border-themed": "#C7BFB3",
+          elite: "#FCD34D",
+          "referral-reward-bg": "#FDFCFB",
+        },
+
+        // ============================================
+        // SCREEN BACKGROUND
+        // ============================================
+        "screen-bg": "#FAF7F2",
+
+        // ============================================
+        // INPUT FIELD COLORS (with opacity variants)
+        // ============================================
+        input: {
+          label: "#3B3030", // Label text 100%
+          border: "rgba(59, 48, 48, 0.2)", // Border 20%
+          "border-focus": "#3B3030", // Border on focus 100%
+          placeholder: "rgba(59, 48, 48, 0.4)", // Placeholder 40%
+          text: "#3B3030", // Input text 100%
+          icon: "rgba(59, 48, 48, 0.6)", // Icon 60%
+        },
+
+        // ============================================
+        // SEMANTIC COLORS
+        // ============================================
+        semantic: {
+          text: {
+            primary: "#3B3030",
+            secondary: "#6B7280",
+            tertiary: "#9CA3AF",
+            inverse: "#FFFFFF",
+          },
+          background: {
+            primary: "#FAF7F2",
+            secondary: "#FFFFFF",
+            tertiary: "#F3F4F6",
+          },
+          border: {
+            light: "#E5E7EB",
+            themed: "#C7BFB3",
+            strong: "#9CA3AF",
+          },
+          interactive: {
+            primary: "#D4A373",
+            success: "#059669",
+            warning: "#D97706",
+            error: "#DC2626",
+            info: "#2563EB",
+          },
+        },
+
+        // ============================================
+        // LEGACY COLORS (for backward compatibility)
+        // ============================================
         primary: {
-          DEFAULT: "#3B2F2F",
+          DEFAULT: "#3B3030",
           50: "#F5F3F3",
           100: "#E8E4E4",
           200: "#D1C9C9",
           300: "#B0A3A3",
           400: "#8A7777",
-          500: "#3B2F2F",
+          500: "#3B3030",
           600: "#2F2525",
           700: "#231C1C",
           800: "#181313",
           900: "#0C0A0A",
         },
-        // Secondary - Warm tan (thrift authenticity)
         secondary: {
           DEFAULT: "#D4A373",
           50: "#FAF6F1",
@@ -62,18 +149,14 @@ module.exports = {
           800: "#8A5C36",
           900: "#5C3D24",
         },
-        // Background - Soft off-white (airy and modern)
         background: {
           DEFAULT: "#FAF7F2",
           light: "#FFFFFF",
           dark: "#F5F2ED",
         },
-        // Surface - Clean contrast for premium layering
         surface: "#FFFFFF",
-        // Border / Muted Text - Subtle neutral for boundaries
         border: "#C7BFB3",
         muted: "#C7BFB3",
-        // Accent 1 - Muted olive (earthy tone)
         accent1: {
           DEFAULT: "#6B705C",
           50: "#F4F5F3",
@@ -87,7 +170,6 @@ module.exports = {
           800: "#2B2D25",
           900: "#151712",
         },
-        // Accent 2 - Clay blush (elegant and warm)
         accent2: {
           DEFAULT: "#CB997E",
           50: "#FAF6F3",

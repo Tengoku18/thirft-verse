@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { Product } from "@/lib/types/database";
 import { supabase } from "@/lib/supabase";
+import { Product } from "@/lib/types/database";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface ProductsState {
   // User's products (for my-products screen)
@@ -53,7 +53,7 @@ export const fetchUserProducts = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch products");
     }
-  }
+  },
 );
 
 // Fetch single product by ID
@@ -75,7 +75,7 @@ export const fetchProductById = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch product");
     }
-  }
+  },
 );
 
 // Update product
@@ -91,7 +91,7 @@ export const updateProduct = createAsyncThunk(
       storeId: string;
       data: Partial<Product>;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const { data: updatedData, error } = await supabase
@@ -113,7 +113,7 @@ export const updateProduct = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to update product");
     }
-  }
+  },
 );
 
 // Delete product (soft delete - sets is_active to false)
@@ -121,7 +121,7 @@ export const deleteProduct = createAsyncThunk(
   "products/deleteProduct",
   async (
     { productId, storeId }: { productId: string; storeId: string },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       // Check if there are any active (non-completed) orders for this product
@@ -139,7 +139,7 @@ export const deleteProduct = createAsyncThunk(
 
       if (activeOrders && activeOrders.length > 0) {
         return rejectWithValue(
-          "Cannot delete this product. It has active orders that need to be completed or cancelled first."
+          "Cannot delete this product. It has active orders that need to be completed or cancelled first.",
         );
       }
 
@@ -158,7 +158,7 @@ export const deleteProduct = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to delete product");
     }
-  }
+  },
 );
 
 // Create product
@@ -174,15 +174,17 @@ export const createProduct = createAsyncThunk(
       store_id: string;
       cover_image: string;
       other_images: string[];
+      is_verified: boolean;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const { data, error } = await supabase
         .from("products")
         .insert({
           ...productData,
-          status: productData.availability_count > 0 ? "available" : "out_of_stock",
+          status:
+            productData.availability_count > 0 ? "available" : "out_of_stock",
         })
         .select()
         .single();
@@ -195,7 +197,7 @@ export const createProduct = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to create product");
     }
-  }
+  },
 );
 
 const productsSlice = createSlice({
@@ -267,7 +269,9 @@ const productsSlice = createSlice({
       const updatedProduct = action.payload;
 
       // Update in userProducts array
-      const index = state.userProducts.findIndex((p) => p.id === updatedProduct.id);
+      const index = state.userProducts.findIndex(
+        (p) => p.id === updatedProduct.id,
+      );
       if (index !== -1) {
         state.userProducts[index] = updatedProduct;
       }

@@ -1,12 +1,17 @@
 import { Tabs } from "expo-router";
 import React from "react";
 
+import BagIcon from "@/components/icons/BagIcon";
+import CashIcon from "@/components/icons/CashIcon";
+import HomeIcon from "@/components/icons/HomeIcon";
+import PlusIcon from "@/components/icons/PlusIcon";
+import { UserIcon } from "@/components/icons/UserIcon";
 import { FloatingTabBar } from "@/components/navigation/FloatingTabBar";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 
 export default function TabLayout() {
   return (
     <Tabs
+      initialRouteName="home"
       tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
         headerShown: false,
@@ -16,20 +21,32 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <HomeIcon size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
         }}
       />
       <Tabs.Screen
         name="my-products"
         options={{
-          title: "My Products",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="shippingbox.fill" color={color} />
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="orders"
+        options={{
+          title: "Orders",
+          tabBarIcon: ({ color, size }) => (
+            <BagIcon size={size} color={color} />
           ),
         }}
       />
@@ -37,30 +54,18 @@ export default function TabLayout() {
         name="product"
         options={{
           title: "Add",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="plus.circle.fill" color={color} />
+          tabBarIcon: ({ color, size }) => (
+            <PlusIcon size={size} color={color} />
           ),
         }}
       />
-      <Tabs.Screen
-        name="orders"
-        options={{
-          title: "Orders",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="bag.fill" color={color} />
-          ),
-        }}
-      />
+
       <Tabs.Screen
         name="earnings"
         options={{
-          title: "Earnings",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={28}
-              name="chart.line.uptrend.xyaxis"
-              color={color}
-            />
+          title: "Cash",
+          tabBarIcon: ({ color, size }) => (
+            <CashIcon size={size} color={color} />
           ),
         }}
       />
@@ -68,6 +73,15 @@ export default function TabLayout() {
         name="settings"
         options={{
           href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color, size }) => (
+            <UserIcon size={size} color={color} />
+          ),
         }}
       />
     </Tabs>

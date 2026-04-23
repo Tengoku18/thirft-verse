@@ -1,39 +1,25 @@
-import { FormButton } from "@/components/atoms/FormButton";
-import { AuthHeader } from "@/components/navigation/AuthHeader";
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
+import { InfoBox } from "@/components/atoms/InfoBox";
+import { OTPInput } from "@/components/atoms/OTPInput";
+import { ResendCodeSection } from "@/components/atoms/ResendCodeSection";
+import ForwardIcon from "@/components/icons/ForwardIcon";
+import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
+import { Button } from "@/components/ui/Button";
+import { Stepper } from "@/components/ui/Stepper/Stepper";
+import { Typography } from "@/components/ui/Typography/Typography";
 import { useToast } from "@/contexts/ToastContext";
 import { supabase } from "@/lib/supabase";
-import {
-  clearPersistedSignupState,
-  persistSignupState,
-  setCurrentStep,
-} from "@/store";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { ScrollView, TextInput, View } from "react-native";
 
 export default function SignupStep2Screen() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
-  const profile = useAppSelector((state) => state.profile.profile);
 
   const toast = useToast();
-  const email = signupState.formData.email;
+  // Use Redux draft email if available, otherwise fall back to the authenticated session
+  const [email, setEmail] = useState(signupState.formData.email || "");
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
@@ -44,12 +30,17 @@ export default function SignupStep2Screen() {
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
+  // Resolve email from the active session when Redux draft is empty
   useEffect(() => {
-    // If no email in state, redirect back
-    if (!email) {
-      router.replace("/(auth)/signin");
-    }
-  }, [email, router]);
+    if (email) return;
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.email) {
+        setEmail(data.user.email);
+      } else {
+        router.replace("/(auth)/signin");
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (timer > 0) {
@@ -81,6 +72,10 @@ export default function SignupStep2Screen() {
     }
   };
 
+  const handleBack = () => {
+    router.push("/(auth)/signup-step1");
+  };
+
   const handleVerifyOtp = async () => {
     const otpCode = otp.join("");
 
@@ -106,7 +101,6 @@ export default function SignupStep2Screen() {
       });
 
       if (error) {
-        console.error("Verification error:", error);
         const isExpiredError =
           error.message?.toLowerCase().includes("expired") ||
           error.message?.toLowerCase().includes("invalid");
@@ -120,25 +114,13 @@ export default function SignupStep2Screen() {
       }
 
       if (data.user) {
-        // Check if user has completed step 3 (payment setup)
-        // If payment_username exists in profile, they've completed step 3
-        const hasCompletedPaymentStep = profile?.payment_username;
+        // Mark OTP step as complete in DB, then proceed to seller type selection
+        await supabase
+          .from("profiles")
+          .update({ signup_step: 2 })
+          .eq("id", data.user.id);
 
-        if (hasCompletedPaymentStep) {
-          // User already completed signup before, go to home
-          await dispatch(clearPersistedSignupState());
-          router.push("/(tabs)");
-        } else {
-          // User needs to complete step 3
-          dispatch(setCurrentStep(3));
-          await dispatch(
-            persistSignupState({
-              currentStep: 3,
-              isSignupInProgress: true,
-            }),
-          );
-          router.push("/(auth)/signup-step3");
-        }
+        router.push("/(auth)/signup-step3");
       } else {
         setErrorMessage("Verification failed. Please try again.");
         setLoading(false);
@@ -166,7 +148,6 @@ export default function SignupStep2Screen() {
       });
 
       if (error) {
-        console.error("Resend error:", error);
         setErrorMessage(
           error.message || "Failed to resend code. Please try again.",
         );
@@ -188,122 +169,102 @@ export default function SignupStep2Screen() {
     }
   };
 
-  const handleBack = () => {
-    dispatch(clearPersistedSignupState());
-    router.back();
-  };
-
   if (!email) {
     return null;
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1 bg-white"
-      >
-        <View className="flex-1 px-6 pt-12 pb-8">
-          <AuthHeader title="Verification" onBack={handleBack} />
+    <AuthScreenLayout
+      showHeader
+      headerTitle="Email Verification"
+      showScrollView={false}
+      onBack={handleBack}
+    >
+      <Stepper title="Verify Email" currentStep={2} totalSteps={6} />
 
-          <View className="mb-8">
-            <CaptionText
-              className="mb-2 tracking-widest uppercase"
-              style={{ color: "#6B7280", fontWeight: "600", fontSize: 11 }}
-            >
-              Step 2 of 4
-            </CaptionText>
-            <HeadingBoldText
-              className="leading-tight mb-2"
-              style={{ fontSize: 32 }}
-            >
-              Email Verification
-            </HeadingBoldText>
-            <BodyRegularText
-              className="leading-relaxed"
-              style={{ color: "#6B7280", fontSize: 15 }}
-            >
-              We&apos;ve sent a verification code to {email}
-            </BodyRegularText>
-          </View>
+      <View className="flex-1">
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="px-6 pt-4">
+            {/* Header Section */}
+            <View className="mb-8">
+              <Typography
+                variation="h1"
+                className="mb-1 font-sans-bold text-slate-900"
+              >
+                Verify Email
+              </Typography>
+              <Typography variation="body-sm" className="text-slate-600">
+                We&apos;ve sent a 6-digit code to your email. Please enter it
+                below to continue.
+              </Typography>
+              {/* Email Display */}
+              <Typography variation="body-sm" className="text-slate-600">
+                Code sent to{" "}
+                <Typography
+                  variation="body-sm"
+                  className="font-sans-semibold text-slate-900"
+                >
+                  {email}
+                </Typography>
+              </Typography>
+            </View>
 
-          <View className="flex-1">
-            {/* Error message */}
+            {/* Error Message */}
             {errorMessage && (
-              <View className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
-                <BodyRegularText style={{ color: "#EF4444", fontSize: 14 }}>
-                  {errorMessage}
-                </BodyRegularText>
-              </View>
+              <InfoBox message={errorMessage} type="error" className="mb-6" />
             )}
 
-            {/* OTP Input */}
+            {/* OTP Input Section */}
             <View className="mb-10">
-              <View className="flex-row justify-between mb-6">
+              <View className="flex-row justify-center gap-3 mb-8">
                 {otp.map((digit, index) => (
-                  <TextInput
-                    key={index}
-                    ref={(ref) => {
-                      inputRefs.current[index] = ref;
-                    }}
-                    className="w-[52px] h-[58px] border-[2px] border-transparent bg-[#FAFAFA] rounded-2xl text-center text-[22px] font-[NunitoSans_700Bold] text-[#3B2F2F]"
-                    style={{
-                      borderColor: errorMessage ? "#EF4444" : "#3B2F2F",
-                      backgroundColor: digit ? "#FFFFFF" : "#FAFAFA",
-                    }}
-                    value={digit}
-                    onChangeText={(value) => handleOtpChange(value, index)}
-                    onKeyPress={(e) => handleKeyPress(e, index)}
-                    keyboardType="number-pad"
-                    maxLength={1}
-                    selectTextOnFocus
-                    autoComplete="one-time-code"
-                    textContentType="oneTimeCode"
-                  />
+                  <View key={index} className="w-14 h-16">
+                    <OTPInput
+                      value={digit}
+                      onChangeText={(value) => handleOtpChange(value, index)}
+                      onKeyPress={(e) => handleKeyPress(e, index)}
+                      forwardedRef={(ref) => {
+                        inputRefs.current[index] = ref;
+                      }}
+                      hasError={!!errorMessage}
+                      isFilled={!!digit}
+                      editable={!loading}
+                    />
+                  </View>
                 ))}
               </View>
 
-              <View className="flex-row justify-center items-center mt-2">
-                {canResend ? (
-                  <TouchableOpacity
-                    onPress={handleResendCode}
-                    disabled={resendLoading}
-                  >
-                    <BodySemiboldText>
-                      {resendLoading ? "Sending..." : "Resend Code"}
-                    </BodySemiboldText>
-                  </TouchableOpacity>
-                ) : (
-                  <BodyRegularText style={{ color: "#9CA3AF" }}>
-                    Resend code in {timer}s
-                  </BodyRegularText>
-                )}
+              {/* Resend Code Section */}
+              <View className="items-center">
+                <ResendCodeSection
+                  canResend={canResend}
+                  timer={timer}
+                  isLoading={resendLoading}
+                  onResendPress={handleResendCode}
+                />
               </View>
             </View>
-
-            {/* Info */}
-            <View className="mb-8 p-5 bg-[#FAFAFA] rounded-2xl border-[2px] border-[#E5E1DB]">
-              <BodyRegularText
-                className="leading-6"
-                style={{ color: "#6B7280" }}
-              >
-                Check your spam folder if you don&apos;t see the email. The code
-                will expire in 60 minutes.
-              </BodyRegularText>
-            </View>
-
-            {/* Button */}
-            <View className="mt-auto">
-              <FormButton
-                title="Verify & Continue"
-                onPress={handleVerifyOtp}
-                loading={loading}
-                variant="primary"
-              />
-            </View>
           </View>
+        </ScrollView>
+
+        {/* Verify Button - Sticky Bottom */}
+        <View className="px-6 py-6">
+          <Button
+            label="Verify"
+            variant="primary"
+            onPress={handleVerifyOtp}
+            isLoading={loading}
+            disabled={loading}
+            fullWidth
+            icon={<ForwardIcon width={20} height={20} />}
+            iconPosition="right"
+          />
         </View>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+      </View>
+    </AuthScreenLayout>
   );
 }

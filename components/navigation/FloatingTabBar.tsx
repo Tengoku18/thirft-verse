@@ -1,77 +1,119 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import React, { useEffect } from "react";
-import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
+import React from "react";
+import { Platform, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-function TabButton({
-  route,
+const CENTER_TAB_INDEX = 2;
+const BAR_HEIGHT = 72;
+const CENTER_BUTTON_SIZE = 52;
+// 25% of button protrudes above the bar
+const CENTER_BUTTON_OVERFLOW = CENTER_BUTTON_SIZE * 0.1; // 14px
+
+function CenterTabButton({
   isFocused,
   options,
   onPress,
   onLongPress,
 }: {
-  route: any;
-  index: number;
   isFocused: boolean;
   options: any;
   onPress: () => void;
   onLongPress: () => void;
 }) {
-  const scale = useSharedValue(isFocused ? 1 : 0.95);
-  const opacity = useSharedValue(isFocused ? 1 : 0);
-
-  useEffect(() => {
-    scale.value = withSpring(isFocused ? 1 : 0.95, {
-      damping: 15,
-      stiffness: 150,
-    });
-    opacity.value = withTiming(isFocused ? 1 : 0, {
-      duration: 200,
-    });
-  }, [isFocused]);
-
-  const animatedBackgroundStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
-  const iconName = options.tabBarIcon
-    ? // @ts-ignore
-      options.tabBarIcon({ focused: isFocused, color: "", size: 24 }).props.name
-    : "house.fill";
+  const iconColor = "#FFFFFF";
+  const iconComponent = options.tabBarIcon
+    ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 24 })
+    : null;
 
   return (
     <TouchableOpacity
-      key={route.key}
-      accessibilityRole="button"
-      accessibilityState={isFocused ? { selected: true } : {}}
-      accessibilityLabel={options.tabBarAccessibilityLabel}
-      testID={options.tabBarButtonTestID}
       onPress={onPress}
       onLongPress={onLongPress}
-      style={styles.tab}
+      activeOpacity={0.8}
+      style={{
+        position: "absolute",
+        top: -CENTER_BUTTON_OVERFLOW,
+        alignSelf: "center",
+        zIndex: 10,
+      }}
+    >
+      {/* Outer white halo ring */}
+      <View
+        style={{
+          width: CENTER_BUTTON_SIZE + 8,
+          height: CENTER_BUTTON_SIZE + 8,
+          borderRadius: (CENTER_BUTTON_SIZE + 8) / 2,
+          backgroundColor: "#ffffff",
+          alignItems: "center",
+          justifyContent: "center",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.2,
+          shadowRadius: 12,
+          elevation: 8,
+        }}
+      >
+        <View
+          style={{
+            width: CENTER_BUTTON_SIZE,
+            height: CENTER_BUTTON_SIZE,
+            borderRadius: CENTER_BUTTON_SIZE / 2,
+            backgroundColor: isFocused ? "#3B2F2F" : "#D4A373",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {iconComponent}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function TabButton({
+  isFocused,
+  options,
+  onPress,
+  onLongPress,
+}: {
+  isFocused: boolean;
+  options: any;
+  onPress: () => void;
+  onLongPress: () => void;
+}) {
+  const iconColor = isFocused ? "#FFFFFF" : "#3B2F2F";
+  const bgColor = isFocused ? "#3B2F2F" : "transparent";
+
+  const iconComponent = options.tabBarIcon
+    ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 18 })
+    : null;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
       activeOpacity={0.7}
     >
-      {/* Active Background Pill */}
-      <Animated.View
-        style={[styles.activeBackground, animatedBackgroundStyle]}
-      />
-
-      {/* Icon */}
-      <IconSymbol
-        name={iconName}
-        size={26}
-        color={isFocused ? "#3B2F2F" : "#6B7280"}
-      />
+      <View
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: "100%",
+          backgroundColor: bgColor,
+          alignItems: "center",
+          justifyContent: "center",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: isFocused ? 0.18 : 0,
+          shadowRadius: 8,
+          elevation: isFocused ? 4 : 0,
+        }}
+      >
+        {iconComponent}
+      </View>
     </TouchableOpacity>
   );
 }
@@ -82,86 +124,135 @@ export function FloatingTabBar({
   navigation,
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom - 100, 20);
 
-  // Calculate bottom padding based on system navigation bar
-  // Use insets.bottom for both platforms, with a minimum padding for aesthetics
-  const minBottomPadding = 12;
-  const bottomPadding = Math.max(insets.bottom, minBottomPadding);
+  const visibleItems = state.routes
+    .map((route, stateIndex) => ({ route, stateIndex }))
+    .filter(
+      ({ route }) => (descriptors[route.key].options as any).href !== null,
+    );
+
+  const buildHandlers = (route: any, stateIndex: number) => {
+    const isFocused = state.index === stateIndex;
+    const onPress = () => {
+      if (Platform.OS === "ios") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      const event = navigation.emit({
+        type: "tabPress",
+        target: route.key,
+        canPreventDefault: true,
+      });
+      if (!isFocused && !event.defaultPrevented) {
+        navigation.navigate(route.name);
+      }
+    };
+    const onLongPress = () => {
+      navigation.emit({ type: "tabLongPress", target: route.key });
+    };
+    return { isFocused, onPress, onLongPress };
+  };
+
+  const centerItem = visibleItems[CENTER_TAB_INDEX];
+  const leftItems = visibleItems.slice(0, CENTER_TAB_INDEX);
+  const rightItems = visibleItems.slice(CENTER_TAB_INDEX + 1);
 
   return (
     <View
-      style={[
-        styles.container,
-        {
-          paddingBottom: bottomPadding,
-          backgroundColor:
-            Platform.OS === "android" ? "#FAFAFA" : "transparent",
-        },
-      ]}
+      style={{
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        alignItems: "center",
+        paddingBottom: bottomPadding,
+        zIndex: 50,
+      }}
     >
-      {/* Shadow wrapper (separate from overflow:hidden) */}
+      {/* Wrapper that allows center button to overflow */}
       <View
-        style={[
-          styles.shadowWrapper,
-          Platform.OS === "android" && styles.androidShadowWrapper,
-        ]}
+        style={{
+          width: "96%",
+          maxWidth: 380,
+          // extra top space for the overflowing center button
+          paddingTop: CENTER_BUTTON_OVERFLOW,
+        }}
       >
-        {/* Clipped content wrapper */}
-        <View
-          style={[
-            styles.tabBarWrapper,
-            Platform.OS === "android" && styles.androidTabBarWrapper,
-          ]}
+        {/* Center button rendered above the bar */}
+        {centerItem &&
+          (() => {
+            const { route, stateIndex } = centerItem;
+            const { options } = descriptors[route.key];
+            const { isFocused, onPress, onLongPress } = buildHandlers(
+              route,
+              stateIndex,
+            );
+            return (
+              <CenterTabButton
+                key={route.key}
+                isFocused={isFocused}
+                options={options}
+                onPress={onPress}
+                onLongPress={onLongPress}
+              />
+            );
+          })()}
+
+        {/* The pill bar */}
+        <BlurView
+          intensity={55}
+          tint="light"
+          style={{
+            height: BAR_HEIGHT,
+            borderRadius: BAR_HEIGHT / 2,
+            overflow: "hidden",
+            borderWidth: 1,
+            borderColor: "rgba(255, 255, 255, 0.4)",
+            shadowColor: "#3B2F2F",
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.1,
+            shadowRadius: 30,
+            elevation: 10,
+          }}
         >
-          {/* Blur Background - iOS only */}
-          {Platform.OS === "ios" && (
-            <BlurView intensity={60} tint="light" style={styles.blurView} />
-          )}
-
-          {/* Glass overlay for iOS */}
-          {Platform.OS === "ios" && <View style={styles.glassOverlay} />}
-
-          {/* Tab buttons */}
-          <View style={styles.tabBar}>
-            {state.routes.map((route, index) => {
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              backgroundColor: "rgba(255, 255, 255, 0.25)",
+            }}
+          >
+            {/* Left tabs */}
+            {leftItems.map(({ route, stateIndex }) => {
               const { options } = descriptors[route.key];
-
-              // Filter out tabs with href: null (hidden tabs)
-              if ((options as any).href === null) {
-                return null;
-              }
-
-              const isFocused = state.index === index;
-
-              const onPress = () => {
-                // Haptic feedback
-                if (Platform.OS === "ios") {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
-
-                const event = navigation.emit({
-                  type: "tabPress",
-                  target: route.key,
-                  canPreventDefault: true,
-                });
-
-                if (!isFocused && !event.defaultPrevented) {
-                  navigation.navigate(route.name);
-                }
-              };
-
-              const onLongPress = () => {
-                navigation.emit({
-                  type: "tabLongPress",
-                  target: route.key,
-                });
-              };
-
+              const { isFocused, onPress, onLongPress } = buildHandlers(
+                route,
+                stateIndex,
+              );
               return (
                 <TabButton
                   key={route.key}
-                  route={route}
-                  index={index}
+                  isFocused={isFocused}
+                  options={options}
+                  onPress={onPress}
+                  onLongPress={onLongPress}
+                />
+              );
+            })}
+
+            {/* Empty space for center button */}
+            <View style={{ flex: 1 }} />
+
+            {/* Right tabs */}
+            {rightItems.map(({ route, stateIndex }) => {
+              const { options } = descriptors[route.key];
+              const { isFocused, onPress, onLongPress } = buildHandlers(
+                route,
+                stateIndex,
+              );
+              return (
+                <TabButton
+                  key={route.key}
                   isFocused={isFocused}
                   options={options}
                   onPress={onPress}
@@ -170,77 +261,8 @@ export function FloatingTabBar({
               );
             })}
           </View>
-        </View>
+        </BlurView>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 20,
-    paddingTop: 0,
-  },
-  shadowWrapper: {
-    borderRadius: 30,
-    // Strong shadow for depth
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  tabBarWrapper: {
-    borderRadius: 30,
-    overflow: "hidden",
-  },
-  androidShadowWrapper: {
-    backgroundColor: "#FFFFFF",
-    elevation: 8,
-  },
-  androidTabBarWrapper: {
-    backgroundColor: "#FFFFFF",
-  },
-  blurView: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  glassOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-    // Subtle border effect
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 30,
-  },
-  tabBar: {
-    flexDirection: "row",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    position: "relative",
-    borderRadius: 20,
-    minHeight: 50,
-  },
-  activeBackground: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(59, 47, 47, 0.15)",
-    borderRadius: 22,
-  },
-});

@@ -1,14 +1,14 @@
-import ProductCard from '@/_components/ProductCard';
+import SectionDivider from '@/_components/store/SectionDivider';
+import StoreFooterExplore from '@/_components/store/StoreFooterExplore';
+import StoreHero from '@/_components/store/StoreHero';
+import StoreProductsBrowser from '@/_components/store/StoreProductsBrowser';
+import StoreTrustStrip from '@/_components/store/StoreTrustStrip';
 import UserNotFound from '@/_components/UserNotFound';
 import LandingPage from '@/_components/landing/LandingPage';
 import { getProductsByStoreId, getProfileByStoreUsername } from '@/actions';
 import { getSubDomain } from '@/utils/domainHelpers';
-import { pluralize } from '@/utils/textHelpers';
-import { BadgeCheck, Compass, Gem, MapPin, Store } from 'lucide-react';
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
-import Image from 'next/image';
-import Link from 'next/link';
 
 /**
  * ISR Configuration
@@ -123,129 +123,13 @@ export default async function Home() {
   // Profile found - Display profile
   return (
     <div className="bg-background min-h-screen">
-      {/* Explore Notification Bar */}
-      <div className="border-border/30 from-secondary/20 via-accent-2/15 to-secondary/20 border-b bg-linear-to-r">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <Compass className="text-secondary h-5 w-5" />
-            <p className="text-primary text-sm font-medium sm:text-base">
-              Discover more amazing thrift stores and unique finds
-            </p>
-          </div>
-          <Link
-            href="/explore"
-            className="bg-primary text-surface shrink-0 rounded-full px-4 py-2 text-sm font-semibold shadow-md transition-all hover:scale-105 hover:shadow-lg sm:px-6"
-          >
-            Explore
-          </Link>
-        </div>
-      </div>
-
-      {/* Profile Header Section with Beautiful Gradient */}
-      <div className="border-border/50 from-secondary/10 via-accent-2/5 to-background relative overflow-hidden border-b bg-linear-to-b shadow-sm">
-        {/* Decorative gradient orbs */}
-        <div className="from-accent-1/20 pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-linear-to-br to-transparent blur-3xl" />
-        <div className="from-secondary/20 pointer-events-none absolute bottom-0 -left-10 h-32 w-32 rounded-full bg-linear-to-tr to-transparent blur-3xl" />
-
-        <div className="relative mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-          <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-8">
-            {/* Profile Photo with Enhanced Style */}
-            <div className="shrink-0">
-              <div className="relative">
-              <div className="bg-background ring-secondary/10 relative h-32 w-32 overflow-hidden rounded-full border-4 border-white/50 shadow-xl ring-4 transition-transform duration-300 hover:scale-105 sm:h-40 sm:w-40">
-                {profile?.profile_image ? (
-                  <Image
-                    src={profile.profile_image}
-                    alt={profile.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 128px, 160px"
-                    priority
-                  />
-                ) : (
-                  <div className="from-accent-2 to-secondary flex h-full w-full items-center justify-center bg-linear-to-br">
-                    <span className="font-heading text-surface text-4xl font-bold sm:text-5xl">
-                      {profile?.name.charAt(0)}
-                    </span>
-                  </div>
-                )}
-              </div>
-              </div>
-            </div>
-
-            {/* Profile Info */}
-            <div className="flex-1 text-center sm:text-left">
-              <div className="mb-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                <h1 className="font-heading from-primary via-primary/90 to-primary/70 bg-linear-to-r bg-clip-text text-3xl font-bold text-transparent sm:text-4xl">
-                  {profile?.name}
-                </h1>
-                {profile?.is_verified && (
-                  <BadgeCheck className="h-7 w-7 fill-blue-500 text-white drop-shadow-md sm:h-8 sm:w-8" />
-                )}
-              </div>
-              {profile?.is_founder && (
-                <div className="mb-3 flex justify-center sm:justify-start">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-linear-to-r from-amber-400/15 to-amber-600/10 px-3 py-1 text-xs font-semibold tracking-wide text-amber-700 backdrop-blur-sm">
-                    <Gem className="h-3.5 w-3.5" strokeWidth={2} />
-                    Founder Member
-                  </span>
-                </div>
-              )}
-
-              <div className="text-primary/70 mb-4 flex flex-wrap items-center justify-center gap-4 text-sm sm:justify-start sm:text-base">
-                <div className="bg-background/60 rounded-full px-4 py-1.5 backdrop-blur-sm">
-                  <span className="text-primary font-semibold">
-                    {count || 0}
-                  </span>{' '}
-                  {pluralize(count || 0, 'product')}
-                </div>
-                {profile?.store_username && (
-                  <div className="bg-background/60 flex items-center gap-1.5 rounded-full px-4 py-1.5 backdrop-blur-sm">
-                    <Store className="h-4 w-4" />@{profile.store_username}
-                  </div>
-                )}
-                {profile?.address && (
-                  <div className="bg-background/60 flex items-center gap-1.5 rounded-full px-4 py-1.5 backdrop-blur-sm">
-                    <MapPin className="h-4 w-4" />
-                    {profile.address}
-                  </div>
-                )}
-              </div>
-
-              {profile?.bio && (
-                <p className="text-primary/80 mx-auto max-w-2xl text-sm leading-relaxed sm:mx-0 sm:text-base">
-                  {profile.bio}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Products Grid Section */}
-      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-        <h2 className="font-heading from-primary to-primary/70 mb-8 bg-linear-to-r bg-clip-text text-2xl font-bold text-transparent sm:text-3xl">
-          Products
-        </h2>
-
-        {products.length === 0 ? (
-          <div className="from-secondary/5 to-accent-2/5 rounded-2xl bg-linear-to-br py-16 text-center">
-            <p className="text-primary/60 text-base sm:text-lg">
-              No products available yet.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 lg:gap-8">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                currency={profile?.currency}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      <StoreHero profile={profile} productCount={count ?? 0} />
+      <SectionDivider />
+      <StoreProductsBrowser products={products} currency={profile.currency} />
+      <SectionDivider />
+      <StoreTrustStrip />
+      <SectionDivider spacing="sm" />
+      <StoreFooterExplore />
     </div>
   );
 }

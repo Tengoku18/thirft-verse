@@ -1,73 +1,111 @@
-import { FormButton } from "@/components/atoms/FormButton";
-import { FormInput } from "@/components/atoms/FormInput";
-import { AuthHeader } from "@/components/navigation/AuthHeader";
+import { InfoBox } from "@/components/atoms/InfoBox";
 import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+  RHFInput,
+  RHFSelect,
+  RHFTextarea,
+} from "@/components/forms/ReactHookForm";
+import AtSignIcon from "@/components/icons/AtSignIcon";
+import IIcon from "@/components/icons/IIcon";
+import LocationIcon from "@/components/icons/locationIcon";
+import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
+import { Button } from "@/components/ui/Button/Button";
+import { SelectOption } from "@/components/ui/Select/Select";
+import { Stepper } from "@/components/ui/Stepper/Stepper";
+import { Typography } from "@/components/ui/Typography/Typography";
+import { useSignupFormRestore } from "@/hooks/useSignupFormRestore";
+import { districtsOfNepal } from "@/lib/constants/districts";
 import {
+  checkUsernameExists,
   createMissingProfile,
   updateUserProfile,
 } from "@/lib/database-helpers";
-import { showImagePickerOptions } from "@/lib/image-picker-helpers";
-import { uploadPaymentQRImage } from "@/lib/storage-helpers";
+
 import { supabase } from "@/lib/supabase";
 import {
-  clearPersistedSignupState,
-  completeSignup,
-  fetchUserProfile,
-  setPaymentData,
-} from "@/store";
+  SignupStep4FormData,
+  signupStep4Schema,
+} from "@/lib/validations/signup-step4";
+import { fetchUserProfile, setFormData } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { View } from "react-native";
+
+const BIO_MAX_LENGTH = 500;
+
+// Content config based on seller type
+const CONTENT = {
+  store: {
+    stepTitle: "Store Details",
+    heading: "Tell us about your store",
+    subheading: "Let the community know who you are and what you sell.",
+    bioLabel: "STORE BIO",
+    bioPlaceholder:
+      "Share your thrift story, style aesthetic, and shipping info...",
+    bioHint: "Your bio is the first thing buyers see. Share your thrift story!",
+    usernameLabel: "STORE USERNAME",
+    usernamePlaceholder: "eco_warrior_99",
+    buttonLabel: "Next Step",
+  },
+  closet: {
+    stepTitle: "Creator Profile",
+    heading: "Create Your Creator Profile",
+    subheading: "Tell us about yourself to start selling.",
+    bioLabel: "BIO",
+    bioPlaceholder:
+      "Tell your story, your aesthetic, and what you're selling...",
+    bioHint: null,
+    usernameLabel: "USERNAME",
+    usernamePlaceholder: "yourstorename",
+    buttonLabel: "Continue",
+  },
+};
 
 export default function SignupStep4Screen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
 
-  const [paymentUsername, setPaymentUsername] = useState(
-    signupState.paymentData.paymentUsername || "",
-  );
-  const [paymentQRImage, setPaymentQRImage] = useState<string | null>(
-    signupState.paymentData.paymentQRImage || null,
-  );
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleImageSelect = () => {
-    showImagePickerOptions(
-      { aspectRatio: [1, 1], quality: 0.8 },
-      (result) => {
-        if (result.success && result.uri) {
-          setPaymentQRImage(result.uri);
-        }
-      },
-      !!paymentQRImage,
-      () => setPaymentQRImage(null),
-    );
+  const handleBack = () => {
+    // Decrement step and navigate to previous step
+    router.push("/(auth)/signup-step3");
   };
+  const sellerType = signupState.formData.sellerType || "closet";
+  const content = CONTENT[sellerType as "store" | "closet"] || CONTENT.closet;
+  const isStore = sellerType === "store";
 
-  const handleComplete = async () => {
-    if (!paymentUsername.trim()) {
-      setError("Please enter your payment account name");
-      return;
-    }
+  const [loading, setLoading] = useState(false);
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
+  // Form setup with React Hook Form
+  const { control, handleSubmit, setError, setValue } =
+    useForm<SignupStep4FormData>({
+      resolver: yupResolver(signupStep4Schema as any),
+      mode: "onBlur",
+      defaultValues: {
+        username: signupState.formData.username || "",
+        bio: signupState.formData.bio || "",
+        district: signupState.formData.district || "",
+        instagramHandle: signupState.formData.instagramHandle || "",
+        storeName: signupState.formData.storeName || "",
+        address: signupState.formData.address || "",
+      },
+    });
+
+  // Restore form data from Redux when navigating back
+  useSignupFormRestore(setValue, signupState.formData, "Step 4");
+
+  // District options for Select
+  const districtOptions: SelectOption[] = useMemo(
+    () => districtsOfNepal.map((d) => ({ label: d, value: d })),
+    [],
+  );
+
+  const onSubmit = async (data: SignupStep4FormData) => {
     setLoading(true);
-    setError("");
+    setGeneralError(null);
 
     try {
       const {
@@ -75,230 +113,282 @@ export default function SignupStep4Screen() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setError("User not found. Please try again.");
+        setGeneralError("User not found. Please sign in again.");
         setLoading(false);
         return;
       }
 
-      // Ensure profile exists (safety net if database trigger failed)
+      // Check username uniqueness ONLY if username was changed
+      const newUsername = data.username.trim().toLowerCase();
+      const oldUsername = signupState.formData.username?.toLowerCase();
+
+      if (newUsername !== oldUsername) {
+        console.log("[SignupStep4] Username changed, checking uniqueness:", {
+          oldUsername,
+          newUsername,
+        });
+        const usernameExists = await checkUsernameExists(newUsername);
+        if (usernameExists) {
+          setError("username", {
+            type: "manual",
+            message: "This username is already taken",
+          });
+          setLoading(false);
+          return;
+        }
+      } else {
+        console.log(
+          "[SignupStep4] Username unchanged, skipping uniqueness check",
+        );
+      }
+
+      // Ensure profile exists
       const profileResult = await createMissingProfile();
       if (!profileResult.success) {
-        console.error("Failed to ensure profile exists:", profileResult.error);
-        setError("Failed to set up your profile. Please try again.");
+        setGeneralError("Failed to set up your profile. Please try again.");
         setLoading(false);
         return;
       }
 
-      let paymentQRPath: string | null = null;
-
-      // Upload QR image if provided
-      if (paymentQRImage) {
-        const uploadResult = await uploadPaymentQRImage(
-          user.id,
-          paymentQRImage,
-        );
-        if (uploadResult.success && uploadResult.url) {
-          paymentQRPath = uploadResult.url;
-        } else {
-          console.error("Failed to upload QR image:", uploadResult.error);
-        }
-      }
-
-      // Update profile with payment info
-      const result = await updateUserProfile({
+      // Update profile in Supabase - only changed fields
+      const updateData: Record<string, any> = {
         userId: user.id,
-        payment_username: paymentUsername.trim(),
-        payment_qr_image: paymentQRPath ?? undefined,
-      });
+      };
 
-      if (!result.success) {
-        console.error("Failed to save payment info:", result.error);
+      // Only include username if it changed (already checked above)
+      if (newUsername !== oldUsername) {
+        updateData.store_username = newUsername;
+        console.log("[SignupStep4] Updating username:", {
+          old: oldUsername,
+          new: newUsername,
+        });
       }
+
+      const newBio = data.bio.trim();
+      const oldBio = signupState.formData.bio;
+      if (newBio !== oldBio) {
+        updateData.bio = newBio;
+        console.log("[SignupStep4] Updating bio");
+      }
+
+      // Address field - direct profile table field (NOT in seller_data)
+      const newAddress = data.address.trim();
+      const oldAddress = signupState.formData.address;
+      if (newAddress !== oldAddress) {
+        updateData.address = newAddress;
+        console.log("[SignupStep4] Updating address");
+      }
+
+      // Build seller_data with changed fields only
+      const sellerData: Record<string, any> = {};
+      let hasSellerDataChanges = false;
+
+      // District field
+      if (data.district !== signupState.formData.district) {
+        sellerData.district = data.district;
+        hasSellerDataChanges = true;
+        console.log("[SignupStep4] Updating district");
+      }
+
+      // Store Name field
+      const newStoreName = data.storeName?.trim() || "";
+      const oldStoreName = signupState.formData.storeName || "";
+      if (newStoreName !== oldStoreName) {
+        sellerData.store_name = newStoreName;
+        hasSellerDataChanges = true;
+        console.log("[SignupStep4] Updating store name");
+      }
+
+      // Instagram Handle field
+      const newInstagram = data.instagramHandle?.trim() || "";
+      const oldInstagram = signupState.formData.instagramHandle || "";
+      if (newInstagram !== oldInstagram) {
+        sellerData.instagram_handle = newInstagram;
+        hasSellerDataChanges = true;
+        console.log("[SignupStep4] Updating instagram handle");
+      }
+
+      if (hasSellerDataChanges) {
+        updateData.seller_data = sellerData;
+      }
+
+      // Only update if there are changes
+      if (Object.keys(updateData).length > 1) {
+        // More than just userId
+        console.log("[SignupStep4] Updating profile with changes");
+        const result = await updateUserProfile(updateData as any);
+
+        if (!result.success) {
+          setGeneralError("Failed to save your profile. Please try again.");
+          setLoading(false);
+          return;
+        }
+      } else {
+        console.log("[SignupStep4] No changes detected, skipping update");
+      }
+
+      // Advance signup progress in DB
+      await supabase
+        .from("profiles")
+        .update({ signup_step: 4 })
+        .eq("id", user.id);
 
       // Save to Redux
       dispatch(
-        setPaymentData({
-          paymentUsername: paymentUsername.trim(),
-          paymentQRImage: paymentQRPath,
+        setFormData({
+          username: data.username.trim(),
+          bio: data.bio.trim(),
+          district: data.district,
+          address: data.address.trim(),
+          instagramHandle: data.instagramHandle?.trim() || "",
+          storeName: data.storeName?.trim() || "",
         }),
       );
 
-      // Refetch the profile to update Redux state with latest data
       await dispatch(fetchUserProfile(user.id));
 
-      // Complete signup and clear persisted state
-      dispatch(completeSignup());
-      await dispatch(clearPersistedSignupState());
-
-      // Navigate to home
-      router.replace("/(tabs)");
+      router.push("/(auth)/signup-step5");
     } catch (error) {
-      console.error("Error saving payment info:", error);
-      setError("Failed to save payment info. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSkip = async () => {
-    setLoading(true);
-
-    try {
-      // Get current user and refetch profile
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
-        await dispatch(fetchUserProfile(user.id));
-      }
-
-      // Complete signup without payment info
-      dispatch(completeSignup());
-      await dispatch(clearPersistedSignupState());
-
-      // Navigate to home
-      router.replace("/(tabs)");
-    } catch (error) {
-      console.error("Error skipping:", error);
+      console.error("Error in signup-step4:", error);
+      setGeneralError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
+    <AuthScreenLayout
+      showHeader
+      headerTitle="Store Details"
+      onBack={handleBack}
     >
-      <View className="flex-1 px-6 pt-12 pb-8">
-        <AuthHeader title="Payment Setup" onBack={() => router.back()} />
+      <Stepper title={content.stepTitle} currentStep={4} totalSteps={6} />
 
-        <View className="mb-8">
-          <CaptionText
-            className="mb-2 tracking-widest uppercase"
-            style={{ color: "#6B7280", fontWeight: "600", fontSize: 11 }}
-          >
-            Step 4 of 4
-          </CaptionText>
-          <HeadingBoldText
-            className="leading-tight mb-2"
-            style={{ fontSize: 32 }}
-          >
-            Payment Details
-          </HeadingBoldText>
-          <BodyRegularText
-            className="leading-relaxed"
-            style={{ color: "#6B7280", fontSize: 15 }}
-          >
-            Add your payment info so buyers can pay you
-          </BodyRegularText>
-        </View>
-
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {/* Info Banner */}
-          <View className="mb-6 p-4 bg-[#FEF3C7] rounded-2xl border-[2px] border-[#FCD34D]">
-            <View className="flex-row items-start">
-              <IconSymbol name="info.circle.fill" size={20} color="#D97706" />
-              <BodyRegularText
-                className="ml-3 flex-1 leading-5"
-                style={{ color: "#92400E", fontSize: 13 }}
-              >
-                Add your payment details so buyers can pay you directly. This
-                will be shown when someone wants to purchase your items.
-              </BodyRegularText>
-            </View>
-          </View>
-
-          {/* Payment Username Field */}
-          <FormInput
-            label="Payment Account Name"
-            placeholder="e.g., eSewa: 9812345678 or Bank: John Doe"
-            value={paymentUsername}
-            onChangeText={(text) => {
-              setPaymentUsername(text);
-              if (error) setError("");
-            }}
-            error={error}
-            autoCapitalize="none"
-          />
-
-          <CaptionText className="mb-6 -mt-2" style={{ color: "#6B7280" }}>
-            Enter your eSewa number, bank account name, or any payment
-            identifier
-          </CaptionText>
-
-          {/* QR Code Upload */}
+      <View className="flex-1">
+        <View className="px-6">
+          {/* Header */}
           <View className="mb-6">
-            <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
-              Payment QR Code
-            </BodySemiboldText>
+            <Typography variation="h1" className="text-center py-2">
+              {content.heading}
+            </Typography>
+            <Typography variation="body" className="text-slate-500 text-center">
+              {content.subheading}
+            </Typography>
+          </View>
 
-            <TouchableOpacity
-              onPress={handleImageSelect}
-              activeOpacity={0.8}
-              className="border-2 border-dashed border-[#E5E7EB] rounded-2xl overflow-hidden"
-              style={{ height: 200 }}
+          {/* General Error */}
+          {generalError && <InfoBox type="error" message={generalError} />}
+
+          {/* Store Name - only for store type */}
+          {isStore && (
+            <View className="mb-4">
+              <RHFInput
+                control={control}
+                name="storeName"
+                label="STORE NAME"
+                placeholder="e.g. The Vintage Archive, Thrifted Treasures"
+              />
+            </View>
+          )}
+
+          {/* Username / Store Name */}
+          <View className="mb-4">
+            <RHFInput
+              control={control}
+              name="username"
+              label={content.usernameLabel}
+              placeholder={content.usernamePlaceholder}
+              autoCapitalize="none"
+              autoCorrect={false}
+              leftIcon={<AtSignIcon />}
+              // rightIcon={<LockIcon />}
+            />
+          </View>
+
+          {/* Bio */}
+          <View className="mb-4">
+            <RHFTextarea
+              control={control}
+              name="bio"
+              label={content.bioLabel}
+              placeholder={content.bioPlaceholder}
+              maxLength={BIO_MAX_LENGTH}
+              numberOfLines={4}
+              className="min-h-[100px] mb-2"
+            />
+          </View>
+
+          {/* Bio Hint - only for store type */}
+          {content.bioHint && (
+            <View className="mb-6 mt-3 p-4 bg-[#FEF3C7] rounded-2xl flex-row items-center gap-3">
+              <View className="text-xl">
+                <IIcon />
+              </View>
+              <Typography variation="body-sm" className="text-[#92400E] flex-1">
+                {content.bioHint}
+              </Typography>
+            </View>
+          )}
+
+          {/* Instagram Handle - only for closet type */}
+          {!isStore && (
+            <View className="mb-4">
+              <RHFInput
+                control={control}
+                name="instagramHandle"
+                label="INSTAGRAM USERNAME"
+                placeholder="@username"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+          )}
+
+          {/* District Picker */}
+          <View className="mb-4">
+            <RHFSelect
+              control={control}
+              name="district"
+              label="DISTRICT"
+              placeholder={
+                isStore ? "Search districts..." : "Select your district"
+              }
+              options={districtOptions}
+              searchable
+              leftIcon={<LocationIcon color="#3b303099" />}
+              searchPlaceholder="Search districts..."
+            />
+          </View>
+
+          {isStore && (
+            <Typography
+              variation="caption"
+              className="text-slate-400 mt-2 mb-4"
             >
-              {paymentQRImage ? (
-                <View className="flex-1 relative">
-                  <Image
-                    source={{ uri: paymentQRImage }}
-                    style={{ width: "100%", height: "100%" }}
-                    resizeMode="contain"
-                  />
-                  <View
-                    className="absolute top-2 right-2 bg-white rounded-full p-2"
-                    style={{
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 4,
-                      elevation: 3,
-                    }}
-                  >
-                    <IconSymbol
-                      name="square.and.pencil"
-                      size={16}
-                      color="#3B2F2F"
-                    />
-                  </View>
-                </View>
-              ) : (
-                <View className="flex-1 justify-center items-center bg-[#FAFAFA]">
-                  <View className="w-16 h-16 rounded-full bg-[#F3F4F6] justify-center items-center mb-3">
-                    <IconSymbol name="qrcode" size={28} color="#9CA3AF" />
-                  </View>
-                  <BodySemiboldText style={{ color: "#6B7280", fontSize: 14 }}>
-                    Upload QR Code
-                  </BodySemiboldText>
-                  <CaptionText style={{ color: "#9CA3AF" }} className="mt-1">
-                    Tap to add your payment QR
-                  </CaptionText>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
+              Select the creative neighborhood where your items ship from.
+            </Typography>
+          )}
 
-          {/* Buttons */}
-          <View className="mt-auto pt-4">
-            <FormButton
-              title="Complete Setup"
-              onPress={handleComplete}
-              loading={loading}
-              variant="primary"
-              className="mb-4"
-            />
-
-            <FormButton
-              title="Skip for Now"
-              onPress={handleSkip}
-              variant="outline"
-              disabled={loading}
-            />
-          </View>
-        </ScrollView>
+          {/* Address */}
+          <RHFInput
+            control={control}
+            name="address"
+            label="ADDRESS"
+            placeholder="E.g. Tilottama-3, Drivertole"
+            autoCapitalize="words"
+          />
+        </View>
+        <View className="px-6 py-10">
+          <Button
+            label={content.buttonLabel}
+            variant="primary"
+            onPress={handleSubmit(onSubmit)}
+            isLoading={loading}
+            disabled={loading}
+            fullWidth
+          />
+        </View>
       </View>
-    </KeyboardAvoidingView>
+    </AuthScreenLayout>
   );
 }

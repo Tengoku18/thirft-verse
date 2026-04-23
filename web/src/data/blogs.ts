@@ -48,9 +48,10 @@ export const blogs: Blog[] = [
       {
         title: "Use 'Move to NCM' in the App",
         description:
-          "On the Order Details page, tap the 'Move to NCM' button. This automatically creates the shipment order on the NCM portal using your Thriftverse Vendor ID (35788) — so NCM already has your order registered before you arrive at the branch. You don't need to provide your Vendor ID manually at the counter.",
-        tip: "Do this before heading to the NCM branch so the staff can instantly locate your order.",
-        highlight: "The 'Move to NCM' button registers your order on the NCM portal automatically — no manual entry needed at the counter.",
+          "On the Order Details page, tap the 'Move to NCM' button. This automatically creates the shipment order on the NCM portal using your Thriftverse Vendor ID (37588) — so NCM already has your order registered before you arrive at the branch. You don't need to provide your Vendor ID manually at the counter.",
+        tip: 'Do this before heading to the NCM branch so the staff can instantly locate your order.',
+        highlight:
+          "The 'Move to NCM' button registers your order on the NCM portal automatically — no manual entry needed at the counter.",
       },
       {
         title: 'Pack the Order',
@@ -61,10 +62,12 @@ export const blogs: Blog[] = [
       {
         title: 'Download and Fill the Shipping Label',
         description:
-          "From the Order Details page in the Thriftverse app, download the Thriftverse shipping label. Print it out and fill in the required fields — especially the Order ID, which must be clearly and legibly written on the label. You can preview the label below before downloading.",
-        highlight: 'The Order ID must be clearly written on the shipping label — NCM will use this to register your shipment.',
+          'From the Order Details page in the Thriftverse app, download the Thriftverse shipping label. Print it out and fill in the required fields — especially the Order ID, which must be clearly and legibly written on the label. You can preview the label below before downloading.',
+        highlight:
+          'The Order ID must be clearly written on the shipping label — NCM will use this to register your shipment.',
         labelUrl: '/images/shipping-label.png',
-        alternative: "Don't want to use the Thriftverse label? Simply write your NCM Order ID (received after tapping 'Move to NCM') clearly on the package itself — NCM can identify your shipment using just the Order ID.",
+        alternative:
+          "Don't want to use the Thriftverse label? Simply write your NCM Order ID (received after tapping 'Move to NCM') clearly on the package itself — NCM can identify your shipment using just the Order ID.",
       },
       {
         title: 'Visit Your Nearest NCM Branch',
@@ -74,8 +77,9 @@ export const blogs: Blog[] = [
       {
         title: 'Confirm Your Order ID at the Counter',
         description:
-          'At the NCM counter, hand over your package and confirm your Order ID with the staff. Since you already used "Move to NCM" in the app, your shipment is pre-registered in their system. The staff will quickly locate it and generate the official NCM shipment label.\n\n• Order ID: (as written on your shipping label)\n\nIf asked, you can also provide the Thriftverse Vendor ID: 35788.',
-        highlight: 'Thriftverse Vendor ID: 35788 — keep this as a backup in case the staff needs it.',
+          'At the NCM counter, hand over your package and confirm your Order ID with the staff. Since you already used "Move to NCM" in the app, your shipment is pre-registered in their system. The staff will quickly locate it and generate the official NCM shipment label.\n\n• Order ID: (as written on your shipping label)\n\nIf asked, you can also provide the Thriftverse Vendor ID: 37588.',
+        highlight:
+          'Thriftverse Vendor ID: 37588 — keep this as a backup in case the staff needs it.',
       },
       {
         title: 'Attach the NCM Label and Hand Over',
@@ -101,7 +105,8 @@ export const blogs: Blog[] = [
         title: 'Zero Fees to Get Started',
         description:
           'Creating your store on Thriftverse is completely free. Listing your products is free. Having a storefront link you can share with your customers is free. There are no trial periods, no credit card required, and no hidden costs just to be on the platform.\n\nYou can list as many products as you want and run your store for as long as you want — without paying a single rupee until you make your first sale.',
-        highlight: 'You only pay Thriftverse when a customer successfully places and pays for an order.',
+        highlight:
+          'You only pay Thriftverse when a customer successfully places and pays for an order.',
       },
       {
         title: 'Just 5% Commission — Only After You Earn',
@@ -113,14 +118,16 @@ export const blogs: Blog[] = [
         title: '2% Goes to eSewa — Not to Us',
         description:
           "Every order on Thriftverse is processed securely through eSewa, Nepal's most trusted digital payment gateway. eSewa charges a 2% transaction fee on every payment they process — this is their standard rate, not something Thriftverse marks up or profits from.\n\nWe simply pass it through transparently. Your buyers get a secure, familiar checkout experience, and you get the confidence that every payment is protected.",
-        highlight: 'This 2% goes entirely to eSewa. Thriftverse receives nothing from this portion.',
+        highlight:
+          'This 2% goes entirely to eSewa. Thriftverse receives nothing from this portion.',
       },
       {
         title: 'We Cover Shipping — Including Failed COD Deliveries',
         description:
           "Shipping in Nepal is unpredictable. Sometimes a buyer places a Cash on Delivery order and isn't available to receive it. The package gets returned. That return journey costs money — and we believe that's not your burden to carry.\n\nThriftverse absorbs the return shipping cost on failed COD deliveries. You packed the order, you did your part — you shouldn't be penalised because a customer wasn't home.",
         tip: 'This coverage applies to genuine failed deliveries. Our team reviews return cases to keep things fair for everyone.',
-        highlight: "If a COD order is returned because the customer didn't receive it, Thriftverse covers the return shipping fee — not you.",
+        highlight:
+          "If a COD order is returned because the customer didn't receive it, Thriftverse covers the return shipping fee — not you.",
       },
       {
         title: 'Free Ad Promotion on Your Products (~0.5%)',
@@ -132,7 +139,8 @@ export const blogs: Blog[] = [
         title: 'What You Actually Keep',
         description:
           "Let's make this real. On a Rs. 1,000 order:\n\n• You receive: Rs. 950\n• eSewa fee (2%): Rs. 20 — paid to eSewa\n• Shipping & service (3%): Rs. 30 — covers delivery, COD protection, and ads\n\nYou listed for free. You got promoted for free. Your COD risk was covered for free. And you keep 95% of every sale you make.",
-        highlight: 'You keep 95% of every successful order. No subscriptions. No surprises.',
+        highlight:
+          'You keep 95% of every successful order. No subscriptions. No surprises.',
       },
     ],
     conclusion: `We're not here to take a cut and disappear. Every rupee of that 5% is doing something real — protecting your orders, processing payments securely, and putting your products in front of more buyers. Thriftverse only grows when you grow, so it's in our interest to make sure every seller on the platform succeeds. Sell freely, ship confidently, and keep what you earn.`,

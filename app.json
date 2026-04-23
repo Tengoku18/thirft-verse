@@ -2,9 +2,9 @@
   "expo": {
     "name": "thriftverse",
     "slug": "thrift-verse",
-    "version": "1.1.1",
+    "version": "1.1.4",
     "orientation": "portrait",
-    "icon": "./assets/logo/ios-app-icon.png",
+    "icon": "./assets/logo/fav-icon.png",
     "scheme": "thriftverse",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -69,6 +69,28 @@
         {
           "icon": "./assets/logo/android-icon1.png",
           "color": "#C08B7B"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them.",
+          "colors": {
+            "cropToolbarColor": "#3B2F2F",
+            "cropToolbarIconColor": "#FFFFFF",
+            "cropToolbarActionTextColor": "#D4A373",
+            "cropBackButtonIconColor": "#FFFFFF",
+            "cropBackgroundColor": "#F5F0EB"
+          },
+          "dark": {
+            "colors": {
+              "cropToolbarColor": "#3B2F2F",
+              "cropToolbarIconColor": "#FFFFFF",
+              "cropToolbarActionTextColor": "#D4A373",
+              "cropBackButtonIconColor": "#FFFFFF",
+              "cropBackgroundColor": "#1A1410"
+            }
+          }
         }
       ]
     ],

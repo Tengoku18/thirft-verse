@@ -1,6 +1,11 @@
-import { FormButton } from "@/components/atoms/FormButton";
-import { FormInput } from "@/components/atoms/FormInput";
+import {
+  EarningsStatCard,
+  PaymentHistoryItem,
+  PaymentMethodCard,
+  WithdrawModal,
+} from "@/components/earnings";
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
+import { EsewaPaymentForm } from "@/components/payment/EsewaPaymentForm";
 import {
   BodyMediumText,
   BodySemiboldText,
@@ -10,25 +15,12 @@ import {
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
-import { uploadPaymentQRImage } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
-import * as ImagePicker from "expo-image-picker";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 
+// ─────────────── Types ───────────────
 interface PaymentData {
   payment_username: string;
   payment_qr_image: string | null;
@@ -57,47 +49,29 @@ interface PaymentRequest {
   created_at: string;
 }
 
-const formatPrice = (amount: number) => `Rs. ${amount.toLocaleString()}`;
+const PREVIEW_COUNT = 3;
 
+// ─────────────── Screen ───────────────
 export default function EarningsScreen() {
-  const { user, refreshProfile } = useAuth();
+  const { user } = useAuth();
   const toast = useToast();
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [revenue, setRevenue] = useState<RevenueData | null>(null);
-  const [hasPaymentDetails, setHasPaymentDetails] = useState(false);
-  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
-  const [isEditing, setIsEditing] = useState(false);
 
-  // Payment state
+  const [loading, setLoading] = useState(true);
+  const [revenue, setRevenue] = useState<RevenueData | null>(null);
   const [paymentData, setPaymentData] = useState<PaymentData>({
     payment_username: "",
     payment_qr_image: null,
   });
-  const [editPaymentData, setEditPaymentData] = useState<PaymentData>({
-    payment_username: "",
-    payment_qr_image: null,
-  });
-  const [newPaymentQRUri, setNewPaymentQRUri] = useState<string | null>(null);
-  const [savingPayment, setSavingPayment] = useState(false);
-  const [paymentErrors, setPaymentErrors] = useState<{
-    payment_username?: string;
-    payment_qr_image?: string;
-  }>({});
-
-  // Withdraw request state
+  const [hasPaymentDetails, setHasPaymentDetails] = useState(false);
+  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [withdrawNote, setWithdrawNote] = useState("");
-  const [submittingWithdraw, setSubmittingWithdraw] = useState(false);
-  const [withdrawError, setWithdrawError] = useState<string | null>(null);
 
+  // ── Data loading ──
   const loadData = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
     }
-
     try {
       const { data: profile } = await supabase
         .from("profiles")
@@ -106,26 +80,20 @@ export default function EarningsScreen() {
         .single();
 
       if (profile) {
-        if (profile.revenue && typeof profile.revenue === "object") {
-          setRevenue(profile.revenue as RevenueData);
-        } else {
-          setRevenue(null);
-        }
-
-        const paymentInfo = {
+        setRevenue(
+          profile.revenue && typeof profile.revenue === "object"
+            ? (profile.revenue as RevenueData)
+            : null,
+        );
+        setPaymentData({
           payment_username: profile.payment_username || "",
           payment_qr_image: profile.payment_qr_image || null,
-        };
-        setPaymentData(paymentInfo);
-        setEditPaymentData(paymentInfo);
-
-        const hasDetails = !!(
-          profile.payment_username && profile.payment_qr_image
+        });
+        setHasPaymentDetails(
+          !!(profile.payment_username && profile.payment_qr_image),
         );
-        setHasPaymentDetails(hasDetails);
       }
 
-      // Fetch payment requests for the user
       const { data: requests, error: requestsError } = await supabase
         .from("payment_requests")
         .select("id, amount, status, notes, admin_notes, created_at")
@@ -135,11 +103,10 @@ export default function EarningsScreen() {
       if (!requestsError && requests) {
         setPaymentRequests(requests as PaymentRequest[]);
       }
-    } catch (error) {
-      console.error("Error loading earnings:", error);
+    } catch (err) {
+      console.error("Error loading earnings:", err);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, [user]);
 
@@ -153,901 +120,278 @@ export default function EarningsScreen() {
     }, [loadData]),
   );
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadData();
-  }, [loadData]);
-
-  const handleStartEdit = () => {
-    setEditPaymentData({ ...paymentData });
-    setNewPaymentQRUri(null);
-    setPaymentErrors({});
-    setIsEditing(true);
-  };
-
-  const handleCancelEdit = () => {
-    setEditPaymentData({ ...paymentData });
-    setNewPaymentQRUri(null);
-    setPaymentErrors({});
-    setIsEditing(false);
-  };
-
-  const validatePayment = (): boolean => {
-    const newErrors: { payment_username?: string; payment_qr_image?: string } =
-      {};
-
-    if (!editPaymentData.payment_username?.trim()) {
-      newErrors.payment_username = "Payment account holder name is required";
-    }
-
-    const hasPaymentQRImage =
-      editPaymentData.payment_qr_image || newPaymentQRUri;
-    if (!hasPaymentQRImage) {
-      newErrors.payment_qr_image = "Payment QR code image is required";
-    }
-
-    setPaymentErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handlePaymentQRSelect = async () => {
-    try {
-      const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (!permissionResult.granted) {
-        Alert.alert(
-          "Permission Required",
-          "Please allow access to your photos to upload a QR code.",
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setNewPaymentQRUri(result.assets[0].uri);
-        if (paymentErrors.payment_qr_image) {
-          setPaymentErrors((prev) => ({
-            ...prev,
-            payment_qr_image: undefined,
-          }));
-        }
-      }
-    } catch (error) {
-      console.error("Error picking QR image:", error);
-      Alert.alert("Error", "Failed to pick QR code image. Please try again.");
-    }
-  };
-
-  const handleSavePayment = async () => {
-    if (!validatePayment() || !user) return;
-
-    setSavingPayment(true);
-
-    try {
-      let paymentQRUrl = editPaymentData.payment_qr_image;
-
-      if (newPaymentQRUri) {
-        const uploadResult = await uploadPaymentQRImage(
-          user.id,
-          newPaymentQRUri,
-        );
-        if (uploadResult.success && uploadResult.url) {
-          paymentQRUrl = uploadResult.url;
-        } else {
-          Alert.alert(
-            "Error",
-            "Failed to upload payment QR code. Please try again.",
-          );
-          setSavingPayment(false);
-          return;
-        }
-      }
-
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          payment_username: editPaymentData.payment_username.trim(),
-          payment_qr_image: paymentQRUrl,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
-
-      if (error) {
-        Alert.alert(
-          "Error",
-          "Failed to update payment details. Please try again.",
-        );
-        return;
-      }
-
-      const updatedPayment = {
-        payment_username: editPaymentData.payment_username.trim(),
-        payment_qr_image: paymentQRUrl,
-      };
-      setPaymentData(updatedPayment);
-      setEditPaymentData(updatedPayment);
-      setNewPaymentQRUri(null);
-      setHasPaymentDetails(true);
-      setIsEditing(false);
-      await refreshProfile();
-      toast.success("Payment details saved successfully");
-    } catch (error) {
-      console.error("Error saving payment details:", error);
-      Alert.alert("Error", "An unexpected error occurred. Please try again.");
-    } finally {
-      setSavingPayment(false);
-    }
-  };
-
-  const getDisplayPaymentQRUri = () => {
-    if (newPaymentQRUri) return newPaymentQRUri;
-    return editPaymentData.payment_qr_image;
-  };
-
-  const handleOpenWithdrawModal = () => {
-    setWithdrawAmount("");
-    setWithdrawNote("");
-    setWithdrawError(null);
-    setShowWithdrawModal(true);
-  };
-
-  const handleCloseWithdrawModal = () => {
-    setShowWithdrawModal(false);
-    setWithdrawAmount("");
-    setWithdrawNote("");
-    setWithdrawError(null);
-  };
-
-  const handleSubmitWithdrawRequest = async () => {
+  // ── Withdrawal submission ──
+  const handleWithdrawSubmit = async (amount: number, note: string) => {
     if (!user) return;
 
-    // Validate amount
-    const amount = parseFloat(withdrawAmount);
-    if (!withdrawAmount.trim() || isNaN(amount) || amount <= 0) {
-      setWithdrawError("Please enter a valid amount");
-      return;
-    }
-
-    // Check if amount exceeds available balance
-    const availableBalance = revenue?.confirmedAmount || 0;
-    if (amount > availableBalance) {
-      setWithdrawError("Amount exceeds available balance");
-      return;
-    }
-
-    setSubmittingWithdraw(true);
-    setWithdrawError(null);
-
-    try {
-      // Create payment request record
-      const { error } = await supabase.from("payment_requests").insert({
+    const { error: insertError } = await supabase
+      .from("payment_requests")
+      .insert({
         user_id: user.id,
-        amount: amount,
+        amount,
         status: "pending",
         payment_method: paymentData.payment_username || "Not specified",
         account_details: {
           payment_username: paymentData.payment_username,
           payment_qr_image: paymentData.payment_qr_image,
         },
-        notes: withdrawNote.trim() || null,
+        notes: note || null,
       });
 
-      if (error) {
-        console.error("Error submitting withdraw request:", error);
-        setWithdrawError("Failed to submit request. Please try again.");
-        return;
-      }
+    if (insertError) throw new Error(insertError.message);
 
-      // Update revenue: move from confirmed → withdrawn
-      const currentRevenue = revenue || {
-        pendingAmount: 0,
-        confirmedAmount: 0,
-        withdrawnAmount: 0,
-        withdrawalHistory: [],
-      };
+    const current: RevenueData = revenue ?? {
+      pendingAmount: 0,
+      confirmedAmount: 0,
+      withdrawnAmount: 0,
+      withdrawalHistory: [],
+    };
 
-      const updatedRevenue = {
-        ...currentRevenue,
-        confirmedAmount: Math.max(0, (currentRevenue.confirmedAmount || 0) - amount),
-        withdrawnAmount: (currentRevenue.withdrawnAmount || 0) + amount,
-        withdrawalHistory: [
-          ...(currentRevenue.withdrawalHistory || []),
-          {
-            amount,
-            settledBy: "",
-            transactionId: "",
-            settlementDate: new Date().toISOString(),
-          },
-        ],
-      };
+    const updated: RevenueData = {
+      ...current,
+      confirmedAmount: Math.max(0, current.confirmedAmount - amount),
+      withdrawnAmount: current.withdrawnAmount + amount,
+      withdrawalHistory: [
+        ...current.withdrawalHistory,
+        {
+          amount,
+          settledBy: "",
+          transactionId: "",
+          settlementDate: new Date().toISOString(),
+        },
+      ],
+    };
 
-      const { error: revenueError } = await supabase
-        .from("profiles")
-        .update({
-          revenue: updatedRevenue,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
+    const { error: revenueError } = await supabase
+      .from("profiles")
+      .update({ revenue: updated, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
 
-      if (revenueError) {
-        console.error("Error updating revenue:", revenueError);
-      } else {
-        setRevenue(updatedRevenue);
-      }
-
-      // Success
-      toast.success("Withdrawal request submitted successfully");
-      handleCloseWithdrawModal();
-    } catch (error) {
-      console.error("Error submitting withdraw request:", error);
-      setWithdrawError("An unexpected error occurred. Please try again.");
-    } finally {
-      setSubmittingWithdraw(false);
+    if (revenueError) {
+      console.error("Revenue update error:", revenueError);
+      toast.error("Request sent, but balance sync failed. Refresh to update.");
+    } else {
+      setRevenue(updated);
     }
+
+    toast.success("Withdrawal request submitted!");
+    setShowWithdrawModal(false);
+    await loadData();
   };
 
+  // ── Loading state ──
   if (loading) {
     return (
-      <TabScreenLayout title="Earnings">
-        <View className="flex-1 bg-[#FAFAFA] justify-center items-center">
+      <TabScreenLayout
+        title="Earnings"
+        headerVariant="light"
+        scrollable={false}
+      >
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color="#3B2F2F" />
-          <BodyMediumText style={{ color: "#6B7280", marginTop: 12 }}>
-            Loading...
+          <BodyMediumText style={{ color: "#9CA3AF", marginTop: 12 }}>
+            Loading your earnings...
           </BodyMediumText>
         </View>
       </TabScreenLayout>
     );
   }
 
-  // Show payment form if no payment details OR if editing
-  if (!hasPaymentDetails || isEditing) {
+  // ── Payment setup state ──
+  if (!hasPaymentDetails) {
     return (
-      <TabScreenLayout title="Earnings">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
-        >
-          <ScrollView
-            className="flex-1 bg-[#FAFAFA]"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 120 }}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor="#3B2F2F"
-              />
-            }
-          >
-            {/* Header */}
-            <View className="mx-4 mt-4 flex-row items-center justify-between">
-              <BodySemiboldText style={{ fontSize: 18 }}>
-                {isEditing ? "Edit Payment Details" : "Setup Payment Details"}
-              </BodySemiboldText>
-              {isEditing && (
-                <TouchableOpacity
-                  onPress={handleCancelEdit}
-                  activeOpacity={0.7}
-                >
-                  <CaptionText style={{ color: "#6B7280", fontSize: 14 }}>
-                    Cancel
-                  </CaptionText>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {!isEditing && (
-              <View className="mx-4 mt-4 p-5 bg-[#FEF3C7] rounded-2xl flex-row items-start">
-                <View className="w-12 h-12 rounded-full bg-[#F59E0B]/20 items-center justify-center mr-3">
-                  <IconSymbol
-                    name="exclamationmark.triangle.fill"
-                    size={24}
-                    color="#F59E0B"
-                  />
-                </View>
-                <View className="flex-1">
-                  <BodySemiboldText style={{ color: "#92400E", fontSize: 16 }}>
-                    Payment Required
-                  </BodySemiboldText>
-                  <CaptionText style={{ color: "#92400E", marginTop: 4 }}>
-                    Add your payment details to start receiving payments from
-                    buyers.
-                  </CaptionText>
-                </View>
-              </View>
-            )}
-
-            <View className="px-4 mt-6">
-              <FormInput
-                label="Payment Account Holder Name"
-                placeholder="E.g. eSewa: 9812345678 or Bank: John Doe"
-                value={editPaymentData.payment_username}
-                onChangeText={(text) => {
-                  setEditPaymentData((prev) => ({
-                    ...prev,
-                    payment_username: text,
-                  }));
-                  if (paymentErrors.payment_username) {
-                    setPaymentErrors((prev) => ({
-                      ...prev,
-                      payment_username: undefined,
-                    }));
-                  }
-                }}
-                autoCapitalize="none"
-                required
-                error={paymentErrors.payment_username}
-              />
-              <CaptionText className="mb-6 -mt-2" style={{ color: "#6B7280" }}>
-                Enter your eSewa name, bank account name, or payment identifier
-              </CaptionText>
-
-              <View className="mb-6">
-                <View className="flex-row items-center mb-3">
-                  <BodySemiboldText style={{ fontSize: 13 }}>
-                    Payment QR Code
-                  </BodySemiboldText>
-                  <BodySemiboldText style={{ color: "#EF4444", fontSize: 13 }}>
-                    {" "}
-                    *
-                  </BodySemiboldText>
-                </View>
-
-                <TouchableOpacity
-                  onPress={handlePaymentQRSelect}
-                  activeOpacity={0.8}
-                  className="rounded-2xl overflow-hidden"
-                  style={{
-                    height: 220,
-                    borderWidth: 2,
-                    borderStyle: "dashed",
-                    borderColor: paymentErrors.payment_qr_image
-                      ? "#EF4444"
-                      : "#E5E7EB",
-                  }}
-                >
-                  {getDisplayPaymentQRUri() ? (
-                    <View className="flex-1 relative bg-[#FAFAFA]">
-                      <Image
-                        source={{ uri: getDisplayPaymentQRUri()! }}
-                        style={{ width: "100%", height: "100%" }}
-                        resizeMode="contain"
-                      />
-                      <TouchableOpacity
-                        onPress={handlePaymentQRSelect}
-                        className="absolute top-3 right-3 bg-white rounded-full p-2.5"
-                        style={{
-                          shadowColor: "#000",
-                          shadowOffset: { width: 0, height: 2 },
-                          shadowOpacity: 0.1,
-                          shadowRadius: 4,
-                          elevation: 3,
-                        }}
-                      >
-                        <IconSymbol
-                          name="square.and.pencil"
-                          size={18}
-                          color="#3B2F2F"
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <View className="flex-1 justify-center items-center bg-[#FAFAFA]">
-                      <View className="w-16 h-16 rounded-full bg-[#F3F4F6] justify-center items-center mb-3">
-                        <IconSymbol name="qrcode" size={28} color="#9CA3AF" />
-                      </View>
-                      <BodySemiboldText
-                        style={{ color: "#6B7280", fontSize: 15 }}
-                      >
-                        Upload QR Code
-                      </BodySemiboldText>
-                      <CaptionText
-                        style={{ color: "#9CA3AF" }}
-                        className="mt-1"
-                      >
-                        Tap to add your payment QR
-                      </CaptionText>
-                    </View>
-                  )}
-                </TouchableOpacity>
-                {paymentErrors.payment_qr_image && (
-                  <CaptionText className="mt-2" style={{ color: "#EF4444" }}>
-                    {paymentErrors.payment_qr_image}
-                  </CaptionText>
-                )}
-              </View>
-
-              <FormButton
-                title={
-                  isEditing ? "Update Payment Details" : "Save Payment Details"
-                }
-                onPress={handleSavePayment}
-                loading={savingPayment}
-                variant="primary"
-              />
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+      <TabScreenLayout
+        title="Earnings"
+        headerVariant="light"
+        contentContainerStyle={{ padding: 20 }}
+      >
+        <EsewaPaymentForm
+          userId={user?.id ?? ""}
+          initialUsername={paymentData.payment_username}
+          initialQrImage={paymentData.payment_qr_image}
+          title="Setup Payment"
+          subtitle="Link your eSewa wallet to start receiving withdrawals."
+          onCancel={undefined}
+          onSuccess={() => {
+            setHasPaymentDetails(true);
+            loadData();
+          }}
+        />
       </TabScreenLayout>
     );
   }
 
-  // Show revenue details when payment details exist
-  return (
-    <TabScreenLayout title="Earnings">
-      <ScrollView
-        className="flex-1 bg-[#FAFAFA]"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#3B2F2F"
-          />
-        }
-      >
-        {/* Payment Account Card - At Top */}
-        <View
-          className="mx-4 mt-4 bg-white rounded-2xl p-4"
-          style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.06,
-            shadowRadius: 8,
-            elevation: 3,
-          }}
-        >
-          <View className="flex-row items-center justify-between mb-3">
-            <BodySemiboldText style={{ fontSize: 16 }}>
-              Payment Account
-            </BodySemiboldText>
-            <TouchableOpacity
-              onPress={handleStartEdit}
-              activeOpacity={0.7}
-              className="flex-row items-center px-3 py-1.5 rounded-full"
-              style={{ backgroundColor: "#F3F4F6" }}
-            >
-              <IconSymbol name="square.and.pencil" size={14} color="#3B2F2F" />
-              <CaptionText
-                style={{ color: "#3B2F2F", marginLeft: 4, fontWeight: "600" }}
-              >
-                Edit
-              </CaptionText>
-            </TouchableOpacity>
-          </View>
-          <View className="flex-row items-center">
-            <View className="w-10 h-10 rounded-full bg-[#3B2F2F]/10 items-center justify-center mr-3">
-              <IconSymbol name="creditcard.fill" size={20} color="#3B2F2F" />
-            </View>
-            <View className="flex-1">
-              <CaptionText style={{ color: "#6B7280" }}>
-                Account Holder
-              </CaptionText>
-              <BodySemiboldText style={{ fontSize: 15, marginTop: 2 }}>
-                {paymentData.payment_username}
-              </BodySemiboldText>
-            </View>
-            <View className="px-3 py-1.5 bg-[#D1FAE5] rounded-full">
-              <CaptionText style={{ color: "#059669", fontWeight: "600" }}>
-                Active
-              </CaptionText>
-            </View>
-          </View>
-        </View>
+  // ── Main earnings view ──
+  const confirmedBalance = revenue?.confirmedAmount ?? 0;
+  const previewRequests = paymentRequests.slice(0, PREVIEW_COUNT);
+  const hasMoreRequests = paymentRequests.length > PREVIEW_COUNT;
 
-        {/* Available Balance Card */}
+  return (
+    <TabScreenLayout
+      title="Earnings"
+      headerVariant="light"
+      onRefresh={loadData}
+      contentContainerStyle={{ padding: 16, gap: 16 }}
+    >
+      {/* ── Revenue stat cards ── */}
+      <View style={{ gap: 12 }}>
+        <EarningsStatCard
+          label="Pending"
+          amount={revenue?.pendingAmount ?? 0}
+          description="Will be confirmed after order completion"
+          backgroundColor="#FDF2B3"
+          iconName="clock.fill"
+          iconColor="#3B2F2F"
+        />
+        <EarningsStatCard
+          label="Confirmed"
+          amount={confirmedBalance}
+          description="Available for withdrawal"
+          backgroundColor="#D1E7D1"
+          iconName="checkmark.circle.fill"
+          iconColor="#3B2F2F"
+        />
+        <EarningsStatCard
+          label="Withdrawn"
+          amount={revenue?.withdrawnAmount ?? 0}
+          description="Total amount cashed out"
+          backgroundColor="#E5E1DA"
+          iconName="payments"
+          iconColor="#3B2F2F"
+        />
+      </View>
+
+      {/* ── Withdraw CTA ── */}
+      <TouchableOpacity
+        onPress={() => setShowWithdrawModal(true)}
+        activeOpacity={0.85}
+        disabled={confirmedBalance <= 0}
+        style={{
+          backgroundColor: "#3B2F2F",
+          borderRadius: 16,
+          paddingVertical: 18,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 10,
+          opacity: confirmedBalance > 0 ? 1 : 0.45,
+          shadowColor: "#3B2F2F",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.25,
+          shadowRadius: 10,
+          elevation: 6,
+        }}
+      >
+        <IconSymbol name="creditcard.fill" size={20} color="#FFFFFF" />
+        <BodySemiboldText style={{ color: "#FFFFFF", fontSize: 17 }}>
+          Withdraw Request
+        </BodySemiboldText>
+      </TouchableOpacity>
+
+      {confirmedBalance <= 0 && (
+        <CaptionText
+          style={{ textAlign: "center", color: "rgba(59,48,48,0.4)", marginTop: -8 }}
+        >
+          No confirmed balance available for withdrawal
+        </CaptionText>
+      )}
+
+      {/* ── Payment method card ── */}
+      <PaymentMethodCard
+        username={paymentData.payment_username}
+        qrImageUrl={paymentData.payment_qr_image}
+        onChangePress={() => router.push("/settings/payment-method")}
+      />
+
+      {/* ── Payment history ── */}
+      <View>
         <View
-          className="mx-4 mt-4 bg-white rounded-2xl p-5"
           style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.06,
-            shadowRadius: 8,
-            elevation: 3,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 12,
+            paddingHorizontal: 2,
           }}
         >
-          <View className="flex-row items-center">
-            <View
-              className="w-12 h-12 rounded-full items-center justify-center mr-3"
-              style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
-            >
-              <IconSymbol name="banknote.fill" size={24} color="#22C55E" />
-            </View>
-            <View className="flex-1">
-              <CaptionText style={{ color: "#6B7280" }}>
-                Available Balance
-              </CaptionText>
-              <HeadingBoldText style={{ fontSize: 28, color: "#059669" }}>
-                {formatPrice(revenue?.confirmedAmount || 0)}
-              </HeadingBoldText>
-            </View>
-          </View>
-          {/* Request Withdraw Button */}
-          <TouchableOpacity
-            onPress={handleOpenWithdrawModal}
-            activeOpacity={0.8}
-            className="mt-4 bg-[#3B2F2F] rounded-xl py-3.5 flex-row items-center justify-center"
-            style={{
-              opacity: (revenue?.confirmedAmount || 0) > 0 ? 1 : 0.5,
-            }}
-            disabled={(revenue?.confirmedAmount || 0) <= 0}
-          >
-            <IconSymbol name="arrow.up.circle.fill" size={18} color="#FFFFFF" />
-            <BodySemiboldText
-              style={{ color: "#FFFFFF", marginLeft: 8, fontSize: 15 }}
-            >
-              Request Withdraw
-            </BodySemiboldText>
+          <HeadingBoldText style={{ fontSize: 18, color: "#3B2F2F" }}>
+            Payment History
+          </HeadingBoldText>
+          <TouchableOpacity activeOpacity={0.7}>
+            <IconSymbol
+              name="slider.horizontal.3"
+              size={20}
+              color="rgba(59,48,48,0.4)"
+            />
           </TouchableOpacity>
         </View>
 
-        {/* Revenue Stats */}
-        <View className="flex-row mx-4 mt-4" style={{ gap: 12 }}>
+        {paymentRequests.length === 0 ? (
           <View
-            className="flex-1 bg-white rounded-2xl p-4"
             style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-              elevation: 3,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 16,
+              padding: 32,
+              alignItems: "center",
+              borderWidth: 1,
+              borderColor: "rgba(59,48,48,0.06)",
             }}
           >
             <View
-              className="w-10 h-10 rounded-xl items-center justify-center mb-2"
-              style={{ backgroundColor: "rgba(245, 158, 11, 0.1)" }}
-            >
-              <IconSymbol name="clock.fill" size={18} color="#F59E0B" />
-            </View>
-            <CaptionText style={{ color: "#6B7280" }}>Pending</CaptionText>
-            <HeadingBoldText
-              style={{ fontSize: 18, marginTop: 2, color: "#F59E0B" }}
-            >
-              {formatPrice(revenue?.pendingAmount || 0)}
-            </HeadingBoldText>
-          </View>
-          <View
-            className="flex-1 bg-white rounded-2xl p-4"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-              elevation: 3,
-            }}
-          >
-            <View
-              className="w-10 h-10 rounded-xl items-center justify-center mb-2"
-              style={{ backgroundColor: "rgba(139, 92, 246, 0.1)" }}
-            >
-              <IconSymbol
-                name="arrow.up.circle.fill"
-                size={18}
-                color="#8B5CF6"
-              />
-            </View>
-            <CaptionText style={{ color: "#6B7280" }}>Withdrawn</CaptionText>
-            <HeadingBoldText
-              style={{ fontSize: 18, marginTop: 2, color: "#8B5CF6" }}
-            >
-              {formatPrice(revenue?.withdrawnAmount || 0)}
-            </HeadingBoldText>
-          </View>
-        </View>
-
-        {/* Withdrawal Requests Section */}
-        <View className="mx-4 mt-6">
-          <BodySemiboldText style={{ fontSize: 16, marginBottom: 12 }}>
-            Withdrawal Requests
-          </BodySemiboldText>
-
-          {paymentRequests.length > 0 ? (
-            paymentRequests.map((request) => {
-              const statusConfig = {
-                pending: {
-                  bg: "#FEF3C7",
-                  text: "#D97706",
-                  label: "Pending",
-                  icon: "clock.fill" as const,
-                },
-                released: {
-                  bg: "#D1FAE5",
-                  text: "#059669",
-                  label: "Released",
-                  icon: "checkmark.circle.fill" as const,
-                },
-                rejected: {
-                  bg: "#FEE2E2",
-                  text: "#DC2626",
-                  label: "Rejected",
-                  icon: "xmark.circle.fill" as const,
-                },
-              };
-              const config =
-                statusConfig[request.status] || statusConfig.pending;
-
-              return (
-                <View
-                  key={request.id}
-                  className="bg-white rounded-2xl p-4 mb-3"
-                  style={{
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.06,
-                    shadowRadius: 8,
-                    elevation: 3,
-                  }}
-                >
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center flex-1">
-                      <View
-                        className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                        style={{ backgroundColor: config.bg }}
-                      >
-                        <IconSymbol
-                          name={config.icon}
-                          size={20}
-                          color={config.text}
-                        />
-                      </View>
-                      <View className="flex-1">
-                        <BodySemiboldText style={{ fontSize: 15 }}>
-                          {formatPrice(request.amount)}
-                        </BodySemiboldText>
-                        {request.notes && (
-                          <CaptionText
-                            style={{ color: "#6B7280", marginTop: 2 }}
-                            numberOfLines={1}
-                          >
-                            {request.notes}
-                          </CaptionText>
-                        )}
-                      </View>
-                    </View>
-                    <View className="items-end">
-                      <View
-                        className="px-2.5 py-1 rounded-full"
-                        style={{ backgroundColor: config.bg }}
-                      >
-                        <CaptionText
-                          style={{
-                            color: config.text,
-                            fontWeight: "600",
-                            fontSize: 11,
-                          }}
-                        >
-                          {config.label}
-                        </CaptionText>
-                      </View>
-                      <CaptionText
-                        style={{ color: "#9CA3AF", marginTop: 4, fontSize: 11 }}
-                      >
-                        {new Date(request.created_at).toLocaleDateString(
-                          "en-US",
-                          {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          },
-                        )}
-                      </CaptionText>
-                    </View>
-                  </View>
-                  {request.admin_notes && request.status !== "pending" && (
-                    <View className="mt-3 pt-3 border-t border-[#F3F4F6]">
-                      <CaptionText style={{ color: "#6B7280", fontSize: 12 }}>
-                        Admin: {request.admin_notes}
-                      </CaptionText>
-                    </View>
-                  )}
-                </View>
-              );
-            })
-          ) : (
-            <View
-              className="bg-white rounded-2xl p-6 items-center"
               style={{
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.06,
-                shadowRadius: 8,
-                elevation: 3,
+                width: 56,
+                height: 56,
+                backgroundColor: "#F3F4F6",
+                borderRadius: 28,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 12,
               }}
             >
-              <View
-                className="w-14 h-14 rounded-full items-center justify-center mb-3"
-                style={{ backgroundColor: "#F3F4F6" }}
-              >
-                <IconSymbol
-                  name="clock.arrow.circlepath"
-                  size={24}
-                  color="#9CA3AF"
-                />
-              </View>
-              <BodyMediumText style={{ color: "#6B7280", textAlign: "center" }}>
-                No withdrawal requests yet
-              </BodyMediumText>
-              <CaptionText
-                style={{ color: "#9CA3AF", textAlign: "center", marginTop: 4 }}
-              >
-                Your withdrawal requests will appear here
-              </CaptionText>
+              <IconSymbol name="clock.arrow.circlepath" size={24} color="#9CA3AF" />
             </View>
-          )}
-        </View>
-      </ScrollView>
+            <BodyMediumText style={{ color: "#6B7280", textAlign: "center" }}>
+              No withdrawal requests yet
+            </BodyMediumText>
+            <CaptionText style={{ color: "#9CA3AF", textAlign: "center", marginTop: 4 }}>
+              Your requests will appear here
+            </CaptionText>
+          </View>
+        ) : (
+          <View style={{ gap: 10 }}>
+            {previewRequests.map((req) => (
+              <PaymentHistoryItem
+                key={req.id}
+                amount={req.amount}
+                createdAt={req.created_at}
+                status={req.status}
+                adminNotes={req.admin_notes}
+              />
+            ))}
 
-      {/* Withdraw Request Modal */}
-      <Modal
-        visible={showWithdrawModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={handleCloseWithdrawModal}
-      >
-        <View className="flex-1 bg-black/50 justify-end">
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-          >
-            <View className="bg-white rounded-t-3xl px-4 pt-6 pb-10">
-              {/* Header */}
-              <View className="flex-row items-center justify-between mb-6">
-                <HeadingBoldText style={{ fontSize: 20 }}>
-                  Request Withdrawal
-                </HeadingBoldText>
-                <TouchableOpacity
-                  onPress={handleCloseWithdrawModal}
-                  className="w-8 h-8 rounded-full bg-[#F3F4F6] items-center justify-center"
-                >
-                  <IconSymbol name="xmark" size={16} color="#6B7280" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Available Balance Info */}
-              <View className="bg-[#F0FDF4] rounded-xl p-4 mb-6">
-                <View className="flex-row items-center">
-                  <IconSymbol name="banknote.fill" size={20} color="#22C55E" />
-                  <View className="ml-3">
-                    <CaptionText style={{ color: "#6B7280" }}>
-                      Available Balance
-                    </CaptionText>
-                    <BodySemiboldText
-                      style={{ color: "#059669", fontSize: 18 }}
-                    >
-                      {formatPrice(revenue?.confirmedAmount || 0)}
-                    </BodySemiboldText>
-                  </View>
-                </View>
-              </View>
-
-              {/* Amount Input */}
-              <View className="mb-4">
-                <View className="flex-row items-center mb-2">
-                  <BodySemiboldText style={{ fontSize: 14, color: "#374151" }}>
-                    Withdraw Amount
-                  </BodySemiboldText>
-                  <BodySemiboldText style={{ color: "#EF4444", fontSize: 14 }}>
-                    {" "}
-                    *
-                  </BodySemiboldText>
-                </View>
-                <View
-                  className="flex-row items-center bg-[#F3F4F6] rounded-xl px-4"
-                  style={{
-                    borderWidth: withdrawError ? 1 : 0,
-                    borderColor: "#EF4444",
-                  }}
-                >
-                  <BodySemiboldText style={{ color: "#6B7280", fontSize: 16 }}>
-                    Rs.
-                  </BodySemiboldText>
-                  <TextInput
-                    value={withdrawAmount}
-                    onChangeText={(text) => {
-                      setWithdrawAmount(text.replace(/[^0-9.]/g, ""));
-                      if (withdrawError) setWithdrawError(null);
-                    }}
-                    placeholder="0"
-                    placeholderTextColor="#9CA3AF"
-                    keyboardType="numeric"
-                    className="flex-1 py-3.5 ml-2"
-                    style={{ fontSize: 16, color: "#1F2937" }}
-                  />
-                </View>
-                {withdrawError && (
-                  <CaptionText className="mt-2" style={{ color: "#EF4444" }}>
-                    {withdrawError}
-                  </CaptionText>
-                )}
-              </View>
-
-              {/* Note Input */}
-              <View className="mb-6">
-                <BodySemiboldText
-                  style={{ fontSize: 14, color: "#374151", marginBottom: 8 }}
-                >
-                  Note (Optional)
-                </BodySemiboldText>
-                <TextInput
-                  value={withdrawNote}
-                  onChangeText={setWithdrawNote}
-                  placeholder="Add a note for admin..."
-                  placeholderTextColor="#9CA3AF"
-                  multiline
-                  numberOfLines={3}
-                  className="bg-[#F3F4F6] rounded-xl px-4 py-3"
-                  style={{
-                    fontSize: 15,
-                    color: "#1F2937",
-                    minHeight: 80,
-                    textAlignVertical: "top",
-                  }}
-                />
-              </View>
-
-              {/* Submit Button */}
+            {hasMoreRequests && (
               <TouchableOpacity
-                onPress={handleSubmitWithdrawRequest}
-                disabled={submittingWithdraw || !withdrawAmount.trim()}
-                className="bg-[#3B2F2F] rounded-xl py-4 flex-row items-center justify-center"
-                style={{
-                  opacity:
-                    submittingWithdraw || !withdrawAmount.trim() ? 0.5 : 1,
-                }}
-                activeOpacity={0.8}
-              >
-                {submittingWithdraw ? (
-                  <>
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                    <BodySemiboldText
-                      style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}
-                    >
-                      Submitting...
-                    </BodySemiboldText>
-                  </>
-                ) : (
-                  <>
-                    <IconSymbol
-                      name="paperplane.fill"
-                      size={18}
-                      color="#FFFFFF"
-                    />
-                    <BodySemiboldText
-                      style={{ color: "#FFFFFF", fontSize: 16, marginLeft: 8 }}
-                    >
-                      Submit Request
-                    </BodySemiboldText>
-                  </>
-                )}
-              </TouchableOpacity>
-
-              {/* Cancel Button */}
-              <TouchableOpacity
-                onPress={handleCloseWithdrawModal}
-                disabled={submittingWithdraw}
-                className="mt-3 py-3"
+                onPress={() => router.push("/earnings/all-transactions")}
                 activeOpacity={0.7}
+                style={{ alignItems: "center", paddingVertical: 12 }}
               >
-                <BodyMediumText
-                  style={{
-                    color: "#6B7280",
-                    fontSize: 15,
-                    textAlign: "center",
-                  }}
-                >
-                  Cancel
-                </BodyMediumText>
+                <BodySemiboldText style={{ color: "#D4A373", fontSize: 14 }}>
+                  View All Transactions
+                </BodySemiboldText>
               </TouchableOpacity>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+            )}
+          </View>
+        )}
+      </View>
+
+      {/* ── Withdrawal modal (rendered outside scroll, inside layout) ── */}
+      <WithdrawModal
+        visible={showWithdrawModal}
+        availableBalance={confirmedBalance}
+        paymentUsername={paymentData.payment_username}
+        onClose={() => setShowWithdrawModal(false)}
+        onSubmit={handleWithdrawSubmit}
+      />
     </TabScreenLayout>
   );
 }

@@ -75,6 +75,9 @@ export interface Profile {
   revenue: ProfileRevenue | null;
   expo_push_tokens: string[];
   offer_code_object: ProfileOfferCodeObject | null;
+  // Signup progress — persisted in DB so progress survives reinstalls / device switches
+  auth_completed: boolean;
+  signup_step: number; // last completed step (1–6); auth_completed=true once step 6 done
   // Founder Circle
   is_founder: boolean;
   is_founder_creator: boolean;
