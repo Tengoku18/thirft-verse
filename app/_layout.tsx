@@ -143,13 +143,17 @@ export default Sentry.wrap(function RootLayout() {
         if (update.isAvailable) {
           await Updates.fetchUpdateAsync();
           await Updates.reloadAsync();
-          // If reloadAsync resolves (shouldn't in practice), fall through to
-          // setOtaReady so the version check isn't blocked indefinitely.
+          // reloadAsync restarts the JS runtime — execution never reaches here
+          // in practice. The explicit return prevents setOtaReady from being
+          // called with the old bundle still loaded.
+          return;
         }
+        // Only reached when no update was applied — safe to start version check.
         setOtaReady(true);
       } catch (error) {
         Sentry.captureException(error);
-        setOtaReady(true); // Don't block version check if OTA check fails
+        // OTA check failed — don't block the version check indefinitely.
+        setOtaReady(true);
       }
     }
 
