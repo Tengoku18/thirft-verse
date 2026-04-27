@@ -62,7 +62,10 @@ export function useVersionCheck(enabled = true) {
 
         if (!latestVersion) return;
 
-        const current = Constants.expoConfig?.version ?? "0.0.0";
+        const current = Constants.expoConfig?.version;
+        // Can't read current version — fail safe, never block the user
+        if (!current) return;
+
         setStoreVersion(latestVersion);
         setNeedsUpdate(isOutdated(current, latestVersion));
       } catch (error) {

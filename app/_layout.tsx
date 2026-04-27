@@ -71,13 +71,30 @@ function handleNotificationNavigation(data: Record<string, string>) {
 export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
 
-  // Only start the store-version check AFTER we know no OTA update is being
-  // applied. If an OTA update is available on first launch, reloadAsync() kills
-  // the current JS context before the iTunes fetch completes — but if the fetch
-  // wins the race, the old embedded bundle version triggers a false-positive
-  // force-update modal. Deferring the check until OTA is settled prevents this.
-  const [otaReady, setOtaReady] = useState(__DEV__); // DEV: no OTA, always ready
-  const { needsUpdate } = useVersionCheck(otaReady);
+  // Load fonts first — we need fontsLoaded to gate the version check below.
+  const [fontsLoaded] = useFonts({
+    Folito_300Light: require("../assets/fonts/Folito-Light.ttf"),
+    Folito_400Regular: require("../assets/fonts/Folito-Regular.ttf"),
+    Folito_500Medium: require("../assets/fonts/Folito-Medium.ttf"),
+    Folito_600SemiBold: require("../assets/fonts/Folito-Bold.ttf"),
+    Folito_700Bold: require("../assets/fonts/Folito-Bold.ttf"),
+    Folito_800ExtraBold: require("../assets/fonts/Folito-Black.ttf"),
+    Folito_900Black: require("../assets/fonts/Folito-Black.ttf"),
+    NunitoSans_200ExtraLight,
+    NunitoSans_300Light,
+    NunitoSans_400Regular,
+    NunitoSans_500Medium,
+    NunitoSans_600SemiBold,
+    NunitoSans_700Bold,
+    NunitoSans_800ExtraBold,
+    NunitoSans_900Black,
+  });
+
+  // Gate 1 — OTA: don't start until we know no OTA reload is coming.
+  // Gate 2 — fonts: don't start until the app is visually ready.
+  // Both must be true before the iTunes/Play Store API is called.
+  const [otaReady, setOtaReady] = useState(__DEV__);
+  const { needsUpdate, isChecking } = useVersionCheck(fontsLoaded && otaReady);
 
   // Initialize push notifications on app launch (request permission + get token)
   useEffect(() => {
@@ -139,33 +156,13 @@ export default Sentry.wrap(function RootLayout() {
     checkForUpdates();
   }, []);
 
-  const [fontsLoaded] = useFonts({
-    // Folito fonts for headings (loaded from local assets)
-    Folito_300Light: require("../assets/fonts/Folito-Light.ttf"),
-    Folito_400Regular: require("../assets/fonts/Folito-Regular.ttf"),
-    Folito_500Medium: require("../assets/fonts/Folito-Medium.ttf"),
-    Folito_600SemiBold: require("../assets/fonts/Folito-Bold.ttf"), // Using Bold as SemiBold
-    Folito_700Bold: require("../assets/fonts/Folito-Bold.ttf"),
-    Folito_800ExtraBold: require("../assets/fonts/Folito-Black.ttf"), // Using Black as ExtraBold
-    Folito_900Black: require("../assets/fonts/Folito-Black.ttf"),
-    // Nunito Sans fonts for body text
-    NunitoSans_200ExtraLight,
-    NunitoSans_300Light,
-    NunitoSans_400Regular,
-    NunitoSans_500Medium,
-    NunitoSans_600SemiBold,
-    NunitoSans_700Bold,
-    NunitoSans_800ExtraBold,
-    NunitoSans_900Black,
-  });
-
   if (!fontsLoaded) {
     return null;
   }
 
   return (
     <SafeAreaProvider>
-      <ForceUpdateModal visible={needsUpdate} />
+      <ForceUpdateModal visible={!isChecking && needsUpdate} />
       <Provider store={store}>
         <AuthProvider>
           <ToastProvider>
