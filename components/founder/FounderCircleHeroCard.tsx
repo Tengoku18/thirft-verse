@@ -17,7 +17,7 @@ export function FounderCircleHeroCard() {
             variation="body-sm"
             className="text-white/75 leading-relaxed"
           >
-            Become a verified member of the ThriftVerse Founder Circle. Enjoy
+            Become a verified member of the Thriftverse Founder Circle. Enjoy
             exclusive badges, early access to new features, and premium
             marketplace placement.
           </Typography>

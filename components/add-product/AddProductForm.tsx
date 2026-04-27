@@ -310,7 +310,7 @@ export function AddProductForm() {
                 variation="caption"
                 style={{ color: "#94a3b8", textAlign: "center", marginTop: 12 }}
               >
-                By posting, you agree to ThriftVerse Community Guidelines.
+                By posting, you agree to Thriftverse Community Guidelines.
               </Typography>
             </View>
           </ScrollView>

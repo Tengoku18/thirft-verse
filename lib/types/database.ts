@@ -227,6 +227,7 @@ export interface NCMCachedData {
     added_time: string;
   }[];
   last_synced_at: string;
+  delivery_type?: string;
 }
 
 export interface OrderItem {

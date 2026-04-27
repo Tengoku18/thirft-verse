@@ -50,6 +50,7 @@ export default function SignupStep5Screen() {
   );
 
   const [loading, setLoading] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Form setup with React Hook Form
@@ -181,7 +182,7 @@ export default function SignupStep5Screen() {
   };
 
   const handleSkip = async () => {
-    setLoading(true);
+    setIsSkipping(true);
 
     try {
       const {
@@ -190,7 +191,7 @@ export default function SignupStep5Screen() {
 
       if (!user) {
         setGeneralError("User not found. Please sign in again.");
-        setLoading(false);
+        setIsSkipping(false);
         return;
       }
 
@@ -204,7 +205,7 @@ export default function SignupStep5Screen() {
       console.error("Error skipping step 5:", error);
       setGeneralError("An unexpected error occurred. Please try again.");
     } finally {
-      setLoading(false);
+      setIsSkipping(false);
     }
   };
 
@@ -266,7 +267,7 @@ export default function SignupStep5Screen() {
         {/* Bottom Buttons */}
         <View className="px-6 py-6 flex-row gap-3">
           {/* Skip Button */}
-          <Pressable onPress={handleSkip} disabled={loading} className="">
+          <Pressable onPress={handleSkip} disabled={loading || isSkipping} className="">
             <Typography
               variation="body"
               className="text-center text-slate-600 font-sans-bold text-xl px-10 py-4"
@@ -282,7 +283,7 @@ export default function SignupStep5Screen() {
               variant="primary"
               onPress={handleSubmit(onSubmit)}
               isLoading={loading}
-              disabled={loading}
+              disabled={loading || isSkipping}
               fullWidth
               iconPosition="right"
               icon={<RightArrowIcon width={20} height={20} color="#fff" />}

@@ -28,6 +28,27 @@
         "buildType": "apk"
       }
     },
+    "staging": {
+      "autoIncrement": true,
+      "channel": "staging",
+      "distribution": "store",
+      "env": {
+        "EXPO_PUBLIC_ADMIN_EMAILS": "thriiftverse.shop@gmail.com",
+        "EXPO_PUBLIC_SUPPORT_EMAIL": "thriiftverse.shop@gmail.com",
+        "EXPO_PUBLIC_SUPPORT_PHONE": "+9779843197197",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://rsaqwegftpoqqtosgrbx.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYXF3ZWdmdHBvcXF0b3NncmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5MzczMDQsImV4cCI6MjA3NjUxMzMwNH0.r5E8WnUwGKcKgD7JbyEy7vV6PXHMfSZGjyZ0McIf9zw",
+        "EXPO_PUBLIC_NCM_API_BASE_URL": "https://demo.nepalcanmove.com/api",
+        "EXPO_PUBLIC_NCM_API_TOKEN": "0c593255a1805c938fd006ab01db5465fa680d8c",
+        "SENTRY_AUTH_TOKEN": "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"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "buildConfiguration": "Release"
+      }
+    },
     "production": {
       "autoIncrement": true,
       "channel": "production",
@@ -40,6 +61,11 @@
     }
   },
   "submit": {
+    "staging": {
+      "ios": {
+        "ascAppId": "6758267809"
+      }
+    },
     "production": {
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",

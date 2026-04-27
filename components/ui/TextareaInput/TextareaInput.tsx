@@ -1,6 +1,7 @@
 import { INPUT_COLORS } from "@/constants/theme";
 import { useState } from "react";
 import {
+  Platform,
   StyleProp,
   TextInput,
   TextInputProps,
@@ -47,7 +48,7 @@ export function Textarea({
   const isDisabled = variant === "disabled" || !editable;
 
   const getContainerStyle = () => {
-    const baseClasses = `rounded-3xl px-4 py-4 bg-white`;
+    const baseClasses = `rounded-3xl px-4 ${Platform.OS === "ios" ? "py-4" : ""} bg-white`;
     if (variant === "disabled") {
       return baseClasses + " border border-ui-border-light bg-brand-off-white opacity-50";
     }
@@ -98,7 +99,7 @@ export function Textarea({
         <TextInput
           style={{
             color: INPUT_COLORS.text,
-            fontSize: 15,
+            fontSize: Platform.OS === "ios" ? 20 : 16,
             lineHeight: 22,
             textAlignVertical: "top",
             minHeight: inputMinHeight,

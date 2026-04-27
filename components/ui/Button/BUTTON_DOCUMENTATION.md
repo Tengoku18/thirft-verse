@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `Button` component is a reusable, accessible button component following the ThriftVerse design system with three variants and two sizes. It supports loading and disabled states with proper visual feedback.
+The `Button` component is a reusable, accessible button component following the Thriftverse design system with three variants and two sizes. It supports loading and disabled states with proper visual feedback.
 
 ## Variants
 

@@ -22,7 +22,7 @@ export default function PrivacyScreen() {
           {/* Header */}
           <View className="mb-6">
             <Typography variation="body" className="leading-6 text-slate-600">
-              At ThriftVerse, your privacy is our priority. This policy outlines
+              At Thriftverse, your privacy is our priority. This policy outlines
               how we collect, use, and protect your personal information within
               our sustainable fashion marketplace.
             </Typography>

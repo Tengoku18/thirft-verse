@@ -48,11 +48,10 @@ export function useVersionCheck() {
   useEffect(() => {
     async function check() {
       try {
-        const latestVersion = "2.1.3";
-        // const latestVersion =
-        //   Platform.OS === "ios"
-        //     ? await fetchAppStoreVersion()
-        //     : await fetchPlayStoreVersion();
+        const latestVersion =
+          Platform.OS === "ios"
+            ? await fetchAppStoreVersion()
+            : await fetchPlayStoreVersion();
 
         console.log("latestVersion", Platform.OS, latestVersion);
 
@@ -60,12 +59,6 @@ export function useVersionCheck() {
 
         const current = Constants.expoConfig?.version ?? "0.0.0";
         setStoreVersion(latestVersion);
-        console.log(
-          "isOutdated(current, latestVersion)---->",
-          current,
-          latestVersion,
-          isOutdated(current, latestVersion),
-        );
 
         setNeedsUpdate(isOutdated(current, latestVersion));
       } catch (error) {

@@ -1,12 +1,18 @@
-import { HeadingBoldText } from "@/components/Typography";
 import NotificationIcon from "@/components/icons/NotificationIcon";
+import { HeadingBoldText } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { LOGOS } from "@/constants/logos";
 import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Image, StatusBar, TouchableOpacity, View, ViewStyle } from "react-native";
+import {
+  Image,
+  StatusBar,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from "react-native";
 
 export type TabHeaderVariant = "dark" | "light";
 
@@ -57,7 +63,10 @@ function UnreadBadge({ count }: { count: number }) {
         paddingHorizontal: 3,
       }}
     >
-      <Typography variation="body-xs" style={{ color: "#FFFFFF", fontSize: 9, lineHeight: 12 }}>
+      <Typography
+        variation="body-xs"
+        style={{ color: "#FFFFFF", fontSize: 9, lineHeight: 12 }}
+      >
         {count > 99 ? "99+" : count}
       </Typography>
     </View>
@@ -70,7 +79,9 @@ function LightTabHeader({
   rightComponent,
 }: Pick<TabHeaderProps, "title" | "rightComponent">) {
   const router = useRouter();
-  const unreadCount = useAppSelector((state) => state.notifications.unreadCount);
+  const unreadCount = useAppSelector(
+    (state) => state.notifications.unreadCount,
+  );
 
   return (
     <View
@@ -88,7 +99,9 @@ function LightTabHeader({
       <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" />
 
       {/* Title */}
-      <HeadingBoldText style={{ fontSize: 20, color: "#3B2F2F", letterSpacing: -0.3 }}>
+      <HeadingBoldText
+        style={{ fontSize: 20, color: "#3B2F2F", letterSpacing: -0.3 }}
+      >
         {title ?? ""}
       </HeadingBoldText>
 
@@ -120,7 +133,9 @@ function DarkTabHeader({
   showTextLogo,
 }: Omit<TabHeaderProps, "variant">) {
   const router = useRouter();
-  const unreadCount = useAppSelector((state) => state.notifications.unreadCount);
+  const unreadCount = useAppSelector(
+    (state) => state.notifications.unreadCount,
+  );
 
   const handleBack = () => {
     if (onBack) {
@@ -164,8 +179,10 @@ function DarkTabHeader({
                 style={{ width: 32, height: 32 }}
                 resizeMode="contain"
               />
-              <HeadingBoldText style={{ fontSize: 20, color: "#FFFFFF", marginLeft: 10 }}>
-                {title || "ThriftVerse"}
+              <HeadingBoldText
+                style={{ fontSize: 20, color: "#FFFFFF", marginLeft: 10 }}
+              >
+                {title || "Thriftverse"}
               </HeadingBoldText>
             </View>
           )}
@@ -206,7 +223,14 @@ function DarkTabHeader({
                         paddingHorizontal: 4,
                       }}
                     >
-                      <Typography variation="body-xs" style={{ color: "#FFFFFF", fontSize: 10, lineHeight: 14 }}>
+                      <Typography
+                        variation="body-xs"
+                        style={{
+                          color: "#FFFFFF",
+                          fontSize: 10,
+                          lineHeight: 14,
+                        }}
+                      >
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </Typography>
                     </View>

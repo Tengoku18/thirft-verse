@@ -101,7 +101,7 @@ export const StoreQRModal: React.FC<StoreQRModalProps> = ({
 
       await Sharing.shareAsync(uri, {
         mimeType: "image/png",
-        dialogTitle: `${storeName} — ThriftVerse store`,
+        dialogTitle: `${storeName} — Thriftverse store`,
         UTI: "public.png",
       });
     } catch (error) {

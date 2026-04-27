@@ -221,11 +221,10 @@ export function LoginForm({
         <Button
           label="Sign In"
           isLoading={loading}
-          disabled={loading}
           onPress={handleSubmit(onSubmit)}
           fullWidth
           iconPosition="right"
-          icon={<DoorInIcon width={20} height={20} />}
+          icon={<DoorInIcon />}
         />
       </View>
     </View>

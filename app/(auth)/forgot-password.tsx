@@ -96,7 +96,7 @@ export default function ForgotPasswordScreen() {
       if (error) {
         toast.error(error.message || "Google sign in failed");
       } else {
-        router.replace("/(tabs)");
+        router.replace("/(tabs)/home");
       }
     } finally {
       setLoading(false);
@@ -117,7 +117,7 @@ export default function ForgotPasswordScreen() {
         >
           <View className="px-6 pt-8">
             <View className="items-center mb-8">
-              <View className="w-24 h-24 bg-brand-badge rounded-full items-center justify-center">
+              <View className="w-24 h-24 bg-brand-badge/30 rounded-full items-center justify-center">
                 <ForgotIcon />
               </View>
             </View>

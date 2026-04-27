@@ -22,9 +22,9 @@ export default function TermsScreen() {
           {/* Header */}
           <View className="mb-6">
             <Typography variation="body" className="leading-6 text-slate-600">
-              Welcome to ThriftVerse. These Terms and Conditions govern your use
+              Welcome to Thriftverse. These Terms and Conditions govern your use
               of our mobile application and services. By accessing or using
-              ThriftVerse, you accept and agree to be bound by these terms.
+              Thriftverse, you accept and agree to be bound by these terms.
             </Typography>
           </View>
 
@@ -33,14 +33,17 @@ export default function TermsScreen() {
           </Typography>
 
           {/* 1. Acceptance of Terms */}
-          <SectionWithIcon title="1. Acceptance of Terms" icon="checkmark.circle">
+          <SectionWithIcon
+            title="1. Acceptance of Terms"
+            icon="checkmark.circle"
+          >
             <Typography
               variation="body-sm"
               className="leading-6 text-slate-600"
             >
-              By accessing and using Thriftverse, you accept and agree to be bound
-              by these Terms of Service. If you do not agree to these terms,
-              please do not use our platform.
+              By accessing and using Thriftverse, you accept and agree to be
+              bound by these Terms of Service. If you do not agree to these
+              terms, please do not use our platform.
             </Typography>
           </SectionWithIcon>
 
@@ -296,9 +299,9 @@ export default function TermsScreen() {
               className="leading-6 text-slate-600"
             >
               You agree to indemnify and hold Thriftverse harmless from any
-              claims, damages, or expenses arising from your use of the platform,
-              your violation of these terms, or your violation of any rights of
-              others.
+              claims, damages, or expenses arising from your use of the
+              platform, your violation of these terms, or your violation of any
+              rights of others.
             </Typography>
           </SectionWithIcon>
 
