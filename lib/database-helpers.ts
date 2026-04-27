@@ -175,7 +175,8 @@ export const verifyProfileExists = async (userId: string): Promise<boolean> => {
  */
 export const createMissingProfile = async () => {
   try {
-    // Get current authenticated user
+    // Use getUser() (not getSession()) so user_metadata is server-fresh —
+    // we read name/email/avatar from it to seed the new profile row.
     const {
       data: { user },
       error: userError,
@@ -408,11 +409,12 @@ export const getMyOfferCode = async (): Promise<{
 }> => {
   try {
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
 
-    if (userError || !user) {
+    if (sessionError || !user) {
       return {
         success: false,
         error: "You must be signed in to manage offer codes.",
@@ -451,11 +453,12 @@ export const upsertMyOfferCode = async (
 ): Promise<{ success: boolean; data?: OfferCode; error?: string }> => {
   try {
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
 
-    if (userError || !user) {
+    if (sessionError || !user) {
       return {
         success: false,
         error: "You must be signed in to manage offer codes.",
@@ -576,11 +579,12 @@ export const deleteMyOfferCode = async (): Promise<{
 }> => {
   try {
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
 
-    if (userError || !user) {
+    if (sessionError || !user) {
       return {
         success: false,
         error: "You must be signed in to manage offer codes.",
