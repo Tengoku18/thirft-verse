@@ -35,40 +35,51 @@ async function fetchPlayStoreVersion(): Promise<string | null> {
   return match?.[1] ?? null;
 }
 
+const CHECK_TIMEOUT_MS = 6000;
+
 /**
  * @param enabled - set false to defer the check until the app is fully ready
  *   (fonts loaded + OTA settled). Flipping to true starts the API call.
  */
 export function useVersionCheck(enabled = true) {
   const [needsUpdate, setNeedsUpdate] = useState(false);
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
     if (!enabled) return;
 
     async function check() {
       try {
-        const storeVersion =
+        const timeout = new Promise<null>((resolve) =>
+          setTimeout(() => resolve(null), CHECK_TIMEOUT_MS),
+        );
+
+        const storeVersion = await Promise.race([
           Platform.OS === "ios"
-            ? await fetchAppStoreVersion()
-            : await fetchPlayStoreVersion();
+            ? fetchAppStoreVersion()
+            : fetchPlayStoreVersion(),
+          timeout,
+        ]);
 
-        if (!storeVersion) return;
-
-        // Use the native binary version — this is what the store actually tracks.
-        // Constants.expoConfig?.version reflects the JS bundle (can drift via OTA),
-        // while nativeApplicationVersion always matches what iTunes/Play Store shows.
-        const currentVersion = Application.nativeApplicationVersion;
-        if (!currentVersion) return;
-
-        setNeedsUpdate(isOutdated(currentVersion, storeVersion));
+        if (storeVersion) {
+          // Use the native binary version — this is what the store actually tracks.
+          // Constants.expoConfig?.version reflects the JS bundle (can drift via OTA),
+          // while nativeApplicationVersion always matches what iTunes/Play Store shows.
+          const currentVersion = Application.nativeApplicationVersion;
+          if (currentVersion) {
+            setNeedsUpdate(isOutdated(currentVersion, storeVersion));
+          }
+        }
       } catch (error) {
         console.error("[VersionCheck] error:", error);
         // Fail silently — never block the app if the check fails
+      } finally {
+        setDone(true);
       }
     }
 
     check();
   }, [enabled]);
 
-  return { needsUpdate };
+  return { needsUpdate, done };
 }

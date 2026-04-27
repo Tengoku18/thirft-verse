@@ -22,6 +22,7 @@ import "react-native-reanimated";
 import "../global.css";
 
 import { ForceUpdateModal } from "@/components/modals/ForceUpdateModal";
+import { AppInitContext } from "@/contexts/AppInitContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -94,7 +95,17 @@ export default Sentry.wrap(function RootLayout() {
   // Gate 2 — fonts: don't start until the app is visually ready.
   // Both must be true before the iTunes/Play Store API is called.
   const [otaReady, setOtaReady] = useState(__DEV__);
-  const { needsUpdate } = useVersionCheck(fontsLoaded && otaReady);
+  const { needsUpdate, done: versionCheckDone } = useVersionCheck(
+    fontsLoaded && otaReady,
+  );
+
+  // When a force update is required, hide the splash from the layout so the
+  // modal appears cleanly without index.tsx ever navigating to login first.
+  useEffect(() => {
+    if (versionCheckDone && needsUpdate) {
+      SplashScreen.hideAsync();
+    }
+  }, [versionCheckDone, needsUpdate]);
 
   // Initialize push notifications on app launch (request permission + get token)
   useEffect(() => {
@@ -165,78 +176,84 @@ export default Sentry.wrap(function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider>
-      <ForceUpdateModal visible={needsUpdate} />
-      <Provider store={store}>
-        <AuthProvider>
-          <ToastProvider>
-            <ThemeProvider
-              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-            >
-              <StatusBar style="dark" />
-              <Stack>
-                <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="explore" options={{ headerShown: false }} />
-                <Stack.Screen name="profile" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="settings"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="policies"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="modal"
-                  options={{ presentation: "modal", title: "Modal" }}
-                />
-                <Stack.Screen
-                  name="sold-item/[id]"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="product/[id]"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="edit-product/[id]"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="order/[id]"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="notifications"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="offer-code"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="referral-code"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="founder-circle"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="earnings"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="performance"
-                  options={{ headerShown: false }}
-                />
-              </Stack>
-            </ThemeProvider>
-          </ToastProvider>
-        </AuthProvider>
-      </Provider>
-    </SafeAreaProvider>
+    <AppInitContext.Provider value={{ needsUpdate, versionCheckDone }}>
+      <SafeAreaProvider>
+        <ForceUpdateModal visible={needsUpdate} />
+        <Provider store={store}>
+          <AuthProvider>
+            <ToastProvider>
+              <ThemeProvider
+                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+              >
+                <StatusBar style="dark" />
+                <Stack
+                  screenOptions={{
+                    contentStyle: { backgroundColor: "#C08B7B" },
+                  }}
+                >
+                  <Stack.Screen name="index" options={{ headerShown: false }} />
+                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen name="explore" options={{ headerShown: false }} />
+                  <Stack.Screen name="profile" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="settings"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="policies"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="modal"
+                    options={{ presentation: "modal", title: "Modal" }}
+                  />
+                  <Stack.Screen
+                    name="sold-item/[id]"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="product/[id]"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="edit-product/[id]"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="order/[id]"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="notifications"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="offer-code"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="referral-code"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="founder-circle"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="earnings"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="performance"
+                    options={{ headerShown: false }}
+                  />
+                </Stack>
+              </ThemeProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </Provider>
+      </SafeAreaProvider>
+    </AppInitContext.Provider>
   );
 });
