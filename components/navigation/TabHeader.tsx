@@ -88,7 +88,7 @@ function LightTabHeader({
       style={{
         backgroundColor: "#FAF7F2",
         paddingHorizontal: 20,
-        paddingVertical: 14,
+        paddingVertical: 8,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",

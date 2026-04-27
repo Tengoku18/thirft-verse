@@ -105,15 +105,10 @@ export default function SignInScreen() {
           );
           setNextSignupStep(nextStep);
           setShowCompleteProfileModal(true);
-          console.log(
-            "[SignIn] Signup incomplete, showing modal. Next step:",
-            nextStep,
-          );
+
           return;
         }
 
-        // Signup is complete, navigate to home
-        console.log("[SignIn] Signup complete, navigating to home");
         router.replace("/(tabs)/home");
       }
     } catch (error) {

@@ -75,16 +75,13 @@ export function LoginForm({
 
         if (savedEmail) {
           setValue("email", savedEmail);
-          console.log("✅ Loaded saved email:", savedEmail);
         }
 
         // Load remember me preference - defaults to false if not set
         if (rememberMeEnabled === "true") {
           setValue("rememberMe", true);
-          console.log("✅ Remember me was previously enabled");
         } else if (rememberMeEnabled === "false") {
           setValue("rememberMe", false);
-          console.log("✅ Remember me was previously disabled");
         }
       } catch (error) {
         console.error("Error loading saved form data:", error);

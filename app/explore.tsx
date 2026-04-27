@@ -30,10 +30,19 @@ function NotificationButton() {
       activeOpacity={0.8}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       style={{
-        width: 40,
-        height: 40,
+        width: 36,
+        height: 36,
         justifyContent: "center",
         alignItems: "center",
+        backgroundColor: "#FFFFFF",
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: "rgba(59,47,47,0.06)",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+        elevation: 2,
       }}
     >
       <NotificationIcon width={20} height={20} fill="#3B2F2F" />
@@ -41,14 +50,26 @@ function NotificationButton() {
         <View
           style={{
             position: "absolute",
-            top: 7,
-            right: 7,
-            width: 8,
-            height: 8,
-            borderRadius: 4,
+            top: 5,
+            right: 5,
+            minWidth: 16,
+            height: 16,
+            borderRadius: 8,
             backgroundColor: "#EF4444",
+            borderWidth: 1.5,
+            borderColor: "#FFFFFF",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 3,
           }}
-        />
+        >
+          <Typography
+            variation="body-xs"
+            style={{ color: "#FFFFFF", fontSize: 9, lineHeight: 12 }}
+          >
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </Typography>
+        </View>
       )}
     </TouchableOpacity>
   );

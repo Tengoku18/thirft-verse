@@ -27,11 +27,19 @@ export function ExploreProductCard({ product, onPress }: Props) {
   };
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.9} className="flex-1">
+    <TouchableOpacity
+      onPress={handlePress}
+      activeOpacity={0.9}
+      className="flex-1"
+    >
       {/* Image container — 4:5 ratio matching reference */}
       <View
         className="overflow-hidden"
-        style={{ borderRadius: 16, aspectRatio: 4 / 5, backgroundColor: "#eeecec" }}
+        style={{
+          borderRadius: 16,
+          aspectRatio: 4 / 5,
+          backgroundColor: "#eeecec",
+        }}
       >
         {imageUrl ? (
           <Image
@@ -44,16 +52,6 @@ export function ExploreProductCard({ product, onPress }: Props) {
             <IconSymbol name="photo" size={36} color="#C4C4C4" />
           </View>
         )}
-
-        {/* Heart button overlay */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-          className="absolute top-2 right-2 w-8 h-8 rounded-full items-center justify-center"
-          style={{ backgroundColor: "rgba(255,255,255,0.85)" }}
-        >
-          <IconSymbol name="heart" size={16} color="#3B3030" />
-        </TouchableOpacity>
 
         {isSoldOut && (
           <View className="absolute inset-0 bg-black/30 items-center justify-center">
@@ -88,9 +86,13 @@ export function ExploreProductCard({ product, onPress }: Props) {
         )}
         <Typography
           variation="body"
+          numberOfLines={1}
           style={{ color: "#3B2F2F", fontWeight: "800", marginTop: 2 }}
         >
-          {currency} {product.price.toLocaleString()}
+          {currency}{" "}
+          {typeof product.price === "number"
+            ? product.price.toLocaleString()
+            : String(product.price)}
         </Typography>
       </View>
     </TouchableOpacity>

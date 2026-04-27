@@ -10,12 +10,19 @@ import {
   filterProductsByAvailability,
   filterProductsByCategory,
   filterProductsBySearch,
+  filterProductsByVerification,
   ProductSortOption,
   sortProducts,
 } from "@/lib/explore-helpers";
 import { ProductWithStore } from "@/lib/types/database";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -132,7 +139,10 @@ export function ExploreProductsTab() {
       if (fetchingRef.current) return;
       fetchingRef.current = true;
       try {
-        const result = await getAllAvailableProducts(PAGE_SIZE, page * PAGE_SIZE);
+        const result = await getAllAvailableProducts(
+          PAGE_SIZE,
+          page * PAGE_SIZE,
+        );
         const fetched = userId
           ? result.data.filter((p) => p.store_id !== userId)
           : result.data;
@@ -164,17 +174,19 @@ export function ExploreProductsTab() {
 
   const handleEndReached = useCallback(() => {
     // Use ref for hasMore to avoid stale closure
-    if (loadingMore || !hasMoreRef.current || loading || fetchingRef.current) return;
+    if (loadingMore || !hasMoreRef.current || loading || fetchingRef.current)
+      return;
     const nextPage = pageRef.current + 1;
     pageRef.current = nextPage;
     setLoadingMore(true);
     fetchPage(nextPage).finally(() => setLoadingMore(false));
-  }, [loadingMore, loading, fetchPage]);
+  }, [fetchPage]);
 
   const filteredProducts = useMemo(() => {
     let r = filterProductsBySearch(products, searchQuery);
     r = filterProductsByCategory(r, selectedCategories);
     r = filterProductsByAvailability(r, inStockOnly);
+    r = filterProductsByVerification(r, true);
     return sortProducts(r, sortBy);
   }, [products, searchQuery, selectedCategories, inStockOnly, sortBy]);
 
@@ -223,7 +235,7 @@ export function ExploreProductsTab() {
 
   const renderItem = useCallback(
     ({ item }: { item: ProductWithStore }) => (
-      <View style={{ flex: 1 }}>
+      <View style={{ width: "48%" }}>
         <ExploreProductCard product={item} />
       </View>
     ),
@@ -253,6 +265,8 @@ export function ExploreProductsTab() {
           colors={["#3B2F2F"]}
         />
       }
+      removeClippedSubviews={false}
+      scrollEventThrottle={16}
       renderItem={renderItem}
     />
   );

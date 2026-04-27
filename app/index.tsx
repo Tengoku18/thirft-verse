@@ -27,12 +27,8 @@ export default function Index() {
   useEffect(() => {
     const initApp = async () => {
       try {
-        console.log("\n🎯 Calling initialization thunk from Index...\n");
-
         // Dispatch the initialization thunk which fetches user and profile
         const result = await dispatch(initializeApp()).unwrap();
-
-        console.log(`\n📍 Initialization complete. Status: ${result.status}\n`);
 
         // Store user and profile in Redux for app-wide access
         if (result.user) {
@@ -40,11 +36,7 @@ export default function Index() {
         }
         if (result.profile) {
           dispatch(setProfile(result.profile));
-          // Load profile data into signup Redux slice for form restoration on back navigation
-          console.log(
-            "[Index] Loading profile data into signup Redux:",
-            result.profile.store_username,
-          );
+
           dispatch(loadFromProfile(result.profile));
         }
 
@@ -67,8 +59,6 @@ export default function Index() {
     if (!initialized) return;
 
     const navigate = async () => {
-      console.log(`\n🚦 Navigating based on status: ${appStatus}\n`);
-
       if (appStatus === "unauthenticated") {
         await SplashScreen.hideAsync();
         router.replace("/(auth)/signin");

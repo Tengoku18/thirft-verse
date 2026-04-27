@@ -137,9 +137,10 @@ export default function OrdersScreen() {
 
         if ((isMultiProduct || isCustomOrder) && hasOrderItems) {
           const first = order.order_items[0];
-          productTitle = order.order_items.length > 1
-            ? `${first.product_name} + ${order.order_items.length - 1} more`
-            : first.product_name;
+          productTitle =
+            order.order_items.length > 1
+              ? `${first.product_name} + ${order.order_items.length - 1} more`
+              : first.product_name;
           productImage = first.cover_image;
           itemsCount = order.order_items.length;
         } else if (isMultiProduct && !hasOrderItems) {
@@ -224,7 +225,7 @@ export default function OrdersScreen() {
     />
   );
 
-  const createOrderButton = (
+  const createOrderButton = __DEV__ ? (
     <Pressable
       onPress={() => router.push("/order/custom-order")}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -232,7 +233,7 @@ export default function OrdersScreen() {
     >
       <IconSymbol name="plus" size={22} color="#3B2F2F" />
     </Pressable>
-  );
+  ) : null;
 
   // ── Loading ──
   if (loading) {
