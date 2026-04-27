@@ -40,33 +40,30 @@ async function fetchPlayStoreVersion(): Promise<string | null> {
   return match?.[1] ?? null;
 }
 
-export function useVersionCheck() {
+/**
+ * @param enabled - set to false to defer the check (e.g. while an OTA
+ *   update is downloading). The check runs as soon as enabled flips to true.
+ */
+export function useVersionCheck(enabled = true) {
   const [needsUpdate, setNeedsUpdate] = useState(false);
   const [storeVersion, setStoreVersion] = useState<string | null>(null);
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
+    if (!enabled) return;
+
     async function check() {
       try {
-        const latestVersion = "2.1.3";
-        // const latestVersion =
-        //   Platform.OS === "ios"
-        //     ? await fetchAppStoreVersion()
-        //     : await fetchPlayStoreVersion();
-
-        console.log("latestVersion", Platform.OS, latestVersion);
+        // const latestVersion = "2.1.3";
+        const latestVersion =
+          Platform.OS === "ios"
+            ? await fetchAppStoreVersion()
+            : await fetchPlayStoreVersion();
 
         if (!latestVersion) return;
 
         const current = Constants.expoConfig?.version ?? "0.0.0";
         setStoreVersion(latestVersion);
-        console.log(
-          "isOutdated(current, latestVersion)---->",
-          current,
-          latestVersion,
-          isOutdated(current, latestVersion),
-        );
-
         setNeedsUpdate(isOutdated(current, latestVersion));
       } catch (error) {
         console.error("Error checking version:", error);
@@ -77,7 +74,7 @@ export function useVersionCheck() {
     }
 
     check();
-  }, []);
+  }, [enabled]);
 
   return { needsUpdate, storeVersion, isChecking };
 }

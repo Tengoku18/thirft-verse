@@ -17,7 +17,7 @@ import { useFonts } from "expo-font";
 import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import "../global.css";
 
@@ -70,7 +70,15 @@ function handleNotificationNavigation(data: Record<string, string>) {
 
 export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
-  const { needsUpdate } = useVersionCheck();
+
+  // Only start the store-version check AFTER we know no OTA update is being
+  // applied. If an OTA update is available on first launch, reloadAsync() kills
+  // the current JS context before the iTunes fetch completes — but if the fetch
+  // wins the race, the old embedded bundle version triggers a false-positive
+  // force-update modal. Deferring the check until OTA is settled prevents this.
+  const [otaReady, setOtaReady] = useState(__DEV__); // DEV: no OTA, always ready
+  const { needsUpdate } = useVersionCheck(otaReady);
+
   // Initialize push notifications on app launch (request permission + get token)
   useEffect(() => {
     initializePushNotifications();
@@ -106,7 +114,9 @@ export default Sentry.wrap(function RootLayout() {
     };
   }, []);
 
-  // Check for OTA updates on app launch (production only)
+  // Check for OTA updates on app launch (production only).
+  // setOtaReady(true) is called only when we're sure no reload will happen,
+  // which then unblocks the store-version check above.
   useEffect(() => {
     if (__DEV__) return;
 
@@ -116,9 +126,13 @@ export default Sentry.wrap(function RootLayout() {
         if (update.isAvailable) {
           await Updates.fetchUpdateAsync();
           await Updates.reloadAsync();
+          // If reloadAsync resolves (shouldn't in practice), fall through to
+          // setOtaReady so the version check isn't blocked indefinitely.
         }
+        setOtaReady(true);
       } catch (error) {
         Sentry.captureException(error);
+        setOtaReady(true); // Don't block version check if OTA check fails
       }
     }
 
