@@ -1,5 +1,5 @@
 import { Typography } from "@/components/ui/Typography/Typography";
-import Constants from "expo-constants";
+import * as Application from "expo-application";
 import React from "react";
 import { Linking, Platform, Pressable, View } from "react-native";
 import { BlurModal } from "../ui/BlurModal";
@@ -18,7 +18,7 @@ interface ForceUpdateModalProps {
 }
 
 export function ForceUpdateModal({ visible }: ForceUpdateModalProps) {
-  const currentVersion = Constants.expoConfig?.version ?? "";
+  const currentVersion = Application.nativeApplicationVersion ?? "";
 
   return (
     <BlurModal visible={visible} onDismiss={() => {}} showCloseButton={false}>
