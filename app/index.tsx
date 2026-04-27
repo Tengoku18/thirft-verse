@@ -1,5 +1,4 @@
 import { CompleteYourProfileModal } from "@/components/modals/CompleteYourProfileModal";
-import { useAppInit } from "@/contexts/AppInitContext";
 import { initializeApp, loadFromProfile, setProfile, setUser } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { router } from "expo-router";
@@ -17,7 +16,6 @@ type AppStatus =
 
 export default function Index() {
   const dispatch = useAppDispatch();
-  const { needsUpdate, versionCheckDone } = useAppInit();
   const [appStatus, setAppStatus] = useState<AppStatus>("initializing");
   const [initialized, setInitialized] = useState(false);
   const [showCompleteProfileModal, setShowCompleteProfileModal] =
@@ -68,14 +66,9 @@ export default function Index() {
 
   // ──────────────────────────────────────────────────────────────
   // NAVIGATE BASED ON APP STATUS
-  // Wait for both auth init AND version check before proceeding so
-  // the splash is never hidden before we know if a force-update is
-  // needed. If needsUpdate is true the layout already hid the splash
-  // and the ForceUpdateModal is blocking — don't navigate at all.
   // ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!initialized || !versionCheckDone) return;
-    if (needsUpdate) return;
+    if (!initialized) return;
 
     const navigate = async () => {
       console.log(`\n🚦 Navigating based on status: ${appStatus}\n`);
@@ -105,7 +98,7 @@ export default function Index() {
     };
 
     navigate();
-  }, [appStatus, initialized, profile, versionCheckDone, needsUpdate]);
+  }, [appStatus, initialized, profile]);
 
   // Native splash screen is visible while loading — no custom UI needed.
   // The background color matches the splash so there is no visible flash

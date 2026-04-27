@@ -17,16 +17,15 @@ import { useFonts } from "expo-font";
 import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import "react-native-reanimated";
 import "../global.css";
 
 import { ForceUpdateModal } from "@/components/modals/ForceUpdateModal";
-import { AppInitContext } from "@/contexts/AppInitContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useVersionCheck } from "@/hooks/useVersionCheck";
+import { useAppUpdate } from "@/hooks/useAppUpdate";
 import {
   addNotificationReceivedListener,
   addNotificationResponseReceivedListener,
@@ -72,7 +71,6 @@ function handleNotificationNavigation(data: Record<string, string>) {
 export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
 
-  // Load fonts first — we need fontsLoaded to gate the version check below.
   const [fontsLoaded] = useFonts({
     Folito_300Light: require("../assets/fonts/Folito-Light.ttf"),
     Folito_400Regular: require("../assets/fonts/Folito-Regular.ttf"),
@@ -90,22 +88,6 @@ export default Sentry.wrap(function RootLayout() {
     NunitoSans_800ExtraBold,
     NunitoSans_900Black,
   });
-
-  // Gate 1 — OTA: don't start until we know no OTA reload is coming.
-  // Gate 2 — fonts: don't start until the app is visually ready.
-  // Both must be true before the iTunes/Play Store API is called.
-  const [otaReady, setOtaReady] = useState(__DEV__);
-  const { needsUpdate, done: versionCheckDone } = useVersionCheck(
-    fontsLoaded && otaReady,
-  );
-
-  // When a force update is required, hide the splash from the layout so the
-  // modal appears cleanly without index.tsx ever navigating to login first.
-  useEffect(() => {
-    if (versionCheckDone && needsUpdate) {
-      SplashScreen.hideAsync();
-    }
-  }, [versionCheckDone, needsUpdate]);
 
   // Initialize push notifications on app launch (request permission + get token)
   useEffect(() => {
@@ -143,8 +125,6 @@ export default Sentry.wrap(function RootLayout() {
   }, []);
 
   // Check for OTA updates on app launch (production only).
-  // setOtaReady(true) is called only when we're sure no reload will happen,
-  // which then unblocks the store-version check above.
   useEffect(() => {
     if (__DEV__) return;
 
@@ -154,106 +134,107 @@ export default Sentry.wrap(function RootLayout() {
         if (update.isAvailable) {
           await Updates.fetchUpdateAsync();
           await Updates.reloadAsync();
-          // reloadAsync restarts the JS runtime — execution never reaches here
-          // in practice. The explicit return prevents setOtaReady from being
-          // called with the old bundle still loaded.
-          return;
         }
-        // Only reached when no update was applied — safe to start version check.
-        setOtaReady(true);
       } catch (error) {
         Sentry.captureException(error);
-        // OTA check failed — don't block the version check indefinitely.
-        setOtaReady(true);
       }
     }
 
     checkForUpdates();
   }, []);
 
+  // Start version check once fonts are ready so the modal can render if needed
+  const appUpdate = useAppUpdate(fontsLoaded);
+  console.log({
+    appUpdate,
+  });
+
   if (!fontsLoaded) {
     return null;
   }
 
   return (
-    <AppInitContext.Provider value={{ needsUpdate, versionCheckDone }}>
-      <SafeAreaProvider>
-        <ForceUpdateModal visible={needsUpdate} />
-        <Provider store={store}>
-          <AuthProvider>
-            <ToastProvider>
-              <ThemeProvider
-                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+    <SafeAreaProvider>
+      <Provider store={store}>
+        <AuthProvider>
+          <ToastProvider>
+            <ThemeProvider
+              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <StatusBar style="dark" />
+              <Stack
+                screenOptions={{
+                  contentStyle: { backgroundColor: "#C08B7B" },
+                }}
               >
-                <StatusBar style="dark" />
-                <Stack
-                  screenOptions={{
-                    contentStyle: { backgroundColor: "#C08B7B" },
-                  }}
-                >
-                  <Stack.Screen name="index" options={{ headerShown: false }} />
-                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="explore" options={{ headerShown: false }} />
-                  <Stack.Screen name="profile" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="settings"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="policies"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="modal"
-                    options={{ presentation: "modal", title: "Modal" }}
-                  />
-                  <Stack.Screen
-                    name="sold-item/[id]"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="product/[id]"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="edit-product/[id]"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="order/[id]"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="notifications"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="offer-code"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="referral-code"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="founder-circle"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="earnings"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="performance"
-                    options={{ headerShown: false }}
-                  />
-                </Stack>
-              </ThemeProvider>
-            </ToastProvider>
-          </AuthProvider>
-        </Provider>
-      </SafeAreaProvider>
-    </AppInitContext.Provider>
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="explore" options={{ headerShown: false }} />
+                <Stack.Screen name="profile" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="settings"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="policies"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="modal"
+                  options={{ presentation: "modal", title: "Modal" }}
+                />
+                <Stack.Screen
+                  name="sold-item/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="product/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="edit-product/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="order/[id]"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="notifications"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="offer-code"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="referral-code"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="founder-circle"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="earnings"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="performance"
+                  options={{ headerShown: false }}
+                />
+              </Stack>
+              <ForceUpdateModal
+                visible={appUpdate.isVisible}
+                currentVersion={appUpdate.currentVersion}
+                latestVersion={appUpdate.latestVersion}
+                onUpdate={appUpdate.openStore}
+              />
+            </ThemeProvider>
+          </ToastProvider>
+        </AuthProvider>
+      </Provider>
+    </SafeAreaProvider>
   );
 });
