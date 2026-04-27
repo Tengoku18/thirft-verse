@@ -22,12 +22,13 @@ import { createProduct as createProductAction } from "@/store/productsSlice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
-import { useForm } from "react-hook-form";
+import React, { useCallback, useRef, useState } from "react";
+import { FieldErrors, useForm } from "react-hook-form";
 import {
   Alert,
   Keyboard,
   KeyboardAvoidingView,
+  LayoutChangeEvent,
   Platform,
   ScrollView,
   View,
@@ -43,6 +44,40 @@ export function AddProductForm() {
   const dispatch = useAppDispatch();
   const { user } = useAuth();
   const profile = useAppSelector((state) => state.profile.profile);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const formViewY = useRef(0);
+  const fieldOffsets = useRef<Partial<Record<keyof ProductFormData, number>>>(
+    {},
+  );
+
+  const scrollToFirstError = useCallback(
+    (errs: FieldErrors<ProductFormData>) => {
+      const order: (keyof ProductFormData)[] = [
+        "cover_image",
+        "title",
+        "category",
+        "price",
+        "availability_count",
+        "description",
+      ];
+      for (const field of order) {
+        if (!errs[field]) continue;
+        const y =
+          field === "cover_image"
+            ? 0
+            : formViewY.current + (fieldOffsets.current[field] ?? 0) - 16;
+        scrollViewRef.current?.scrollTo({ y: Math.max(0, y), animated: true });
+        return;
+      }
+    },
+    [],
+  );
+
+  const onFieldLayout =
+    (field: keyof ProductFormData) => (e: LayoutChangeEvent) => {
+      fieldOffsets.current[field] = e.nativeEvent.layout.y;
+    };
 
   const [loading, setLoading] = useState(false);
   const [coverUri, setCoverUri] = useState<string | null>(null);
@@ -104,7 +139,7 @@ export function AddProductForm() {
     if (!result.canceled && result.assets[0]) {
       const uri = result.assets[0].uri;
       setCoverUri(uri);
-      setValue("cover_image", uri);
+      setValue("cover_image", uri, { shouldValidate: true });
     }
   };
 
@@ -246,6 +281,7 @@ export function AddProductForm() {
           keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
           <ScrollView
+            ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 140 }}
             keyboardShouldPersistTaps="handled"
@@ -262,15 +298,22 @@ export function AddProductForm() {
             />
 
             {/* Form fields */}
-            <View className="px-8 gap-4">
-              <RHFInput
-                control={control}
-                name="title"
-                label="Product Title"
-                placeholder="e.g. Oversized Vintage Denim Jacket"
-                autoCapitalize="words"
-              />
-              <View>
+            <View
+              className="px-8 gap-4"
+              onLayout={(e) => {
+                formViewY.current = e.nativeEvent.layout.y;
+              }}
+            >
+              <View onLayout={onFieldLayout("title")}>
+                <RHFInput
+                  control={control}
+                  name="title"
+                  label="Product Title"
+                  placeholder="e.g. Oversized Vintage Denim Jacket"
+                  autoCapitalize="words"
+                />
+              </View>
+              <View onLayout={onFieldLayout("category")}>
                 <RHFSelect
                   control={control}
                   name="category"
@@ -281,10 +324,10 @@ export function AddProductForm() {
                 />
               </View>
 
-              <View>
+              <View onLayout={onFieldLayout("price")}>
                 <PriceStockRow control={control} />
               </View>
-              <View>
+              <View onLayout={onFieldLayout("description")}>
                 <RHFTextarea
                   control={control}
                   name="description"
@@ -300,7 +343,7 @@ export function AddProductForm() {
                   label="Post Product"
                   variant="primary"
                   fullWidth
-                  onPress={handleSubmit(onSubmit)}
+                  onPress={handleSubmit(onSubmit, scrollToFirstError)}
                   isLoading={loading}
                   disabled={loading}
                 />

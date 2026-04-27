@@ -41,7 +41,6 @@ async function fetchPlayStoreVersion(): Promise<string | null> {
  */
 export function useVersionCheck(enabled = true) {
   const [needsUpdate, setNeedsUpdate] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
     if (!enabled) return;
@@ -61,19 +60,15 @@ export function useVersionCheck(enabled = true) {
         const currentVersion = Application.nativeApplicationVersion;
         if (!currentVersion) return;
 
-        console.log("[VersionCheck] current:", currentVersion, "store:", storeVersion);
-
         setNeedsUpdate(isOutdated(currentVersion, storeVersion));
       } catch (error) {
         console.error("[VersionCheck] error:", error);
         // Fail silently — never block the app if the check fails
-      } finally {
-        setIsChecking(false);
       }
     }
 
     check();
   }, [enabled]);
 
-  return { needsUpdate, isChecking };
+  return { needsUpdate };
 }

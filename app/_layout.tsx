@@ -94,7 +94,7 @@ export default Sentry.wrap(function RootLayout() {
   // Gate 2 — fonts: don't start until the app is visually ready.
   // Both must be true before the iTunes/Play Store API is called.
   const [otaReady, setOtaReady] = useState(__DEV__);
-  const { needsUpdate, isChecking } = useVersionCheck(fontsLoaded && otaReady);
+  const { needsUpdate } = useVersionCheck(fontsLoaded && otaReady);
 
   // Initialize push notifications on app launch (request permission + get token)
   useEffect(() => {
@@ -166,7 +166,7 @@ export default Sentry.wrap(function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ForceUpdateModal visible={!isChecking && needsUpdate} />
+      <ForceUpdateModal visible={needsUpdate} />
       <Provider store={store}>
         <AuthProvider>
           <ToastProvider>
