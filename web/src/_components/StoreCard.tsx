@@ -1,3 +1,5 @@
+'use client'
+
 import { Profile } from '@/types/database'
 import { getStorefrontUrl } from '@/utils/domainHelpers'
 import { BadgeCheck, Store } from 'lucide-react'
@@ -15,54 +17,50 @@ const StoreCard = ({ profile }: StoreCardProps) => {
     profile.profile_image?.startsWith('https://')
 
   return (
-    <Link
-      href={storefrontUrl}
-      className="group relative overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-300 hover:scale-105 hover:shadow-xl"
-    >
-      {/* Profile Image / Banner */}
-      <div className="relative aspect-square overflow-hidden bg-linear-to-br from-secondary/20 to-accent-2/20 sm:aspect-5/4">
-        {profile.profile_image && isRemoteImage ? (
-          <Image
-            src={profile.profile_image}
-            alt={profile.name}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-110"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <Store className="h-16 w-16 text-secondary/40" />
-          </div>
-        )}
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent" />
-      </div>
+    <div className="group">
+      <div className="relative overflow-hidden rounded-xl bg-white shadow-sm transition-shadow duration-300 hover:shadow-md sm:rounded-2xl">
+        {/* Image */}
+        <Link
+          href={storefrontUrl}
+          className="relative block aspect-square overflow-hidden bg-white sm:aspect-[5/4]"
+        >
+          {profile.profile_image && isRemoteImage ? (
+            <Image
+              src={profile.profile_image}
+              alt={profile.name}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <Store className="h-16 w-16 text-secondary/40" />
+            </div>
+          )}
+        </Link>
 
-      {/* Store Info */}
-      <div className="p-2.5 pb-3 sm:p-4">
-        <div className="mb-1 flex items-center gap-1 sm:mb-2">
-          <h3 className="font-heading text-sm font-bold text-primary sm:text-xl">
-            {profile.name}
-          </h3>
-          {profile.is_verified && (
-            <BadgeCheck className="h-4 w-4 shrink-0 fill-blue-500 text-white sm:h-5 sm:w-5" />
+        {/* Info */}
+        <div className="space-y-2.5 p-2.5 sm:space-y-3 sm:p-4">
+          <Link href={storefrontUrl}>
+            <div className="flex items-center gap-1">
+              <h3 className="truncate text-sm leading-tight font-semibold text-neutral-900 transition-colors group-hover:text-[#D4A373] sm:text-base">
+                {profile.name}
+              </h3>
+              {profile.is_verified && (
+                <BadgeCheck className="h-4 w-4 shrink-0 fill-blue-500 text-white sm:h-5 sm:w-5" />
+              )}
+            </div>
+          </Link>
+
+          {profile.store_username && (
+            <div className="flex items-center gap-1.5 text-xs text-neutral-600 sm:text-sm">
+              <Store className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="truncate">@{profile.store_username}</span>
+            </div>
           )}
         </div>
-
-        {profile.store_username && (
-          <div className="flex items-center gap-1 text-xs text-primary/60 sm:gap-1.5 sm:text-sm">
-            <Store className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span>@{profile.store_username}</span>
-          </div>
-        )}
-
-        {profile.bio && (
-          <p className="mt-1 line-clamp-2 text-xs text-primary/70 sm:mt-2 sm:text-sm">
-            {profile.bio}
-          </p>
-        )}
       </div>
-    </Link>
+    </div>
   )
 }
 
