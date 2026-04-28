@@ -1,6 +1,7 @@
 import { getProfiles } from '@/actions'
 import { getAvailableProducts } from '@/actions/products'
 import ExploreContent from '@/_components/explore/ExploreContent'
+import { SITE_KEYWORDS } from '@/lib/seo/site'
 import { Metadata } from 'next'
 import { Suspense } from 'react'
 
@@ -13,13 +14,23 @@ import { Suspense } from 'react'
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Explore Thriftverse — Browse Stores & Products',
+  title: 'Explore Thrift Stores & Preloved Finds | Thriftverse',
   description:
-    'Discover thrift stores and one-of-a-kind preloved finds across Thriftverse.',
+    'Browse independent thrift stores and one-of-a-kind preloved fashion, vintage clothing, and secondhand finds on Thriftverse. Shop sustainably with secure checkout and tracked shipping.',
+  keywords: [
+    ...SITE_KEYWORDS,
+    // Marketplace-specific intent for the explore route
+    'browse thrift stores',
+    'thrift shop online',
+    'shop preloved nepal',
+  ],
+  alternates: {
+    canonical: 'https://www.thriftverse.shop/explore',
+  },
   openGraph: {
-    title: 'Explore Thriftverse — Browse Stores & Products',
+    title: 'Explore Thrift Stores & Preloved Finds | Thriftverse',
     description:
-      'Discover thrift stores and one-of-a-kind preloved finds across Thriftverse.',
+      'Browse independent thrift stores and one-of-a-kind preloved fashion, vintage clothing, and secondhand finds on Thriftverse.',
     url: 'https://www.thriftverse.shop/explore',
     siteName: 'Thriftverse',
     images: [
@@ -27,16 +38,16 @@ export const metadata: Metadata = {
         url: 'https://www.thriftverse.shop/images/cover-image.png',
         width: 1200,
         height: 630,
-        alt: 'Thriftverse',
+        alt: 'Thriftverse — explore thrift stores and preloved finds',
       },
     ],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Explore Thriftverse — Browse Stores & Products',
+    title: 'Explore Thrift Stores & Preloved Finds | Thriftverse',
     description:
-      'Discover thrift stores and one-of-a-kind preloved finds across Thriftverse.',
+      'Browse independent thrift stores and one-of-a-kind preloved finds on Thriftverse.',
     images: ['https://www.thriftverse.shop/images/cover-image.png'],
   },
 }

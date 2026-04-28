@@ -4,9 +4,16 @@ import ImageGallery from '@/_components/ImageGallery'
 import ProductCard from '@/_components/ProductCard'
 import ExpandableDescription from '@/_components/ExpandableDescription'
 import CartButton from '@/_components/cart/CartButton'
+import JsonLd from '@/_components/seo/JsonLd'
 import SectionDivider from '@/_components/store/SectionDivider'
 import StoreMinimalFooter from '@/_components/store/StoreMinimalFooter'
+import {
+  buildBreadcrumbSchema,
+  buildProductSchema,
+} from '@/lib/seo/schemas'
+import { SITE_URL } from '@/lib/seo/site'
 import { formatProductPrice, getCurrencySymbol } from '@/utils/formatPrice'
+import { getStorefrontUrl } from '@/utils/domainHelpers'
 import BackButton from '@/_components/BackButton'
 import { ArrowUpRight, Compass, Mail, ShieldCheck, Store, Truck } from 'lucide-react'
 import { Metadata } from 'next'
@@ -49,14 +56,22 @@ export async function generateMetadata({
 
   const currency = product.store?.currency || 'NPR'
   const formattedPrice = formatProductPrice(product.price, currency)
-  const title = `${product.title} - ${formattedPrice} | ${product.store?.name || 'Thriftverse'}`
+  const storeName = product.store?.name || 'Thriftverse'
+  const categoryLabel = product.category
+    ? `${product.category} `
+    : ''
+  const title = `${product.title} — ${categoryLabel}Buy ${formattedPrice} | ${storeName} on Thriftverse`
   const description =
     product.description?.slice(0, 160) ||
-    `${product.title} available for ${formattedPrice} at ${product.store?.name || 'Thriftverse'}.`
+    `Shop ${product.title} for ${formattedPrice} at ${storeName} on Thriftverse — preloved ${product.category || 'thrift'} finds with secure checkout and tracked shipping.`
+  const canonicalUrl = `${SITE_URL}/product/${id}`
 
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title,
       description,
@@ -120,8 +135,33 @@ export default async function ProductPage({ params }: ProductPageProps) {
     ''
   )
 
+  const productUrl = `${SITE_URL}/product/${id}`
+  const storeUrl = product.store?.store_username
+    ? getStorefrontUrl(product.store.store_username)
+    : undefined
+
+  const breadcrumbItems = [
+    { name: 'Explore', url: `${SITE_URL}/explore` },
+    ...(product.store?.name && storeUrl
+      ? [{ name: product.store.name, url: storeUrl }]
+      : []),
+    { name: product.title, url: productUrl },
+  ]
+
   return (
     <div className="min-h-screen bg-background">
+      <JsonLd
+        data={[
+          buildProductSchema(product, {
+            productUrl,
+            storeUrl,
+            images: allImages,
+            isOutOfStock,
+            currency,
+          }),
+          buildBreadcrumbSchema(breadcrumbItems),
+        ]}
+      />
       {/* Top navigation bar: back action + Thriftverse brand */}
       <div className="border-border/60 bg-surface border-b">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4 lg:px-8">

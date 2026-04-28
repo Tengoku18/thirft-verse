@@ -1,3 +1,4 @@
+import JsonLd from '@/_components/seo/JsonLd';
 import SectionDivider from '@/_components/store/SectionDivider';
 import StoreFooterExplore from '@/_components/store/StoreFooterExplore';
 import StoreHero from '@/_components/store/StoreHero';
@@ -5,7 +6,8 @@ import StoreProductsBrowser from '@/_components/store/StoreProductsBrowser';
 import StoreTrustStrip from '@/_components/store/StoreTrustStrip';
 import UserNotFound from '@/_components/UserNotFound';
 import { getProductsByStoreId, getProfileByStoreUsername } from '@/actions';
-import { getSubDomain } from '@/utils/domainHelpers';
+import { buildStoreSchema } from '@/lib/seo/schemas';
+import { getStorefrontUrl, getSubDomain } from '@/utils/domainHelpers';
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -47,15 +49,18 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   }
 
-  const storeUrl = `https://${subdomain}.thriftverse.shop`;
-  const title = `${profile.name} | Thriftverse`;
+  const storeUrl = getStorefrontUrl(profile.store_username);
+  const title = `${profile.name} — Thrift Store & Preloved Finds | Thriftverse`;
   const description =
     profile.bio ||
-    `Shop unique thrift finds at ${profile.name}'s store on Thriftverse.`;
+    `Shop ${profile.name}'s curated thrift finds and preloved fashion on Thriftverse — independent seller, secure checkout, tracked shipping.`;
 
   return {
     title,
     description,
+    alternates: {
+      canonical: storeUrl,
+    },
     openGraph: {
       title,
       description,
@@ -124,6 +129,7 @@ export default async function Home() {
   // Profile found - Display profile
   return (
     <div className="bg-background min-h-screen">
+      <JsonLd data={buildStoreSchema(profile)} />
       <StoreHero profile={profile} productCount={count ?? 0} />
       <SectionDivider />
       <StoreProductsBrowser products={products} currency={profile.currency} />
