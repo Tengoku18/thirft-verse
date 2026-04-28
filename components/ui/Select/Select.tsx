@@ -9,6 +9,7 @@ import {
   FlatList,
   ListRenderItem,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   TextInput,
@@ -145,7 +146,7 @@ export function Select({
         disabled={isDisabled}
         className={
           containerClassName ||
-          `flex-row items-center rounded-3xl px-4 py-5 bg-white border ${
+          `flex-row items-center rounded-3xl px-4 ${Platform.OS === "ios" ? "py-4" : ""} bg-white border ${
             isDisabled ? "opacity-50" : ""
           }`
         }
@@ -162,7 +163,7 @@ export function Select({
               color: selectedOption
                 ? INPUT_COLORS.text
                 : INPUT_COLORS.placeholder,
-              fontSize: 15,
+              fontSize: Platform.OS === "ios" ? 20 : 16,
             }}
             className="font-sans-regular text-input-text"
             value={selectedOption?.label || ""}

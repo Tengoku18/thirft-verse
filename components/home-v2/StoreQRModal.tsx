@@ -13,7 +13,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import ViewShot, { captureRef } from "react-native-view-shot";
 import { StoreQRCode } from "./StoreQRCode";
@@ -61,6 +64,7 @@ export const StoreQRModal: React.FC<StoreQRModalProps> = ({
 }) => {
   const toast = useToast();
   const qrRef = useRef<ViewShot>(null);
+  const insets = useSafeAreaInsets();
   const [sharing, setSharing] = useState(false);
   const [copying, setCopying] = useState(false);
 
@@ -101,7 +105,7 @@ export const StoreQRModal: React.FC<StoreQRModalProps> = ({
 
       await Sharing.shareAsync(uri, {
         mimeType: "image/png",
-        dialogTitle: `${storeName} — ThriftVerse store`,
+        dialogTitle: `${storeName} — Thriftverse store`,
         UTI: "public.png",
       });
     } catch (error) {
@@ -130,21 +134,29 @@ export const StoreQRModal: React.FC<StoreQRModalProps> = ({
         style={{ backgroundColor: "rgba(0,0,0,0.72)" }}
         onPress={onClose}
       >
-        <SafeAreaView className="flex-1" edges={["top", "bottom"]}>
-          {/* Top bar with close */}
-          <View className="flex-row justify-end px-5 pt-2">
-            <TouchableOpacity
-              onPress={onClose}
-              activeOpacity={0.8}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              accessibilityLabel="Close QR code"
-              className="w-10 h-10 rounded-full items-center justify-center"
-              style={{ backgroundColor: "#FFFFFF" }}
-            >
-              <CloseIcon />
-            </TouchableOpacity>
-          </View>
+        {/* Top bar with close */}
+        <View
+          style={{
+            paddingTop: Math.max(insets.top),
+            paddingRight: 16,
+          }}
+          className="flex-row justify-end px-5 pt-2"
+        >
+          <TouchableOpacity
+            onPress={onClose}
+            activeOpacity={0.8}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityLabel="Close QR code"
+            className="w-10 h-10 rounded-full items-center justify-center"
+            style={{
+              backgroundColor: "#FFFFFF",
+            }}
+          >
+            <CloseIcon />
+          </TouchableOpacity>
+        </View>
 
+        <SafeAreaView className="flex-1" edges={["top", "bottom"]}>
           <View className="flex-1 items-center justify-center px-6">
             {/* Stop propagation so taps on the card don't dismiss */}
             <Pressable onPress={(e) => e.stopPropagation()}>

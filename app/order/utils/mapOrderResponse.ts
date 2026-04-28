@@ -36,17 +36,27 @@ export function mapOrderResponse(o: any, orderItems: any[]): OrderDetail {
       quantity: item.quantity,
     }));
   } else if (isMultiProduct) {
-    product = { id: "", title: `Order with ${o.quantity || 1} items`, image: null, price: productPrice, category: "Product" };
+    const customTitle = o.shipping_address?.custom_item_title;
+    product = { id: "", title: customTitle || `Order with ${o.quantity || 1} items`, image: null, price: productPrice, category: customTitle ? "Custom Order" : "Product" };
   } else {
+    const firstName = orderItems[0]?.product_name;
     product = {
       id: o.product_id || "",
-      title: o.product?.title || orderItems[0]?.product_name || "Order Item",
+      title: orderItems.length > 1
+        ? `${firstName} + ${orderItems.length - 1} more`
+        : (o.product?.title || firstName || "Order Item"),
       image: o.product?.cover_image || orderItems[0]?.cover_image || null,
       price: productPrice,
       category: o.product?.category || "Product",
     };
-    if (orderItems.length === 1) {
-      items = [{ id: orderItems[0].product_id, title: orderItems[0].product_name, image: orderItems[0].cover_image || null, price: orderItems[0].price * orderItems[0].quantity, quantity: orderItems[0].quantity }];
+    if (orderItems.length > 0) {
+      items = orderItems.map((item: any) => ({
+        id: item.product_id,
+        title: item.product_name,
+        image: item.cover_image || null,
+        price: item.price * item.quantity,
+        quantity: item.quantity,
+      }));
     }
   }
 

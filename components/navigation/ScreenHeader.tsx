@@ -38,7 +38,7 @@ export function ScreenHeader({
     <SafeAreaView edges={["top"]} style={{ backgroundColor }}>
       <StatusBar barStyle="dark-content" backgroundColor={backgroundColor} />
       <View
-        className="px-6 py-4 border-b border-[#F3F4F6]"
+        className="px-4 py-2 border-b border-[#F3F4F6]"
         style={{ backgroundColor }}
       >
         <View className="flex-row items-center justify-between">
@@ -46,9 +46,9 @@ export function ScreenHeader({
           {showBackButton ? (
             <TouchableOpacity
               onPress={handleBack}
-              className="w-10 h-10 justify-center items-center"
+              className="justify-center items-center "
               activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              hitSlop={{ top: 8, bottom: 8, left: 0, right: 8 }}
             >
               <BackIcon color={"#3B3030"} />
             </TouchableOpacity>

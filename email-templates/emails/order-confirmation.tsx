@@ -11,8 +11,8 @@ import {
   Row,
   Section,
   Text,
-} from '@react-email/components';
-import * as React from 'react';
+} from "@react-email/components";
+import * as React from "react";
 
 interface OrderConfirmationEmailProps {
   customerName?: string;
@@ -23,28 +23,29 @@ interface OrderConfirmationEmailProps {
 }
 
 export const OrderConfirmationEmail = ({
-  customerName = 'Customer',
-  orderId = '#12345',
+  customerName = "Customer",
+  orderId = "#12345",
   orderDate = new Date().toLocaleDateString(),
-  storeName = 'ThriftVerse Store',
-  total = 45.00,
+  storeName = "Thriftverse Store",
+  total = 45.0,
 }: OrderConfirmationEmailProps) => (
   <Html>
     <Head />
-    <Preview>Your ThriftVerse order {orderId} has been confirmed</Preview>
+    <Preview>Your Thriftverse order {orderId} has been confirmed</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={logoContainer}>
           <Img
             src="https://www.thriftverse.shop/images/vertical-logo.png"
-            alt="ThriftVerse Logo"
+            alt="Thriftverse Logo"
             style={logo}
           />
         </Section>
         <Heading style={h1}>Order Confirmed!</Heading>
         <Text style={text}>Hi {customerName},</Text>
         <Text style={text}>
-          Thank you for your purchase from <strong>{storeName}</strong>! We've received your payment and your order is confirmed.
+          Thank you for your purchase from <strong>{storeName}</strong>! We've
+          received your payment and your order is confirmed.
         </Text>
 
         <Section style={orderInfoContainer}>
@@ -58,7 +59,7 @@ export const OrderConfirmationEmail = ({
               <Text style={orderInfoValue}>{orderDate}</Text>
             </Column>
           </Row>
-          <Row style={{ marginTop: '16px' }}>
+          <Row style={{ marginTop: "16px" }}>
             <Column>
               <Text style={orderInfoLabel}>Store</Text>
               <Text style={orderInfoValue}>{storeName}</Text>
@@ -71,7 +72,9 @@ export const OrderConfirmationEmail = ({
         </Section>
 
         <Text style={text}>
-          The seller will prepare your items for shipment. You'll receive another email with tracking information once your order has been shipped.
+          The seller will prepare your items for shipment. You'll receive
+          another email with tracking information once your order has been
+          shipped.
         </Text>
 
         <Section style={buttonContainer}>
@@ -81,10 +84,11 @@ export const OrderConfirmationEmail = ({
         </Section>
 
         <Text style={footer}>
-          You can view your order details and track your shipment anytime by visiting your orders page.
+          You can view your order details and track your shipment anytime by
+          visiting your orders page.
           <br />
           <br />
-          If you have any questions, please contact us at{' '}
+          If you have any questions, please contact us at{" "}
           <Link href="https://www.thriftverse.shop/contact" style={footerLink}>
             www.thriftverse.shop/contact
           </Link>
@@ -92,7 +96,7 @@ export const OrderConfirmationEmail = ({
           <br />
           Happy thrifting!
           <br />
-          The ThriftVerse Team
+          The Thriftverse Team
         </Text>
       </Container>
     </Body>
@@ -102,105 +106,105 @@ export const OrderConfirmationEmail = ({
 export default OrderConfirmationEmail;
 
 const main = {
-  backgroundColor: '#f9fafb',
+  backgroundColor: "#f9fafb",
   fontFamily:
     '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
 };
 
 const container = {
-  backgroundColor: '#ffffff',
-  margin: '0 auto',
-  padding: '0',
-  marginBottom: '40px',
-  maxWidth: '600px',
-  borderRadius: '16px',
-  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-  overflow: 'hidden',
+  backgroundColor: "#ffffff",
+  margin: "0 auto",
+  padding: "0",
+  marginBottom: "40px",
+  maxWidth: "600px",
+  borderRadius: "16px",
+  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.05)",
+  overflow: "hidden",
 };
 
 const logoContainer = {
-  textAlign: 'center' as const,
-  padding: '48px 0 24px',
-  backgroundColor: '#ffffff',
+  textAlign: "center" as const,
+  padding: "48px 0 24px",
+  backgroundColor: "#ffffff",
 };
 
 const logo = {
-  width: '100px',
-  height: '100px',
-  margin: '0 auto',
+  width: "100px",
+  height: "100px",
+  margin: "0 auto",
 };
 
 const h1 = {
-  color: '#1f2937',
-  fontSize: '28px',
-  fontWeight: 'bold',
-  margin: '30px 0 20px',
-  padding: '0 48px',
-  textAlign: 'center' as const,
+  color: "#1f2937",
+  fontSize: "28px",
+  fontWeight: "bold",
+  margin: "30px 0 20px",
+  padding: "0 48px",
+  textAlign: "center" as const,
 };
 
 const text = {
-  color: '#4b5563',
-  fontSize: '16px',
-  lineHeight: '26px',
-  padding: '0 48px',
-  marginBottom: '16px',
+  color: "#4b5563",
+  fontSize: "16px",
+  lineHeight: "26px",
+  padding: "0 48px",
+  marginBottom: "16px",
 };
 
 const orderInfoContainer = {
-  padding: '24px',
-  backgroundColor: '#f3f4f6',
-  margin: '24px auto',
-  borderRadius: '12px',
-  border: '1px solid #e5e7eb',
-  maxWidth: '500px',
+  padding: "24px",
+  backgroundColor: "#f3f4f6",
+  margin: "24px auto",
+  borderRadius: "12px",
+  border: "1px solid #e5e7eb",
+  maxWidth: "500px",
 };
 
 const orderInfoLabel = {
-  color: '#6b7280',
-  fontSize: '13px',
-  fontWeight: '500' as const,
-  margin: '0 0 6px',
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.5px',
+  color: "#6b7280",
+  fontSize: "13px",
+  fontWeight: "500" as const,
+  margin: "0 0 6px",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.5px",
 };
 
 const orderInfoValue = {
-  color: '#111827',
-  fontSize: '16px',
-  fontWeight: '600' as const,
-  margin: '0',
+  color: "#111827",
+  fontSize: "16px",
+  fontWeight: "600" as const,
+  margin: "0",
 };
 
 const buttonContainer = {
-  padding: '32px 48px',
-  textAlign: 'center' as const,
+  padding: "32px 48px",
+  textAlign: "center" as const,
 };
 
 const button = {
-  backgroundColor: '#10b981',
-  borderRadius: '10px',
-  color: '#ffffff',
-  fontSize: '16px',
-  fontWeight: '600' as const,
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'inline-block',
-  padding: '14px 32px',
-  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
+  backgroundColor: "#10b981",
+  borderRadius: "10px",
+  color: "#ffffff",
+  fontSize: "16px",
+  fontWeight: "600" as const,
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "inline-block",
+  padding: "14px 32px",
+  boxShadow: "0 2px 8px rgba(16, 185, 129, 0.25)",
 };
 
 const footer = {
-  color: '#6b7280',
-  fontSize: '14px',
-  lineHeight: '22px',
-  padding: '24px 48px',
-  textAlign: 'center' as const,
-  borderTop: '1px solid #e5e7eb',
-  marginTop: '24px',
+  color: "#6b7280",
+  fontSize: "14px",
+  lineHeight: "22px",
+  padding: "24px 48px",
+  textAlign: "center" as const,
+  borderTop: "1px solid #e5e7eb",
+  marginTop: "24px",
 };
 
 const footerLink = {
-  color: '#10b981',
-  textDecoration: 'none',
+  color: "#10b981",
+  textDecoration: "none",
 };

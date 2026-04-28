@@ -22,9 +22,9 @@ export default function TermsScreen() {
           {/* Header */}
           <View className="mb-6">
             <Typography variation="body" className="leading-6 text-slate-600">
-              Welcome to ThriftVerse. These Terms and Conditions govern your use
+              Welcome to Thriftverse. These Terms and Conditions govern your use
               of our mobile application and services. By accessing or using
-              ThriftVerse, you accept and agree to be bound by these terms.
+              Thriftverse, you accept and agree to be bound by these terms.
             </Typography>
           </View>
 

@@ -189,7 +189,7 @@ export default function SettingsScreen() {
           variation="caption"
           className="text-ui-secondary/50 font-sans-bold uppercase tracking-widest"
         >
-          ThriftVerse | Archive Edition
+          Thriftverse | Archive Edition
         </Typography>
         <Typography variation="body-xs" className="text-ui-secondary/40">
           Version 1.0.3 | Build 22
@@ -207,7 +207,7 @@ export default function SettingsScreen() {
           />
         }
         title="Sign Out?"
-        description="Are you sure you want to sign out of ThriftVerse? You'll need to log back in to access your saved items. You can always log back in later."
+        description="Are you sure you want to sign out of Thriftverse? You'll need to log back in to access your saved items. You can always log back in later."
         primaryLabel={authLoading ? "Signing out…" : "Sign Out"}
         secondaryLabel="Stay Logged In"
         onPrimary={handleSignOut}

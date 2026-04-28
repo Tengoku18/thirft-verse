@@ -1,5 +1,7 @@
 import { RefreshScrollView } from "@/components/atoms/RefreshScrollView";
 import {
+  HomeBrowseSection,
+  HomeExploreSearchBar,
   HomeGreetingHeader,
   HomeRecentOrders,
   RevenueOverview,
@@ -191,6 +193,8 @@ export default function HomeScreen() {
           unreadCount={unreadCount}
         />
 
+        <HomeExploreSearchBar />
+
         {profile?.store_username && (
           <StorefrontCard
             storeUsername={profile.store_username}
@@ -212,6 +216,8 @@ export default function HomeScreen() {
         />
 
         <HomeRecentOrders orders={recentOrders} />
+
+        <HomeBrowseSection />
       </RefreshScrollView>
     </SafeAreaView>
   );

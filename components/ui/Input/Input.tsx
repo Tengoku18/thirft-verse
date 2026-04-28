@@ -55,15 +55,16 @@ export function Input({
     const verticalPadding = Platform.OS === "ios" ? "py-4" : "";
     const baseClasses = `flex-row items-center rounded-3xl px-4 bg-white ${verticalPadding}`;
 
-    switch (variant) {
-      case "disabled":
-        return (
-          baseClasses +
-          " border border-ui-border-light bg-brand-off-white opacity-50 "
-        );
-      default:
-        return baseClasses + " border";
+    if (variant === "disabled") {
+      return (
+        baseClasses +
+        " border border-ui-border-light bg-brand-off-white opacity-50 "
+      );
     }
+    if (errorMessage) {
+      return baseClasses + " border border-status-error";
+    }
+    return baseClasses + " border";
   };
 
   const EyeToggleIcon = (): React.ReactElement => (

@@ -1,0 +1,1 @@
+export { NCMSuccessModal } from "./NCMSuccessModal";

@@ -10,7 +10,10 @@ interface StatItemProps {
 function StatItem({ value, label }: StatItemProps) {
   return (
     <View className="flex-1 items-center justify-center py-3.5 bg-brand-surface rounded-2xl shadow-sm border border-primary/5">
-      <Typography variation="h4" className="text-brand-espresso font-folito-bold">
+      <Typography
+        variation="h4"
+        className="text-brand-espresso font-folito-bold"
+      >
         {value}
       </Typography>
       <Typography
@@ -41,7 +44,6 @@ export function StoreStats({
   return (
     <View className="flex-row px-5 gap-2.5 mb-1">
       <StatItem value={productCount} label="Products" />
-      <StatItem value={fmt(followerCount)} label="Followers" />
       <StatItem value={fmt(salesCount)} label="Sales" />
     </View>
   );

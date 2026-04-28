@@ -153,7 +153,10 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
   }, [ncmOrderId]);
 
   useEffect(() => {
-    fetchStatusHistory();
+    // Small delay on initial load so we don't race with any background sync
+    // that fires right after NCM order creation (avoids 429 rate limit).
+    const timer = setTimeout(fetchStatusHistory, 1500);
+    return () => clearTimeout(timer);
   }, [fetchStatusHistory]);
 
   useEffect(() => {
@@ -241,7 +244,7 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
             {/* Thriftverse NCM ID (fixed) */}
             <TouchableOpacity
               onPress={async () => {
-                await Clipboard.setStringAsync("35788");
+                await Clipboard.setStringAsync("37588");
                 Alert.alert("Copied!", "NCM ID copied to clipboard");
               }}
               className="flex-1 rounded-xl px-3 py-2.5"
@@ -261,7 +264,7 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
                 <BodyBoldText
                   style={{ fontSize: 22, color: NCM.white, letterSpacing: 0.5 }}
                 >
-                  #35788
+                  #37588
                 </BodyBoldText>
                 <View
                   className="ml-2 px-1.5 py-1 rounded"

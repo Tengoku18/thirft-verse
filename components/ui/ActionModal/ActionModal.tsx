@@ -30,7 +30,7 @@ interface ActionModalProps {
  *   visible={showModal}
  *   icon={<LogoutIcon width={24} height={24} />}
  *   title="Sign Out?"
- *   description="Are you sure you want to sign out of ThriftVerse?"
+ *   description="Are you sure you want to sign out of Thriftverse?"
  *   primaryLabel="Sign Out"
  *   secondaryLabel="Stay Logged In"
  *   onPrimary={handleSignOut}

@@ -46,7 +46,9 @@ async function testFetchBranches() {
     console.log("✅ Success! Found", response.data.length, "branches");
     console.log("📋 First 3 branches:");
     response.data.slice(0, 3).forEach((branch: any) => {
-      console.log(`   - ${branch.name} (${branch.code}) - ${branch.district_name || "N/A"}`);
+      console.log(
+        `   - ${branch.name} (${branch.code}) - ${branch.district_name || "N/A"}`,
+      );
     });
     return true;
   } catch (error: any) {
@@ -108,7 +110,9 @@ async function testGetOrderComments(orderId: number) {
 
     console.log("✅ Success! Found", response.data.length, "comments:");
     response.data.slice(0, 3).forEach((comment: any) => {
-      console.log(`   - [${comment.addedBy}]: ${comment.comments.slice(0, 50)}...`);
+      console.log(
+        `   - [${comment.addedBy}]: ${comment.comments.slice(0, 50)}...`,
+      );
     });
     return true;
   } catch (error: any) {
@@ -186,8 +190,12 @@ async function runTests() {
     console.log("\n💡 Tips:");
     console.log("   - Make sure EXPO_PUBLIC_NCM_API_TOKEN is correct in .env");
     console.log("   - The test order ID (134) may not exist for your vendor");
-    console.log("   - Log into https://demo.nepalcanmove.com to check your orders");
-    console.log("   - Create a test order first using the 'Move to NCM' flow in your app");
+    console.log(
+      "   - Log into https://demo.nepalcanmove.com to check your orders",
+    );
+    console.log(
+      "   - Create a test order first using the 'Move to NCM' flow in your app",
+    );
   }
 }
 

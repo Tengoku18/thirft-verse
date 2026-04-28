@@ -1,4 +1,4 @@
-# ThriftVerse Link Component - Implementation Summary
+# Thriftverse Link Component - Implementation Summary
 
 ## 📦 Files Created
 

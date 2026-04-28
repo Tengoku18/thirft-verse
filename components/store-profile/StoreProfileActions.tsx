@@ -4,36 +4,16 @@ import React from "react";
 import { View } from "react-native";
 
 interface StoreProfileActionsProps {
-  onFollow?: () => void;
+  onEditProfile?: () => void;
   onShare?: () => void;
-  isFollowing?: boolean;
 }
 
 export function StoreProfileActions({
-  onFollow,
+  onEditProfile,
   onShare,
-  isFollowing,
 }: StoreProfileActionsProps) {
   return (
     <View className="flex-row px-5 py-5 gap-3">
-      <View className="flex-1">
-        <Button
-          label={isFollowing ? "Following" : "Follow"}
-          variant={isFollowing ? "secondary" : "primary"}
-          size="compact"
-          fullWidth
-          onPress={onFollow}
-          icon={
-            <IconSymbol
-              name="person.badge.plus"
-              size={18}
-              color={isFollowing ? "#3B3030" : "#FFFFFF"}
-            />
-          }
-          noShadow
-          iconPosition="left"
-        />
-      </View>
       <View className="flex-1">
         <Button
           label="Share Store"
@@ -44,6 +24,18 @@ export function StoreProfileActions({
           icon={
             <IconSymbol name="square.and.arrow.up" size={18} color="#fff" />
           }
+          iconPosition="left"
+          noShadow
+        />
+      </View>
+      <View className="flex-1">
+        <Button
+          label="Edit Profile"
+          variant="secondary"
+          size="compact"
+          fullWidth
+          onPress={onEditProfile}
+          icon={<IconSymbol name="pencil" size={18} color="#3B3030" />}
           iconPosition="left"
           noShadow
         />

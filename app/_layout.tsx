@@ -25,7 +25,7 @@ import { ForceUpdateModal } from "@/components/modals/ForceUpdateModal";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useVersionCheck } from "@/hooks/useVersionCheck";
+import { useAppUpdate } from "@/hooks/useAppUpdate";
 import {
   addNotificationReceivedListener,
   addNotificationResponseReceivedListener,
@@ -70,7 +70,25 @@ function handleNotificationNavigation(data: Record<string, string>) {
 
 export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
-  const { needsUpdate } = useVersionCheck();
+
+  const [fontsLoaded] = useFonts({
+    Folito_300Light: require("../assets/fonts/Folito-Light.ttf"),
+    Folito_400Regular: require("../assets/fonts/Folito-Regular.ttf"),
+    Folito_500Medium: require("../assets/fonts/Folito-Medium.ttf"),
+    Folito_600SemiBold: require("../assets/fonts/Folito-Bold.ttf"),
+    Folito_700Bold: require("../assets/fonts/Folito-Bold.ttf"),
+    Folito_800ExtraBold: require("../assets/fonts/Folito-Black.ttf"),
+    Folito_900Black: require("../assets/fonts/Folito-Black.ttf"),
+    NunitoSans_200ExtraLight,
+    NunitoSans_300Light,
+    NunitoSans_400Regular,
+    NunitoSans_500Medium,
+    NunitoSans_600SemiBold,
+    NunitoSans_700Bold,
+    NunitoSans_800ExtraBold,
+    NunitoSans_900Black,
+  });
+
   // Initialize push notifications on app launch (request permission + get token)
   useEffect(() => {
     initializePushNotifications();
@@ -106,7 +124,7 @@ export default Sentry.wrap(function RootLayout() {
     };
   }, []);
 
-  // Check for OTA updates on app launch (production only)
+  // Check for OTA updates on app launch (production only).
   useEffect(() => {
     if (__DEV__) return;
 
@@ -125,24 +143,10 @@ export default Sentry.wrap(function RootLayout() {
     checkForUpdates();
   }, []);
 
-  const [fontsLoaded] = useFonts({
-    // Folito fonts for headings (loaded from local assets)
-    Folito_300Light: require("../assets/fonts/Folito-Light.ttf"),
-    Folito_400Regular: require("../assets/fonts/Folito-Regular.ttf"),
-    Folito_500Medium: require("../assets/fonts/Folito-Medium.ttf"),
-    Folito_600SemiBold: require("../assets/fonts/Folito-Bold.ttf"), // Using Bold as SemiBold
-    Folito_700Bold: require("../assets/fonts/Folito-Bold.ttf"),
-    Folito_800ExtraBold: require("../assets/fonts/Folito-Black.ttf"), // Using Black as ExtraBold
-    Folito_900Black: require("../assets/fonts/Folito-Black.ttf"),
-    // Nunito Sans fonts for body text
-    NunitoSans_200ExtraLight,
-    NunitoSans_300Light,
-    NunitoSans_400Regular,
-    NunitoSans_500Medium,
-    NunitoSans_600SemiBold,
-    NunitoSans_700Bold,
-    NunitoSans_800ExtraBold,
-    NunitoSans_900Black,
+  // Start version check once fonts are ready so the modal can render if needed
+  const appUpdate = useAppUpdate(fontsLoaded);
+  console.log({
+    appUpdate,
   });
 
   if (!fontsLoaded) {
@@ -151,7 +155,6 @@ export default Sentry.wrap(function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ForceUpdateModal visible={needsUpdate} />
       <Provider store={store}>
         <AuthProvider>
           <ToastProvider>
@@ -159,7 +162,11 @@ export default Sentry.wrap(function RootLayout() {
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
               <StatusBar style="dark" />
-              <Stack>
+              <Stack
+                screenOptions={{
+                  contentStyle: { backgroundColor: "#C08B7B" },
+                }}
+              >
                 <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -218,6 +225,12 @@ export default Sentry.wrap(function RootLayout() {
                   options={{ headerShown: false }}
                 />
               </Stack>
+              <ForceUpdateModal
+                visible={appUpdate.isVisible}
+                currentVersion={appUpdate.currentVersion}
+                latestVersion={appUpdate.latestVersion}
+                onUpdate={appUpdate.openStore}
+              />
             </ThemeProvider>
           </ToastProvider>
         </AuthProvider>

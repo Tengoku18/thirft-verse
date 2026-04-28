@@ -1,6 +1,6 @@
-# ThriftVerse Email Templates
+# Thriftverse Email Templates
 
-This directory contains email templates for ThriftVerse using [React Email](https://react.email/).
+This directory contains email templates for Thriftverse using [React Email](https://react.email/).
 
 ## Getting Started
 
@@ -153,14 +153,14 @@ const emailHtml = render(<WelcomeEmail username="John Doe" />);
 // Send with your email service
 await sendEmail({
   to: "user@example.com",
-  subject: "Welcome to ThriftVerse",
+  subject: "Welcome to Thriftverse",
   html: emailHtml,
 });
 ```
 
 ## Styling
 
-Templates use inline styles for maximum email client compatibility. The color scheme matches ThriftVerse's brand:
+Templates use inline styles for maximum email client compatibility. The color scheme matches Thriftverse's brand:
 
 - Primary: `#4F46E5` (Indigo)
 - Success: `#10b981` (Green)

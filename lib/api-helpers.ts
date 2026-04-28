@@ -4,14 +4,14 @@ import { PaginatedResponse, ProductWithStore, Profile } from './types/database';
 /**
  * Get all available products with store information
  */
-export const getAllAvailableProducts = async (): Promise<PaginatedResponse<ProductWithStore>> => {
+export const getAllAvailableProducts = async (limit = 20, offset = 0): Promise<PaginatedResponse<ProductWithStore>> => {
   try {
-    // Fetch all available products
     const { data: products, error, count } = await supabase
       .from('products')
       .select('*', { count: 'exact' })
       .eq('status', 'available')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (error) {
       if (error.code === 'PGRST205') {
@@ -59,13 +59,14 @@ export const getAllAvailableProducts = async (): Promise<PaginatedResponse<Produ
 /**
  * Get all stores (profiles with role 'USER')
  */
-export const getAllStores = async (): Promise<PaginatedResponse<Profile>> => {
+export const getAllStores = async (limit = 15, offset = 0): Promise<PaginatedResponse<Profile>> => {
   try {
     const { data: stores, error, count } = await supabase
       .from('profiles')
       .select('*', { count: 'exact' })
       .eq('role', 'USER')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (error) {
       if (error.code === 'PGRST205') {

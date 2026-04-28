@@ -57,27 +57,30 @@ export function BlurModal({
             ]}
             onPress={onDismiss}
           />
+          {/* Close button positioned outside SafeAreaView */}
+          {showCloseButton && (
+            <View
+              className="absolute top-0 right-0 z-50"
+              style={{
+                paddingTop: Math.max(insets.top, 8),
+                paddingRight: 16,
+              }}
+              pointerEvents="box-none"
+            >
+              <TouchableOpacity
+                onPress={onDismiss}
+                activeOpacity={0.8}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityLabel="Close modal"
+                className="w-10 h-10 rounded-full items-center justify-center"
+                style={{ backgroundColor: "#FFFFFF" }}
+              >
+                <XIcon width={20} height={20} />
+              </TouchableOpacity>
+            </View>
+          )}
 
           <SafeAreaView className="flex-1" edges={["left", "right"]}>
-            {/* Top bar with close button */}
-            <View
-              className="flex-row justify-end px-5 pt-2"
-              style={{ paddingTop: Math.max(insets.top, 8) }}
-            >
-              {showCloseButton && (
-                <TouchableOpacity
-                  onPress={onDismiss}
-                  activeOpacity={0.8}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                  accessibilityLabel="Close modal"
-                  className="w-10 h-10 rounded-full items-center justify-center"
-                  style={{ backgroundColor: "#FFFFFF" }}
-                >
-                  <XIcon width={20} height={20} />
-                </TouchableOpacity>
-              )}
-            </View>
-
             {/* Content area */}
             <Pressable
               className="flex-1 items-center justify-center px-6"

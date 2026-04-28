@@ -2,17 +2,16 @@ import { EditOrderModal } from "@/components/modals/EditOrderModal";
 import { NCMOrderModal } from "@/components/modals/NCMOrderModal";
 import { SellerGuideModal } from "@/components/modals/SellerGuideModal";
 import { ShippingConfirmModal } from "@/components/modals/ShippingConfirmModal";
-import { SuccessModal } from "@/components/molecules/SuccessModal";
 import { OrderBottomActions } from "@/components/order-detail";
-import { NCMSuccessContent } from "@/components/order-detail/NCMSuccessContent";
 import { OrderDetailBody } from "@/components/order-detail/OrderDetailBody";
 import {
   OrderDetailError,
   OrderDetailLoading,
 } from "@/components/order-detail/OrderDetailFallback";
 import { OrderDetailHeader } from "@/components/order-detail/OrderDetailHeader";
+import { NCMSuccessModal } from "@/components/ui/NCMSuccessModal";
 import { useAuth } from "@/contexts/AuthContext";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React from "react";
 import { View } from "react-native";
 import { useOrderActions } from "./hooks/useOrderActions";
@@ -40,8 +39,6 @@ export default function SingleOrderScreen() {
 
   return (
     <View className="flex-1 bg-[#FAF7F2]">
-      <Stack.Screen options={{ headerShown: false }} />
-
       {/* Header always visible regardless of loading / error state */}
       <OrderDetailHeader
         orderCode={order?.orderCode ?? ""}
@@ -97,7 +94,10 @@ export default function SingleOrderScreen() {
           {order.type === "order" && (
             <NCMOrderModal
               visible={actions.showNCMModal}
-              onClose={() => actions.setShowNCMModal(false)}
+              onClose={() => {
+                actions.setShippingId("");
+                actions.setShowNCMModal(false);
+              }}
               onSuccess={actions.handleNCMOrderSuccess}
               orderData={{
                 orderId: order.id,
@@ -141,28 +141,18 @@ export default function SingleOrderScreen() {
             />
           )}
 
-          <SuccessModal
+          <NCMSuccessModal
             visible={actions.showSuccessModal}
-            title="Sent to NCM!"
-            onClose={() => actions.setShowSuccessModal(false)}
-            actions={[
-              {
-                label: "View Orders",
-                variant: "primary",
-                onPress: () => {
-                  actions.setShowSuccessModal(false);
-                  router.replace("/orders?filter=processing");
-                },
-              },
-              {
-                label: "Stay Here",
-                variant: "text",
-                onPress: () => actions.setShowSuccessModal(false),
-              },
-            ]}
-          >
-            <NCMSuccessContent ncmOrderId={actions.ncmOrderId} />
-          </SuccessModal>
+            ncmOrderId={actions.ncmOrderId}
+            onDone={() => {
+              actions.setShowSuccessModal(false);
+              router.replace("/(tabs)/orders?filter=processing");
+            }}
+            onClose={() => {
+              actions.setShowSuccessModal(false);
+              loadOrder();
+            }}
+          />
         </>
       )}
     </View>
