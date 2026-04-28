@@ -16,7 +16,11 @@ ALTER COLUMN product_id DROP NOT NULL;
 -- Add comment to explain the change
 COMMENT ON COLUMN payment_metadata.product_id IS 'Product ID for single-product orders. NULL for multi-product orders (use cart_items instead).';
 
--- Add a check to ensure either product_id OR cart_items is set (but not both NULL)
+-- Add a check to ensure either product_id OR cart_items is set (but not both NULL).
+-- Drop first so re-running the migration is safe.
+ALTER TABLE payment_metadata
+DROP CONSTRAINT IF EXISTS payment_metadata_product_or_cart_check;
+
 ALTER TABLE payment_metadata
 ADD CONSTRAINT payment_metadata_product_or_cart_check
 CHECK (

@@ -1,9 +1,12 @@
 import { pipeline, env } from '@xenova/transformers';
 import type { FeatureExtractionPipeline } from '@xenova/transformers';
 
-// Configure transformers to use local cache
-env.allowLocalModels = false;
-env.allowRemoteModels = true;
+// Newer @xenova/transformers types mark these as readonly, but they remain
+// runtime-mutable. Object.assign sidesteps the readonly without changing behavior.
+Object.assign(env, {
+  allowLocalModels: false,
+  allowRemoteModels: true,
+});
 
 // Cache the pipeline instance to avoid reloading model
 let cachedPipeline: FeatureExtractionPipeline | null = null;
@@ -15,10 +18,12 @@ let cachedPipeline: FeatureExtractionPipeline | null = null;
 export async function getEmbeddingPipeline(): Promise<FeatureExtractionPipeline> {
   if (!cachedPipeline) {
     console.log('Loading embedding model...');
-    cachedPipeline = await pipeline(
+    // pipeline() returns the broader Pipeline union; for 'feature-extraction'
+    // it's always a FeatureExtractionPipeline at runtime.
+    cachedPipeline = (await pipeline(
       'feature-extraction',
       'Xenova/all-MiniLM-L6-v2'
-    );
+    )) as unknown as FeatureExtractionPipeline;
     console.log('Embedding model loaded successfully');
   }
   return cachedPipeline;
