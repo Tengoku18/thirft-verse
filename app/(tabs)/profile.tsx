@@ -4,7 +4,6 @@ import {
   StoreProductGrid,
   StoreProfileActions,
   StoreProfileHeader,
-  StoreStats,
   StoreTab,
   StoreTabBar,
 } from "@/components/store-profile";
@@ -56,7 +55,7 @@ export default function ProfileV2Screen() {
   const handleShare = async () => {
     if (!profile?.store_username) return;
     await Share.share({
-      message: `Check out ${profile.name}'s store on ThriftVerse: https://thriftverse.shop/${profile.store_username}`,
+      message: `Check out ${profile.name}'s store on Thriftverse: https://thriftverse.shop/${profile.store_username}`,
     });
   };
 
@@ -79,16 +78,18 @@ export default function ProfileV2Screen() {
         scrollable={false}
         rightComponent={settingsButton}
       >
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
           <ActivityIndicator size="large" color="#3B2F2F" />
         </View>
       </TabScreenLayout>
     );
   }
 
-  const salesCount = (profile?.revenue as any)?.confirmedAmount
-    ? Math.floor((profile?.revenue as any).confirmedAmount / 500)
-    : 0;
+  // const salesCount = (profile?.revenue as any)?.confirmedAmount
+  //   ? Math.floor((profile?.revenue as any).confirmedAmount / 500)
+  //   : 0;
 
   return (
     <TabScreenLayout
@@ -106,19 +107,16 @@ export default function ProfileV2Screen() {
         isFounder={profile?.is_founder}
       />
 
-      <StoreProfileActions onShare={handleShare} />
+      <StoreProfileActions
+        onEditProfile={() => router.push("/settings/edit-profile" as any)}
+        onShare={handleShare}
+      />
 
-      <StoreStats productCount={products.length} salesCount={salesCount} />
+      {/* <StoreStats productCount={products.length} salesCount={salesCount} /> */}
 
       <StoreTabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {activeTab === "items" && <StoreProductGrid products={products} />}
-      {activeTab === "collections" && (
-        <StoreProductGrid products={[]} emptyMessage="No collections yet" />
-      )}
-      {activeTab === "reviews" && (
-        <StoreProductGrid products={[]} emptyMessage="No reviews yet" />
-      )}
+      <StoreProductGrid products={products} />
     </TabScreenLayout>
   );
 }

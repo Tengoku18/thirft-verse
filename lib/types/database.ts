@@ -145,6 +145,7 @@ export interface Product {
   other_images: string[];
   availability_count: number;
   status: ProductStatus;
+  is_verified: boolean;
   created_at: string;
   updated_at: string;
   // AI semantic search fields
@@ -227,6 +228,7 @@ export interface NCMCachedData {
     added_time: string;
   }[];
   last_synced_at: string;
+  delivery_type?: string;
 }
 
 export interface OrderItem {

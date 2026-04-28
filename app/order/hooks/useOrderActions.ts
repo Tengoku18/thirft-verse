@@ -62,10 +62,11 @@ export function useOrderActions(order: OrderDetail | null, loadOrder: () => void
     finally { setUploadingBill(false); }
   };
 
-  const handleNCMOrderSuccess = async (incomingNcmOrderId: number) => {
+  const handleNCMOrderSuccess = async (incomingNcmOrderId: number, deliveryType: string) => {
     if (!order) return;
-    const result = await updateOrderWithNCM(order.id, incomingNcmOrderId);
+    const result = await updateOrderWithNCM(order.id, incomingNcmOrderId, deliveryType);
     if (result.success) {
+      setShowNCMModal(false);
       setNcmOrderId(incomingNcmOrderId);
       setShowSuccessModal(true);
     } else {

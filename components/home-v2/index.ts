@@ -1,3 +1,5 @@
+export { HomeBrowseSection } from "./HomeBrowseSection";
+export { HomeExploreSearchBar } from "./HomeExploreSearchBar";
 export { HomeGreetingHeader } from "./HomeGreetingHeader";
 export { HomeOrderCard } from "./HomeOrderCard";
 export { HomeRecentOrders } from "./HomeRecentOrders";

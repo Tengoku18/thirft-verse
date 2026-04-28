@@ -1,6 +1,6 @@
 # Supabase Database Setup
 
-This directory contains SQL migrations and setup instructions for your ThriftVerse Supabase database.
+This directory contains SQL migrations and setup instructions for your Thriftverse Supabase database.
 
 ## Required Migrations
 

@@ -91,25 +91,11 @@ export default function SignupStep1Screen() {
     if (isResuming) {
       supabase.auth.getUser().then(({ data }) => {
         if (data.user?.email) {
-          // Set email field from auth (disabled)
           setValue("email", data.user.email, { shouldDirty: false });
-          console.log(
-            "[SignupStep1] Resuming - email from auth:",
-            data.user.email,
-          );
         }
       });
     }
   }, [isResuming, setValue]);
-
-  // Debug: Log Redux state on mount
-  useEffect(() => {
-    console.log("[SignupStep1] Component mounted:", {
-      isResuming,
-      name: signupState.formData.name,
-      email: signupState.formData.email,
-    });
-  }, [signupState.formData, isResuming]);
 
   // Restore form data from Redux when navigating back (name only, not email/password)
   useSignupFormRestore(setValue, signupState.formData, "Step 1");
@@ -127,8 +113,6 @@ export default function SignupStep1Screen() {
     try {
       // If resuming signup, skip auth creation and navigate intelligently
       if (isResuming) {
-        console.log("[SignupStep1] Resuming signup - skipping auth creation");
-
         // Validate name
         if (!data.name?.trim()) {
           setErrorMessage("Please enter your name");
@@ -151,15 +135,12 @@ export default function SignupStep1Screen() {
 
         // Navigate to next incomplete step based on signup_step
         const currentStep = profileState.profile?.signup_step ?? 1;
-        console.log("[SignupStep1] Current signup_step:", currentStep);
 
         if (currentStep >= 3) {
           // Email already verified, go directly to seller type (Step 3)
-          console.log("[SignupStep1] Email verified, redirecting to Step 3");
           router.push("/(auth)/signup-step3");
         } else {
           // Still need email verification, go to Step 2
-          console.log("[SignupStep1] Redirecting to Step 2 for verification");
           router.push("/(auth)/signup-step2");
         }
         return;
@@ -234,12 +215,6 @@ export default function SignupStep1Screen() {
           storeName: "",
           referralCode: "",
         };
-
-        console.log("[SignupStep1] Saving form data to Redux:", {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        });
 
         dispatch(setFormData(formData));
 

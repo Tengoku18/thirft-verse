@@ -1,4 +1,3 @@
-import { CompleteYourProfileModal } from "@/components/modals/CompleteYourProfileModal";
 import { initializeApp, loadFromProfile, setProfile, setUser } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { router } from "expo-router";
@@ -18,9 +17,6 @@ export default function Index() {
   const dispatch = useAppDispatch();
   const [appStatus, setAppStatus] = useState<AppStatus>("initializing");
   const [initialized, setInitialized] = useState(false);
-  const [showCompleteProfileModal, setShowCompleteProfileModal] =
-    useState(false);
-  const [nextSignupStep, setNextSignupStep] = useState(2);
 
   // Keep profile reference for routing
   const profile = useAppSelector((state) => state.profile.profile);
@@ -31,12 +27,8 @@ export default function Index() {
   useEffect(() => {
     const initApp = async () => {
       try {
-        console.log("\n🎯 Calling initialization thunk from Index...\n");
-
         // Dispatch the initialization thunk which fetches user and profile
         const result = await dispatch(initializeApp()).unwrap();
-
-        console.log(`\n📍 Initialization complete. Status: ${result.status}\n`);
 
         // Store user and profile in Redux for app-wide access
         if (result.user) {
@@ -44,11 +36,7 @@ export default function Index() {
         }
         if (result.profile) {
           dispatch(setProfile(result.profile));
-          // Load profile data into signup Redux slice for form restoration on back navigation
-          console.log(
-            "[Index] Loading profile data into signup Redux:",
-            result.profile.store_username,
-          );
+
           dispatch(loadFromProfile(result.profile));
         }
 
@@ -71,8 +59,6 @@ export default function Index() {
     if (!initialized) return;
 
     const navigate = async () => {
-      console.log(`\n🚦 Navigating based on status: ${appStatus}\n`);
-
       if (appStatus === "unauthenticated") {
         await SplashScreen.hideAsync();
         router.replace("/(auth)/signin");
@@ -80,14 +66,12 @@ export default function Index() {
         await SplashScreen.hideAsync();
         router.replace("/(auth)/google-profile-setup");
       } else if (appStatus === "signup_incomplete" && profile) {
-        // Show "Complete Your Profile" modal, then redirect to next incomplete step
         const nextStep = Math.min(
           6,
           Math.max(2, (profile.signup_step ?? 1) + 1),
         );
-        setNextSignupStep(nextStep);
-        setShowCompleteProfileModal(true);
         await SplashScreen.hideAsync();
+        router.replace(`/(auth)/signup-step${nextStep}` as any);
       } else if (appStatus === "profile_incomplete") {
         await SplashScreen.hideAsync();
         router.replace("/(auth)/google-profile-setup");
@@ -100,16 +84,6 @@ export default function Index() {
     navigate();
   }, [appStatus, initialized, profile]);
 
-  // Native splash screen is visible while loading — no custom UI needed.
-  // The background color matches the splash so there is no visible flash
-  // when the native splash dismisses before the Stack transition completes.
-  return (
-    <View style={{ flex: 1, backgroundColor: "#C08B7B" }}>
-      <CompleteYourProfileModal
-        visible={showCompleteProfileModal}
-        nextStep={nextSignupStep}
-        onClose={() => setShowCompleteProfileModal(false)}
-      />
-    </View>
-  );
+  // Native splash screen is visible while loading — no custom UI needed
+  return <View />;
 }

@@ -44,7 +44,7 @@ export function FounderCircleVerificationForm({
             Verification Form
           </Typography>
           <Typography variation="body-sm" className="text-slate-500">
-            Enter the code provided by the ThriftVerse team.
+            Enter the code provided by the Thriftverse team.
           </Typography>
         </View>
 

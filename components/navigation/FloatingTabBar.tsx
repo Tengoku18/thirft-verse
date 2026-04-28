@@ -2,30 +2,54 @@ import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import React from "react";
-import { Platform, TouchableOpacity, View } from "react-native";
+import {
+  Animated,
+  Platform,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const CENTER_TAB_INDEX = 2;
 const BAR_HEIGHT = 72;
 const CENTER_BUTTON_SIZE = 52;
-// 25% of button protrudes above the bar
-const CENTER_BUTTON_OVERFLOW = CENTER_BUTTON_SIZE * 0.1; // 14px
+const CENTER_BUTTON_OVERFLOW = CENTER_BUTTON_SIZE * 0.1;
+
+type AnimatedPosition = Animated.AnimatedInterpolation<number>;
+
+function getProgress(
+  position: AnimatedPosition | undefined,
+  stateIndex: number,
+  isFocused: boolean,
+): AnimatedPosition | number {
+  if (!position) return isFocused ? 1 : 0;
+  return position.interpolate({
+    inputRange: [stateIndex - 1, stateIndex, stateIndex + 1],
+    outputRange: [0, 1, 0],
+    extrapolate: "clamp",
+  });
+}
 
 function CenterTabButton({
   isFocused,
   options,
   onPress,
   onLongPress,
+  stateIndex,
+  position,
 }: {
   isFocused: boolean;
   options: any;
   onPress: () => void;
   onLongPress: () => void;
+  stateIndex: number;
+  position?: AnimatedPosition;
 }) {
-  const iconColor = "#FFFFFF";
-  const iconComponent = options.tabBarIcon
-    ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 24 })
-    : null;
+  const progress = getProgress(position, stateIndex, isFocused);
+  const inverseProgress =
+    typeof progress === "number"
+      ? 1 - progress
+      : Animated.subtract(1, progress);
 
   return (
     <TouchableOpacity
@@ -39,7 +63,6 @@ function CenterTabButton({
         zIndex: 10,
       }}
     >
-      {/* Outer white halo ring */}
       <View
         style={{
           width: CENTER_BUTTON_SIZE + 8,
@@ -55,17 +78,30 @@ function CenterTabButton({
           elevation: 8,
         }}
       >
-        <View
+        {/* Golden circle — fades out as this tab becomes active */}
+        <Animated.View
           style={{
+            position: "absolute",
             width: CENTER_BUTTON_SIZE,
             height: CENTER_BUTTON_SIZE,
             borderRadius: CENTER_BUTTON_SIZE / 2,
-            backgroundColor: isFocused ? "#3B2F2F" : "#D4A373",
-            alignItems: "center",
-            justifyContent: "center",
+            backgroundColor: "#D4A373",
+            opacity: inverseProgress,
           }}
-        >
-          {iconComponent}
+        />
+        {/* Espresso circle — fades in as this tab becomes active */}
+        <Animated.View
+          style={{
+            position: "absolute",
+            width: CENTER_BUTTON_SIZE,
+            height: CENTER_BUTTON_SIZE,
+            borderRadius: CENTER_BUTTON_SIZE / 2,
+            backgroundColor: "#3B2F2F",
+            opacity: progress,
+          }}
+        />
+        <View style={{ zIndex: 1 }}>
+          {options.tabBarIcon?.({ focused: isFocused, color: "#FFFFFF", size: 24 })}
         </View>
       </View>
     </TouchableOpacity>
@@ -77,18 +113,21 @@ function TabButton({
   options,
   onPress,
   onLongPress,
+  stateIndex,
+  position,
 }: {
   isFocused: boolean;
   options: any;
   onPress: () => void;
   onLongPress: () => void;
+  stateIndex: number;
+  position?: AnimatedPosition;
 }) {
-  const iconColor = isFocused ? "#FFFFFF" : "#3B2F2F";
-  const bgColor = isFocused ? "#3B2F2F" : "transparent";
-
-  const iconComponent = options.tabBarIcon
-    ? options.tabBarIcon({ focused: isFocused, color: iconColor, size: 18 })
-    : null;
+  const progress = getProgress(position, stateIndex, isFocused);
+  const inverseProgress =
+    typeof progress === "number"
+      ? 1 - progress
+      : Animated.subtract(1, progress);
 
   return (
     <TouchableOpacity
@@ -101,18 +140,31 @@ function TabButton({
         style={{
           width: 52,
           height: 52,
-          borderRadius: "100%",
-          backgroundColor: bgColor,
           alignItems: "center",
           justifyContent: "center",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: isFocused ? 0.18 : 0,
-          shadowRadius: 8,
-          elevation: isFocused ? 4 : 0,
         }}
       >
-        {iconComponent}
+        {/* Animated dark background — slides in with the swipe */}
+        <Animated.View
+          style={{
+            position: "absolute",
+            width: 52,
+            height: 52,
+            borderRadius: 26,
+            backgroundColor: "#3B2F2F",
+            opacity: progress,
+          }}
+        />
+
+        {/* Inactive icon (dark color) — fades out as tab activates */}
+        <Animated.View style={{ position: "absolute", opacity: inverseProgress }}>
+          {options.tabBarIcon?.({ focused: false, color: "#3B2F2F", size: 18 })}
+        </Animated.View>
+
+        {/* Active icon (white color) — fades in as tab activates */}
+        <Animated.View style={{ position: "absolute", opacity: progress }}>
+          {options.tabBarIcon?.({ focused: true, color: "#FFFFFF", size: 18 })}
+        </Animated.View>
       </View>
     </TouchableOpacity>
   );
@@ -122,7 +174,8 @@ export function FloatingTabBar({
   state,
   descriptors,
   navigation,
-}: BottomTabBarProps) {
+  position,
+}: BottomTabBarProps & { position?: AnimatedPosition }) {
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(insets.bottom - 100, 20);
 
@@ -169,12 +222,10 @@ export function FloatingTabBar({
         zIndex: 50,
       }}
     >
-      {/* Wrapper that allows center button to overflow */}
       <View
         style={{
           width: "96%",
           maxWidth: 380,
-          // extra top space for the overflowing center button
           paddingTop: CENTER_BUTTON_OVERFLOW,
         }}
       >
@@ -194,6 +245,8 @@ export function FloatingTabBar({
                 options={options}
                 onPress={onPress}
                 onLongPress={onLongPress}
+                stateIndex={stateIndex}
+                position={position}
               />
             );
           })()}
@@ -222,7 +275,6 @@ export function FloatingTabBar({
               backgroundColor: "rgba(255, 255, 255, 0.25)",
             }}
           >
-            {/* Left tabs */}
             {leftItems.map(({ route, stateIndex }) => {
               const { options } = descriptors[route.key];
               const { isFocused, onPress, onLongPress } = buildHandlers(
@@ -236,6 +288,8 @@ export function FloatingTabBar({
                   options={options}
                   onPress={onPress}
                   onLongPress={onLongPress}
+                  stateIndex={stateIndex}
+                  position={position}
                 />
               );
             })}
@@ -243,7 +297,6 @@ export function FloatingTabBar({
             {/* Empty space for center button */}
             <View style={{ flex: 1 }} />
 
-            {/* Right tabs */}
             {rightItems.map(({ route, stateIndex }) => {
               const { options } = descriptors[route.key];
               const { isFocused, onPress, onLongPress } = buildHandlers(
@@ -257,6 +310,8 @@ export function FloatingTabBar({
                   options={options}
                   onPress={onPress}
                   onLongPress={onLongPress}
+                  stateIndex={stateIndex}
+                  position={position}
                 />
               );
             })}

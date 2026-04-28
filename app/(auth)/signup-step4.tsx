@@ -123,10 +123,6 @@ export default function SignupStep4Screen() {
       const oldUsername = signupState.formData.username?.toLowerCase();
 
       if (newUsername !== oldUsername) {
-        console.log("[SignupStep4] Username changed, checking uniqueness:", {
-          oldUsername,
-          newUsername,
-        });
         const usernameExists = await checkUsernameExists(newUsername);
         if (usernameExists) {
           setError("username", {
@@ -136,10 +132,6 @@ export default function SignupStep4Screen() {
           setLoading(false);
           return;
         }
-      } else {
-        console.log(
-          "[SignupStep4] Username unchanged, skipping uniqueness check",
-        );
       }
 
       // Ensure profile exists
@@ -158,17 +150,12 @@ export default function SignupStep4Screen() {
       // Only include username if it changed (already checked above)
       if (newUsername !== oldUsername) {
         updateData.store_username = newUsername;
-        console.log("[SignupStep4] Updating username:", {
-          old: oldUsername,
-          new: newUsername,
-        });
       }
 
       const newBio = data.bio.trim();
       const oldBio = signupState.formData.bio;
       if (newBio !== oldBio) {
         updateData.bio = newBio;
-        console.log("[SignupStep4] Updating bio");
       }
 
       // Address field - direct profile table field (NOT in seller_data)
@@ -176,7 +163,6 @@ export default function SignupStep4Screen() {
       const oldAddress = signupState.formData.address;
       if (newAddress !== oldAddress) {
         updateData.address = newAddress;
-        console.log("[SignupStep4] Updating address");
       }
 
       // Build seller_data with changed fields only
@@ -187,7 +173,6 @@ export default function SignupStep4Screen() {
       if (data.district !== signupState.formData.district) {
         sellerData.district = data.district;
         hasSellerDataChanges = true;
-        console.log("[SignupStep4] Updating district");
       }
 
       // Store Name field
@@ -196,7 +181,6 @@ export default function SignupStep4Screen() {
       if (newStoreName !== oldStoreName) {
         sellerData.store_name = newStoreName;
         hasSellerDataChanges = true;
-        console.log("[SignupStep4] Updating store name");
       }
 
       // Instagram Handle field
@@ -205,7 +189,6 @@ export default function SignupStep4Screen() {
       if (newInstagram !== oldInstagram) {
         sellerData.instagram_handle = newInstagram;
         hasSellerDataChanges = true;
-        console.log("[SignupStep4] Updating instagram handle");
       }
 
       if (hasSellerDataChanges) {
@@ -215,7 +198,6 @@ export default function SignupStep4Screen() {
       // Only update if there are changes
       if (Object.keys(updateData).length > 1) {
         // More than just userId
-        console.log("[SignupStep4] Updating profile with changes");
         const result = await updateUserProfile(updateData as any);
 
         if (!result.success) {
@@ -223,8 +205,6 @@ export default function SignupStep4Screen() {
           setLoading(false);
           return;
         }
-      } else {
-        console.log("[SignupStep4] No changes detected, skipping update");
       }
 
       // Advance signup progress in DB

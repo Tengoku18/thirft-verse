@@ -17,17 +17,17 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
     id: "getting-started",
     icon: "rocket_launch",
     title: "Getting Started",
-    description: "Everything you need to know to start selling on ThriftVerse.",
+    description: "Everything you need to know to start selling on Thriftverse.",
     items: [
       {
         id: "gs-1",
-        question: "How do I create my store on ThriftVerse?",
+        question: "How do I create my store on Thriftverse?",
         answer:
           "After signing up, complete your seller profile by adding a store name, profile photo, and bio. Once your profile is complete, you can start listing items immediately — no approval needed.",
       },
       {
         id: "gs-2",
-        question: "What can I sell on ThriftVerse?",
+        question: "What can I sell on Thriftverse?",
         answer:
           "You can sell pre-loved clothing, shoes, bags, accessories, home décor, and vintage items. All items must be second-hand or pre-owned. New or counterfeit items are not permitted.",
       },
@@ -39,9 +39,9 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
       },
       {
         id: "gs-4",
-        question: "Is ThriftVerse free to use?",
+        question: "Is Thriftverse free to use?",
         answer:
-          "Listing items is completely free. ThriftVerse charges a small platform fee on completed sales to cover payment processing, buyer protection, and platform maintenance.",
+          "Listing items is completely free. Thriftverse charges a small platform fee on completed sales to cover payment processing, buyer protection, and platform maintenance.",
       },
       {
         id: "gs-5",
@@ -54,7 +54,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
   {
     id: "selling",
     icon: "storefront",
-    title: "Selling on ThriftVerse",
+    title: "Selling on Thriftverse",
     description: "Tips and guidance to help you sell faster and smarter.",
     items: [
       {
@@ -67,7 +67,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
         id: "sell-2",
         question: "How should I price my items?",
         answer:
-          "Browse similar listings on ThriftVerse for pricing guidance. Most pre-loved items sell for 20–40% of their original retail price, depending on brand and condition. Pricing slightly lower than similar items helps you sell quickly.",
+          "Browse similar listings on Thriftverse for pricing guidance. Most pre-loved items sell for 20–40% of their original retail price, depending on brand and condition. Pricing slightly lower than similar items helps you sell quickly.",
       },
       {
         id: "sell-3",
@@ -93,19 +93,19 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
     id: "payments",
     icon: "payments",
     title: "Payments & Earnings",
-    description: "How your money moves on ThriftVerse.",
+    description: "How your money moves on Thriftverse.",
     items: [
       {
         id: "pay-1",
         question: "When will I get paid?",
         answer:
-          "Earnings are released to your ThriftVerse wallet 48 hours after the buyer confirms delivery (or 7 days after the item is marked delivered if the buyer doesn't respond). You can then withdraw to your linked bank account.",
+          "Earnings are released to your Thriftverse wallet 48 hours after the buyer confirms delivery (or 7 days after the item is marked delivered if the buyer doesn't respond). You can then withdraw to your linked bank account.",
       },
       {
         id: "pay-2",
         question: "Are there any selling fees?",
         answer:
-          "ThriftVerse charges a 10% platform fee on each completed sale. This covers secure payment processing, buyer protection, and platform operations. There are no listing fees.",
+          "Thriftverse charges a 10% platform fee on each completed sale. This covers secure payment processing, buyer protection, and platform operations. There are no listing fees.",
       },
       {
         id: "pay-3",
@@ -155,13 +155,13 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
         id: "ship-4",
         question: "What if an item is lost or damaged in transit?",
         answer:
-          "All ThriftVerse shipments are covered by basic transit protection. If a parcel is lost or arrives damaged, contact our support team immediately with photos and order details. We will investigate with the courier and resolve the issue.",
+          "All Thriftverse shipments are covered by basic transit protection. If a parcel is lost or arrives damaged, contact our support team immediately with photos and order details. We will investigate with the courier and resolve the issue.",
       },
       {
         id: "ship-5",
         question: "Can I offer local pickup?",
         answer:
-          "Currently, ThriftVerse supports nationwide shipping only. Local or in-person pickup is not available, as shipping ensures buyer protection and secure transactions for all parties.",
+          "Currently, Thriftverse supports nationwide shipping only. Local or in-person pickup is not available, as shipping ensures buyer protection and secure transactions for all parties.",
       },
     ],
   },
@@ -193,7 +193,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
         id: "acc-4",
         question: "Is my personal information safe?",
         answer:
-          "Yes. ThriftVerse uses industry-standard encryption for all data in transit and at rest. We never sell your personal information to third parties. You can review our full Privacy Policy in Settings.",
+          "Yes. Thriftverse uses industry-standard encryption for all data in transit and at rest. We never sell your personal information to third parties. You can review our full Privacy Policy in Settings.",
       },
       {
         id: "acc-5",

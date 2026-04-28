@@ -64,79 +64,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loading = useAppSelector((state) => state.auth.loading);
 
   useEffect(() => {
-    // Initialize Auth on App Launch
-    // Restores session ONLY if user explicitly checked "Remember me" on previous login
-
-    const initializeAuth = async () => {
-      try {
-        // Check if user enabled "Remember me" on previous login
-        const rememberMeEnabled = await AsyncStorage.getItem(REMEMBER_ME_KEY);
-
-        // ONLY restore session if user explicitly enabled Remember me
-        // This prevents auto-login on first launch or after unchecking the box
-        if (rememberMeEnabled !== "true") {
-          console.log(
-            "ℹ️  Remember me not enabled - user must sign in manually",
-          );
-          return;
-        }
-
-        console.log(
-          "✅ Remember me enabled - attempting to restore session...",
-        );
-
-        // Try to fetch existing session from Supabase
-        const result = await dispatch(fetchCurrentSession()).unwrap();
-
-        if (result) {
-          console.log("✅ Session restored successfully!");
-          // Fetch user profile data
-          await dispatch(fetchUserProfile(result.user.id));
-          // Fetch unread notification count for badge
-          dispatch(fetchUnreadCount(result.user.id));
-          // Save push token to profile (awaits token initialization if needed)
-          await savePushTokenToProfile(result.user.id);
-        } else {
-          console.log("ℹ️  No active session found - user must sign in");
-          // Clear the remember me flag since session is invalid
-          await AsyncStorage.removeItem(REMEMBER_ME_KEY);
-        }
-      } catch (err) {
-        // Session restoration failed or no session exists
-        const errorMessage = (err as any)?.message || String(err);
-
-        if (
-          errorMessage.toLowerCase().includes("no active session") ||
-          errorMessage.toLowerCase().includes("not logged in")
-        ) {
-          console.log("ℹ️  No active session - user is not logged in");
-        } else {
-          console.error("❌ Auth initialization error:", err);
-        }
-
-        // Clear remember me flag on any error to prevent infinite loops
-        await AsyncStorage.removeItem(REMEMBER_ME_KEY);
-        dispatch(clearAuth());
-      }
-    };
-
-    initializeAuth();
-
-    // Listen for auth changes from Supabase
+    // Do NOT call getSession()/getUser() here — that would race with
+    // initializeApp() in app/index.tsx and risk concurrent token refreshes
+    // tripping refresh-token reuse detection. Rely on INITIAL_SESSION instead.
+    //
+    // IMPORTANT: keep this callback sync. Async callbacks run inside an
+    // exclusive lock; calling supabase.auth.* APIs from inside would deadlock.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      // Update Redux store with new session
+      console.log(`🔐 [auth] ${event}`, session ? `user=${session.user.id}` : "no session");
+
+      if (event === "TOKEN_REFRESHED") {
+        const expiresAt = session?.expires_at
+          ? new Date(session.expires_at * 1000).toISOString()
+          : "unknown";
+        console.log(`🔄 [auth] TOKEN_REFRESHED — new expiry: ${expiresAt}`);
+      }
+
       dispatch(setSession(session));
       dispatch(setUser(session?.user ?? null));
 
-      // On SIGNED_IN or INITIAL_SESSION, fetch user profile
       if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
+        // TODO: these three dispatches are duplicated inside signIn() and the
+        // OAuth flows — on every fresh sign-in they fire twice. Remove them
+        // from signIn/signInWithGoogle/signInWithApple now that the listener
+        // handles them.
         dispatch(fetchUserProfile(session.user.id));
+        dispatch(fetchUnreadCount(session.user.id));
+        savePushTokenToProfile(session.user.id).catch((err) =>
+          console.warn("⚠️  Failed to save push token:", err),
+        );
       }
 
-      // On SIGNED_OUT, clear auth and profile
       if (event === "SIGNED_OUT") {
+        console.warn("🚪 [auth] SIGNED_OUT received — session ended (could be manual signOut, token revoked, or refresh failed)");
         dispatch(clearAuth());
         dispatch(clearProfile());
         dispatch(clearNotifications());
@@ -253,6 +215,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: sessionError };
       }
 
+      await AsyncStorage.setItem(REMEMBER_ME_KEY, "true");
+
       return { error: null };
     } catch (error) {
       console.error("Unexpected Google sign in error:", error);
@@ -341,6 +305,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
+      await AsyncStorage.setItem(REMEMBER_ME_KEY, "true");
+
       return { error: null };
     } catch (error: any) {
       if (error.code === "ERR_REQUEST_CANCELED") {
@@ -419,6 +385,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         return { error: sessionError };
       }
+
+      await AsyncStorage.setItem(REMEMBER_ME_KEY, "true");
 
       return { error: null };
     } catch (error) {

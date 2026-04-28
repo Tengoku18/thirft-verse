@@ -175,7 +175,8 @@ export const verifyProfileExists = async (userId: string): Promise<boolean> => {
  */
 export const createMissingProfile = async () => {
   try {
-    // Get current authenticated user
+    // Use getUser() (not getSession()) so user_metadata is server-fresh —
+    // we read name/email/avatar from it to seed the new profile row.
     const {
       data: { user },
       error: userError,
@@ -260,6 +261,7 @@ export const getProductsByStoreId = async (
       .from("products")
       .select("*", { count: "exact" })
       .eq("store_id", storeId)
+      .eq("is_active", true)
       .order("created_at", { ascending: false });
 
     // Filter by status if provided
@@ -408,11 +410,12 @@ export const getMyOfferCode = async (): Promise<{
 }> => {
   try {
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
 
-    if (userError || !user) {
+    if (sessionError || !user) {
       return {
         success: false,
         error: "You must be signed in to manage offer codes.",
@@ -451,11 +454,12 @@ export const upsertMyOfferCode = async (
 ): Promise<{ success: boolean; data?: OfferCode; error?: string }> => {
   try {
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
 
-    if (userError || !user) {
+    if (sessionError || !user) {
       return {
         success: false,
         error: "You must be signed in to manage offer codes.",
@@ -576,11 +580,12 @@ export const deleteMyOfferCode = async (): Promise<{
 }> => {
   try {
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
 
-    if (userError || !user) {
+    if (sessionError || !user) {
       return {
         success: false,
         error: "You must be signed in to manage offer codes.",
@@ -765,9 +770,10 @@ export const getOrdersBySeller = async (sellerId: string) => {
 
     const orders = data || [];
 
-    // Batch-fetch order_items for multi-product orders (product_id is NULL)
+    // Batch-fetch order_items for multi-product orders (product_id IS NULL)
+    // and custom orders created via the custom-order flow (flagged in shipping_address)
     const multiProductOrderIds = orders
-      .filter((o: any) => !o.product_id)
+      .filter((o: any) => !o.product_id || o.shipping_address?.is_custom_order)
       .map((o: any) => o.id);
 
     if (multiProductOrderIds.length > 0) {
@@ -1320,6 +1326,7 @@ export const createManualOrder = async (params: CreateManualOrderParams) => {
 export const updateOrderWithNCM = async (
   orderId: string,
   ncmOrderId: number,
+  deliveryType?: string,
 ) => {
   try {
     const now = new Date().toISOString();
@@ -1338,6 +1345,7 @@ export const updateOrderWithNCM = async (
         },
       ],
       last_synced_at: now,
+      ...(deliveryType ? { delivery_type: deliveryType } : {}),
     };
 
     const { error } = await supabase
@@ -1394,10 +1402,13 @@ export const updateOrderWithNCM = async (
         .eq("id", orderData.seller_id);
     }
 
-    // Auto-sync from NCM API in the background to get accurate details
-    syncNCMOrderStatus(orderId, ncmOrderId).catch((e) =>
-      console.warn("⚠️ Background NCM sync failed:", e),
-    );
+    // Delay background sync to avoid 429 rate limit — NCM API throttles
+    // when requests arrive immediately after order creation.
+    setTimeout(() => {
+      syncNCMOrderStatus(orderId, ncmOrderId).catch((e) =>
+        console.warn("⚠️ Background NCM sync failed:", e),
+      );
+    }, 3000);
 
     return { success: true };
   } catch (error) {
@@ -2626,5 +2637,138 @@ export const getTopSellingProducts = async (
   } catch (error) {
     console.error("💥 Error in getTopSellingProducts:", error);
     return [];
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Custom Order
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface CreateCustomOrderItem {
+  product_id: string;
+  product_name: string;
+  price: number;
+  quantity: number;
+  cover_image?: string | null;
+}
+
+export interface CreateCustomOrderParams {
+  seller_id: string;
+  items: CreateCustomOrderItem[];
+  buyer_name: string;
+  buyer_email: string;
+  buyer_phone: string;
+  street: string;
+  city: string;
+  district: string;
+  shipping_fee: number;
+  shipping_option: "home" | "branch";
+  payment_method: "COD" | "Online" | "Manual/Cash Received";
+  notes?: string;
+}
+
+export const createCustomOrder = async (params: CreateCustomOrderParams) => {
+  try {
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+      return { success: false, error: { message: "You must be logged in to create an order." } };
+    }
+
+    if (session.user.id !== params.seller_id) {
+      return { success: false, error: { message: "Cannot create order for another user." } };
+    }
+
+    // Generate order code
+    const now = new Date();
+    const timestamp = Date.now();
+    const year = now.getFullYear().toString().substring(2);
+    const month = (now.getMonth() + 1).toString().padStart(2, "0");
+    const day = now.getDate().toString().padStart(2, "0");
+    const hours = now.getHours().toString().padStart(2, "0");
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    const seconds = now.getSeconds().toString().padStart(2, "0");
+    const randomStr = Math.random().toString(36).substring(2, 9);
+    const hash = Math.abs(
+      `${timestamp}-${randomStr}`.split("").reduce((acc, char) => {
+        return (acc << 5) - acc + char.charCodeAt(0);
+      }, 0),
+    );
+    const code = hash.toString(36).toUpperCase().substring(0, 4).padStart(4, "0");
+    const orderCode = `#TV-${year}${month}${day}-${hours}${minutes}${seconds}-${code}`;
+
+    const itemsSubtotal = params.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+    const totalQuantity = params.items.reduce((sum, item) => sum + item.quantity, 0);
+    const totalAmount = itemsSubtotal + params.shipping_fee;
+    const platformFee = Math.round(itemsSubtotal * 0.05);
+    const sellersEarning = itemsSubtotal - platformFee;
+
+    const shippingAddress = {
+      street: params.street,
+      city: params.city,
+      district: params.district,
+      country: "Nepal",
+      phone: params.buyer_phone,
+      is_custom_order: true,
+      ...(params.notes ? { notes: params.notes } : {}),
+    };
+
+    const { data: order, error } = await supabase
+      .from("orders")
+      .insert({
+        seller_id: params.seller_id,
+        product_id: params.items[0].product_id,
+        quantity: totalQuantity,
+        buyer_email: params.buyer_email,
+        buyer_name: params.buyer_name,
+        shipping_address: shippingAddress,
+        transaction_code: null,
+        transaction_uuid: null,
+        amount: totalAmount,
+        shipping_fee: params.shipping_fee,
+        items_subtotal: itemsSubtotal,
+        shipping_option: params.shipping_option,
+        payment_method: params.payment_method,
+        status: "pending",
+        order_code: orderCode,
+        sellers_earning: sellersEarning,
+        platform_earnings: platformFee,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("❌ Error creating custom order:", error);
+      return { success: false, error: { message: error.message } };
+    }
+
+    const { error: itemsError } = await supabase.from("order_items").insert(
+      params.items.map((item) => ({
+        order_id: order.id,
+        product_id: item.product_id,
+        product_name: item.product_name,
+        price: item.price,
+        quantity: item.quantity,
+        cover_image: item.cover_image ?? null,
+      })),
+    );
+
+    if (itemsError) {
+      console.error("❌ Error inserting order_items:", itemsError);
+      // Roll back the order so we don't leave an orphaned row
+      await supabase.from("orders").delete().eq("id", order.id);
+      return { success: false, error: { message: itemsError.message } };
+    }
+
+    return { success: true, data: order };
+  } catch (error) {
+    console.error("💥 Error in createCustomOrder:", error);
+    return { success: false, error };
   }
 };
