@@ -50,7 +50,13 @@ export function Textarea({
   const getContainerStyle = () => {
     const baseClasses = `rounded-3xl px-4 ${Platform.OS === "ios" ? "py-4" : ""} bg-white`;
     if (variant === "disabled") {
-      return baseClasses + " border border-ui-border-light bg-brand-off-white opacity-50";
+      return (
+        baseClasses +
+        " border border-ui-border-light bg-brand-off-white opacity-50"
+      );
+    }
+    if (errorMessage) {
+      return baseClasses + " border border-status-error";
     }
     return baseClasses + " border";
   };

@@ -339,13 +339,13 @@ export default function TermsScreen() {
 
             <Pressable
               onPress={() =>
-                Linking.openURL("mailto:thriftverse.shop@gmail.com")
+                Linking.openURL("mailto:thriiftverse.shop@gmail.com")
               }
               className="flex-row items-center gap-2 bg-slate-50 p-4 rounded-lg"
             >
               <IconSymbol name="envelope.fill" size={16} color="#3B2F2F" />
               <Typography variation="body-sm" className="text-slate-800">
-                thriftverse.shop@gmail.com
+                thriiftverse.shop@gmail.com
               </Typography>
             </Pressable>
           </SectionWithIcon>

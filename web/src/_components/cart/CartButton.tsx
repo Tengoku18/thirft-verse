@@ -28,7 +28,7 @@ export default function CartButton({ storeId, className = '' }: CartButtonProps)
   return (
     <button
       onClick={handleClick}
-      className={`fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-secondary shadow-lg transition-all hover:scale-105 hover:shadow-xl ${className}`}
+      className={`fixed bottom-6 right-6 z-50 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-secondary shadow-lg transition-all hover:scale-105 hover:shadow-xl ${className}`}
       aria-label={`View cart (${itemCount} items)`}
     >
       <ShoppingCart className="h-6 w-6 text-surface" />
