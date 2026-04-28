@@ -36,6 +36,14 @@ export default withSentryConfig(nextConfig, {
       process.env.NODE_ENV !== 'production' || !process.env.SENTRY_AUTH_TOKEN,
   },
 
+  // Skip release creation when the auth token is missing so a missing/rotated
+  // token never blocks the deploy. When the token IS present, releases are
+  // created as normal.
+  release: {
+    create: !!process.env.SENTRY_AUTH_TOKEN,
+    finalize: !!process.env.SENTRY_AUTH_TOKEN,
+  },
+
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
