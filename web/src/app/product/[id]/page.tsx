@@ -73,7 +73,7 @@ export async function generateMetadata({
           ]
         : [
             {
-              url: 'https://www.thriftverse.shop/images/horizontal-logo.png',
+              url: 'https://www.thriftverse.shop/images/cover-image.png',
               width: 1200,
               height: 630,
               alt: 'Thriftverse',
@@ -87,7 +87,7 @@ export async function generateMetadata({
       description,
       images: product.cover_image
         ? [product.cover_image]
-        : ['https://www.thriftverse.shop/images/horizontal-logo.png'],
+        : ['https://www.thriftverse.shop/images/cover-image.png'],
     },
   }
 }

@@ -4,11 +4,11 @@ import StoreHero from '@/_components/store/StoreHero';
 import StoreProductsBrowser from '@/_components/store/StoreProductsBrowser';
 import StoreTrustStrip from '@/_components/store/StoreTrustStrip';
 import UserNotFound from '@/_components/UserNotFound';
-import LandingPage from '@/_components/landing/LandingPage';
 import { getProductsByStoreId, getProfileByStoreUsername } from '@/actions';
 import { getSubDomain } from '@/utils/domainHelpers';
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 /**
  * ISR Configuration
@@ -24,16 +24,16 @@ export async function generateMetadata(): Promise<Metadata> {
   const hostname = host.split(':')[0];
   const subdomain = getSubDomain(hostname);
 
-  // Return default metadata for main domain
+  // Main domain: this route 307s to /explore, so metadata here is never shown
+  // to end users. A minimal stub keeps crawlers happy if they hit it before
+  // following the redirect.
   if (
     subdomain === process.env.NEXT_PUBLIC_DOMAINNAME ||
     subdomain === 'www' ||
     subdomain === ''
   ) {
     return {
-      title: 'Thriftverse — Your Finds. Your Store. Your Story.',
-      description:
-        'Create your own thrift store and give every item a second life.',
+      title: 'Thriftverse',
     };
   }
 
@@ -72,7 +72,7 @@ export async function generateMetadata(): Promise<Metadata> {
           ]
         : [
             {
-              url: 'https://www.thriftverse.shop/images/horizontal-logo.png',
+              url: 'https://www.thriftverse.shop/images/cover-image.png',
               width: 1200,
               height: 630,
               alt: 'Thriftverse',
@@ -86,7 +86,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: profile.profile_image
         ? [profile.profile_image]
-        : ['https://www.thriftverse.shop/images/horizontal-logo.png'],
+        : ['https://www.thriftverse.shop/images/cover-image.png'],
     },
   };
 }
@@ -99,13 +99,14 @@ export default async function Home() {
   const hostname = host.split(':')[0]; // Remove port if present
   const subdomain = getSubDomain(hostname);
 
-  // Show landing page for main domain
+  // Main domain: send buyers straight to the marketplace.
+  // Marketing landing page lives at /home.
   if (
     subdomain === process.env.NEXT_PUBLIC_DOMAINNAME ||
     subdomain === 'www' ||
     subdomain === ''
   ) {
-    return <LandingPage />;
+    redirect('/explore');
   }
 
   // Step 1: Get profile by store_username (subdomain)

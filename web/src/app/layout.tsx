@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     siteName: "Thriftverse",
     images: [
       {
-        url: "https://www.thriftverse.shop/images/horizontal-logo.png",
+        url: "https://www.thriftverse.shop/images/cover-image.png",
         width: 1200,
         height: 630,
         alt: "Thriftverse — Reuse. Resell. Renew."
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     description: "Create your own thrift store and give every item a second life.",
     images: [
       {
-        url: "https://www.thriftverse.shop/images/horizontal-logo.png",
+        url: "https://www.thriftverse.shop/images/cover-image.png",
         alt: "Thriftverse — Reuse. Resell. Renew."
       }
     ]
