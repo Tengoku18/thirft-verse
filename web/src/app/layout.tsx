@@ -1,4 +1,7 @@
 import ProgressBar from "@/_components/common/ProgressBar";
+import JsonLd from "@/_components/seo/JsonLd";
+import { buildOrganizationSchema, buildWebsiteSchema } from "@/lib/seo/schemas";
+import { SITE_KEYWORDS } from "@/lib/seo/site";
 import { CartProvider } from "@/contexts/CartContext";
 import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
@@ -48,15 +51,30 @@ const folito = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.thriftverse.shop"),
   title: "Thriftverse — Your Finds. Your Store. Your Story.",
-  description: "Create your own thrift store and give every item a second life.",
+  description: "Create your own thrift store and give every item a second life. Thriftverse is the home of independent thrift sellers, preloved fashion, and sustainable shopping.",
+  applicationName: "Thriftverse",
+  keywords: [...SITE_KEYWORDS],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
     title: "Thriftverse — Your Finds. Your Store. Your Story.",
-    description: "Create your own thrift store and give every item a second life.",
+    description: "Create your own thrift store and give every item a second life. Independent thrift sellers, preloved fashion, sustainable shopping.",
     url: "https://www.thriftverse.shop",
     siteName: "Thriftverse",
+    locale: "en_US",
+    type: "website",
     images: [
       {
-        url: "https://www.thriftverse.shop/images/horizontal-logo.png",
+        url: "https://www.thriftverse.shop/images/cover-image.png",
         width: 1200,
         height: 630,
         alt: "Thriftverse — Reuse. Resell. Renew."
@@ -69,14 +87,12 @@ export const metadata: Metadata = {
     description: "Create your own thrift store and give every item a second life.",
     images: [
       {
-        url: "https://www.thriftverse.shop/images/horizontal-logo.png",
+        url: "https://www.thriftverse.shop/images/cover-image.png",
         alt: "Thriftverse — Reuse. Resell. Renew."
       }
     ]
   }
 };
-
-
 
 export default function RootLayout({
   children,
@@ -85,6 +101,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <JsonLd data={[buildOrganizationSchema(), buildWebsiteSchema()]} />
+      </head>
       <body
         className={`${nunitoSans.variable} ${folito.variable} antialiased`}
       >
