@@ -274,7 +274,7 @@ export default function ChangePasswordScreen() {
                     Secure your account
                   </Typography>
                   <Typography variation="body" className="text-slate-500">
-                    Update your password to keep your ThriftVerse profile safe.
+                    Update your password to keep your Thriftverse profile safe.
                   </Typography>
                 </View>
 

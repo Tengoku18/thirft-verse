@@ -50,6 +50,7 @@ export default function SignupStep5Screen() {
   );
 
   const [loading, setLoading] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Form setup with React Hook Form
@@ -98,7 +99,6 @@ export default function SignupStep5Screen() {
         } = await uploadPaymentQRImage(user.id, qrImage);
         if (success && url) {
           qrImagePath = url;
-          console.log("[SignupStep5] Uploaded new QR image:", url);
         } else {
           console.error("Failed to upload QR image:", uploadError);
           setGeneralError("Failed to upload QR code image. Please try again.");
@@ -119,13 +119,11 @@ export default function SignupStep5Screen() {
       const oldPaymentUsername = signupState.paymentData.paymentUsername;
       if (newPaymentUsername !== oldPaymentUsername) {
         updatePayload.payment_username = newPaymentUsername;
-        console.log("[SignupStep5] Updating payment username");
       }
 
       // Only update QR image if a new one was uploaded
       if (qrImagePath) {
         updatePayload.payment_qr_image = qrImagePath;
-        console.log("[SignupStep5] Updating payment QR image");
       }
 
       const { error } = await supabase
@@ -181,7 +179,7 @@ export default function SignupStep5Screen() {
   };
 
   const handleSkip = async () => {
-    setLoading(true);
+    setIsSkipping(true);
 
     try {
       const {
@@ -190,7 +188,7 @@ export default function SignupStep5Screen() {
 
       if (!user) {
         setGeneralError("User not found. Please sign in again.");
-        setLoading(false);
+        setIsSkipping(false);
         return;
       }
 
@@ -204,7 +202,7 @@ export default function SignupStep5Screen() {
       console.error("Error skipping step 5:", error);
       setGeneralError("An unexpected error occurred. Please try again.");
     } finally {
-      setLoading(false);
+      setIsSkipping(false);
     }
   };
 
@@ -266,7 +264,11 @@ export default function SignupStep5Screen() {
         {/* Bottom Buttons */}
         <View className="px-6 py-6 flex-row gap-3">
           {/* Skip Button */}
-          <Pressable onPress={handleSkip} disabled={loading} className="">
+          <Pressable
+            onPress={handleSkip}
+            disabled={loading || isSkipping}
+            className=""
+          >
             <Typography
               variation="body"
               className="text-center text-slate-600 font-sans-bold text-xl px-10 py-4"
@@ -282,7 +284,7 @@ export default function SignupStep5Screen() {
               variant="primary"
               onPress={handleSubmit(onSubmit)}
               isLoading={loading}
-              disabled={loading}
+              disabled={loading || isSkipping}
               fullWidth
               iconPosition="right"
               icon={<RightArrowIcon width={20} height={20} color="#fff" />}

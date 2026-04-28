@@ -17,7 +17,7 @@ export function HelpFooter({
         variation="caption"
         className="text-slate-400 font-sans-medium text-xs"
       >
-        ThriftVerse {version}
+        Thriftverse {version}
       </Typography>
       <Typography
         variation="caption"

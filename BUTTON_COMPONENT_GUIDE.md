@@ -1,4 +1,4 @@
-# ThriftVerse Button Component - Implementation Summary
+# Thriftverse Button Component - Implementation Summary
 
 ## 📦 Files Created
 

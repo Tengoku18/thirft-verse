@@ -105,15 +105,10 @@ export default function SignInScreen() {
           );
           setNextSignupStep(nextStep);
           setShowCompleteProfileModal(true);
-          console.log(
-            "[SignIn] Signup incomplete, showing modal. Next step:",
-            nextStep,
-          );
+
           return;
         }
 
-        // Signup is complete, navigate to home
-        console.log("[SignIn] Signup complete, navigating to home");
         router.replace("/(tabs)/home");
       }
     } catch (error) {
@@ -177,7 +172,7 @@ export default function SignInScreen() {
         <View className="flex-1 h-px bg-slate-300" />
         <Typography
           variation="body-xs"
-          className="text-slate-400  font-sans-semibold uppercase"
+          className="font-sans-semibold uppercase text-black"
         >
           Or Continue With
         </Typography>

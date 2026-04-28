@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `Link` component is a reusable, accessible link/text link component following the ThriftVerse design system. It supports three variants, three sizes, underline styling, and both internal (routing) and external link functionality.
+The `Link` component is a reusable, accessible link/text link component following the Thriftverse design system. It supports three variants, three sizes, underline styling, and both internal (routing) and external link functionality.
 
 ## Variants
 

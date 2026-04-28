@@ -1,7 +1,6 @@
 import { NCMCommentsSection, NCMTrackingSection } from "@/components/order";
 import Typography from "@/components/ui/Typography";
 import { OrderDetail } from "@/lib/types/order";
-import dayjs from "dayjs";
 import React from "react";
 import { RefreshControl, ScrollView, View } from "react-native";
 import { OrderBuyerSection } from "./OrderBuyerSection";
@@ -123,21 +122,6 @@ export function OrderDetailBody({
             : undefined
         }
       />
-
-      <View className="px-1 gap-1">
-        <Typography
-          variation="caption"
-          style={{ color: "rgba(59,48,48,0.35)" }}
-        >
-          Order ID: {order.id.slice(0, 16)}…
-        </Typography>
-        <Typography
-          variation="caption"
-          style={{ color: "rgba(59,48,48,0.35)" }}
-        >
-          Last updated: {dayjs(order.updatedAt).format("DD MMM YYYY, h:mm A")}
-        </Typography>
-      </View>
     </ScrollView>
   );
 }

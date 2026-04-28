@@ -21,7 +21,8 @@ function ProductItem({ product }: ProductItemProps) {
     <TouchableOpacity
       onPress={() => router.push(`/product/${product.id}` as any)}
       activeOpacity={0.85}
-      className="flex-1 m-1.5"
+      style={{ width: "50%" }}
+      className="p-1.5"
     >
       {/* Image container */}
       <View className="rounded-[18px] overflow-hidden bg-primary/5 aspect-square">
@@ -38,12 +39,12 @@ function ProductItem({ product }: ProductItemProps) {
         )}
 
         {/* Heart button */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           activeOpacity={0.8}
           className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/85 items-center justify-center"
         >
           <IconSymbol name="heart" size={16} color="#3B3030" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* Sold out overlay */}
         {isSoldOut && (

@@ -6,7 +6,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { Typography } from "../Typography/Typography";
+import Typography from "../Typography";
 
 export type ButtonVariant = "primary" | "secondary" | "accent" | "tertiary";
 export type ButtonSize = "large" | "compact";
@@ -43,26 +43,26 @@ function getButtonStyles(
 ): ButtonStyles {
   const heightClass = size === "compact" ? "h-14" : "h-16";
   const widthClass = fullWidth ? "" : "";
-  const baseStyles = `flex-row items-center justify-center ${heightClass} ${widthClass} rounded-3xl active:scale-95 transition-all`;
+  const baseStyles = `flex-row items-center justify-center ${heightClass} ${widthClass} rounded-full active:scale-95 transition-all`;
 
   switch (variant) {
     case "tertiary":
       return {
-        container: `${baseStyles} bg-gray-100 active:opacity-70`,
+        container: `${baseStyles} ${disabled ? "bg-gray-100/50" : "bg-gray-100"} active:opacity-70`,
         text: "text-brand-espresso font-sans-bold text-base",
         indicator: "#3B3030",
       };
 
     case "secondary":
       return {
-        container: `${baseStyles} border border-brand-espresso bg-transparent active:opacity-80`,
+        container: `${baseStyles} border ${disabled ? "border-brand-espresso/50" : "border-brand-espresso"} bg-transparent active:opacity-80`,
         text: "text-brand-espresso font-sans-bold text-base",
         indicator: "#3B3030",
       };
 
     case "accent":
       return {
-        container: `${baseStyles} bg-brand-tan ${noShadow ? "" : "shadow-md"} active:opacity-90`,
+        container: `${baseStyles} ${disabled ? "bg-brand-tan/50" : "bg-brand-tan"} ${noShadow ? "" : "shadow-md"} active:opacity-90`,
         text: "text-white font-sans-bold text-base",
         indicator: "#FFFFFF",
       };
@@ -70,7 +70,7 @@ function getButtonStyles(
     case "primary":
     default:
       return {
-        container: `${baseStyles} bg-brand-espresso ${noShadow ? "" : "shadow-md"} active:opacity-90`,
+        container: `${baseStyles} ${disabled ? "bg-brand-espresso/50" : "bg-brand-espresso"} ${noShadow ? "" : "shadow-md"} active:opacity-90`,
         text: "text-white font-sans-extrabold text-base",
         indicator: "#FFFFFF",
       };
@@ -109,40 +109,38 @@ export function Button({
   const textClass = textClassName || styles.text;
 
   return (
-    <View style={{ opacity: disabled ? 0.5 : 1 }}>
-      <TouchableOpacity
-        className={containerClass}
-        style={style}
-        onPress={onPress}
-        disabled={disabled || isLoading}
-        activeOpacity={0.9}
-        testID={testID}
-      >
-        {isLoading ? (
-          <ActivityIndicator size="small" color={styles.indicator} />
-        ) : (
-          <View className="flex-row items-center justify-center gap-2">
-            {icon && iconPosition === "left" && (
-              <View className="h-6 w-6 items-center justify-center flex-shrink-0">
-                {icon}
-              </View>
-            )}
-            <Typography
-              className={textClass}
-              variation="button"
-              numberOfLines={1}
-              allowFontScaling={false}
-            >
-              {label}
-            </Typography>
-            {icon && iconPosition === "right" && (
-              <View className="h-6 w-6 items-center justify-center flex-shrink-0">
-                {icon}
-              </View>
-            )}
-          </View>
-        )}
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      className={containerClass}
+      style={style}
+      onPress={onPress}
+      disabled={disabled || isLoading}
+      activeOpacity={0.9}
+      testID={testID}
+    >
+      {isLoading ? (
+        <ActivityIndicator size="small" color={styles.indicator} />
+      ) : (
+        <View className="flex-row items-center justify-center gap-2">
+          {icon && iconPosition === "left" && (
+            <View className="h-6 w-6 items-center justify-center flex-shrink-0">
+              {icon}
+            </View>
+          )}
+          <Typography
+            className={textClass}
+            variation="button"
+            numberOfLines={1}
+            allowFontScaling={false}
+          >
+            {label}
+          </Typography>
+          {icon && iconPosition === "right" && (
+            <View className="h-6 w-6 items-center justify-center flex-shrink-0">
+              {icon}
+            </View>
+          )}
+        </View>
+      )}
+    </TouchableOpacity>
   );
 }

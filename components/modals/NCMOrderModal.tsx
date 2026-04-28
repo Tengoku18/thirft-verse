@@ -1,14 +1,8 @@
-import {
-  BodyBoldText,
-  BodyMediumText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { FormPicker, PickerOption } from "@/components/atoms/FormPicker";
-import { SuccessModal } from "@/components/molecules/SuccessModal";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import {
   createNCMOrder,
   fetchNCMBranches,
@@ -34,7 +28,7 @@ import {
 interface NCMOrderModalProps {
   visible: boolean;
   onClose: () => void;
-  onSuccess: (ncmOrderId: number) => void;
+  onSuccess: (ncmOrderId: number, deliveryType: string) => void;
   orderData: {
     orderId: string;
     orderCode: string;
@@ -77,9 +71,6 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
   const [branches, setBranches] = useState<NCMBranch[]>([]);
   const [loadingBranches, setLoadingBranches] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [successData, setSuccessData] = useState<{ orderId: number } | null>(
-    null,
-  );
 
   // Form state
   const [name, setName] = useState(orderData.buyerName);
@@ -102,7 +93,6 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
   const [instruction, setInstruction] = useState(orderData.notes || "");
   const [codCharge, setCodCharge] = useState(orderData.totalAmount.toString());
 
-  // Load branches on mount
   useEffect(() => {
     if (visible) {
       loadBranches();
@@ -130,7 +120,6 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
   }));
 
   const handleSubmit = async () => {
-    // Validation
     if (!name.trim()) {
       Alert.alert("Error", "Customer name is required");
       return;
@@ -140,7 +129,6 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
       return;
     }
 
-    // Clean and validate phone number using centralized validation
     const cleanedPhone = cleanNepaliPhone(phone);
     if (!isValidNepaliPhone(cleanedPhone)) {
       Alert.alert(
@@ -169,7 +157,6 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
 
     setSubmitting(true);
 
-    // Clean phone2 if provided
     const cleanedPhone2 = phone2.trim() ? cleanNepaliPhone(phone2) : undefined;
 
     try {
@@ -191,7 +178,7 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
       const result = await createNCMOrder(params);
 
       if (result.success && result.data) {
-        setSuccessData({ orderId: result.data.orderid });
+        onSuccess(result.data.orderid, deliveryType);
       } else {
         Alert.alert("Error", result.error || "Failed to create NCM order");
       }
@@ -203,21 +190,11 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
     }
   };
 
-  const handleSuccessDone = () => {
-    if (successData) {
-      // Call onSuccess which handles DB update + router.replace to orders list
-      // Navigation will unmount everything (this modal included)
-      onSuccess(successData.orderId);
-    } else {
-      onClose();
-    }
-  };
-
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      onRequestClose={successData ? handleSuccessDone : onClose}
+      onRequestClose={onClose}
       presentationStyle="pageSheet"
     >
       <View className="flex-1 bg-white">
@@ -226,14 +203,12 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
           className="flex-1"
         >
           {/* Header */}
-          <View className="px-6 pt-4 pb-3 border-b border-[#E5E7EB] flex-row items-center justify-between">
+          <View className="px-6 pt-4 pb-3 border-b border-gray-200 flex-row items-center justify-between">
             <View className="flex-1">
-              <HeadingBoldText style={{ fontSize: 20 }}>
-                Move to NCM
-              </HeadingBoldText>
-              <CaptionText style={{ color: "#6B7280", marginTop: 4 }}>
+              <Typography variation="h3">Move to NCM</Typography>
+              <Typography variation="caption" intent="muted" className="mt-1">
                 Order: {orderData.orderCode}
-              </CaptionText>
+              </Typography>
             </View>
             <TouchableOpacity onPress={onClose} className="ml-4">
               <IconSymbol name="xmark" size={24} color="#6B7280" />
@@ -243,9 +218,9 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
           {loadingBranches ? (
             <View className="flex-1 justify-center items-center">
               <ActivityIndicator size="large" color="#3B2F2F" />
-              <BodyMediumText style={{ color: "#6B7280", marginTop: 12 }}>
+              <Typography variation="body-sm" intent="muted" className="mt-3">
                 Loading NCM branches...
-              </BodyMediumText>
+              </Typography>
             </View>
           ) : (
             <ScrollView
@@ -257,9 +232,9 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
               <View className="px-4 pt-4">
                 {/* Customer Information */}
                 <View className="mb-6">
-                  <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
+                  <Typography variation="h5" className="mb-3">
                     Customer Information
-                  </BodyBoldText>
+                  </Typography>
 
                   <FormInput
                     label="Customer Name"
@@ -291,9 +266,9 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
 
                 {/* Delivery Address */}
                 <View className="mb-6">
-                  <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
+                  <Typography variation="h5" className="mb-3">
                     Delivery Address
-                  </BodyBoldText>
+                  </Typography>
 
                   <FormInput
                     label="Full Address"
@@ -309,9 +284,9 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
 
                 {/* Branch Selection */}
                 <View className="mb-6">
-                  <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
+                  <Typography variation="h5" className="mb-3">
                     Branch Selection
-                  </BodyBoldText>
+                  </Typography>
 
                   <FormPicker
                     label="Pickup Branch (From)"
@@ -334,9 +309,9 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
 
                 {/* Order Details */}
                 <View className="mb-6">
-                  <BodyBoldText style={{ fontSize: 16, marginBottom: 12 }}>
+                  <Typography variation="h5" className="mb-3">
                     Order Details
-                  </BodyBoldText>
+                  </Typography>
 
                   <FormInput
                     label="Package Name"
@@ -389,7 +364,7 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
 
           {/* Submit Button */}
           {!loadingBranches && (
-            <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-[#F3F4F6] px-6 py-4">
+            <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4">
               <FormButton
                 title="Create NCM Order"
                 onPress={handleSubmit}
@@ -401,62 +376,6 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
           )}
         </KeyboardAvoidingView>
       </View>
-
-      {/* Success Modal */}
-      <SuccessModal
-        visible={!!successData}
-        title="Order Created!"
-        onClose={handleSuccessDone}
-      >
-        {/* Order Info Card */}
-        <View
-          style={{
-            backgroundColor: "#F9FAFB",
-            borderRadius: 12,
-            padding: 16,
-            borderWidth: 1,
-            borderColor: "#F3F4F6",
-            marginBottom: 16,
-          }}
-        >
-          <CaptionText
-            style={{
-              color: "#9CA3AF",
-              marginBottom: 4,
-              fontSize: 11,
-              textTransform: "uppercase",
-              letterSpacing: 0.5,
-            }}
-          >
-            NCM Order ID
-          </CaptionText>
-          <BodyBoldText style={{ fontSize: 24, color: "#3B2F2F" }}>
-            {successData ? `#${successData.orderId}` : ""}
-          </BodyBoldText>
-        </View>
-
-        {/* Info Text */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "flex-start",
-            gap: 8,
-          }}
-        >
-          <IconSymbol
-            name="info.circle"
-            size={16}
-            color="#9CA3AF"
-            style={{ marginTop: 2 }}
-          />
-          <BodyMediumText
-            style={{ color: "#6B7280", lineHeight: 20, flex: 1, fontSize: 13 }}
-          >
-            Your order has been sent to Nepal Can Move for delivery. You can
-            track it from the order details page.
-          </BodyMediumText>
-        </View>
-      </SuccessModal>
     </Modal>
   );
 };

@@ -234,7 +234,7 @@ echo -e "${BLUE}Step 7: Building full migration file...${NC}"
 
 cat > "$FULL_MIGRATION_FILE" << 'HEADER'
 -- ============================================================
--- ThriftVerse: Dev → Prod Schema Migration
+-- Thriftverse: Dev → Prod Schema Migration
 -- Generated automatically - DO NOT EDIT
 -- ============================================================
 -- This migration includes:

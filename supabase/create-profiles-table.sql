@@ -1,5 +1,5 @@
 -- =====================================================
--- ThriftVerse Profiles Table Setup
+-- Thriftverse Profiles Table Setup
 -- =====================================================
 -- This SQL creates the profiles table and sets up automatic
 -- profile creation when a user signs up via Supabase Auth

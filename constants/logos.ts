@@ -1,17 +1,17 @@
 /**
- * Logo asset paths for the ThriftVerse application
+ * Logo asset paths for the Thriftverse application
  */
 
 // Mobile app logo paths (relative to assets directory)
 export const LOGOS = {
   // Main logo variations
-  horizontal: require('../assets/logo/horizontal-logo.png'),
-  vertical: require('../assets/logo/vertical-logo.png'),
-  icon: require('../assets/logo/fav-icon.png'),
-  text: require('../assets/logo/text-logo.png'),
+  horizontal: require("../assets/logo/horizontal-logo.png"),
+  vertical: require("../assets/logo/vertical-logo.png"),
+  icon: require("../assets/logo/fav-icon.png"),
+  text: require("../assets/logo/text-logo.png"),
 
   // Social media OG image
-  og: require('../assets/logo/og.png'),
+  og: require("../assets/logo/og.png"),
 
   // Note: logo.PNG with uppercase extension causes Metro bundler issues
   // Available in web directory if needed: /images/logo.PNG
@@ -19,17 +19,17 @@ export const LOGOS = {
 
 // Web/URL paths for logos (for web components and external references)
 export const LOGO_URLS = {
-  horizontal: '/images/horizontal-logo.png',
-  vertical: '/images/vertical-logo.png',
-  icon: '/images/fav-icon.png',
-  og: '/images/og.png',
+  horizontal: "/images/horizontal-logo.png",
+  vertical: "/images/vertical-logo.png",
+  icon: "/images/fav-icon.png",
+  og: "/images/og.png",
 
   // Full URLs (for emails and external sharing)
   full: {
-    horizontal: 'https://www.thriftverse.shop/images/horizontal-logo.png',
-    vertical: 'https://www.thriftverse.shop/images/vertical-logo.png',
-    icon: 'https://www.thriftverse.shop/images/fav-icon.png',
-    og: 'https://www.thriftverse.shop/images/og.png',
+    horizontal: "https://www.thriftverse.shop/images/horizontal-logo.png",
+    vertical: "https://www.thriftverse.shop/images/vertical-logo.png",
+    icon: "https://www.thriftverse.shop/images/fav-icon.png",
+    og: "https://www.thriftverse.shop/images/og.png",
   },
 } as const;
 

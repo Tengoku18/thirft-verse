@@ -6,76 +6,75 @@ import {
   OrderFilterBar,
   StatusFilter,
 } from "@/components/orders";
-import { BodyMediumText, BodySemiboldText } from "@/components/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { getOrdersBySeller } from "@/lib/database-helpers";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Linking, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 
-// ─────────────── Guide banner ───────────────
-function GuideBanner({ onDismiss }: { onDismiss: () => void }) {
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#FFFBEB",
-        borderRadius: 14,
-        padding: 14,
-        borderWidth: 1,
-        borderColor: "#FDE68A",
-      }}
-    >
-      <TouchableOpacity
-        style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-        activeOpacity={0.7}
-        onPress={() =>
-          Linking.openURL(
-            "https://www.thriftverse.shop/blogs/how-to-handle-orders",
-          )
-        }
-      >
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 12,
-            backgroundColor: "#FEF3C7",
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: 12,
-          }}
-        >
-          <IconSymbol name="doc.text.fill" size={20} color="#D97706" />
-        </View>
-        <View style={{ flex: 1 }}>
-          <BodySemiboldText style={{ fontSize: 14, color: "#92400E" }}>
-            New to selling?
-          </BodySemiboldText>
-          <BodyMediumText style={{ fontSize: 12, color: "#A16207", marginTop: 2 }}>
-            Learn how to handle orders step by step
-          </BodyMediumText>
-        </View>
-        <IconSymbol
-          name="arrow.up.right"
-          size={14}
-          color="#D97706"
-          style={{ marginRight: 8 }}
-        />
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={onDismiss}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        activeOpacity={0.6}
-      >
-        <IconSymbol name="xmark" size={14} color="#D97706" />
-      </TouchableOpacity>
-    </View>
-  );
-}
+// // ─────────────── Guide banner ───────────────
+// function GuideBanner({ onDismiss }: { onDismiss: () => void }) {
+//   return (
+//     <View
+//       style={{
+//         flexDirection: "row",
+//         alignItems: "center",
+//         backgroundColor: "#FFFBEB",
+//         borderRadius: 14,
+//         padding: 14,
+//         borderWidth: 1,
+//         borderColor: "#FDE68A",
+//       }}
+//     >
+//       <TouchableOpacity
+//         style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+//         activeOpacity={0.7}
+//         onPress={() =>
+//           Linking.openURL(
+//             "https://www.thriftverse.shop/blogs/how-to-handle-orders",
+//           )
+//         }
+//       >
+//         <View
+//           style={{
+//             width: 40,
+//             height: 40,
+//             borderRadius: 12,
+//             backgroundColor: "#FEF3C7",
+//             alignItems: "center",
+//             justifyContent: "center",
+//             marginRight: 12,
+//           }}
+//         >
+//           <IconSymbol name="doc.text.fill" size={20} color="#D97706" />
+//         </View>
+//         <View style={{ flex: 1 }}>
+//           <BodySemiboldText style={{ fontSize: 14, color: "#92400E" }}>
+//             New to selling?
+//           </BodySemiboldText>
+//           <BodyMediumText style={{ fontSize: 12, color: "#A16207", marginTop: 2 }}>
+//             Learn how to handle orders step by step
+//           </BodyMediumText>
+//         </View>
+//         <IconSymbol
+//           name="arrow.up.right"
+//           size={14}
+//           color="#D97706"
+//           style={{ marginRight: 8 }}
+//         />
+//       </TouchableOpacity>
+//       <TouchableOpacity
+//         onPress={onDismiss}
+//         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+//         activeOpacity={0.6}
+//       >
+//         <IconSymbol name="xmark" size={14} color="#D97706" />
+//       </TouchableOpacity>
+//     </View>
+//   );
+// }
 
 // ─────────────── Screen ───────────────
 export default function OrdersScreen() {
@@ -85,23 +84,27 @@ export default function OrdersScreen() {
 
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [showGuideBanner, setShowGuideBanner] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending");
+  // const [showGuideBanner, setShowGuideBanner] = useState(false);
 
-  useEffect(() => {
-    AsyncStorage.getItem("@thriftverse_seen_order_guide").then((val) => {
-      if (val !== "true") setShowGuideBanner(true);
-    });
-  }, []);
+  // useEffect(() => {
+  //   AsyncStorage.getItem("@thriftverse_seen_order_guide").then((val) => {
+  //     if (val !== "true") setShowGuideBanner(true);
+  //   });
+  // }, []);
 
-  const dismissGuideBanner = () => {
-    setShowGuideBanner(false);
-    AsyncStorage.setItem("@thriftverse_seen_order_guide", "true");
-  };
+  // const dismissGuideBanner = () => {
+  //   setShowGuideBanner(false);
+  //   AsyncStorage.setItem("@thriftverse_seen_order_guide", "true");
+  // };
 
   useEffect(() => {
     const valid: StatusFilter[] = [
-      "pending", "processing", "completed", "cancelled", "refunded",
+      "pending",
+      "processing",
+      "completed",
+      "cancelled",
+      "refunded",
     ];
     if (valid.includes(filterParam as StatusFilter)) {
       setStatusFilter(filterParam as StatusFilter);
@@ -125,15 +128,19 @@ export default function OrdersScreen() {
         const shippingFee = order.shipping_fee || 0;
         const productPrice = (order.amount || 0) - shippingFee;
         const isMultiProduct = !order.product_id;
+        const isCustomOrder = !!order.shipping_address?.is_custom_order;
         const hasOrderItems = order.order_items?.length > 0;
 
         let productTitle = order.product?.title || "Order Item";
         let productImage = order.product?.cover_image || null;
         let itemsCount = 1;
 
-        if (isMultiProduct && hasOrderItems) {
+        if ((isMultiProduct || isCustomOrder) && hasOrderItems) {
           const first = order.order_items[0];
-          productTitle = first.product_name;
+          productTitle =
+            order.order_items.length > 1
+              ? `${first.product_name} + ${order.order_items.length - 1} more`
+              : first.product_name;
           productImage = first.cover_image;
           itemsCount = order.order_items.length;
         } else if (isMultiProduct && !hasOrderItems) {
@@ -142,10 +149,14 @@ export default function OrdersScreen() {
         }
 
         const itemsSubtotal = order.items_subtotal ?? productPrice;
-        const discountedItemsTotal = order.discounted_items_total ?? itemsSubtotal;
+        const discountedItemsTotal =
+          order.discounted_items_total ?? itemsSubtotal;
         const offerDiscountAmount =
           order.offer_discount_amount ??
-          Math.max(0, Math.round((itemsSubtotal - discountedItemsTotal) * 100) / 100);
+          Math.max(
+            0,
+            Math.round((itemsSubtotal - discountedItemsTotal) * 100) / 100,
+          );
 
         return {
           id: order.id,
@@ -188,12 +199,12 @@ export default function OrdersScreen() {
 
   // ── Derived state ──
   const counts: Record<StatusFilter, number> = {
-    all:        items.length,
-    pending:    items.filter((i) => i.status === "pending").length,
+    all: items.length,
+    pending: items.filter((i) => i.status === "pending").length,
     processing: items.filter((i) => i.status === "processing").length,
-    completed:  items.filter((i) => i.status === "completed").length,
-    cancelled:  items.filter((i) => i.status === "cancelled").length,
-    refunded:   items.filter((i) => i.status === "refunded").length,
+    completed: items.filter((i) => i.status === "completed").length,
+    cancelled: items.filter((i) => i.status === "cancelled").length,
+    refunded: items.filter((i) => i.status === "refunded").length,
   };
 
   const filteredItems =
@@ -214,6 +225,16 @@ export default function OrdersScreen() {
     />
   );
 
+  const createOrderButton = __DEV__ ? (
+    <Pressable
+      onPress={() => router.push("/order/custom-order")}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      className="p-1"
+    >
+      <IconSymbol name="plus" size={22} color="#3B2F2F" />
+    </Pressable>
+  ) : null;
+
   // ── Loading ──
   if (loading) {
     return (
@@ -222,12 +243,18 @@ export default function OrdersScreen() {
         headerVariant="light"
         stickyComponent={filterBar}
         scrollable={false}
+        rightComponent={createOrderButton}
       >
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
           <ActivityIndicator size="large" color="#3B2F2F" />
-          <BodyMediumText style={{ color: "#9CA3AF", marginTop: 12 }}>
+          <Typography
+            variation="body"
+            style={{ color: "#9CA3AF", marginTop: 12 }}
+          >
             Loading orders...
-          </BodyMediumText>
+          </Typography>
         </View>
       </TabScreenLayout>
     );
@@ -239,9 +266,10 @@ export default function OrdersScreen() {
       headerVariant="light"
       stickyComponent={filterBar}
       onRefresh={loadData}
+      rightComponent={createOrderButton}
       contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, gap: 12 }}
     >
-      {showGuideBanner && <GuideBanner onDismiss={dismissGuideBanner} />}
+      {/* {showGuideBanner && <GuideBanner onDismiss={dismissGuideBanner} />} */}
 
       {filteredItems.length === 0 ? (
         <OrderEmptyState filterLabel={activeFilterLabel} />

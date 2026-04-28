@@ -15,7 +15,7 @@
 ```
 ┌─────────────────────────┐
 │ p-4 pb-2                │
-│ ThriftVerse (centered)  │
+│ Thriftverse (centered)  │
 │ text-primary            │
 │ text-lg font-bold       │
 └─────────────────────────┘

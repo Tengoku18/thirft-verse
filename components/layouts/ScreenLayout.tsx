@@ -1,4 +1,5 @@
 import { ScreenHeader } from "@/components/navigation/ScreenHeader";
+import { Stack } from "expo-router";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -18,6 +19,7 @@ interface ScreenLayoutProps {
   contentBackgroundColor?: string;
   onRefresh?: () => Promise<void>;
   scrollEnabled?: boolean;
+  scrollable?: boolean;
   headerBackgroundColor?: string;
   paddingHorizontal?: number;
 }
@@ -49,6 +51,7 @@ export function ScreenLayout({
   contentBackgroundColor = "#FAFAFA",
   onRefresh,
   scrollEnabled = true,
+  scrollable = true,
   headerBackgroundColor = "#FFFFFF",
   paddingHorizontal = 16,
 }: ScreenLayoutProps) {
@@ -74,6 +77,7 @@ export function ScreenLayout({
         backgroundColor,
       }}
     >
+      <Stack.Screen options={{ headerShown: false }} />
       {/* Header */}
       <ScreenHeader
         title={title}
@@ -89,28 +93,33 @@ export function ScreenLayout({
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        {/* Scrollable Content */}
-        <ScrollView
-          scrollEnabled={scrollEnabled}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal,
-            paddingBottom: 100,
-          }}
-          style={{ backgroundColor: contentBackgroundColor }}
-          refreshControl={
-            onRefresh ? (
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-                tintColor="#3B2F2F"
-                progressBackgroundColor="#FFFFFF"
-              />
-            ) : undefined
-          }
-        >
-          {children}
-        </ScrollView>
+        {scrollable ? (
+          <ScrollView
+            scrollEnabled={scrollEnabled}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal,
+              paddingBottom: 100,
+            }}
+            style={{ backgroundColor: contentBackgroundColor }}
+            refreshControl={
+              onRefresh ? (
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  tintColor="#3B2F2F"
+                  progressBackgroundColor="#FFFFFF"
+                />
+              ) : undefined
+            }
+          >
+            {children}
+          </ScrollView>
+        ) : (
+          <View style={{ flex: 1, backgroundColor: contentBackgroundColor }}>
+            {children}
+          </View>
+        )}
       </KeyboardAvoidingView>
     </View>
   );

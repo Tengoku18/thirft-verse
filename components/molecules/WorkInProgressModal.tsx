@@ -45,8 +45,8 @@ export function WorkInProgressModal({
             className="text-ui-secondary text-center mb-6"
             style={{ lineHeight: 22 }}
           >
-            {featureName} is currently under development. We're working hard to
-            bring it to you soon. Stay tuned!
+            {featureName} is currently under development. We&apos;re working
+            hard to bring it to you soon. Stay tuned!
           </Typography>
 
           {/* Got it button */}
@@ -56,7 +56,10 @@ export function WorkInProgressModal({
             className="w-full items-center justify-center rounded-2xl py-4"
             style={{ backgroundColor: "#3B3030" }}
           >
-            <Typography variation="button" className="text-white font-sans-bold">
+            <Typography
+              variation="button"
+              className="text-white font-sans-bold"
+            >
               Got it
             </Typography>
           </TouchableOpacity>

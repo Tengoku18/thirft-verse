@@ -165,6 +165,15 @@ export function PhotoCarousel({
           </TouchableOpacity>
         )}
       </ScrollView>
+
+      {coverError && (
+        <Typography
+          variation="caption"
+          style={{ color: "#EF4444", paddingHorizontal: 20, marginTop: 6 }}
+        >
+          {coverError}
+        </Typography>
+      )}
     </View>
   );
 }

@@ -53,9 +53,6 @@ export function Checkbox({
 }: CheckboxProps) {
   const isDisabled = variant === "disabled" || disabled;
 
-  // Always use 1px border width for consistent light appearance
-  const borderWidth = 1;
-
   return (
     <View>
       <View
@@ -63,20 +60,7 @@ export function Checkbox({
         style={containerStyle}
       >
         {/* Checkbox Box */}
-        <View
-          className={
-            checkboxClassName ||
-            "w-5 h-5 border  rounded-xl items-center justify-center"
-          }
-          style={[
-            {
-              borderColor: errorMessage ? "#EF4444" : INPUT_COLORS.border,
-              borderWidth,
-              backgroundColor: isDisabled ? "#F5F1ED" : "white",
-              opacity: isDisabled ? 0.5 : 1,
-            },
-          ]}
-        >
+        <View className={checkboxClassName || "items-center justify-center"}>
           <ExpoCheckbox
             value={checked}
             onValueChange={!isDisabled ? onPress : undefined}
@@ -91,8 +75,8 @@ export function Checkbox({
             }
             disabled={isDisabled}
             style={{
-              width: 16,
-              height: 16,
+              width: 20,
+              height: 20,
               borderRadius: 5,
             }}
           />

@@ -1,7 +1,8 @@
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import Typography from "@/components/ui/Typography";
+import * as Clipboard from "expo-clipboard";
 import React, { useState } from "react";
-import { Clipboard, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
 interface NCMSuccessContentProps {
   ncmOrderId: number | null;
@@ -10,9 +11,9 @@ interface NCMSuccessContentProps {
 export function NCMSuccessContent({ ncmOrderId }: NCMSuccessContentProps) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!ncmOrderId) return;
-    Clipboard.setString(String(ncmOrderId));
+    await Clipboard.setStringAsync(String(ncmOrderId));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

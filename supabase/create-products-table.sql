@@ -1,5 +1,5 @@
 -- =====================================================
--- ThriftVerse Products Table Migration
+-- Thriftverse Products Table Migration
 -- =====================================================
 -- This migration creates the products table for storing
 -- thrift items listed by users on the marketplace.

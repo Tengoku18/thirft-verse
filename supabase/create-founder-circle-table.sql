@@ -1,5 +1,5 @@
 -- =====================================================
--- ThriftVerse Founder Circle Applications Table
+-- Thriftverse Founder Circle Applications Table
 -- =====================================================
 -- Stores early-access applications for the Founder Circle
 -- program. Applicants choose a role (creator / seller),

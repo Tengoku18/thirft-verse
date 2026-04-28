@@ -2,12 +2,10 @@ import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
 
-export type StoreTab = "items" | "collections" | "reviews";
+export type StoreTab = "items";
 
 const TABS: { key: StoreTab; label: string }[] = [
   { key: "items", label: "All Items" },
-  { key: "collections", label: "Collections" },
-  { key: "reviews", label: "Reviews" },
 ];
 
 interface StoreTabBarProps {
