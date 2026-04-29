@@ -1,5 +1,5 @@
-import { BodySemiboldText } from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { PencilIcon, ShippingBoxIcon } from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -61,10 +61,10 @@ export function OrderBottomActions({
                 borderColor: "rgba(59,48,48,0.15)",
               }}
             >
-              <IconSymbol name="pencil" size={16} color="#3B2F2F" />
-              <BodySemiboldText style={{ fontSize: 15, color: "#3B2F2F" }}>
+              <PencilIcon width={16} height={16} color="#3B2F2F" />
+              <Typography variation="label" style={{ fontSize: 15, color: "#3B2F2F" }}>
                 Edit Order
-              </BodySemiboldText>
+              </Typography>
             </TouchableOpacity>
           )}
 
@@ -93,11 +93,11 @@ export function OrderBottomActions({
             {submitting ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <IconSymbol name="shippingbox.fill" size={16} color="#FFFFFF" />
+              <ShippingBoxIcon width={16} height={16} color="#FFFFFF" />
             )}
-            <BodySemiboldText style={{ fontSize: 15, color: "#FFFFFF" }}>
+            <Typography variation="label" style={{ fontSize: 15, color: "#FFFFFF" }}>
               {submitting ? "Processing..." : "Send to NCM"}
-            </BodySemiboldText>
+            </Typography>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

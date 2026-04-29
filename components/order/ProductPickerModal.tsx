@@ -1,7 +1,6 @@
 import PlusIcon from "@/components/icons/PlusIcon";
 import XIcon from "@/components/icons/XIcon";
 import { ProductPickerCard } from "@/components/order/ProductPickerCard";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,6 +25,7 @@ import {
   View,
 } from "react-native";
 import { Button } from "../ui/Button";
+import { CubeIcon } from "@/components/icons";
 
 const PAGE_SIZE = 20;
 
@@ -301,7 +301,7 @@ export function ProductPickerModal({
                     className="w-16 h-16 rounded-full items-center justify-center"
                     style={{ backgroundColor: "#F3F4F6" }}
                   >
-                    <IconSymbol name="cube" size={30} color="#9CA3AF" />
+                    <CubeIcon width={30} height={30} color="#9CA3AF" />
                   </View>
                   <View className="items-center gap-1">
                     <Typography
@@ -324,7 +324,7 @@ export function ProductPickerModal({
                     <View className="w-full">
                       <Button
                         fullWidth
-                        icon={<PlusIcon size={14} color="#fff" />}
+                        icon={<PlusIcon width={14} height={14} color="#fff" />}
                         iconPosition="left"
                         onPress={handleAddProduct}
                         label="Add product"

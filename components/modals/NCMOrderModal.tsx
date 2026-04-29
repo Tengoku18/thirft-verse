@@ -1,7 +1,6 @@
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { FormPicker, PickerOption } from "@/components/atoms/FormPicker";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import {
   createNCMOrder,
@@ -14,6 +13,7 @@ import {
   isValidNepaliPhone,
 } from "@/lib/validations/create-order";
 import React, { useEffect, useState } from "react";
+import { XIcon } from "@/components/icons";
 import {
   ActivityIndicator,
   Alert,
@@ -211,7 +211,7 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
               </Typography>
             </View>
             <TouchableOpacity onPress={onClose} className="ml-4">
-              <IconSymbol name="xmark" size={24} color="#6B7280" />
+              <XIcon width={24} height={24} color="#6B7280" />
             </TouchableOpacity>
           </View>
 

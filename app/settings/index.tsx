@@ -10,7 +10,6 @@ import {
   SettingsToggleRow,
 } from "@/components/settings";
 import { ActionModal } from "@/components/ui/ActionModal";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { clearAuth, signOutUser } from "@/store/authSlice";
@@ -19,6 +18,7 @@ import { clearProfile } from "@/store/profileSlice";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { View } from "react-native";
+import { DoorInIcon } from "@/components/icons";
 
 export default function SettingsScreen() {
   const dispatch = useAppDispatch();
@@ -139,7 +139,7 @@ export default function SettingsScreen() {
             </>
           )}
           <SettingsRow
-            icon="shield"
+            icon="eye.slash"
             label="Data & Privacy"
             onPress={() => {}}
           />
@@ -200,11 +200,7 @@ export default function SettingsScreen() {
       <ActionModal
         visible={showSignOutModal}
         icon={
-          <IconSymbol
-            name="rectangle.portrait.and.arrow.right"
-            size={24}
-            color="#3B3030"
-          />
+          <DoorInIcon width={24} height={24} color="#3B3030" />
         }
         title="Sign Out?"
         description="Are you sure you want to sign out of Thriftverse? You'll need to log back in to access your saved items. You can always log back in later."

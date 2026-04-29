@@ -1,5 +1,11 @@
+import {
+  ArrowDownRightIcon,
+  ArrowUpRightIcon,
+  LayersIcon,
+  RightArrowIcon,
+  TrendingUpIcon,
+} from "@/components/icons";
 import { Typography } from "@/components/ui/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import React from "react";
 import { View } from "react-native";
 
@@ -23,11 +29,15 @@ export function SellerGrowthMetrics({
       ? "#3B2F2F"
       : "#DC2626";
 
-  const trendIcon = isStrongGrowth
-    ? "arrow.up.right"
-    : isPositiveGrowth
-      ? "arrow.right"
-      : "arrow.down.right";
+  const renderTrendIcon = () => {
+    if (isStrongGrowth) {
+      return <ArrowUpRightIcon width={14} height={14} color={trendColor} />;
+    } else if (isPositiveGrowth) {
+      return <RightArrowIcon width={14} height={14} color={trendColor} />;
+    } else {
+      return <ArrowDownRightIcon width={14} height={14} color={trendColor} />;
+    }
+  };
 
   return (
     <View style={{ gap: 12 }}>
@@ -75,17 +85,26 @@ export function SellerGrowthMetrics({
               marginBottom: 10,
             }}
           >
-            <IconSymbol name="square.stack.fill" size={18} color={SECONDARY} />
+            <LayersIcon width={18} height={18} color={SECONDARY} />
           </View>
           <Typography
             variation="caption"
-            style={{ fontSize: 11, color: "rgba(59,47,47,0.5)", fontWeight: "600" }}
+            style={{
+              fontSize: 11,
+              color: "rgba(59,47,47,0.5)",
+              fontWeight: "600",
+            }}
           >
             Total Sold
           </Typography>
           <Typography
             variation="h4"
-            style={{ fontSize: 22, color: SECONDARY, marginTop: 4, fontWeight: "700" }}
+            style={{
+              fontSize: 22,
+              color: SECONDARY,
+              marginTop: 4,
+              fontWeight: "700",
+            }}
           >
             {totalItemsSold}
           </Typography>
@@ -124,16 +143,25 @@ export function SellerGrowthMetrics({
               marginBottom: 10,
             }}
           >
-            <IconSymbol name="chart.line.uptrend.xyaxis" size={18} color={SECONDARY} />
+            <TrendingUpIcon width={18} height={18} color={SECONDARY} />
           </View>
           <Typography
             variation="caption"
-            style={{ fontSize: 11, color: "rgba(59,47,47,0.5)", fontWeight: "600" }}
+            style={{
+              fontSize: 11,
+              color: "rgba(59,47,47,0.5)",
+              fontWeight: "600",
+            }}
           >
             Store Trend
           </Typography>
           <View
-            style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 }}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+              marginTop: 4,
+            }}
           >
             <Typography
               variation="h4"
@@ -142,7 +170,7 @@ export function SellerGrowthMetrics({
               {isPositiveGrowth ? "+" : ""}
               {storeGrowthTrend.toFixed(0)}%
             </Typography>
-            <IconSymbol name={trendIcon as any} size={14} color={trendColor} />
+            {renderTrendIcon()}
           </View>
           <Typography
             variation="caption"

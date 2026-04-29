@@ -1,8 +1,4 @@
-import {
-  BodyMediumText,
-  BodySemiboldText,
-  HeadingBoldText,
-} from "@/components/Typography";
+import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { Dimensions, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
@@ -39,20 +35,20 @@ export const SalesChart: React.FC<SalesChartProps> = ({
     >
       <View className="flex-row items-center justify-between mb-4">
         <View>
-          <BodyMediumText style={{ color: "#6B7280", fontSize: 13 }}>
+          <Typography variation="body-sm" style={{ color: "#6B7280", fontSize: 13 }}>
             {title}
-          </BodyMediumText>
-          <HeadingBoldText style={{ fontSize: 24, marginTop: 4 }}>
+          </Typography>
+          <Typography variation="h2" style={{ fontSize: 24, marginTop: 4 }}>
             Rs. {totalAmount.toLocaleString()}
-          </HeadingBoldText>
+          </Typography>
         </View>
         <View
           className="px-3 py-1.5 rounded-full"
           style={{ backgroundColor: "rgba(59, 130, 246, 0.1)" }}
         >
-          <BodySemiboldText style={{ color: "#3B82F6", fontSize: 12 }}>
+          <Typography variation="label" style={{ color: "#3B82F6", fontSize: 12 }}>
             This Week
-          </BodySemiboldText>
+          </Typography>
         </View>
       </View>
 

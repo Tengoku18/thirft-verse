@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Profile } from '@/lib/types/database';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { ChevronRightIcon } from "@/components/icons";
+import { Profile } from "@/lib/types/database";
+import { useRouter } from "expo-router";
+import React from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface StoreCardProps {
   store: Profile;
@@ -21,15 +21,25 @@ export default function StoreCard({ store, onPress }: StoreCardProps) {
   };
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
       <View style={styles.container}>
         {/* Store Image */}
         <View style={styles.imageContainer}>
           {store.profile_image ? (
-            <Image source={{ uri: store.profile_image }} style={styles.image} resizeMode="cover" />
+            <Image
+              source={{ uri: store.profile_image }}
+              style={styles.image}
+              resizeMode="cover"
+            />
           ) : (
             <View style={styles.placeholderImage}>
-              <Text style={styles.placeholderText}>{store.name.charAt(0).toUpperCase()}</Text>
+              <Text style={styles.placeholderText}>
+                {store.name.charAt(0).toUpperCase()}
+              </Text>
             </View>
           )}
         </View>
@@ -51,7 +61,7 @@ export default function StoreCard({ store, onPress }: StoreCardProps) {
 
         {/* Arrow Icon */}
         <View style={styles.arrowContainer}>
-          <IconSymbol name="chevron.right" size={18} color="#9CA3AF" />
+          <ChevronRightIcon width={18} height={18} color="#9CA3AF" />
         </View>
       </View>
     </TouchableOpacity>
@@ -60,39 +70,39 @@ export default function StoreCard({ store, onPress }: StoreCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: "#F3F4F6",
     marginBottom: 10,
   },
   container: {
     padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   imageContainer: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginRight: 12,
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   placeholderImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
   },
   placeholderText: {
     fontSize: 20,
-    fontFamily: 'NunitoSans_700Bold',
-    color: '#9CA3AF',
+    fontFamily: "NunitoSans_700Bold",
+    color: "#9CA3AF",
   },
   infoContainer: {
     flex: 1,
@@ -100,19 +110,19 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 15,
-    fontFamily: 'NunitoSans_700Bold',
-    color: '#1A1A1A',
+    fontFamily: "NunitoSans_700Bold",
+    color: "#1A1A1A",
     marginBottom: 2,
   },
   username: {
     fontSize: 13,
-    fontFamily: 'NunitoSans_500Medium',
-    color: '#6B7280',
+    fontFamily: "NunitoSans_500Medium",
+    color: "#6B7280",
   },
   bio: {
     fontSize: 13,
-    fontFamily: 'NunitoSans_400Regular',
-    color: '#9CA3AF',
+    fontFamily: "NunitoSans_400Regular",
+    color: "#9CA3AF",
     marginTop: 2,
   },
   arrowContainer: {

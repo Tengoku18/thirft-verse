@@ -1,12 +1,8 @@
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
 import { ProfileImagePicker } from "@/components/atoms/ProfileImagePicker";
-import {
-  BodyBoldText,
-  BodyRegularText,
-  CaptionText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { CheckMarkCircleIcon, CheckmarkIcon, XIcon } from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
 import { checkEmailExists, checkUsernameExists } from "@/lib/database-helpers";
 import {
   UserDetailsFormData,
@@ -199,7 +195,6 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                 onBlur={onBlur}
                 onChangeText={onChange}
                 error={errors.address?.message}
-                helpText="Optional - you can add this later"
               />
             )}
           />
@@ -229,42 +224,25 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                     {usernameStatus === "checking" && (
                       <>
                         <ActivityIndicator size="small" color="#6B7280" />
-                        <CaptionText
-                          className="ml-2"
-                          style={{ color: "#6B7280" }}
-                        >
+                        <Typography variation="caption" className="ml-2" style={{ color: "#6B7280" }}>
                           Checking availability...
-                        </CaptionText>
+                        </Typography>
                       </>
                     )}
                     {usernameStatus === "available" && (
                       <>
-                        <IconSymbol
-                          name="checkmark.circle.fill"
-                          size={16}
-                          color="#22C55E"
-                        />
-                        <CaptionText
-                          className="ml-2"
-                          style={{ color: "#22C55E" }}
-                        >
+                        <CheckMarkCircleIcon width={16} height={16} color="#22C55E" />
+                        <Typography variation="caption" className="ml-2" style={{ color: "#22C55E" }}>
                           Username is available
-                        </CaptionText>
+                        </Typography>
                       </>
                     )}
                     {usernameStatus === "taken" && (
                       <>
-                        <IconSymbol
-                          name="xmark.circle.fill"
-                          size={16}
-                          color="#EF4444"
-                        />
-                        <CaptionText
-                          className="ml-2"
-                          style={{ color: "#EF4444" }}
-                        >
+                        <XIcon width={16} height={16} color="#EF4444" />
+                        <Typography variation="caption" className="ml-2" style={{ color: "#EF4444" }}>
                           Username is already taken
-                        </CaptionText>
+                        </Typography>
                       </>
                     )}
                   </View>
@@ -332,25 +310,28 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                     }`}
                   >
                     {value && (
-                      <IconSymbol name="checkmark" size={12} color="#FFFFFF" />
+                      <CheckmarkIcon width={12} height={12} color="#FFFFFF" />
                     )}
                   </View>
                   <View className="flex-1">
-                    <BodyRegularText
+                    <Typography
+                      variation="body-sm"
                       className="leading-5"
                       style={{ color: "#6B7280", fontSize: 13 }}
                     >
                       I agree to the{" "}
-                      <BodyBoldText
+                      <Typography
+                        variation="label"
                         style={{ fontSize: 13 }}
                         onPress={() =>
                           Linking.openURL("https://www.thriftverse.shop/terms")
                         }
                       >
                         Terms & Conditions
-                      </BodyBoldText>{" "}
+                      </Typography>{" "}
                       and{" "}
-                      <BodyBoldText
+                      <Typography
+                        variation="label"
                         style={{ fontSize: 13 }}
                         onPress={() =>
                           Linking.openURL(
@@ -359,17 +340,18 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
                         }
                       >
                         Privacy Policy
-                      </BodyBoldText>
-                    </BodyRegularText>
+                      </Typography>
+                    </Typography>
                   </View>
                 </TouchableOpacity>
                 {errors.acceptedTerms && (
-                  <CaptionText
+                  <Typography
+                    variation="caption"
                     className="mt-2 ml-8"
                     style={{ color: "#EF4444", fontSize: 13 }}
                   >
                     {errors.acceptedTerms.message}
-                  </CaptionText>
+                  </Typography>
                 )}
               </View>
             )}
@@ -388,11 +370,11 @@ export const SignupStep1: React.FC<SignupStep1Props> = ({
 
       <View className="mt-6 pb-4">
         <View className="flex-row justify-center items-center">
-          <BodyRegularText style={{ color: "#6B7280" }}>
+          <Typography variation="body-sm" style={{ color: "#6B7280" }}>
             Already have an account?{" "}
-          </BodyRegularText>
+          </Typography>
           <TouchableOpacity onPress={() => router.back()}>
-            <BodyBoldText>Sign In</BodyBoldText>
+            <Typography variation="label">Sign In</Typography>
           </TouchableOpacity>
         </View>
       </View>

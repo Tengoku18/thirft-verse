@@ -1,24 +1,24 @@
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
 import {
   EarningsStatCard,
   PaymentHistoryItem,
   PaymentMethodCard,
   WithdrawModal,
 } from "@/components/earnings";
+import {
+  ClockArrowIcon,
+  CreditCardFillIcon,
+  GearIcon,
+} from "@/components/icons";
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import { EsewaPaymentForm } from "@/components/payment/EsewaPaymentForm";
-import {
-  BodyMediumText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { supabase } from "@/lib/supabase";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
 // ─────────────── Types ───────────────
 interface PaymentData {
@@ -187,12 +187,7 @@ export default function EarningsScreen() {
         headerVariant="light"
         scrollable={false}
       >
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color="#3B2F2F" />
-          <BodyMediumText style={{ color: "#9CA3AF", marginTop: 12 }}>
-            Loading your earnings...
-          </BodyMediumText>
-        </View>
+        <FullScreenLoader message="Loading your earnings..." />
       </TabScreenLayout>
     );
   }
@@ -282,18 +277,26 @@ export default function EarningsScreen() {
           elevation: 6,
         }}
       >
-        <IconSymbol name="creditcard.fill" size={20} color="#FFFFFF" />
-        <BodySemiboldText style={{ color: "#FFFFFF", fontSize: 17 }}>
+        <CreditCardFillIcon width={20} height={20} color="#FFFFFF" />
+        <Typography
+          variation="body-sm"
+          style={{ color: "#FFFFFF", fontSize: 17, fontWeight: "600" }}
+        >
           Withdraw Request
-        </BodySemiboldText>
+        </Typography>
       </TouchableOpacity>
 
       {confirmedBalance <= 0 && (
-        <CaptionText
-          style={{ textAlign: "center", color: "rgba(59,48,48,0.4)", marginTop: -8 }}
+        <Typography
+          variation="caption"
+          style={{
+            textAlign: "center",
+            color: "rgba(59,48,48,0.4)",
+            marginTop: -8,
+          }}
         >
           No confirmed balance available for withdrawal
-        </CaptionText>
+        </Typography>
       )}
 
       {/* ── Payment method card ── */}
@@ -314,15 +317,14 @@ export default function EarningsScreen() {
             paddingHorizontal: 2,
           }}
         >
-          <HeadingBoldText style={{ fontSize: 18, color: "#3B2F2F" }}>
+          <Typography
+            variation="h3"
+            style={{ fontSize: 18, color: "#3B2F2F", fontWeight: "700" }}
+          >
             Payment History
-          </HeadingBoldText>
+          </Typography>
           <TouchableOpacity activeOpacity={0.7}>
-            <IconSymbol
-              name="slider.horizontal.3"
-              size={20}
-              color="rgba(59,48,48,0.4)"
-            />
+            <GearIcon width={20} height={20} color="rgba(59,48,48,0.4)" />
           </TouchableOpacity>
         </View>
 
@@ -348,14 +350,20 @@ export default function EarningsScreen() {
                 marginBottom: 12,
               }}
             >
-              <IconSymbol name="clock.arrow.circlepath" size={24} color="#9CA3AF" />
+              <ClockArrowIcon width={24} height={24} color="#9CA3AF" />
             </View>
-            <BodyMediumText style={{ color: "#6B7280", textAlign: "center" }}>
+            <Typography
+              variation="body-sm"
+              style={{ color: "#6B7280", textAlign: "center" }}
+            >
               No withdrawal requests yet
-            </BodyMediumText>
-            <CaptionText style={{ color: "#9CA3AF", textAlign: "center", marginTop: 4 }}>
+            </Typography>
+            <Typography
+              variation="caption"
+              style={{ color: "#9CA3AF", textAlign: "center", marginTop: 4 }}
+            >
               Your requests will appear here
-            </CaptionText>
+            </Typography>
           </View>
         ) : (
           <View style={{ gap: 10 }}>
@@ -375,9 +383,12 @@ export default function EarningsScreen() {
                 activeOpacity={0.7}
                 style={{ alignItems: "center", paddingVertical: 12 }}
               >
-                <BodySemiboldText style={{ color: "#D4A373", fontSize: 14 }}>
+                <Typography
+                  variation="body-sm"
+                  style={{ color: "#D4A373", fontSize: 14, fontWeight: "600" }}
+                >
                   View All Transactions
-                </BodySemiboldText>
+                </Typography>
               </TouchableOpacity>
             )}
           </View>

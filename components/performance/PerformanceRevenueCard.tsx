@@ -1,5 +1,5 @@
+import { ArrowDownRightIcon, ArrowUpRightIcon } from "@/components/icons";
 import { Typography } from "@/components/ui/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import React from "react";
 import { View } from "react-native";
 
@@ -15,10 +15,8 @@ interface PerformanceRevenueCardProps {
 }
 
 function formatRevenue(amount: number, symbol = "Rs. "): string {
-  if (amount >= 1_00_000)
-    return `${symbol}${(amount / 1_00_000).toFixed(1)}L`;
-  if (amount >= 1_000)
-    return `${symbol}${(amount / 1_000).toFixed(1)}k`;
+  if (amount >= 1_00_000) return `${symbol}${(amount / 1_00_000).toFixed(1)}L`;
+  if (amount >= 1_000) return `${symbol}${(amount / 1_000).toFixed(1)}k`;
   return `${symbol}${amount.toLocaleString()}`;
 }
 
@@ -82,11 +80,11 @@ export function PerformanceRevenueCard({
               : "rgba(239,68,68,0.1)",
           }}
         >
-          <IconSymbol
-            name={isPositive ? "arrow.up.right" : "arrow.down.right"}
-            size={12}
-            color={isPositive ? "#22C55E" : "#EF4444"}
-          />
+          {isPositive ? (
+            <ArrowUpRightIcon width={12} height={12} color="#22C55E" />
+          ) : (
+            <ArrowDownRightIcon width={12} height={12} color="#EF4444" />
+          )}
           <Typography
             variation="label"
             style={{
@@ -128,9 +126,7 @@ export function PerformanceRevenueCard({
                 style={{
                   width: "100%",
                   height: `${heightPct}%`,
-                  backgroundColor: isHighlight
-                    ? SECONDARY
-                    : `${SECONDARY}22`,
+                  backgroundColor: isHighlight ? SECONDARY : `${SECONDARY}22`,
                   borderTopLeftRadius: 6,
                   borderTopRightRadius: 6,
                   shadowColor: isHighlight ? SECONDARY : "transparent",

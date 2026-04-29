@@ -1,4 +1,4 @@
-import { BodyBoldText } from "@/components/Typography";
+import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import {
   ActivityIndicator,
@@ -59,15 +59,12 @@ export const FormButton: React.FC<FormButtonProps> = ({
         {loading ? (
           <ActivityIndicator color={getTextColor()} size="small" />
         ) : (
-          <BodyBoldText
-            style={{
-              color: getTextColor(),
-              fontSize: 16,
-              letterSpacing: 0.5,
-            }}
+          <Typography
+            variation="h5"
+            style={{ color: getTextColor(), letterSpacing: 0.5 }}
           >
             {title}
-          </BodyBoldText>
+          </Typography>
         )}
       </TouchableOpacity>
     </View>

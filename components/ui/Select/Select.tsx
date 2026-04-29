@@ -1,5 +1,5 @@
+import { ChevronRightIcon, SearchIcon } from "@/components/icons";
 import CheckIcon from "@/components/icons/CheckIcon";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Colors, INPUT_COLORS } from "@/constants/theme";
 import { BlurView } from "expo-blur";
@@ -175,11 +175,7 @@ export function Select({
 
         {/* Chevron */}
         <View className="ml-2">
-          <IconSymbol
-            name="chevron.up.chevron.down"
-            size={16}
-            color={INPUT_COLORS.icon}
-          />
+          <ChevronRightIcon width={16} height={16} color={INPUT_COLORS.icon} />
         </View>
       </Pressable>
 
@@ -250,11 +246,7 @@ export function Select({
                 )}
                 ListEmptyComponent={
                   <View className="flex-1 justify-center items-center py-12">
-                    <IconSymbol
-                      name="magnifyingglass"
-                      size={40}
-                      color="#D1D5DB"
-                    />
+                    <SearchIcon width={40} height={40} color="#D1D5DB" />
                     <Typography variation="body" className="text-gray-500 mt-3">
                       {searchQuery.trim()
                         ? `No results for "${searchQuery.trim()}"`

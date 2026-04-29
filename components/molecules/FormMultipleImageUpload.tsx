@@ -1,14 +1,10 @@
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { uploadMultipleImages } from "@/lib/upload-helpers";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
+import { PhotoStackIcon, XIcon } from "@/components/icons";
 import {
   ActivityIndicator,
   Alert,
@@ -123,16 +119,16 @@ export const FormMultipleImageUpload: React.FC<
     <View className="mb-6">
       {/* Label with count */}
       <View className="flex-row items-center justify-between mb-3">
-        <BodySemiboldText
+        <Typography variation="label"
           style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: 0.5 }}
         >
           {label}
-        </BodySemiboldText>
-        <BodySemiboldText
+        </Typography>
+        <Typography variation="label"
           style={{ color: value.length >= maxImages ? "#EF4444" : "#6B7280", fontSize: 12 }}
         >
           {value.length}/{maxImages}
-        </BodySemiboldText>
+        </Typography>
       </View>
 
       {/* Images Grid */}
@@ -179,7 +175,7 @@ export const FormMultipleImageUpload: React.FC<
                 }}
                 activeOpacity={0.8}
               >
-                <IconSymbol name="xmark" size={14} color="#EF4444" />
+                <XIcon width={14} height={14} color="#EF4444" />
               </TouchableOpacity>
             </View>
           ))}
@@ -207,9 +203,9 @@ export const FormMultipleImageUpload: React.FC<
           {uploading ? (
             <View className="items-center">
               <ActivityIndicator size="large" color="#3B2F2F" />
-              <BodySemiboldText className="mt-3" style={{ fontSize: 14 }}>
+              <Typography variation="label" className="mt-3" style={{ fontSize: 14 }}>
                 Uploading...
-              </BodySemiboldText>
+              </Typography>
             </View>
           ) : (
             <View className="items-center px-6">
@@ -224,18 +220,18 @@ export const FormMultipleImageUpload: React.FC<
                   marginBottom: 12,
                 }}
               >
-                <IconSymbol name="photo.stack" size={32} color="#3B2F2F" />
+                <PhotoStackIcon width={32} height={32} color="#3B2F2F" />
               </View>
-              <HeadingBoldText className="mb-1" style={{ fontSize: 16 }}>
+              <Typography variation="h2" className="mb-1" style={{ fontSize: 16 }}>
                 {value.length > 0
                   ? "Add More Photos"
                   : "Upload Additional Photos"}
-              </HeadingBoldText>
-              <BodyRegularText className="text-center" style={{ color: "#6B7280", fontSize: 13 }}>
+              </Typography>
+              <Typography variation="body" className="text-center" style={{ color: "#6B7280", fontSize: 13 }}>
                 {value.length > 0
                   ? `Add ${maxImages - value.length} more`
                   : `Select up to ${maxImages} images`}
-              </BodyRegularText>
+              </Typography>
             </View>
           )}
         </TouchableOpacity>
@@ -243,16 +239,16 @@ export const FormMultipleImageUpload: React.FC<
 
       {/* Hint - only show when no images uploaded */}
       {hint && !error && value.length === 0 && (
-        <CaptionText className="mt-2" style={{ color: "#6B7280" }}>
+        <Typography variation="caption" className="mt-2" style={{ color: "#6B7280" }}>
           {hint}
-        </CaptionText>
+        </Typography>
       )}
 
       {/* Error Message */}
       {error && (
-        <BodySemiboldText className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
+        <Typography variation="label" className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
           {error}
-        </BodySemiboldText>
+        </Typography>
       )}
     </View>
   );

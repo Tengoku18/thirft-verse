@@ -2,6 +2,7 @@ import { UploadBox } from "@/components/atoms/UploadBox";
 import { RHFInput } from "@/components/forms/ReactHookForm";
 import { QRCodeIcon, UserIcon } from "@/components/icons";
 import { Typography } from "@/components/ui/Typography";
+import { INPUT_COLORS } from "@/constants/theme";
 import React from "react";
 import { Control, FieldPath, FieldValues } from "react-hook-form";
 import { View } from "react-native";
@@ -35,7 +36,7 @@ export function EsewaPaymentFields<T extends FieldValues>({
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="phone-pad"
-          leftIcon={<UserIcon />}
+          leftIcon={<UserIcon color={INPUT_COLORS.icon} />}
         />
       </View>
 
@@ -45,7 +46,7 @@ export function EsewaPaymentFields<T extends FieldValues>({
           ESEWA QR CODE
         </Typography>
         <UploadBox
-          icon={<QRCodeIcon size={32} />}
+          icon={<QRCodeIcon width={32} height={32} />}
           title="Upload QR Image"
           subtitle="PNG, JPG up to 5MB"
           onPress={onPickQRImage}

@@ -1,11 +1,10 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
-import React from "react";
+import React, { ReactNode } from "react";
 import { TouchableOpacity, View } from "react-native";
 
 interface ContactOption {
   label: string;
-  icon: string;
+  icon: ReactNode;
   onPress: () => void;
 }
 
@@ -47,7 +46,10 @@ export function ContactSupportCard({
           <Typography variation="h3" className="text-white font-folito-bold">
             {title}
           </Typography>
-          <Typography variation="body-sm" style={{ color: "rgba(255,255,255,0.75)" }}>
+          <Typography
+            variation="body-sm"
+            style={{ color: "rgba(255,255,255,0.75)" }}
+          >
             {description}
           </Typography>
         </View>
@@ -60,8 +62,11 @@ export function ContactSupportCard({
             className="flex-row items-center justify-center gap-2 rounded-2xl py-4"
             style={{ backgroundColor: "#D4A373" }}
           >
-            <IconSymbol name={primaryOption.icon as any} size={20} color="#3B3030" />
-            <Typography variation="button" className="text-brand-espresso font-sans-bold">
+            {primaryOption.icon}
+            <Typography
+              variation="button"
+              className="text-brand-espresso font-sans-bold"
+            >
               {primaryOption.label}
             </Typography>
           </TouchableOpacity>
@@ -76,8 +81,12 @@ export function ContactSupportCard({
                 className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl py-4"
                 style={{ backgroundColor: "rgba(255,255,255,0.12)" }}
               >
-                <IconSymbol name={option.icon as any} size={18} color="#FFFFFF" />
-                <Typography variation="button" style={{ color: "#FFFFFF" }} className="font-sans-semibold">
+                {option.icon}
+                <Typography
+                  variation="button"
+                  style={{ color: "#FFFFFF" }}
+                  className="font-sans-semibold"
+                >
                   {option.label}
                 </Typography>
               </TouchableOpacity>

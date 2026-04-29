@@ -1,6 +1,5 @@
 import { InfoBox } from "@/components/atoms/InfoBox";
-import { RightArrowIcon } from "@/components/icons";
-import IIcon from "@/components/icons/IIcon";
+import { ForwardIcon } from "@/components/icons";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { EsewaPaymentFields } from "@/components/payment/EsewaPaymentFields";
 import { Button } from "@/components/ui/Button/Button";
@@ -248,16 +247,12 @@ export default function SignupStep5Screen() {
               />
             </View>
 
-            {/* Info Box */}
-            <View className="p-4 bg-[#FEF3C7] rounded-2xl flex-row items-start gap-3">
-              <View className="text-xl pt-0.5">
-                <IIcon />
-              </View>
-              <Typography variation="body-sm" className="text-[#92400E] flex-1">
-                Your eSewa details are used only to process your withdrawals.
-                Make sure your QR code is clear and up to date.
-              </Typography>
-            </View>
+            <InfoBox
+              type="warning"
+              message={
+                "Your eSewa details are used only to process your withdrawals.Make sure your QR code is clear and up to date."
+              }
+            />
           </View>
         </ScrollView>
 
@@ -287,7 +282,7 @@ export default function SignupStep5Screen() {
               disabled={loading || isSkipping}
               fullWidth
               iconPosition="right"
-              icon={<RightArrowIcon width={20} height={20} color="#fff" />}
+              icon={<ForwardIcon width={20} height={20} color={"#FFFFFF"} />}
             />
           </View>
         </View>

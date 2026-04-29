@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/Button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import Typography from "@/components/ui/Typography";
 import React from "react";
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, View } from "react-native";
@@ -8,6 +7,7 @@ import { EditOrderBuyerForm } from "./edit-order/EditOrderBuyerForm";
 import { EditOrderHeader } from "./edit-order/EditOrderHeader";
 import { EditOrderNotes } from "./edit-order/EditOrderNotes";
 import { OrderInitialData, useEditOrderForm } from "./edit-order/useEditOrderForm";
+import { WarningFillIcon } from "@/components/icons";
 
 export interface EditOrderModalProps {
   visible: boolean;
@@ -39,7 +39,7 @@ export function EditOrderModal({
               keyboardShouldPersistTaps="handled"
             >
               <View className="bg-amber-50 rounded-xl p-4 mb-5 flex-row items-start gap-3">
-                <IconSymbol name="exclamationmark.triangle.fill" size={18} color="#D97706" />
+                <WarningFillIcon width={18} height={18} color="#D97706" />
                 <Typography variation="body-sm" className="flex-1 text-amber-900">
                   Please verify all details carefully. Once sent to NCM, it cannot be edited.
                 </Typography>

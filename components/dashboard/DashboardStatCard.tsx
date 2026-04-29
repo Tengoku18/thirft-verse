@@ -1,9 +1,6 @@
-import {
-  BodyMediumText,
-  BodySemiboldText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
+import { renderSFSymbolIcon } from "@/lib/icon-mapper";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
 
@@ -51,7 +48,7 @@ export const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
           className="w-10 h-10 rounded-xl items-center justify-center"
           style={{ backgroundColor: iconBgColor }}
         >
-          <IconSymbol name={icon as any} size={20} color={iconColor} />
+          {renderSFSymbolIcon(icon, { size: 20, color: iconColor })}
         </View>
         {trend && (
           <View
@@ -62,12 +59,14 @@ export const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
                 : "rgba(239, 68, 68, 0.1)",
             }}
           >
-            <IconSymbol
-              name={trend.isPositive ? "arrow.up.right" : "arrow.down.right"}
-              size={10}
-              color={trend.isPositive ? "#22C55E" : "#EF4444"}
-            />
-            <BodyMediumText
+            {renderSFSymbolIcon(
+              trend.isPositive ? "arrow.up.right" : "arrow.down.right",
+              {
+                size: 10,
+                color: trend.isPositive ? "#22C55E" : "#EF4444",
+              },
+            )}
+            <Typography variation="body-sm"
               style={{
                 color: trend.isPositive ? "#22C55E" : "#EF4444",
                 fontSize: 11,
@@ -75,24 +74,24 @@ export const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
               }}
             >
               {trend.value}%
-            </BodyMediumText>
+            </Typography>
           </View>
         )}
       </View>
 
-      <HeadingBoldText style={{ fontSize: 24, marginBottom: 2 }}>
+      <Typography variation="h2" style={{ fontSize: 24, marginBottom: 2 }}>
         {value}
-      </HeadingBoldText>
+      </Typography>
       <View className="flex-row items-end space-x-2">
-        <BodyMediumText style={{ color: "#6B7280", fontSize: 13 }}>
+        <Typography variation="body-sm" style={{ color: "#6B7280", fontSize: 13 }}>
           {title}
-        </BodyMediumText>
+        </Typography>
         {subtitle && (
-          <BodySemiboldText
+          <Typography variation="label"
             style={{ color: "#9CA3AF", fontSize: 11, marginTop: 4 }}
           >
             {subtitle}
-          </BodySemiboldText>
+          </Typography>
         )}
       </View>
     </Container>

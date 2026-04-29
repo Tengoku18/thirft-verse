@@ -1,9 +1,9 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { Image, ScrollView, TouchableOpacity, View } from "react-native";
 import AddCameraIcon from "../icons/AddCameraIcon";
 import PlusIcon from "../icons/PlusIcon";
+import { XIcon } from "@/components/icons";
 
 export interface PhotoCarouselProps {
   coverUri: string | null;
@@ -36,7 +36,7 @@ const RemoveButton = ({ onPress }: { onPress: () => void }) => (
       justifyContent: "center",
     }}
   >
-    <IconSymbol name="xmark" size={12} color="#FFFFFF" />
+    <XIcon width={12} height={12} color="#FFFFFF" />
   </TouchableOpacity>
 );
 

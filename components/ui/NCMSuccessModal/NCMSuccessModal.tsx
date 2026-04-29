@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/Button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { BlurModal } from "@/components/ui/BlurModal";
 import * as Clipboard from "expo-clipboard";
 import React, { useState } from "react";
 import { Pressable, TouchableOpacity, View } from "react-native";
+import { CheckmarkIcon, CopyIcon, IIcon, XIcon } from "@/components/icons";
 
 interface NCMSuccessModalProps {
   visible: boolean;
@@ -41,7 +41,7 @@ export function NCMSuccessModal({
           <View className="flex-row items-center justify-between mb-5">
             <View className="flex-row items-center gap-2 flex-1">
               <View className="w-8 h-8 rounded-full bg-green-100 items-center justify-center">
-                <IconSymbol name="checkmark" size={16} color="#059669" />
+                <CheckmarkIcon width={16} height={16} color="#059669" />
               </View>
               <Typography variation="h4" className="flex-1">
                 Sent to NCM!
@@ -52,7 +52,7 @@ export function NCMSuccessModal({
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               className="ml-3"
             >
-              <IconSymbol name="xmark" size={20} color="#9CA3AF" />
+              <XIcon width={20} height={20} color="#9CA3AF" />
             </TouchableOpacity>
           </View>
 
@@ -72,11 +72,10 @@ export function NCMSuccessModal({
                 activeOpacity={0.7}
                 className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200"
               >
-                <IconSymbol
-                  name={copied ? "checkmark" : "doc.on.doc"}
-                  size={14}
-                  color={copied ? "#059669" : "#6B7280"}
-                />
+                {copied
+                  ? <CheckmarkIcon width={14} height={14} color="#059669" />
+                  : <CopyIcon width={14} height={14} color="#6B7280" />
+                }
                 <Typography
                   variation="caption"
                   style={{ color: copied ? "#059669" : "#6B7280" }}
@@ -89,12 +88,7 @@ export function NCMSuccessModal({
 
           {/* Info text */}
           <View className="flex-row items-start gap-2 mb-6">
-            <IconSymbol
-              name="info.circle"
-              size={16}
-              color="#9CA3AF"
-              style={{ marginTop: 2 }}
-            />
+            <IIcon width={16} height={16} color="#9CA3AF" style={{ marginTop: 2 }} />
             <Typography variation="body-sm" intent="muted" className="flex-1">
               Your order has been submitted to Nepal Can Move for delivery. You
               can track it from the order details page.

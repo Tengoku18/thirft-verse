@@ -1,5 +1,6 @@
 import { SellerTypeCard } from "@/components/atoms/SellerTypeCard";
 import HangerIcon from "@/components/icons/ClosetIcon";
+import ForwardIcon from "@/components/icons/ForwardIcon";
 import ShopIcon from "@/components/icons/StoreIcon";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Button } from "@/components/ui/Button";
@@ -142,6 +143,7 @@ export default function SignupStep3Screen() {
             isLoading={loading}
             disabled={loading || !selectedType}
             fullWidth
+            icon={<ForwardIcon width={20} height={20} color={"#FFFFFF"} />}
           />
         </View>
       </View>

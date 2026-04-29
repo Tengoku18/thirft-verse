@@ -1,10 +1,7 @@
-import {
-  BodyMediumText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { Text, View } from "react-native";
+import { ArrowUpCircleFillIcon, ClockIcon } from "@/components/icons";
 
 interface RevenueCardProps {
   availableBalance: number;
@@ -42,16 +39,18 @@ export const RevenueCard: React.FC<RevenueCardProps> = ({
       >
         <View className="flex-row items-center justify-between">
           <View>
-            <BodyMediumText
+            <Typography
+              variation="body-sm"
               style={{ color: "rgba(255,255,255,0.6)", fontSize: 13 }}
             >
               Available Balance
-            </BodyMediumText>
-            <HeadingBoldText
+            </Typography>
+            <Typography
+              variation="h2"
               style={{ color: "#FFFFFF", fontSize: 32, marginTop: 4 }}
             >
               {formatCurrency(availableBalance)}
-            </HeadingBoldText>
+            </Typography>
           </View>
           <View
             className="w-14 h-14 rounded-2xl items-center justify-center"
@@ -69,17 +68,18 @@ export const RevenueCard: React.FC<RevenueCardProps> = ({
               className="w-8 h-8 rounded-lg items-center justify-center mr-2"
               style={{ backgroundColor: "rgba(245, 158, 11, 0.2)" }}
             >
-              <IconSymbol name="clock.fill" size={16} color="#F59E0B" />
+              <ClockIcon width={16} height={16} color="#F59E0B" />
             </View>
             <View>
-              <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 16 }}>
+              <Typography variation="h2" style={{ color: "#FFFFFF", fontSize: 16 }}>
                 {formatCurrency(pendingAmount)}
-              </HeadingBoldText>
-              <BodyMediumText
+              </Typography>
+              <Typography
+                variation="body-sm"
                 style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}
               >
                 Pending
-              </BodyMediumText>
+              </Typography>
             </View>
           </View>
 
@@ -90,17 +90,18 @@ export const RevenueCard: React.FC<RevenueCardProps> = ({
               className="w-8 h-8 rounded-lg items-center justify-center mr-2"
               style={{ backgroundColor: "rgba(139, 92, 246, 0.2)" }}
             >
-              <IconSymbol name="arrow.up.circle.fill" size={16} color="#A78BFA" />
+              <ArrowUpCircleFillIcon width={16} height={16} color="#A78BFA" />
             </View>
             <View>
-              <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 16 }}>
+              <Typography variation="h2" style={{ color: "#FFFFFF", fontSize: 16 }}>
                 {formatCurrency(withdrawnAmount)}
-              </HeadingBoldText>
-              <BodyMediumText
+              </Typography>
+              <Typography
+                variation="body-sm"
                 style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}
               >
                 Withdrawn
-              </BodyMediumText>
+              </Typography>
             </View>
           </View>
         </View>

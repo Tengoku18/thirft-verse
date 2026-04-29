@@ -38,7 +38,7 @@ export function ScreenHeader({
     <SafeAreaView edges={["top"]} style={{ backgroundColor }}>
       <StatusBar barStyle="dark-content" backgroundColor={backgroundColor} />
       <View
-        className="px-4 py-2 border-b border-[#F3F4F6]"
+        className="px-4 pt-2 pb-4 border-b border-[#F3F4F6]"
         style={{ backgroundColor }}
       >
         <View className="flex-row items-center justify-between">

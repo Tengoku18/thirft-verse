@@ -1,10 +1,10 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { ProductWithStore } from "@/lib/types/database";
 import * as Linking from "expo-linking";
 import React from "react";
 import { Image, TouchableOpacity, View } from "react-native";
+import { AddPhotoIcon } from "@/components/icons";
 
 interface Props {
   product: ProductWithStore;
@@ -49,7 +49,7 @@ export function ExploreProductCard({ product, onPress }: Props) {
           />
         ) : (
           <View className="flex-1 items-center justify-center">
-            <IconSymbol name="photo" size={36} color="#C4C4C4" />
+            <AddPhotoIcon width={36} height={36} color="#C4C4C4" />
           </View>
         )}
 

@@ -1,7 +1,8 @@
-import { CaptionText } from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import React from "react";
+import { CrownFillIcon, StarIcon, StoreIcon } from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
+import React, { ComponentType } from "react";
 import { View } from "react-native";
+import { SvgProps } from "react-native-svg";
 
 interface FounderBadgeProps {
   /** "creator" shows a crown, "seller" shows a storefront, "both" shows a star */
@@ -9,9 +10,19 @@ interface FounderBadgeProps {
   size?: "sm" | "md";
 }
 
-const BADGE_CONFIG = {
+const BADGE_CONFIG: Record<
+  string,
+  {
+    Icon: ComponentType<SvgProps>;
+    label: string;
+    bg: string;
+    border: string;
+    text: string;
+    icon_color: string;
+  }
+> = {
   creator: {
-    icon: "crown.fill",
+    Icon: CrownFillIcon,
     label: "Founding Creator",
     bg: "#FEF3C7",
     border: "#F59E0B",
@@ -19,7 +30,7 @@ const BADGE_CONFIG = {
     icon_color: "#D97706",
   },
   seller: {
-    icon: "storefront.fill",
+    Icon: StoreIcon,
     label: "Founding Seller",
     bg: "#EFF6FF",
     border: "#3B82F6",
@@ -27,7 +38,7 @@ const BADGE_CONFIG = {
     icon_color: "#2563EB",
   },
   both: {
-    icon: "star.fill",
+    Icon: StarIcon,
     label: "Founder",
     bg: "#F5F3FF",
     border: "#8B5CF6",
@@ -38,10 +49,11 @@ const BADGE_CONFIG = {
 
 export function FounderBadge({
   type = "both",
-  size = "md",
+  size = "sm",
 }: FounderBadgeProps) {
   const cfg = BADGE_CONFIG[type];
   const isSmall = size === "sm";
+  const IconComponent = cfg.Icon;
 
   return (
     <View
@@ -58,12 +70,12 @@ export function FounderBadge({
         gap: 4,
       }}
     >
-      <IconSymbol
-        name={cfg.icon as any}
-        size={isSmall ? 10 : 12}
+      <IconComponent
+        width={isSmall ? 10 : 12}
+        height={isSmall ? 10 : 12}
         color={cfg.icon_color}
       />
-      <CaptionText
+      <Typography variation="caption"
         style={{
           color: cfg.text,
           fontSize: isSmall ? 10 : 11,
@@ -72,7 +84,7 @@ export function FounderBadge({
         }}
       >
         {cfg.label}
-      </CaptionText>
+      </Typography>
     </View>
   );
 }

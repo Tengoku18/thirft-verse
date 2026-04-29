@@ -85,7 +85,7 @@ export const StorefrontCard: React.FC<StorefrontCardProps> = ({
               className="flex-1 flex-row items-center justify-center py-3 rounded-xl"
               style={{ backgroundColor: "#3B2F2F" }}
             >
-              <CopyIcon width={14} height={16} />
+              <CopyIcon width={14} height={16} color="#FFFFFF" />
               <Typography
                 variation="label"
                 style={{ color: "#FFFFFF", fontSize: 14, marginLeft: 8 }}

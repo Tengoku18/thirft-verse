@@ -1,14 +1,11 @@
-import {
-  BodyMediumText,
-  BodySemiboldText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
 import { getProfileImageUrl } from "@/lib/storage-helpers";
 import { Profile } from "@/lib/types/database";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Image, TouchableOpacity, View } from "react-native";
+import { GearIcon } from "@/components/icons";
 
 interface DashboardHeaderProps {
   profile: Profile | null;
@@ -44,18 +41,18 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 alignItems: "center",
               }}
             >
-              <BodySemiboldText style={{ color: "#FFFFFF", fontSize: 18 }}>
+              <Typography variation="label" style={{ color: "#FFFFFF", fontSize: 18 }}>
                 {profile?.name?.charAt(0)?.toUpperCase() || "U"}
-              </BodySemiboldText>
+              </Typography>
             </View>
           )}
           <View className="ml-3">
-            <BodyMediumText style={{ color: "#6B7280", fontSize: 13 }}>
+            <Typography variation="body-sm" style={{ color: "#6B7280", fontSize: 13 }}>
               Welcome back,
-            </BodyMediumText>
-            <HeadingBoldText style={{ fontSize: 18 }}>
+            </Typography>
+            <Typography variation="h2" style={{ fontSize: 18 }}>
               {profile?.name?.split(" ")[0] || "User"}
-            </HeadingBoldText>
+            </Typography>
           </View>
         </View>
         <TouchableOpacity
@@ -69,7 +66,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             elevation: 2,
           }}
         >
-          <IconSymbol name="gearshape.fill" size={20} color="#6B7280" />
+          <GearIcon width={20} height={20} color="#6B7280" />
         </TouchableOpacity>
       </View>
     </View>

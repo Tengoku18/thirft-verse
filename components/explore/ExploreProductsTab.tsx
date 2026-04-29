@@ -33,8 +33,6 @@ import {
 const PAGE_SIZE = 20;
 
 interface HeaderProps {
-  searchQuery: string;
-  onSearch: (q: string) => void;
   selectedCategories: string[];
   onToggle: (cat: string) => void;
   onClearAll: () => void;
@@ -45,8 +43,6 @@ interface HeaderProps {
 }
 
 function ProductsListHeader({
-  searchQuery,
-  onSearch,
   selectedCategories,
   onToggle,
   onClearAll,
@@ -57,13 +53,6 @@ function ProductsListHeader({
 }: HeaderProps) {
   return (
     <View style={{ backgroundColor: "#FAF7F2", paddingBottom: 8 }}>
-      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }}>
-        <ExploreSearchBar
-          value={searchQuery}
-          onChangeText={onSearch}
-          placeholder="Search products..."
-        />
-      </View>
       <ExploreCategoryChips
         selected={selectedCategories}
         onToggle={onToggle}
@@ -124,7 +113,7 @@ export function ExploreProductsTab() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); // set by ExploreSearchBar's onDebouncedChange
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [inStockOnly, setInStockOnly] = useState(true);
   const [sortBy, setSortBy] = useState<ProductSortOption>("newest");
@@ -198,12 +187,10 @@ export function ExploreProductsTab() {
     [],
   );
 
-  // Stable callback so FlatList doesn't remount the header on every render
+  // searchInputValue intentionally excluded — search bar lives outside FlatList
   const renderListHeader = useCallback(
     () => (
       <ProductsListHeader
-        searchQuery={searchQuery}
-        onSearch={setSearchQuery}
         selectedCategories={selectedCategories}
         onToggle={toggleCategory}
         onClearAll={() => setSelectedCategories([])}
@@ -213,7 +200,7 @@ export function ExploreProductsTab() {
         onSortChange={setSortBy}
       />
     ),
-    [searchQuery, selectedCategories, inStockOnly, sortBy, toggleCategory],
+    [selectedCategories, inStockOnly, sortBy, toggleCategory],
   );
 
   const renderListEmpty = useCallback(
@@ -243,31 +230,47 @@ export function ExploreProductsTab() {
   );
 
   return (
-    <FlatList
-      data={filteredProducts}
-      keyExtractor={(item) => item.id}
-      numColumns={2}
-      ListHeaderComponent={renderListHeader}
-      ListEmptyComponent={renderListEmpty}
-      ListFooterComponent={renderListFooter}
-      columnWrapperStyle={{ gap: 10, paddingHorizontal: 16 }}
-      ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-      contentContainerStyle={{ paddingBottom: 130 }}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.4}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          tintColor="#3B2F2F"
-          colors={["#3B2F2F"]}
+    <View style={{ flex: 1 }}>
+      {/* Search bar is outside FlatList so it never remounts on keystroke */}
+      <View
+        style={{
+          backgroundColor: "#FAF7F2",
+          paddingHorizontal: 16,
+          paddingTop: 12,
+          paddingBottom: 8,
+        }}
+      >
+        <ExploreSearchBar
+          onDebouncedChange={setSearchQuery}
+          placeholder="Search products..."
         />
-      }
-      removeClippedSubviews={false}
-      scrollEventThrottle={16}
-      renderItem={renderItem}
-    />
+      </View>
+      <FlatList
+        data={filteredProducts}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={renderListEmpty}
+        ListFooterComponent={renderListFooter}
+        columnWrapperStyle={{ gap: 10, paddingHorizontal: 16 }}
+        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+        contentContainerStyle={{ paddingBottom: 130 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.4}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#3B2F2F"
+            colors={["#3B2F2F"]}
+          />
+        }
+        removeClippedSubviews={false}
+        scrollEventThrottle={16}
+        renderItem={renderItem}
+      />
+    </View>
   );
 }

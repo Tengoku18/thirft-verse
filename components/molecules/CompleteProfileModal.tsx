@@ -1,6 +1,6 @@
+import { QRCodeIcon, RightArrowIcon, UserIcon } from "@/components/icons";
 import { BlurModal } from "@/components/ui/BlurModal";
 import { Button } from "@/components/ui/Button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { Pressable, View } from "react-native";
@@ -12,7 +12,7 @@ interface CompleteProfileModalProps {
 }
 
 interface RequirementRowProps {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
 }
 
@@ -20,7 +20,7 @@ function RequirementRow({ icon, label }: RequirementRowProps) {
   return (
     <View className="flex-row items-center gap-2.5">
       <View className="w-7 h-7 rounded-full bg-brand-beige items-center justify-center">
-        <IconSymbol name={icon as any} size={14} color="#3B3030" />
+        {icon}
       </View>
       <Typography variation="body-sm" className="text-ui-secondary flex-1">
         {label}
@@ -47,11 +47,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
           {/* Icon badge */}
           <View className="items-center">
             <View className="w-16 h-16 rounded-full bg-status-warning-bg items-center justify-center">
-              <IconSymbol
-                name="person.crop.circle.badge.exclamationmark"
-                size={30}
-                color="#D97706"
-              />
+              <UserIcon width={30} height={30} color="#D97706" />
             </View>
           </View>
 
@@ -81,11 +77,11 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
               Required to proceed:
             </Typography>
             <RequirementRow
-              icon="person.fill"
+              icon={<UserIcon width={14} height={14} color="#3B3030" />}
               label="Payment Account Holder Name"
             />
             <RequirementRow
-              icon="qrcode"
+              icon={<QRCodeIcon width={14} height={14} color="#3B3030" />}
               label="Payment QR Code Image"
             />
           </View>
@@ -97,7 +93,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
               variant="primary"
               fullWidth
               onPress={onGoToProfile}
-              icon={<IconSymbol name="arrow.right" size={16} color="#FFFFFF" />}
+              icon={<RightArrowIcon width={16} height={16} color="#FFFFFF" />}
               iconPosition="right"
             />
             <Button

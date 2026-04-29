@@ -1,12 +1,8 @@
 import { FormButton } from "@/components/atoms/FormButton";
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
 import React from "react";
+import { IIcon, RefreshIcon, SquarePencilIcon, XIcon } from "@/components/icons";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -101,22 +97,18 @@ export function ChangeReferralCodeModal({
                     marginRight: 12,
                   }}
                 >
-                  <IconSymbol
-                    name="square.and.pencil"
-                    size={22}
-                    color="#3B2F2F"
-                  />
+                  <SquarePencilIcon width={22} height={22} color="#3B2F2F" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <HeadingBoldText style={{ fontSize: 20 }}>
+                  <Typography variation="h2" style={{ fontSize: 20 }}>
                     Change Referral Code
-                  </HeadingBoldText>
-                  <CaptionText style={{ color: "#6B7280", marginTop: 2 }}>
+                  </Typography>
+                  <Typography variation="caption" style={{ color: "#6B7280", marginTop: 2 }}>
                     Update your code without leaving this screen
-                  </CaptionText>
+                  </Typography>
                 </View>
                 <Pressable onPress={onClose} hitSlop={12}>
-                  <IconSymbol name="xmark" size={18} color="#9CA3AF" />
+                  <XIcon width={18} height={18} color="#9CA3AF" />
                 </Pressable>
               </View>
 
@@ -132,8 +124,8 @@ export function ChangeReferralCodeModal({
                   gap: 10,
                 }}
               >
-                <IconSymbol name="info.circle.fill" size={16} color="#6B7280" />
-                <BodyRegularText
+                <IIcon width={16} height={16} color="#6B7280" />
+                <Typography variation="body"
                   style={{
                     color: "#4B5563",
                     fontSize: 13,
@@ -143,13 +135,13 @@ export function ChangeReferralCodeModal({
                 >
                   Tap the refresh icon to suggest a new code, then save when you
                   are ready.
-                </BodyRegularText>
+                </Typography>
               </View>
 
               <View style={{ marginBottom: 20 }}>
-                <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
+                <Typography variation="label" className="mb-3" style={{ fontSize: 13 }}>
                   New Referral Code
-                </BodySemiboldText>
+                </Typography>
                 <View>
                   <TextInput
                     placeholder="Example: NIKHIL"
@@ -173,20 +165,16 @@ export function ChangeReferralCodeModal({
                     activeOpacity={0.7}
                     className="absolute right-4 top-0 bottom-0 justify-center"
                   >
-                    <IconSymbol
-                      name="arrow.clockwise"
-                      size={20}
-                      color={loading ? "#D1D5DB" : "#6B7280"}
-                    />
+                    <RefreshIcon width={20} height={20} color={loading ? "#D1D5DB" : "#6B7280"} />
                   </TouchableOpacity>
                 </View>
                 {!!error && (
-                  <CaptionText
+                  <Typography variation="caption"
                     className="mt-2"
                     style={{ color: "#EF4444", fontSize: 13 }}
                   >
                     {error}
-                  </CaptionText>
+                  </Typography>
                 )}
               </View>
 

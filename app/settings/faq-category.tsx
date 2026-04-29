@@ -1,5 +1,13 @@
+import {
+  ChevronRightIcon,
+  CreditCardIcon,
+  HelpIcon,
+  MailIcon,
+  RocketIcon,
+  ShopIcon,
+  StorefrontFillIcon,
+} from "@/components/icons";
 import { ScreenLayout } from "@/components/layouts";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { FAQ_CATEGORIES } from "@/constants/help-content";
 import { useLocalSearchParams } from "expo-router";
@@ -19,6 +27,16 @@ if (
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
+
+// Mapping for custom icon names to SVG components
+const ICON_MAPPING: Record<string, React.ReactNode> = {
+  rocket_launch: <RocketIcon width={24} height={24} color="#6B705C" />,
+  storefront: <StorefrontFillIcon width={24} height={24} color="#6B705C" />,
+  payments: <CreditCardIcon width={24} height={24} color="#6B705C" />,
+  shopping_cart: <ShopIcon width={24} height={24} color="#6B705C" />,
+  email: <MailIcon width={24} height={24} color="#6B705C" />,
+  support: <HelpIcon width={24} height={24} color="#6B705C" />,
+};
 
 function AccordionItem({
   question,
@@ -56,7 +74,7 @@ function AccordionItem({
             transform: [{ rotate: isOpen ? "90deg" : "0deg" }],
           }}
         >
-          <IconSymbol name="chevron.right" size={18} color="#9CA3AF" />
+          <ChevronRightIcon width={18} height={18} color="#9CA3AF" />
         </View>
       </View>
 
@@ -96,9 +114,7 @@ export default function FAQCategoryScreen() {
   return (
     <ScreenLayout
       title={category.title}
-      backgroundColor="#FAF7F2"
-      contentBackgroundColor="#FAF7F2"
-      headerBackgroundColor="#FAF7F2"
+      contentBackgroundColor="#F5F5F5"
       paddingHorizontal={0}
     >
       {/* Category header */}
@@ -108,7 +124,7 @@ export default function FAQCategoryScreen() {
             className="w-12 h-12 rounded-2xl items-center justify-center"
             style={{ backgroundColor: "rgba(107, 112, 92, 0.12)" }}
           >
-            <IconSymbol name={category.icon as any} size={24} color="#6B705C" />
+            {ICON_MAPPING[category.icon] || ICON_MAPPING["support"]}
           </View>
           <Typography
             variation="h4"

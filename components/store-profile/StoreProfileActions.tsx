@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/Button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import React from "react";
 import { View } from "react-native";
+import { PencilIcon, ShareIcon } from "@/components/icons";
 
 interface StoreProfileActionsProps {
   onEditProfile?: () => void;
@@ -22,7 +22,7 @@ export function StoreProfileActions({
           fullWidth
           onPress={onShare}
           icon={
-            <IconSymbol name="square.and.arrow.up" size={18} color="#fff" />
+            <ShareIcon width={18} height={18} color="#fff" />
           }
           iconPosition="left"
           noShadow
@@ -35,7 +35,7 @@ export function StoreProfileActions({
           size="compact"
           fullWidth
           onPress={onEditProfile}
-          icon={<IconSymbol name="pencil" size={18} color="#3B3030" />}
+          icon={<PencilIcon width={18} height={18} color="#3B3030" />}
           iconPosition="left"
           noShadow
         />

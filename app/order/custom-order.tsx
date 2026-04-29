@@ -3,7 +3,12 @@ import {
   RHFSelect,
   RHFTextarea,
 } from "@/components/forms/ReactHookForm";
-import { RightArrowIcon } from "@/components/icons";
+import {
+  AddPhotoIcon,
+  ChevronRightIcon,
+  CubeIcon,
+  RightArrowIcon,
+} from "@/components/icons";
 import XIcon from "@/components/icons/XIcon";
 import { ScreenLayout } from "@/components/layouts/ScreenLayout";
 import {
@@ -11,10 +16,8 @@ import {
   ProductPickerModal,
 } from "@/components/order/ProductPickerModal";
 import { Button } from "@/components/ui/Button/Button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "expo-router";
 import { useToast } from "@/contexts/ToastContext";
 import { districtsOfNepal } from "@/lib/constants/districts";
 import {
@@ -27,6 +30,7 @@ import {
   isValidNepaliPhone,
 } from "@/lib/validations/create-order";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Image, TouchableOpacity, View } from "react-native";
@@ -141,7 +145,7 @@ function SelectedItemRow({
           />
         ) : (
           <View className="flex-1 items-center justify-center">
-            <IconSymbol name="photo" size={16} color="#D1D5DB" />
+            <AddPhotoIcon width={16} height={16} color="#D1D5DB" />
           </View>
         )}
       </View>
@@ -287,7 +291,7 @@ export default function CustomOrderScreen() {
                   className="w-10 h-10 rounded-full items-center justify-center shrink-0"
                   style={{ backgroundColor: "#EDE8E1" }}
                 >
-                  <IconSymbol name="cube" size={18} color="#6B5E52" />
+                  <CubeIcon width={18} height={18} color="#6B5E52" />
                 </View>
                 <View className="flex-1">
                   <Typography variation="label" className="text-brand-espresso">
@@ -304,7 +308,7 @@ export default function CustomOrderScreen() {
                       : "Pick items for this order"}
                   </Typography>
                 </View>
-                <IconSymbol name="chevron.right" size={15} color="#CBD5E1" />
+                <ChevronRightIcon width={15} height={15} color="#CBD5E1" />
               </TouchableOpacity>
             </View>
           </View>
