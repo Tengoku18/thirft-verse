@@ -1,12 +1,9 @@
-import {
-  BodyMediumText,
-  BodySemiboldText,
-  CaptionText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
 import * as Clipboard from "expo-clipboard";
 import React from "react";
 import { Alert, TouchableOpacity, View } from "react-native";
+import { CheckmarkSealFillIcon, CopyIcon, MailIcon, PhoneFillIcon, UserIcon } from "@/components/icons";
 
 interface OrderBuyerSectionProps {
   name: string;
@@ -53,11 +50,11 @@ export function OrderBuyerSection({
     >
       {/* Section label */}
       <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4 }}>
-        <CaptionText
+        <Typography variation="caption"
           style={{ fontSize: 11, color: "rgba(59,48,48,0.4)", letterSpacing: 0.8, fontWeight: "700" }}
         >
           BUYER INFORMATION
-        </CaptionText>
+        </Typography>
       </View>
 
       {/* Buyer info row */}
@@ -74,24 +71,24 @@ export function OrderBuyerSection({
           }}
         >
           {initials ? (
-            <BodySemiboldText style={{ color: "#D4A373", fontSize: 16 }}>
+            <Typography variation="label" style={{ color: "#D4A373", fontSize: 16 }}>
               {initials}
-            </BodySemiboldText>
+            </Typography>
           ) : (
-            <IconSymbol name="person.fill" size={20} color="#D4A373" />
+            <UserIcon width={20} height={20} color="#D4A373" />
           )}
         </View>
 
         {/* Name + label */}
         <View>
-          <BodySemiboldText style={{ fontSize: 15, color: "#3B2F2F" }}>
+          <Typography variation="label" style={{ fontSize: 15, color: "#3B2F2F" }}>
             {name}
-          </BodySemiboldText>
+          </Typography>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 3 }}>
-            <IconSymbol name="checkmark.seal.fill" size={12} color="#059669" />
-            <CaptionText style={{ color: "#059669", fontSize: 12 }}>
+            <CheckmarkSealFillIcon width={12} height={12} color="#059669" />
+            <Typography variation="caption" style={{ color: "#059669", fontSize: 12 }}>
               Verified Buyer
-            </CaptionText>
+            </Typography>
           </View>
         </View>
       </View>
@@ -102,18 +99,18 @@ export function OrderBuyerSection({
       {/* Contact info */}
       {email && email !== "Not available" && (
         <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10, gap: 8 }}>
-          <IconSymbol name="envelope.fill" size={14} color="rgba(59,48,48,0.35)" />
-          <BodyMediumText style={{ fontSize: 13, color: "rgba(59,48,48,0.6)", flex: 1 }} numberOfLines={1}>
+          <MailIcon width={14} height={14} color="rgba(59,48,48,0.35)" />
+          <Typography variation="body-sm" style={{ fontSize: 13, color: "rgba(59,48,48,0.6)", flex: 1 }} numberOfLines={1}>
             {email}
-          </BodyMediumText>
+          </Typography>
         </View>
       )}
       {phone && phone !== "Not available" && (
         <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10, gap: 8 }}>
-          <IconSymbol name="phone.fill" size={14} color="rgba(59,48,48,0.35)" />
-          <BodyMediumText style={{ fontSize: 13, color: "rgba(59,48,48,0.6)" }}>
+          <PhoneFillIcon width={14} height={14} color="rgba(59,48,48,0.35)" />
+          <Typography variation="body-sm" style={{ fontSize: 13, color: "rgba(59,48,48,0.6)" }}>
             {phone}
-          </BodyMediumText>
+          </Typography>
         </View>
       )}
 
@@ -138,8 +135,8 @@ export function OrderBuyerSection({
             borderColor: "rgba(59,48,48,0.08)",
           }}
         >
-          <IconSymbol name="phone.fill" size={14} color="#3B2F2F" />
-          <BodySemiboldText style={{ fontSize: 13, color: "#3B2F2F" }}>Call</BodySemiboldText>
+          <PhoneFillIcon width={14} height={14} color="#3B2F2F" />
+          <Typography variation="label" style={{ fontSize: 13, color: "#3B2F2F" }}>Call</Typography>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -160,8 +157,8 @@ export function OrderBuyerSection({
             opacity: hasEmail ? 1 : 0.4,
           }}
         >
-          <IconSymbol name="doc.on.doc.fill" size={14} color="#3B2F2F" />
-          <BodySemiboldText style={{ fontSize: 13, color: "#3B2F2F" }}>Copy Email</BodySemiboldText>
+          <CopyIcon width={14} height={14} color="#3B2F2F" />
+          <Typography variation="label" style={{ fontSize: 13, color: "#3B2F2F" }}>Copy Email</Typography>
         </TouchableOpacity>
       </View>
     </View>

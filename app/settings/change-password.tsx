@@ -1,6 +1,13 @@
 import { RHFInput } from "@/components/forms/ReactHookForm";
+import {
+  CheckMarkCircleIcon,
+  EyeCloseIcon,
+  EyeIcon,
+  IIcon,
+  WarningFillIcon,
+} from "@/components/icons";
+import { ScreenLayout } from "@/components/layouts";
 import { Button } from "@/components/ui/Button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -23,9 +30,6 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-const BG = "#FAF7F2";
 
 /**
  * Change Password Screen
@@ -154,11 +158,18 @@ export default function ChangePasswordScreen() {
 
     return (
       <View className="flex-row items-center gap-3">
-        <IconSymbol
-          name={met ? "checkmark.circle.fill" : "circle"}
-          size={18}
-          color={iconColor}
-        />
+        {met ? (
+          <CheckMarkCircleIcon width={18} height={18} color={iconColor} />
+        ) : (
+          <View
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: 9,
+              backgroundColor: iconColor,
+            }}
+          />
+        )}
         <Typography variation="body-sm" className={textColor}>
           {label}
         </Typography>
@@ -167,34 +178,11 @@ export default function ChangePasswordScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: BG }} edges={["top"]}>
-      {/* Header */}
-      <View
-        style={{
-          paddingVertical: 16,
-          paddingHorizontal: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: "rgba(59,48,48,0.08)",
-          backgroundColor: `${BG}CC`,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-        }}
-      >
-        <Pressable
-          onPress={handleCancel}
-          className="w-10 h-10 items-center justify-center rounded-full hover:bg-primary/5"
-        >
-          <IconSymbol name="chevron.left" size={24} color="#3B3030" />
-        </Pressable>
-        <Typography
-          variation="h3"
-          style={{ color: "#0f172a", fontWeight: "700", flex: 1 }}
-        >
-          Change Password
-        </Typography>
-      </View>
-
+    <ScreenLayout
+      title="Change Password"
+      scrollable={false}
+      contentBackgroundColor="#F5F5F5"
+    >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -210,11 +198,7 @@ export default function ChangePasswordScreen() {
             <View className="px-6 py-8">
               <View className="bg-blue-50 rounded-lg p-6 border border-blue-200">
                 <View className="flex-row gap-3 mb-4">
-                  <IconSymbol
-                    name="info.circle.fill"
-                    size={24}
-                    color="#3B82F6"
-                  />
+                  <IIcon width={24} height={24} color="#3B82F6" />
                   <Typography
                     variation="h3"
                     className="font-semibold text-blue-900 flex-1"
@@ -295,15 +279,15 @@ export default function ChangePasswordScreen() {
                           }
                           className="p-2"
                         >
-                          <IconSymbol
-                            name={
-                              showCurrentPassword
-                                ? "eye.fill"
-                                : "eye.slash.fill"
-                            }
-                            size={20}
-                            color="#9CA3AF"
-                          />
+                          {showCurrentPassword ? (
+                            <EyeIcon width={20} height={20} color="#9CA3AF" />
+                          ) : (
+                            <EyeCloseIcon
+                              width={20}
+                              height={20}
+                              color="#9CA3AF"
+                            />
+                          )}
                         </Pressable>
                       }
                     />
@@ -322,13 +306,15 @@ export default function ChangePasswordScreen() {
                           onPress={() => setShowNewPassword(!showNewPassword)}
                           className="p-2"
                         >
-                          <IconSymbol
-                            name={
-                              showNewPassword ? "eye.fill" : "eye.slash.fill"
-                            }
-                            size={20}
-                            color="#9CA3AF"
-                          />
+                          {showNewPassword ? (
+                            <EyeIcon width={20} height={20} color="#9CA3AF" />
+                          ) : (
+                            <EyeCloseIcon
+                              width={20}
+                              height={20}
+                              color="#9CA3AF"
+                            />
+                          )}
                         </Pressable>
                       }
                     />
@@ -349,15 +335,15 @@ export default function ChangePasswordScreen() {
                           }
                           className="p-2"
                         >
-                          <IconSymbol
-                            name={
-                              showConfirmPassword
-                                ? "eye.fill"
-                                : "eye.slash.fill"
-                            }
-                            size={20}
-                            color="#9CA3AF"
-                          />
+                          {showConfirmPassword ? (
+                            <EyeIcon width={20} height={20} color="#9CA3AF" />
+                          ) : (
+                            <EyeCloseIcon
+                              width={20}
+                              height={20}
+                              color="#9CA3AF"
+                            />
+                          )}
                         </Pressable>
                       }
                     />
@@ -413,11 +399,7 @@ export default function ChangePasswordScreen() {
                 {apiError && (
                   <View className="bg-red-50 rounded-xl p-4 border border-red-200 mt-6">
                     <View className="flex-row items-start gap-3">
-                      <IconSymbol
-                        name="exclamationmark.circle.fill"
-                        size={20}
-                        color="#DC2626"
-                      />
+                      <WarningFillIcon width={20} height={20} color="#DC2626" />
                       <Typography
                         variation="body-sm"
                         className="text-red-700 flex-1"
@@ -460,6 +442,6 @@ export default function ChangePasswordScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ScreenLayout>
   );
 }

@@ -1,5 +1,5 @@
-import { BodySemiboldText, CaptionText } from "@/components/Typography";
 import React from "react";
+import { Typography } from "@/components/ui/Typography";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 
 export type StatusFilter =
@@ -16,12 +16,12 @@ interface FilterOption {
 }
 
 const FILTER_OPTIONS: FilterOption[] = [
-  { key: "all",        label: "All"        },
-  { key: "pending",    label: "Pending"    },
+  { key: "all", label: "All" },
+  { key: "pending", label: "Pending" },
   { key: "processing", label: "Processing" },
-  { key: "completed",  label: "Completed"  },
-  { key: "cancelled",  label: "Cancelled"  },
-  { key: "refunded",   label: "Refunded"   },
+  { key: "completed", label: "Completed" },
+  { key: "cancelled", label: "Cancelled" },
+  { key: "refunded", label: "Refunded" },
 ];
 
 interface OrderFilterBarProps {
@@ -30,7 +30,11 @@ interface OrderFilterBarProps {
   onChange: (filter: StatusFilter) => void;
 }
 
-export function OrderFilterBar({ active, counts, onChange }: OrderFilterBarProps) {
+export function OrderFilterBar({
+  active,
+  counts,
+  onChange,
+}: OrderFilterBarProps) {
   return (
     <View
       style={{
@@ -63,14 +67,14 @@ export function OrderFilterBar({ active, counts, onChange }: OrderFilterBarProps
                 backgroundColor: isActive ? "#3B2F2F" : "rgba(59,48,48,0.06)",
               }}
             >
-              <BodySemiboldText
+              <Typography variation="label"
                 style={{
                   fontSize: 13,
                   color: isActive ? "#FFFFFF" : "rgba(59,48,48,0.65)",
                 }}
               >
                 {opt.label}
-              </BodySemiboldText>
+              </Typography>
 
               {/* Count badge */}
               <View
@@ -84,7 +88,7 @@ export function OrderFilterBar({ active, counts, onChange }: OrderFilterBarProps
                     : "rgba(59,48,48,0.1)",
                 }}
               >
-                <CaptionText
+                <Typography variation="caption"
                   style={{
                     fontSize: 11,
                     fontWeight: "700",
@@ -92,7 +96,7 @@ export function OrderFilterBar({ active, counts, onChange }: OrderFilterBarProps
                   }}
                 >
                   {count}
-                </CaptionText>
+                </Typography>
               </View>
             </TouchableOpacity>
           );

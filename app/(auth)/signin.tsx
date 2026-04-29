@@ -172,7 +172,7 @@ export default function SignInScreen() {
         <View className="flex-1 h-px bg-slate-300" />
         <Typography
           variation="body-xs"
-          className="font-sans-semibold uppercase text-black"
+          className="font-sans-semibold uppercase text-slate-500"
         >
           Or Continue With
         </Typography>

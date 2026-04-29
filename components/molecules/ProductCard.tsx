@@ -2,8 +2,8 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import * as Linking from "expo-linking";
 import { ProductWithStore } from "@/lib/types/database";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { getProductImageUrl } from "@/lib/storage-helpers";
+import { AddPhotoIcon, ArrowUpRightIcon } from "@/components/icons";
 
 interface ProductCardProps {
   product: ProductWithStore;
@@ -44,7 +44,7 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
           />
         ) : (
           <View style={styles.placeholderImage}>
-            <IconSymbol name="photo" size={40} color="#D1D5DB" />
+            <AddPhotoIcon width={40} height={40} color="#D1D5DB" />
           </View>
         )}
         {isOutOfStock && (
@@ -66,7 +66,7 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
             {currency} {product.price.toLocaleString()}
           </Text>
           <View style={styles.arrowButton}>
-            <IconSymbol name="arrow.up.right" size={16} color={isOutOfStock ? "#9CA3AF" : "#3B2F2F"} />
+            <ArrowUpRightIcon width={16} height={16} color={isOutOfStock ? "#9CA3AF" : "#3B2F2F"} />
           </View>
         </View>
       </View>

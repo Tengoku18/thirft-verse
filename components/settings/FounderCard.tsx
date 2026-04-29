@@ -1,7 +1,7 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { Pressable, View } from "react-native";
+import { CheckmarkSealFillIcon, RightArrowIcon } from "@/components/icons";
 
 interface FounderCardProps {
   onViewBenefits?: () => void;
@@ -31,7 +31,7 @@ export function FounderCard({ onViewBenefits }: FounderCardProps) {
 
         {/* Verified icon */}
         <View className="w-9 h-9 bg-brand-espresso/5 rounded-xl items-center justify-center">
-          <IconSymbol name="checkmark.seal.fill" size={20} color="#3B3030" />
+          <CheckmarkSealFillIcon width={20} height={20} color="#3B3030" />
         </View>
       </View>
 
@@ -43,7 +43,7 @@ export function FounderCard({ onViewBenefits }: FounderCardProps) {
         <Typography variation="caption" className="text-brand-espresso/70 font-sans-bold uppercase tracking-widest">
           View Founder Benefits
         </Typography>
-        <IconSymbol name="arrow.right" size={16} color="#3B3030" style={{ opacity: 0.4 }} />
+        <RightArrowIcon width={16} height={16} color="#3B3030" style={{ opacity: 0.4 }} />
       </Pressable>
     </View>
   );

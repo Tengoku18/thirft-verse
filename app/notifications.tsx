@@ -1,59 +1,51 @@
-import { CustomHeader } from "@/components/navigation/CustomHeader";
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
 import {
-  BodyMediumText,
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+  BagIcon,
+  BellFillIcon,
+  BellSlashFillIcon,
+  RefundIcon,
+  XCircleFillIcon,
+} from "@/components/icons";
+import { ScreenLayout } from "@/components/layouts";
+import { Typography } from "@/components/ui/Typography";
+import { Colors } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationType } from "@/lib/types/database";
-import {
-  fetchNotifications,
-  fetchUnreadCount,
-  markAsRead,
-} from "@/store";
+import { fetchNotifications, fetchUnreadCount, markAsRead } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { FlatList, RefreshControl, TouchableOpacity, View } from "react-native";
 
 dayjs.extend(relativeTime);
 
 const NOTIFICATION_ICON: Record<
   NotificationType,
-  { name: string; color: string; bg: string }
+  { color: string; bg: string; icon: React.ReactNode }
 > = {
   new_order: {
-    name: "bag.fill",
     color: "#059669",
     bg: "#D1FAE5",
+    icon: <BagIcon width={20} height={20} color="#059669" />,
   },
   order_cancelled: {
-    name: "xmark.circle.fill",
     color: "#DC2626",
     bg: "#FEE2E2",
+    icon: <XCircleFillIcon width={20} height={20} color="#DC2626" />,
   },
   order_refunded: {
-    name: "arrow.uturn.left.circle.fill",
     color: "#7C3AED",
     bg: "#E9D5FF",
+    icon: <RefundIcon width={20} height={20} color="#7C3AED" />,
   },
 };
 
 const DEFAULT_ICON = {
-  name: "bell.fill",
   color: "#6B7280",
   bg: "#F3F4F6",
+  icon: <BellFillIcon width={20} height={20} color="#6B7280" />,
 };
 
 export default function NotificationsScreen() {
@@ -120,7 +112,9 @@ export default function NotificationsScreen() {
 
     const isRead = item.is_read;
 
-    const amount = item.data?.amount ? `Rs.${Number(item.data.amount).toLocaleString()}` : null;
+    const amount = item.data?.amount
+      ? `Rs.${Number(item.data.amount).toLocaleString()}`
+      : null;
 
     return (
       <TouchableOpacity
@@ -137,16 +131,16 @@ export default function NotificationsScreen() {
             className="w-11 h-11 rounded-full items-center justify-center mr-3"
             style={{ backgroundColor: iconConfig.bg }}
           >
-            <IconSymbol
-              name={iconConfig.name as any}
-              size={20}
-              color={iconConfig.color}
-            />
+            {iconConfig.icon}
           </View>
           {!isRead && (
             <View
               className="absolute top-0 right-2 w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: "#3B82F6", borderWidth: 1.5, borderColor: "#FEFCE8" }}
+              style={{
+                backgroundColor: "#3B82F6",
+                borderWidth: 1.5,
+                borderColor: "#FEFCE8",
+              }}
             />
           )}
         </View>
@@ -154,46 +148,50 @@ export default function NotificationsScreen() {
         {/* Content */}
         <View className="flex-1">
           <View className="flex-row items-start justify-between">
-            <BodySemiboldText
+            <Typography
+              variation="body-sm"
               style={{
-                fontSize: 14,
                 color: isRead ? "#6B7280" : "#1F2937",
                 flex: 1,
                 marginRight: 8,
+                fontWeight: "600",
               }}
               numberOfLines={2}
             >
               {item.title}
-            </BodySemiboldText>
-            <CaptionText style={{ color: "#9CA3AF", fontSize: 11 }}>
+            </Typography>
+            <Typography
+              variation="caption"
+              style={{ color: "#9CA3AF", fontSize: 11 }}
+            >
               {timeAgo}
-            </CaptionText>
+            </Typography>
           </View>
-          <BodyRegularText
+          <Typography
+            variation="body-sm"
             style={{
               color: isRead ? "#9CA3AF" : "#6B7280",
-              fontSize: 13,
               marginTop: 2,
             }}
             numberOfLines={2}
           >
             {item.body}
-          </BodyRegularText>
+          </Typography>
           {amount && (
             <View className="flex-row mt-2">
               <View
                 className="px-2 py-0.5 rounded-md"
                 style={{ backgroundColor: isRead ? "#F3F4F6" : "#FEF3C7" }}
               >
-                <CaptionText
+                <Typography
+                  variation="caption"
                   style={{
                     color: isRead ? "#6B7280" : "#92400E",
                     fontWeight: "700",
-                    fontSize: 12,
                   }}
                 >
                   {amount}
-                </CaptionText>
+                </Typography>
               </View>
             </View>
           )}
@@ -202,44 +200,43 @@ export default function NotificationsScreen() {
     );
   };
 
-  const renderSeparator = () => (
-    <View className="h-[1px] bg-[#F0F0F0]" />
-  );
+  const renderSeparator = () => <View className="h-[1px] bg-[#F0F0F0]" />;
 
   const renderEmpty = () => {
     if (loading) return null;
     return (
       <View className="flex-1 items-center justify-center px-8 pt-20">
         <View className="w-20 h-20 rounded-full bg-[#F3F4F6] items-center justify-center mb-4">
-          <IconSymbol name="bell.slash.fill" size={36} color="#D1D5DB" />
+          <BellSlashFillIcon width={36} height={36} color="#D1D5DB" />
         </View>
-        <HeadingBoldText style={{ marginBottom: 8, textAlign: "center" }}>
+        <Typography
+          variation="h3"
+          className="text-center"
+          style={{ marginBottom: 8, color: "#1F2937" }}
+        >
           No Notifications
-        </HeadingBoldText>
-        <BodyRegularText
+        </Typography>
+        <Typography
+          variation="body-sm"
           style={{ color: "#6B7280", textAlign: "center", lineHeight: 22 }}
         >
           You will see order updates and alerts here when they arrive.
-        </BodyRegularText>
+        </Typography>
       </View>
     );
   };
 
   return (
-    <View className="flex-1 bg-[#FAFAFA]">
-      <Stack.Screen options={{ headerShown: false }} />
-      <CustomHeader
-        title={unreadCount > 0 ? `Notifications (${unreadCount})` : "Notifications"}
-        showBackButton
-      />
-
+    <ScreenLayout
+      title={
+        unreadCount > 0 ? `Notifications (${unreadCount})` : "Notifications"
+      }
+      scrollable={false}
+      backgroundColor={Colors.light.background}
+      contentBackgroundColor={Colors.light.background}
+    >
       {loading && notifications.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#3B2F2F" />
-          <BodyMediumText style={{ color: "#6B7280", marginTop: 12 }}>
-            Loading notifications...
-          </BodyMediumText>
-        </View>
+        <FullScreenLoader message="Loading notifications..." />
       ) : (
         <FlatList
           data={notifications}
@@ -259,6 +256,6 @@ export default function NotificationsScreen() {
           }
         />
       )}
-    </View>
+    </ScreenLayout>
   );
 }

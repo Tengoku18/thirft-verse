@@ -5,13 +5,14 @@ import {
   RHFTextarea,
 } from "@/components/forms/ReactHookForm";
 import AtSignIcon from "@/components/icons/AtSignIcon";
-import IIcon from "@/components/icons/IIcon";
+import ForwardIcon from "@/components/icons/ForwardIcon";
 import LocationIcon from "@/components/icons/locationIcon";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Button } from "@/components/ui/Button/Button";
 import { SelectOption } from "@/components/ui/Select/Select";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
+import { INPUT_COLORS } from "@/constants/theme";
 import { useSignupFormRestore } from "@/hooks/useSignupFormRestore";
 import { districtsOfNepal } from "@/lib/constants/districts";
 import {
@@ -280,7 +281,7 @@ export default function SignupStep4Screen() {
               placeholder={content.usernamePlaceholder}
               autoCapitalize="none"
               autoCorrect={false}
-              leftIcon={<AtSignIcon />}
+              leftIcon={<AtSignIcon color={INPUT_COLORS.icon} />}
               // rightIcon={<LockIcon />}
             />
           </View>
@@ -298,16 +299,12 @@ export default function SignupStep4Screen() {
             />
           </View>
 
-          {/* Bio Hint - only for store type */}
           {content.bioHint && (
-            <View className="mb-6 mt-3 p-4 bg-[#FEF3C7] rounded-2xl flex-row items-center gap-3">
-              <View className="text-xl">
-                <IIcon />
-              </View>
-              <Typography variation="body-sm" className="text-[#92400E] flex-1">
-                {content.bioHint}
-              </Typography>
-            </View>
+            <InfoBox
+              type="warning"
+              message={content.bioHint}
+              className="mb-4"
+            />
           )}
 
           {/* Instagram Handle - only for closet type */}
@@ -317,9 +314,10 @@ export default function SignupStep4Screen() {
                 control={control}
                 name="instagramHandle"
                 label="INSTAGRAM USERNAME"
-                placeholder="@username"
+                placeholder="username"
                 autoCapitalize="none"
                 autoCorrect={false}
+                leftIcon={<AtSignIcon color={INPUT_COLORS.icon} />}
               />
             </View>
           )}
@@ -335,16 +333,13 @@ export default function SignupStep4Screen() {
               }
               options={districtOptions}
               searchable
-              leftIcon={<LocationIcon color="#3b303099" />}
+              leftIcon={<LocationIcon color={INPUT_COLORS.icon} />}
               searchPlaceholder="Search districts..."
             />
           </View>
 
           {isStore && (
-            <Typography
-              variation="caption"
-              className="text-slate-400 mt-2 mb-4"
-            >
+            <Typography variation="caption" className="text-slate-400 mb-4">
               Select the creative neighborhood where your items ship from.
             </Typography>
           )}
@@ -366,6 +361,7 @@ export default function SignupStep4Screen() {
             isLoading={loading}
             disabled={loading}
             fullWidth
+            icon={<ForwardIcon width={20} height={20} color={"#FFFFFF"} />}
           />
         </View>
       </View>

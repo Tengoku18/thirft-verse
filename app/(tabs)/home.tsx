@@ -19,8 +19,9 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchUserProfile } from "@/store/profileSlice";
 import dayjs from "dayjs";
 import { useFocusEffect } from "expo-router";
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, StatusBar, View } from "react-native";
+import { StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface ProfileRevenue {
@@ -172,9 +173,7 @@ export default function HomeScreen() {
         edges={["top"]}
       >
         <StatusBar barStyle="dark-content" />
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#3B2F2F" />
-        </View>
+        <FullScreenLoader />
       </SafeAreaView>
     );
   }

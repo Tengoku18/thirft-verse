@@ -1,8 +1,8 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import Typography from "@/components/ui/Typography";
 import { Stack } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import { Animated, ScrollView, View } from "react-native";
+import { WarningFillIcon } from "@/components/icons";
 
 // ─── Animated skeleton block ───
 
@@ -135,7 +135,7 @@ export function OrderDetailError() {
           className="items-center justify-center rounded-full bg-red-100"
           style={{ width: 72, height: 72 }}
         >
-          <IconSymbol name="exclamationmark.triangle.fill" size={34} color="#DC2626" />
+          <WarningFillIcon width={34} height={34} color="#DC2626" />
         </View>
         <Typography variation="h3" className="text-brand-espresso">Order Not Found</Typography>
         <Typography variation="body" className="text-gray-500 text-center">

@@ -70,9 +70,9 @@ export function Input({
   const EyeToggleIcon = (): React.ReactElement => (
     <Pressable onPress={() => setShowPassword(!showPassword)} className="p-1">
       {showPassword ? (
-        <EyeIcon width={20} height={20} />
+        <EyeIcon width={20} height={20} color={INPUT_COLORS.icon} />
       ) : (
-        <EyeCloseIcon width={20} height={20} />
+        <EyeCloseIcon width={20} height={20} color={INPUT_COLORS.icon} />
       )}
     </Pressable>
   );

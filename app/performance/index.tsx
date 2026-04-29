@@ -12,7 +12,6 @@ import {
   TopSellingItems,
 } from "@/components/performance";
 import { Typography } from "@/components/ui/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getOrdersBySeller,
@@ -21,6 +20,7 @@ import {
 import dayjs, { Dayjs } from "dayjs";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
+import { CalendarIcon, ChartBarFillIcon } from "@/components/icons";
 
 // ─────────────────────────────────────────────
 // Types
@@ -458,7 +458,7 @@ export default function PerformanceScreen() {
         backgroundColor: "rgba(212,163,115,0.08)",
       }}
     >
-      <IconSymbol name="calendar" size={13} color="#D4A373" />
+      <CalendarIcon width={13} height={13} color="#D4A373" />
       <Typography
         variation="label"
         style={{ fontSize: 12, fontWeight: "600", color: "#D4A373" }}
@@ -530,7 +530,7 @@ export default function PerformanceScreen() {
                   marginBottom: 16,
                 }}
               >
-                <IconSymbol name="chart.bar.fill" size={28} color="#D4A373" />
+                <ChartBarFillIcon width={28} height={28} color="#D4A373" />
               </View>
               <Typography
                 variation="h5"

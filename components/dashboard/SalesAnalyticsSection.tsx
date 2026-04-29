@@ -1,5 +1,5 @@
-import { BodyMediumText, BodySemiboldText } from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ChevronRightIcon } from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
 import { useRouter } from "expo-router";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
@@ -21,19 +21,19 @@ export const SalesAnalyticsSection: React.FC<SalesAnalyticsSectionProps> = ({
   return (
     <View className="mb-4">
       <View className="px-4 mb-3 flex-row items-center justify-between">
-        <BodySemiboldText style={{ fontSize: 15 }}>
+        <Typography variation="label" style={{ fontSize: 15 }}>
           Sales Analytics
-        </BodySemiboldText>
+        </Typography>
         <TouchableOpacity
           onPress={() => router.push("/analytics")}
           className="flex-row items-center"
         >
-          <BodyMediumText style={{ color: "#6B7280", fontSize: 13 }}>
+          <Typography variation="body-sm" style={{ color: "#6B7280", fontSize: 13 }}>
             View All
-          </BodyMediumText>
-          <IconSymbol
-            name="chevron.right"
-            size={14}
+          </Typography>
+          <ChevronRightIcon
+            width={14}
+            height={14}
             color="#6B7280"
             style={{ marginLeft: 4 }}
           />

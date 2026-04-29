@@ -1,9 +1,5 @@
 import { CustomHeader } from "@/components/navigation/CustomHeader";
-import {
-  BodyBoldText,
-  BodyRegularText,
-  CaptionText,
-} from "@/components/Typography";
+import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { ScrollView, View } from "react-native";
 
@@ -18,9 +14,9 @@ export default function RefundScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         <View className="px-6 py-4">
-          <CaptionText className="mb-6" style={{ color: "#6B7280" }}>
+          <Typography variation="caption" className="mb-6" style={{ color: "#6B7280" }}>
             Last updated: January 2025
-          </CaptionText>
+          </Typography>
 
           <Section title="1. Overview">
             Thriftverse is a peer-to-peer marketplace for pre-loved items. As
@@ -102,15 +98,12 @@ function Section({
 }) {
   return (
     <View className="mb-6">
-      <BodyBoldText className="mb-2" style={{ color: "#3B2F2F", fontSize: 16 }}>
+      <Typography variation="h5" className="mb-2" style={{ color: "#3B2F2F" }}>
         {title}
-      </BodyBoldText>
-      <BodyRegularText
-        className="leading-6"
-        style={{ color: "#4B5563", fontSize: 14 }}
-      >
+      </Typography>
+      <Typography variation="body-sm" className="leading-6" style={{ color: "#4B5563" }}>
         {children}
-      </BodyRegularText>
+      </Typography>
     </View>
   );
 }

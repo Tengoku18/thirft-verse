@@ -1,11 +1,9 @@
-import {
-  BodySemiboldText,
-  CaptionText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import React from "react";
 import { Image, TouchableOpacity, View } from "react-native";
+import { BagIcon, ChevronRightIcon } from "@/components/icons";
 
 interface OrderItemCardProps {
   title: string;
@@ -61,35 +59,35 @@ export function OrderItemCard({
             justifyContent: "center",
           }}
         >
-          <IconSymbol name="bag.fill" size={28} color="#D1D5DB" />
+          <BagIcon width={28} height={28} color="#D1D5DB" />
         </View>
       )}
 
       {/* Details */}
       <View style={{ flex: 1, justifyContent: "space-between", height: 76 }}>
         <View>
-          <BodySemiboldText style={{ fontSize: 14, color: "#3B2F2F" }} numberOfLines={2}>
+          <Typography variation="label" style={{ fontSize: 14, color: "#3B2F2F" }} numberOfLines={2}>
             {title}
-          </BodySemiboldText>
+          </Typography>
           {category ? (
-            <CaptionText style={{ color: "rgba(59,48,48,0.5)", fontSize: 12, marginTop: 3 }}>
+            <Typography variation="caption" style={{ color: "rgba(59,48,48,0.5)", fontSize: 12, marginTop: 3 }}>
               {category}
-            </CaptionText>
+            </Typography>
           ) : null}
         </View>
 
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <BodySemiboldText style={{ fontSize: 16, color: "#D4A373" }}>
+          <Typography variation="label" style={{ fontSize: 16, color: "#D4A373" }}>
             Rs. {price.toLocaleString()}
-          </BodySemiboldText>
-          <CaptionText style={{ color: "rgba(59,48,48,0.4)", fontSize: 12 }}>
+          </Typography>
+          <Typography variation="caption" style={{ color: "rgba(59,48,48,0.4)", fontSize: 12 }}>
             Qty: {quantity}
-          </CaptionText>
+          </Typography>
         </View>
       </View>
 
       {onPress && (
-        <IconSymbol name="chevron.right" size={13} color="#D4CEBE" />
+        <ChevronRightIcon width={13} height={13} color="#D4CEBE" />
       )}
     </View>
   );

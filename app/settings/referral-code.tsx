@@ -107,7 +107,6 @@ export default function ReferralCodeScreen() {
     <ScreenLayout
       title="Referral Code"
       contentBackgroundColor="#F5F5F5"
-      headerBackgroundColor="#F5F5F5"
       paddingHorizontal={0}
     >
       <ScrollView

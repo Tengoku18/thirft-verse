@@ -1,7 +1,7 @@
-import { BodyMediumText, BodySemiboldText } from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { Linking, TouchableOpacity, View } from "react-native";
+import { ArrowUpRightIcon, LinkIcon } from "@/components/icons";
 
 interface StoreLinkCardProps {
   storeUsername: string;
@@ -34,20 +34,21 @@ export const StoreLinkCard: React.FC<StoreLinkCardProps> = ({
           className="w-12 h-12 rounded-xl items-center justify-center mr-4"
           style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
         >
-          <IconSymbol name="link" size={22} color="#22C55E" />
+          <LinkIcon width={22} height={22} color="#22C55E" />
         </View>
         <View className="flex-1">
-          <BodySemiboldText style={{ fontSize: 14 }}>
+          <Typography variation="label" style={{ fontSize: 14 }}>
             Your Store Link
-          </BodySemiboldText>
-          <BodyMediumText
+          </Typography>
+          <Typography
+            variation="body-sm"
             style={{ color: "#6B7280", fontSize: 12, marginTop: 2 }}
             numberOfLines={1}
           >
             {storeUsername}.thriftverse.shop
-          </BodyMediumText>
+          </Typography>
         </View>
-        <IconSymbol name="arrow.up.right" size={18} color="#22C55E" />
+        <ArrowUpRightIcon width={18} height={18} color="#22C55E" />
       </TouchableOpacity>
     </View>
   );

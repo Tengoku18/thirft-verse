@@ -1,361 +1,421 @@
-import React, { useEffect, useState } from 'react';
+import { SkeletonLoader } from "@/components/atoms/SkeletonLoader";
+import { CubeIcon, IIcon, WarningIcon } from "@/components/icons";
+import { ScreenLayout } from "@/components/layouts";
+import { ProductCardSkeleton } from "@/components/molecules/ProductCardSkeleton";
+import ProductCard from "@/components/molecules/ProductCard";
+import { Typography } from "@/components/ui/Typography";
+import { Colors } from "@/constants/theme";
+import { supabase } from "@/lib/supabase";
+import { Product, Profile } from "@/lib/types/database";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
   FlatList,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '@/lib/supabase';
-import { getProductsByStoreId } from '@/lib/database-helpers';
-import { Profile, Product } from '@/lib/types/database';
-import ProductCard from '@/components/molecules/ProductCard';
+  Image,
+  RefreshControl,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-export default function StoreDetailsScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
-  const [store, setStore] = useState<Profile | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (id) {
-      fetchStoreData();
-    }
-  }, [id]);
-
-  const fetchStoreData = async () => {
-    setLoading(true);
-    try {
-      // Fetch store profile
-      const { data: storeData, error: storeError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', id as string)
-        .maybeSingle();
-
-      if (storeError) {
-        console.error('Error fetching store:', storeError);
-      } else {
-        setStore(storeData);
-      }
-
-      // Fetch store products
-      const productsResult = await getProductsByStoreId({
-        storeId: id as string,
-        status: 'available',
-      });
-      setProducts(productsResult.data);
-    } catch (error) {
-      console.error('Error fetching store data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1A1A1A" />
+function StoreHeaderSkeleton() {
+  return (
+    <View className="bg-white px-6 py-8 border-b border-slate-100">
+      <View className="items-center mb-6">
+        <SkeletonLoader width={120} height={120} borderRadius={60} />
+      </View>
+      <View className="items-center mb-6 gap-2">
+        <SkeletonLoader width={180} height={22} borderRadius={6} />
+        <SkeletonLoader width={100} height={14} borderRadius={6} />
+      </View>
+      <View className="flex-row items-center justify-center gap-12 mb-6 pb-6 border-b border-slate-100">
+        <View className="items-center gap-2">
+          <SkeletonLoader width={36} height={22} borderRadius={6} />
+          <SkeletonLoader width={56} height={14} borderRadius={6} />
         </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!store) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#CCCCCC" />
-          <Text style={styles.errorTitle}>Store not found</Text>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>Go Back</Text>
-          </TouchableOpacity>
+        <View className="w-px h-10 bg-slate-200" />
+        <View className="items-center gap-2">
+          <SkeletonLoader width={36} height={22} borderRadius={6} />
+          <SkeletonLoader width={56} height={14} borderRadius={6} />
         </View>
-      </SafeAreaView>
-    );
-  }
+      </View>
+      <SkeletonLoader height={60} borderRadius={12} />
+    </View>
+  );
+}
 
+function ProductsGridSkeleton() {
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView style={styles.container} edges={['top']}>
-        {/* Header */}
-        <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Store</Text>
-        <View style={styles.headerButton} />
+      <View className="flex-row gap-3 mb-3">
+        <View style={{ flex: 1 }}>
+          <ProductCardSkeleton />
+        </View>
+        <View style={{ flex: 1 }}>
+          <ProductCardSkeleton />
+        </View>
       </View>
-
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Store Header */}
-        <View style={styles.storeHeader}>
-          {/* Profile Image */}
-          <View style={styles.profileImageContainer}>
-            {store.profile_image ? (
-              <Image
-                source={{ uri: store.profile_image }}
-                style={styles.profileImage}
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={styles.placeholderImage}>
-                <Text style={styles.placeholderText}>{store.name.charAt(0).toUpperCase()}</Text>
-              </View>
-            )}
-          </View>
-
-          {/* Store Info */}
-          <Text style={styles.storeName}>{store.name}</Text>
-          <Text style={styles.storeUsername}>@{store.store_username}</Text>
-
-          {/* Stats */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{products.length}</Text>
-              <Text style={styles.statLabel}>Products</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{store.currency}</Text>
-              <Text style={styles.statLabel}>Currency</Text>
-            </View>
-          </View>
-
-          {/* Bio */}
-          {store.bio && (
-            <View style={styles.bioContainer}>
-              <Text style={styles.bio}>{store.bio}</Text>
-            </View>
-          )}
+      <View className="flex-row gap-3">
+        <View style={{ flex: 1 }}>
+          <ProductCardSkeleton />
         </View>
-
-        {/* Products Section */}
-        <View style={styles.productsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Products</Text>
-            <Text style={styles.productCount}>{products.length} items</Text>
-          </View>
-
-          {products.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="cube-outline" size={64} color="#CCCCCC" />
-              <Text style={styles.emptyStateTitle}>No products yet</Text>
-              <Text style={styles.emptyStateText}>This store hasn't listed any products</Text>
-            </View>
-          ) : (
-            <FlatList
-              data={products}
-              renderItem={({ item }) => (
-                <ProductCard
-                  product={{ ...item, store: { id: store.id, name: store.name, store_username: store.store_username, currency: store.currency } }}
-                />
-              )}
-              keyExtractor={(item) => item.id}
-              numColumns={2}
-              columnWrapperStyle={styles.productRow}
-              scrollEnabled={false}
-              contentContainerStyle={styles.productsGrid}
-            />
-          )}
+        <View style={{ flex: 1 }}>
+          <ProductCardSkeleton />
         </View>
-      </ScrollView>
-      </SafeAreaView>
+      </View>
     </>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FAF7F2',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  errorTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    marginTop: 16,
-    marginBottom: 24,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1A1A1A',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  storeHeader: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
-  profileImageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    overflow: 'hidden',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-  },
-  placeholderImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#E5E7EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#6B7280',
-  },
-  storeName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  storeUsername: {
-    fontSize: 15,
-    color: '#666666',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  statItem: {
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 13,
-    color: '#666666',
-  },
-  statDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: '#E5E5E5',
-  },
-  bioContainer: {
-    backgroundColor: '#F9FAFB',
-    padding: 16,
-    borderRadius: 12,
-    width: '100%',
-  },
-  bio: {
-    fontSize: 14,
-    color: '#333333',
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  productsSection: {
-    padding: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  productCount: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  productsGrid: {
-    paddingBottom: 24,
-  },
-  productRow: {
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  emptyState: {
-    paddingVertical: 64,
-    alignItems: 'center',
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    marginTop: 16,
-    marginBottom: 4,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: '#666666',
-    textAlign: 'center',
-  },
-  backButton: {
-    backgroundColor: '#1A1A1A',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+type StoreError = "not_found" | "network_error" | null;
+
+export default function StoreDetailsScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
+
+  const [store, setStore] = useState<Profile | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [storeLoading, setStoreLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [storeError, setStoreError] = useState<StoreError>(null);
+  const [productsError, setProductsError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchStore = useCallback(
+    async (storeId: string): Promise<{ data: Profile | null; notFound: boolean }> => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", storeId)
+          .maybeSingle();
+        if (error) throw error;
+        return { data, notFound: !data };
+      } catch (e) {
+        console.error("❌ Error fetching store:", e);
+        return { data: null, notFound: false };
+      }
+    },
+    [],
+  );
+
+  const fetchProducts = useCallback(
+    async (storeId: string, opts?: { silent?: boolean }) => {
+      if (!opts?.silent) {
+        setProductsLoading(true);
+        setProductsError(null);
+      }
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("store_id", storeId)
+          .eq("is_active", true)
+          .eq("status", "available")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        setProducts(data ?? []);
+      } catch (e) {
+        console.error("❌ Error fetching products:", e);
+        if (!opts?.silent) {
+          setProductsError("Failed to load products. Please try again.");
+        }
+      } finally {
+        if (!opts?.silent) setProductsLoading(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!id) return;
+    const init = async () => {
+      setStoreLoading(true);
+      setStoreError(null);
+
+      const { data: fetchedStore, notFound } = await fetchStore(id);
+      setStoreLoading(false);
+
+      if (!fetchedStore) {
+        setStoreError(notFound ? "not_found" : "network_error");
+        return;
+      }
+      setStore(fetchedStore);
+      await fetchProducts(id);
+    };
+    init();
+  }, [id, fetchStore, fetchProducts]);
+
+  const onRefresh = useCallback(async () => {
+    if (!id) return;
+    setRefreshing(true);
+    const { data: fetchedStore } = await fetchStore(id);
+    if (fetchedStore) {
+      setStore(fetchedStore);
+      await fetchProducts(id, { silent: true });
+    }
+    setRefreshing(false);
+  }, [id, fetchStore, fetchProducts]);
+
+  const handleRetryStore = useCallback(async () => {
+    if (!id) return;
+    setStoreLoading(true);
+    setStoreError(null);
+    const { data: fetchedStore, notFound } = await fetchStore(id);
+    setStoreLoading(false);
+    if (!fetchedStore) {
+      setStoreError(notFound ? "not_found" : "network_error");
+      return;
+    }
+    setStore(fetchedStore);
+    await fetchProducts(id);
+  }, [id, fetchStore, fetchProducts]);
+
+  return (
+    <ScreenLayout
+      title="Store"
+      backgroundColor={Colors.light.background}
+      contentBackgroundColor={Colors.light.background}
+      scrollable={false}
+    >
+      {storeLoading ? (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        >
+          <StoreHeaderSkeleton />
+          <View className="px-4 pt-6">
+            <View className="flex-row items-center justify-between mb-4 px-2">
+              <SkeletonLoader width={80} height={20} borderRadius={6} />
+              <SkeletonLoader width={50} height={14} borderRadius={6} />
+            </View>
+            <ProductsGridSkeleton />
+          </View>
+        </ScrollView>
+      ) : storeError === "not_found" ? (
+        <View className="flex-1 items-center justify-center px-8">
+          <View className="w-20 h-20 rounded-full bg-slate-100 items-center justify-center mb-4">
+            <IIcon width={48} height={48} color="#CCCCCC" />
+          </View>
+          <Typography variation="h3" className="mb-2 text-center text-slate-900">
+            Store Not Found
+          </Typography>
+          <Typography variation="body-sm" className="text-center text-slate-600 mb-6">
+            This store is no longer available.
+          </Typography>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="bg-brand-espresso px-6 py-3 rounded-full"
+            activeOpacity={0.8}
+          >
+            <Typography variation="button" className="text-white">
+              Go Back
+            </Typography>
+          </TouchableOpacity>
+        </View>
+      ) : storeError === "network_error" ? (
+        <View className="flex-1 items-center justify-center px-8">
+          <View className="w-20 h-20 rounded-full bg-red-50 items-center justify-center mb-4">
+            <WarningIcon width={36} height={36} color="#EF4444" />
+          </View>
+          <Typography variation="h3" className="mb-2 text-center text-slate-900">
+            Something Went Wrong
+          </Typography>
+          <Typography variation="body-sm" className="text-center text-slate-600 mb-6">
+            Could not load this store. Please check your connection and try again.
+          </Typography>
+          <TouchableOpacity
+            onPress={handleRetryStore}
+            className="bg-brand-espresso px-6 py-3 rounded-full"
+            activeOpacity={0.8}
+          >
+            <Typography variation="button" className="text-white">
+              Try Again
+            </Typography>
+          </TouchableOpacity>
+        </View>
+      ) : store ? (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#3B2F2F"
+              progressBackgroundColor="#FFFFFF"
+            />
+          }
+        >
+          {/* Store Header */}
+          <View className="bg-white px-6 py-8 border-b border-slate-100">
+            <View className="items-center mb-6">
+              {store.profile_image ? (
+                <Image
+                  source={{ uri: store.profile_image }}
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 60,
+                    borderWidth: 3,
+                    borderColor: "#E5E7EB",
+                  }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View
+                  className="w-32 h-32 rounded-full items-center justify-center border-4"
+                  style={{
+                    backgroundColor: Colors.light.text,
+                    borderColor: "#E5E7EB",
+                  }}
+                >
+                  <Typography
+                    variation="h1"
+                    className="text-white"
+                    style={{ fontSize: 48 }}
+                  >
+                    {store.name.charAt(0).toUpperCase()}
+                  </Typography>
+                </View>
+              )}
+            </View>
+
+            <View className="items-center mb-6">
+              <Typography variation="h2" className="text-center text-slate-900 mb-1">
+                {store.name}
+              </Typography>
+              <Typography
+                variation="body-sm"
+                className="text-slate-500 text-center font-semibold"
+              >
+                @{store.store_username}
+              </Typography>
+            </View>
+
+            <View className="flex-row items-center justify-center gap-8 mb-6 pb-6 border-b border-slate-100">
+              <View className="items-center">
+                <Typography variation="h2" className="text-slate-900 mb-1">
+                  {products.length}
+                </Typography>
+                <Typography variation="caption" className="text-slate-600">
+                  Products
+                </Typography>
+              </View>
+              <View className="w-px h-10 bg-slate-200" />
+              <View className="items-center">
+                <Typography
+                  variation="h2"
+                  className="mb-1"
+                  style={{ color: Colors.light.tint }}
+                >
+                  {store.currency || "PKR"}
+                </Typography>
+                <Typography variation="caption" className="text-slate-600">
+                  Currency
+                </Typography>
+              </View>
+            </View>
+
+            {store.bio && (
+              <View
+                className="rounded-2xl p-4 mb-2"
+                style={{
+                  backgroundColor: Colors.light.background,
+                  borderWidth: 1,
+                  borderColor: Colors.light.tint + "20",
+                }}
+              >
+                <Typography
+                  variation="body-sm"
+                  className="text-center text-slate-700"
+                  style={{ lineHeight: 20 }}
+                >
+                  {store.bio}
+                </Typography>
+              </View>
+            )}
+          </View>
+
+          {/* Products Section */}
+          <View className="px-4 pt-6">
+            <View className="flex-row items-center justify-between mb-4 px-2">
+              <Typography variation="h3" className="text-slate-900">
+                Products
+              </Typography>
+              {!productsLoading && (
+                <Typography
+                  variation="caption"
+                  className="text-slate-600 font-semibold"
+                >
+                  {products.length} items
+                </Typography>
+              )}
+            </View>
+
+            {productsLoading ? (
+              <ProductsGridSkeleton />
+            ) : productsError ? (
+              <View className="py-12 items-center px-8">
+                <View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center mb-3">
+                  <WarningIcon width={28} height={28} color="#EF4444" />
+                </View>
+                <Typography
+                  variation="body-sm"
+                  className="text-slate-600 text-center mb-4"
+                >
+                  {productsError}
+                </Typography>
+                <TouchableOpacity
+                  onPress={() => fetchProducts(id!)}
+                  className="bg-brand-espresso px-5 py-2.5 rounded-full"
+                  activeOpacity={0.8}
+                >
+                  <Typography variation="button" className="text-white">
+                    Try Again
+                  </Typography>
+                </TouchableOpacity>
+              </View>
+            ) : products.length === 0 ? (
+              <View className="py-16 items-center px-8">
+                <View className="w-16 h-16 rounded-full bg-slate-100 items-center justify-center mb-4">
+                  <CubeIcon width={32} height={32} color="#CCCCCC" />
+                </View>
+                <Typography variation="h3" className="text-slate-900 mb-2 text-center">
+                  No Products Yet
+                </Typography>
+                <Typography variation="body-sm" className="text-slate-600 text-center">
+                  This store has not listed any products yet.
+                </Typography>
+              </View>
+            ) : (
+              <FlatList
+                data={products}
+                renderItem={({ item }) => (
+                  <View style={{ width: "48%" }}>
+                    <ProductCard
+                      product={{
+                        ...item,
+                        store: {
+                          id: store.id,
+                          name: store.name,
+                          store_username: store.store_username,
+                          currency: store.currency,
+                        },
+                      }}
+                    />
+                  </View>
+                )}
+                keyExtractor={(item) => item.id}
+                numColumns={2}
+                columnWrapperStyle={{ gap: 12, marginBottom: 12 }}
+                scrollEnabled={false}
+                contentContainerStyle={{ paddingBottom: 24 }}
+              />
+            )}
+          </View>
+        </ScrollView>
+      ) : null}
+    </ScreenLayout>
+  );
+}

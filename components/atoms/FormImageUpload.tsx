@@ -1,14 +1,10 @@
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { uploadImageToStorage } from "@/lib/upload-helpers";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
+import { AddPhotoIcon, TrashIcon } from "@/components/icons";
 import {
   ActivityIndicator,
   Alert,
@@ -107,15 +103,15 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
     <View className="mb-6">
       {/* Label */}
       <View className="flex-row items-center mb-3">
-        <BodySemiboldText
+        <Typography variation="label"
           style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: 0.5 }}
         >
           {label}
-        </BodySemiboldText>
+        </Typography>
         {required && (
-          <BodySemiboldText className="ml-1" style={{ color: "#EF4444", fontSize: 13 }}>
+          <Typography variation="label" className="ml-1" style={{ color: "#EF4444", fontSize: 13 }}>
             *
-          </BodySemiboldText>
+          </Typography>
         )}
       </View>
 
@@ -159,7 +155,7 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
               }}
               activeOpacity={0.8}
             >
-              <IconSymbol name="trash" size={18} color="#EF4444" />
+              <TrashIcon width={18} height={18} color="#EF4444" />
             </TouchableOpacity>
             {/* Cover Badge */}
             <View
@@ -173,11 +169,11 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
                 backgroundColor: "rgba(59, 47, 47, 0.9)",
               }}
             >
-              <CaptionText
+              <Typography variation="caption"
                 style={{ color: "#FFFFFF", textTransform: "uppercase", letterSpacing: 0.5, fontSize: 11 }}
               >
                 Cover Photo
-              </CaptionText>
+              </Typography>
             </View>
           </View>
         ) : (
@@ -196,12 +192,12 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
             {uploading ? (
               <View className="items-center">
                 <ActivityIndicator size="large" color="#3B2F2F" />
-                <BodySemiboldText className="mt-4" style={{ fontSize: 16 }}>
+                <Typography variation="label" className="mt-4" style={{ fontSize: 16 }}>
                   Uploading image...
-                </BodySemiboldText>
-                <BodyRegularText className="mt-2" style={{ color: "#6B7280", fontSize: 13 }}>
+                </Typography>
+                <Typography variation="body" className="mt-2" style={{ color: "#6B7280", fontSize: 13 }}>
                   Please wait
-                </BodyRegularText>
+                </Typography>
               </View>
             ) : (
               <View className="items-center px-6">
@@ -216,14 +212,14 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
                     marginBottom: 16,
                   }}
                 >
-                  <IconSymbol name="photo" size={40} color="#3B2F2F" />
+                  <AddPhotoIcon width={40} height={40} color="#3B2F2F" />
                 </View>
-                <HeadingBoldText className="mb-2" style={{ fontSize: 18 }}>
+                <Typography variation="h2" className="mb-2" style={{ fontSize: 18 }}>
                   Upload Cover Photo
-                </HeadingBoldText>
-                <BodyRegularText className="text-center" style={{ color: "#6B7280" }}>
+                </Typography>
+                <Typography variation="body" className="text-center" style={{ color: "#6B7280" }}>
                   Tap to select an image
-                </BodyRegularText>
+                </Typography>
               </View>
             )}
           </TouchableOpacity>
@@ -232,16 +228,16 @@ export const FormImageUpload: React.FC<FormImageUploadProps> = ({
 
       {/* Hint */}
       {hint && !error && (
-        <CaptionText className="mt-2" style={{ color: "#6B7280" }}>
+        <Typography variation="caption" className="mt-2" style={{ color: "#6B7280" }}>
           {hint}
-        </CaptionText>
+        </Typography>
       )}
 
       {/* Error Message */}
       {error && (
-        <BodySemiboldText className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
+        <Typography variation="label" className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
           {error}
-        </BodySemiboldText>
+        </Typography>
       )}
     </View>
   );

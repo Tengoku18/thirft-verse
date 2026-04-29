@@ -1,6 +1,6 @@
 import { InfoBox } from "@/components/atoms/InfoBox";
 import { ReferralCodeInput } from "@/components/atoms/ReferralCodeInput";
-import { CheckmarkIcon, GiftIcon, RightArrowIcon } from "@/components/icons";
+import { CheckmarkIcon, ForwardIcon, GiftIcon } from "@/components/icons";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Button } from "@/components/ui/Button/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
@@ -182,7 +182,11 @@ export default function SignupStep6Screen() {
   };
 
   return (
-    <AuthScreenLayout showHeader headerTitle="Sign Up" onBack={handleBack}>
+    <AuthScreenLayout
+      showHeader
+      headerTitle="Referral Bonus"
+      onBack={handleBack}
+    >
       <Stepper title="Referral Bonus" currentStep={6} totalSteps={6} />
 
       <View className="flex-1">
@@ -246,7 +250,7 @@ export default function SignupStep6Screen() {
               {/* Benefits Header */}
               <View className="flex-row items-center gap-4 mb-8">
                 <View className="w-16 h-16 bg-[#F5EDE3] rounded-full items-center justify-center">
-                  <GiftIcon size={28} color="#D4A373" />
+                  <GiftIcon width={28} height={28} color="#D4A373" />
                 </View>
                 <Typography
                   variation="h3"
@@ -261,7 +265,7 @@ export default function SignupStep6Screen() {
                 {REFERRAL_BENEFITS.map((benefit, index) => (
                   <View key={index} className="flex-row gap-3">
                     <View className="pt-1">
-                      <CheckmarkIcon size={24} color="#D4A373" />
+                      <CheckmarkIcon width={24} height={24} color="#D4A373" />
                     </View>
                     <Typography
                       variation="body"
@@ -278,7 +282,11 @@ export default function SignupStep6Screen() {
 
         <View className="px-6 py-6 flex-row gap-3">
           {/* Skip Button */}
-          <Pressable onPress={handleSkip} disabled={loading || isSkipping} className="">
+          <Pressable
+            onPress={handleSkip}
+            disabled={loading || isSkipping}
+            className=""
+          >
             <Typography
               variation="body"
               className="text-center text-slate-600 font-sans-bold text-xl px-10 py-4"
@@ -297,7 +305,7 @@ export default function SignupStep6Screen() {
               disabled={loading || isSkipping}
               fullWidth
               iconPosition="right"
-              icon={<RightArrowIcon width={20} height={20} color="#fff" />}
+              icon={<ForwardIcon width={20} height={20} color={"#FFFFFF"} />}
             />
           </View>
         </View>

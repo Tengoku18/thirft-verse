@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/Button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Input } from "@/components/ui/Input";
 import { Link } from "@/components/ui/Link";
 import { Typography } from "@/components/ui/Typography";
@@ -11,6 +10,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { View } from "react-native";
+import { CheckMarkCircleIcon } from "@/components/icons";
 
 interface FounderCircleVerificationFormProps {
   loading: boolean;
@@ -94,7 +94,7 @@ export function FounderCircleVerificationForm({
           disabled={loading}
           fullWidth
           icon={
-            <IconSymbol name="checkmark.circle.fill" size={20} color="white" />
+            <CheckMarkCircleIcon width={20} height={20} color="white" />
           }
           iconPosition="right"
         />

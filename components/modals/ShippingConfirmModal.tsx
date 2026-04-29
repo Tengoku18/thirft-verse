@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/Button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Input } from "@/components/ui/Input";
 import Typography from "@/components/ui/Typography";
 import React from "react";
 import { Image, Modal, TouchableOpacity, View } from "react-native";
+import { CameraIcon } from "@/components/icons";
 
 interface ShippingConfirmModalProps {
   visible: boolean;
@@ -50,7 +50,7 @@ export function ShippingConfirmModal({
               <Image source={{ uri: billImageUri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
             ) : (
               <View className="items-center gap-1.5">
-                <IconSymbol name="camera.fill" size={28} color="rgba(59,48,48,0.3)" />
+                <CameraIcon width={28} height={28} color="rgba(59,48,48,0.3)" />
                 <Typography variation="body-sm" className="text-brand-espresso/40">Upload bill photo</Typography>
               </View>
             )}

@@ -1,8 +1,8 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { getProfileImageUrl } from "@/lib/storage-helpers";
 import React from "react";
 import { Image, View } from "react-native";
+import { CheckmarkIcon } from "@/components/icons";
 
 interface StoreProfileHeaderProps {
   name: string;
@@ -42,7 +42,7 @@ export function StoreProfileHeader({
           )}
           {isFounder && (
             <View className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-brand-espresso items-center justify-center border-2 border-brand-off-white">
-              <IconSymbol name="checkmark" size={11} color="#FFFFFF" />
+              <CheckmarkIcon width={11} height={11} color="#FFFFFF" />
             </View>
           )}
         </View>

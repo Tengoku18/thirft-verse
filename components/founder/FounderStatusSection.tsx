@@ -1,7 +1,7 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { View } from "react-native";
+import { BagIcon, CheckMarkCircleIcon, SparklesIcon } from "@/components/icons";
 
 interface FounderStatusSectionProps {
   isCreator: boolean;
@@ -16,7 +16,7 @@ export function FounderStatusSection({
     <View className="mb-6 mx-4 gap-3">
       <View className="bg-green-50 border border-green-200 rounded-2xl p-4 flex-row items-center gap-3">
         <View className="w-10 h-10 bg-green-100 rounded-full items-center justify-center">
-          <IconSymbol name="checkmark.circle.fill" size={24} color="#059669" />
+          <CheckMarkCircleIcon width={24} height={24} color="#059669" />
         </View>
         <View className="flex-1">
           <Typography
@@ -35,7 +35,7 @@ export function FounderStatusSection({
         {isCreator && (
           <View className="flex-1 bg-white rounded-2xl p-4 border border-brand-beige/40 items-center gap-2">
             <View className="w-12 h-12 bg-brand-tan/10 rounded-xl items-center justify-center">
-              <IconSymbol name="sparkles" size={24} color="#C17A5B" />
+              <SparklesIcon width={24} height={24} color="#C17A5B" />
             </View>
             <Typography
               variation="body-sm"
@@ -55,7 +55,7 @@ export function FounderStatusSection({
         {isSeller && (
           <View className="flex-1 bg-white rounded-2xl p-4 border border-brand-beige/40 items-center gap-2">
             <View className="w-12 h-12 bg-blue-50 rounded-xl items-center justify-center">
-              <IconSymbol name="bag.fill" size={24} color="#3B82F6" />
+              <BagIcon width={24} height={24} color="#3B82F6" />
             </View>
             <Typography
               variation="body-sm"

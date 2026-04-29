@@ -1,12 +1,8 @@
-import {
-  BodyMediumText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
 import React from "react";
 import { Linking, TouchableOpacity, View } from "react-native";
+import { ArrowUpRightIcon, CashIcon } from "@/components/icons";
 
 interface OrderPaymentSummaryProps {
   method: string;
@@ -47,17 +43,17 @@ function SummaryRow({
         borderBottomColor: "rgba(59,48,48,0.06)",
       }}
     >
-      <BodyMediumText style={{ fontSize: 13, color: "rgba(59,48,48,0.55)" }}>
+      <Typography variation="body-sm" style={{ fontSize: 13, color: "rgba(59,48,48,0.55)" }}>
         {label}
-      </BodyMediumText>
+      </Typography>
       {bold ? (
-        <BodySemiboldText style={{ fontSize: 14, color: valueColor ?? "#3B2F2F" }}>
+        <Typography variation="label" style={{ fontSize: 14, color: valueColor ?? "#3B2F2F" }}>
           {value}
-        </BodySemiboldText>
+        </Typography>
       ) : (
-        <BodyMediumText style={{ fontSize: 14, color: valueColor ?? "#3B2F2F" }}>
+        <Typography variation="body-sm" style={{ fontSize: 14, color: valueColor ?? "#3B2F2F" }}>
           {value}
-        </BodyMediumText>
+        </Typography>
       )}
     </View>
   );
@@ -94,11 +90,11 @@ export function OrderPaymentSummary({
     >
       {/* Section label */}
       <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4 }}>
-        <CaptionText
+        <Typography variation="caption"
           style={{ fontSize: 11, color: "rgba(59,48,48,0.4)", letterSpacing: 0.8, fontWeight: "700" }}
         >
           PAYMENT SUMMARY
-        </CaptionText>
+        </Typography>
       </View>
 
       {/* Method + transaction */}
@@ -185,14 +181,14 @@ export function OrderPaymentSummary({
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <IconSymbol name="banknote.fill" size={16} color="#D4A373" />
-          <BodySemiboldText style={{ fontSize: 14, color: "#3B2F2F" }}>
+          <CashIcon width={16} height={16} color="#D4A373" />
+          <Typography variation="label" style={{ fontSize: 14, color: "#3B2F2F" }}>
             Total Earnings
-          </BodySemiboldText>
+          </Typography>
         </View>
-        <HeadingBoldText style={{ fontSize: 20, color: "#D4A373" }}>
+        <Typography variation="h2" style={{ fontSize: 20, color: "#D4A373" }}>
           Rs. {Math.round(sellersEarning).toLocaleString()}
-        </HeadingBoldText>
+        </Typography>
       </View>
 
       {/* Pricing info link */}
@@ -211,10 +207,10 @@ export function OrderPaymentSummary({
           borderTopColor: "rgba(59,48,48,0.05)",
         }}
       >
-        <BodyMediumText style={{ fontSize: 12, color: "rgba(59,48,48,0.4)" }}>
+        <Typography variation="body-sm" style={{ fontSize: 12, color: "rgba(59,48,48,0.4)" }}>
           How does pricing work?
-        </BodyMediumText>
-        <IconSymbol name="arrow.up.right" size={11} color="rgba(59,48,48,0.35)" />
+        </Typography>
+        <ArrowUpRightIcon width={11} height={11} color="rgba(59,48,48,0.35)" />
       </TouchableOpacity>
     </View>
   );

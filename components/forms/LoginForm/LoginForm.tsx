@@ -3,6 +3,7 @@ import MailIcon from "@/components/icons/MailIcon";
 import { Button } from "@/components/ui/Button";
 import { Link } from "@/components/ui/Link";
 import { Typography } from "@/components/ui/Typography/Typography";
+import { INPUT_COLORS } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginFormData, loginSchema } from "@/lib/validations/login";
 import { useAppDispatch } from "@/store/hooks";
@@ -152,12 +153,6 @@ export function LoginForm({
     }
   };
 
-  const EmailIcon = (): React.ReactElement => (
-    <View className="p-1">
-      <MailIcon width={20} height={20} />
-    </View>
-  );
-
   return (
     <View className="gap-4">
       {/* Email Input Field - Validation via Yup schema */}
@@ -169,7 +164,9 @@ export function LoginForm({
         keyboardType="email-address"
         autoCapitalize="none"
         editable={!loading}
-        rightIcon={<EmailIcon />}
+        rightIcon={
+          <MailIcon width={20} height={20} color={INPUT_COLORS.icon} />
+        }
       />
 
       {/* Password Input Field */}
@@ -221,7 +218,7 @@ export function LoginForm({
           onPress={handleSubmit(onSubmit)}
           fullWidth
           iconPosition="right"
-          icon={<DoorInIcon />}
+          icon={<DoorInIcon width={16} height={16} color={"#ffffff"} />}
         />
       </View>
     </View>

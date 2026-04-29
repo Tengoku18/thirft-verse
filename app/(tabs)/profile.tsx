@@ -7,7 +7,6 @@ import {
   StoreTab,
   StoreTabBar,
 } from "@/components/store-profile";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/contexts/AuthContext";
 import { getProductsByStoreId } from "@/lib/database-helpers";
 import { Product } from "@/lib/types/database";
@@ -15,7 +14,9 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchUserProfile } from "@/store/profileSlice";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, Share, TouchableOpacity, View } from "react-native";
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
+import { Share, TouchableOpacity, View } from "react-native";
+import { GearIcon } from "@/components/icons";
 
 export default function ProfileV2Screen() {
   const { user } = useAuth();
@@ -66,7 +67,7 @@ export default function ProfileV2Screen() {
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       style={TAB_ICON_BTN_STYLE}
     >
-      <IconSymbol name="gearshape.fill" size={20} color="#3B2F2F" />
+      <GearIcon width={20} height={20} color="#3B2F2F" />
     </TouchableOpacity>
   );
 
@@ -78,11 +79,7 @@ export default function ProfileV2Screen() {
         scrollable={false}
         rightComponent={settingsButton}
       >
-        <View
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        >
-          <ActivityIndicator size="large" color="#3B2F2F" />
-        </View>
+        <FullScreenLoader />
       </TabScreenLayout>
     );
   }

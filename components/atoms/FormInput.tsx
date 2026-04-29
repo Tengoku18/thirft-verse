@@ -1,5 +1,5 @@
-import { BodySemiboldText, CaptionText } from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { EyeCloseIcon, EyeIcon } from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
 import React, { useState } from "react";
 import {
   TextInput,
@@ -25,10 +25,15 @@ export const FormInput = React.forwardRef<TextInput, FormInputProps>(
     return (
       <View className="mb-6">
         {label && (
-          <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
+          <Typography variation="label" className="mb-3" style={{ fontSize: 13 }}>
             {label}
-            {required && <BodySemiboldText style={{ color: "#EF4444", fontSize: 13 }}> *</BodySemiboldText>}
-          </BodySemiboldText>
+            {required && (
+              <Typography variation="label" style={{ color: "#EF4444", fontSize: 13 }}>
+                {" "}
+                *
+              </Typography>
+            )}
+          </Typography>
         )}
 
         <View className="relative">
@@ -55,8 +60,8 @@ export const FormInput = React.forwardRef<TextInput, FormInputProps>(
                     : "border-[#E5E7EB] bg-white"
             } ${className || ""}`}
             style={{
-              color: props.editable === false ? '#6B7280' : textColor,
-              textAlignVertical: props.multiline ? 'top' : 'center',
+              color: props.editable === false ? "#6B7280" : textColor,
+              textAlignVertical: props.multiline ? "top" : "center",
             }}
             placeholderTextColor="#9CA3AF"
             {...props}
@@ -67,23 +72,26 @@ export const FormInput = React.forwardRef<TextInput, FormInputProps>(
               className="absolute right-4 top-0 bottom-0 justify-center"
               activeOpacity={0.7}
             >
-              <IconSymbol
-                name={isPasswordVisible ? "eye" : "eye.slash"}
-                size={20}
-                color="#9CA3AF"
-              />
+              {isPasswordVisible ? (
+                <EyeIcon width={20} height={20} color="#9CA3AF" />
+              ) : (
+                <EyeCloseIcon width={20} height={20} color="#9CA3AF" />
+              )}
             </TouchableOpacity>
           )}
         </View>
 
         {error && (
-          <CaptionText className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
+          <Typography variation="caption"
+            className="mt-2"
+            style={{ color: "#EF4444", fontSize: 13 }}
+          >
             {error}
-          </CaptionText>
+          </Typography>
         )}
       </View>
     );
-  }
+  },
 );
 
 FormInput.displayName = "FormInput";

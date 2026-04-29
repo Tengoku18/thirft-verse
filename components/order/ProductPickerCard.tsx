@@ -1,9 +1,9 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { Product } from "@/lib/types/database";
 import React from "react";
 import { Image, Pressable, TouchableOpacity, View } from "react-native";
+import { AddPhotoIcon, CheckmarkIcon, MinusIcon, PlusIcon } from "@/components/icons";
 
 interface ProductPickerCardProps {
   product: Product;
@@ -42,7 +42,7 @@ export function ProductPickerCard({
               />
             ) : (
               <View className="flex-1 items-center justify-center">
-                <IconSymbol name="photo" size={32} color="#D1D5DB" />
+                <AddPhotoIcon width={32} height={32} color="#D1D5DB" />
               </View>
             )}
 
@@ -67,7 +67,7 @@ export function ProductPickerCard({
                   className="w-6 h-6 rounded-full items-center justify-center"
                   style={{ backgroundColor: "#3B2F2F" }}
                 >
-                  <IconSymbol name="checkmark" size={11} color="#FFFFFF" />
+                  <CheckmarkIcon width={11} height={11} color="#FFFFFF" />
                 </View>
               ) : (
                 <View
@@ -115,7 +115,7 @@ export function ProductPickerCard({
               className="w-6 h-6 rounded-full items-center justify-center"
               style={{ backgroundColor: "#F3F4F6" }}
             >
-              <IconSymbol name="minus" size={10} color="#3B2F2F" />
+              <MinusIcon width={10} height={10} color="#3B2F2F" />
             </TouchableOpacity>
 
             <Typography
@@ -133,7 +133,7 @@ export function ProductPickerCard({
               className="w-6 h-6 rounded-full items-center justify-center"
               style={{ backgroundColor: "#3B2F2F" }}
             >
-              <IconSymbol name="plus" size={10} color="#FFFFFF" />
+              <PlusIcon width={10} height={10} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>

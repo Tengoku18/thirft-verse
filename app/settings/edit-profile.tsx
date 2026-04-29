@@ -1,21 +1,19 @@
 import { ProfileImagePicker } from "@/components/atoms/ProfileImagePicker";
+import { LockIcon } from "@/components/icons";
 import AtSignIcon from "@/components/icons/AtSignIcon";
 import HangerIcon from "@/components/icons/ClosetIcon";
 import ShopIcon from "@/components/icons/StoreIcon";
 import LocationIcon from "@/components/icons/locationIcon";
 import { ScreenLayout } from "@/components/layouts";
-import { Card } from "@/components/ui/Card/Card";
 import { Button } from "@/components/ui/Button/Button";
+import { Card } from "@/components/ui/Card/Card";
 import { Input } from "@/components/ui/Input/Input";
 import { Select } from "@/components/ui/Select/Select";
 import { Typography } from "@/components/ui/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { INPUT_COLORS } from "@/constants/theme";
 import { useToast } from "@/contexts/ToastContext";
 import { districtsOfNepal } from "@/lib/constants/districts";
-import {
-  checkUsernameExists,
-  updateUserProfile,
-} from "@/lib/database-helpers";
+import { checkUsernameExists, updateUserProfile } from "@/lib/database-helpers";
 import { uploadProfileImage } from "@/lib/storage-helpers";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchUserProfile } from "@/store/profileSlice";
@@ -82,7 +80,7 @@ export default function EditProfileScreen() {
     setBio(profile.bio ?? "");
     setStoreName(sd.store_name ?? "");
     setInstagramHandle(sd.instagram_handle ?? "");
-    setDistrict(profile.address ?? "");   // profile.address holds the district
+    setDistrict(profile.address ?? ""); // profile.address holds the district
     setAddress(sd.address ?? "");
   }, [profile]);
 
@@ -184,7 +182,7 @@ export default function EditProfileScreen() {
         name: name.trim(),
         store_username: normalizedUsername,
         bio: bio.trim(),
-        address: district,           // profile.address = district (mirrors signup)
+        address: district, // profile.address = district (mirrors signup)
         seller_data: updatedSellerData,
         ...(finalImage !== profile?.profile_image && {
           profile_image: finalImage ?? undefined,
@@ -204,9 +202,12 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <ScreenLayout title="Edit Profile" paddingHorizontal={0}>
+    <ScreenLayout
+      title="Edit Profile"
+      paddingHorizontal={0}
+      contentBackgroundColor="#F5F5F5"
+    >
       <View className="pt-4 pb-8 gap-6">
-
         {/* ── Profile Photo ─────────────────────────────────────── */}
         <View className="mx-4">
           <Card variant="elevated">
@@ -223,7 +224,11 @@ export default function EditProfileScreen() {
         <View className="mx-4">
           <Card variant="elevated">
             <View className="gap-4">
-              <Typography variation="caption" intent="muted" className="uppercase tracking-wider">
+              <Typography
+                variation="caption"
+                intent="muted"
+                className="uppercase tracking-wider"
+              >
                 Personal Info
               </Typography>
 
@@ -242,14 +247,20 @@ export default function EditProfileScreen() {
 
               {/* Email — disabled */}
               <View>
-                <Typography variation="body" className="text-input-label font-sans-semibold mb-2">
+                <Typography
+                  variation="body"
+                  className="text-input-label font-sans-semibold mb-2"
+                >
                   Email
                 </Typography>
                 <View className="flex-row items-center rounded-3xl px-4 py-4 bg-brand-off-white border border-ui-border-light opacity-60">
-                  <Typography variation="body" className="flex-1 text-ui-secondary">
+                  <Typography
+                    variation="body"
+                    className="flex-1 text-ui-secondary"
+                  >
                     {user?.email ?? ""}
                   </Typography>
-                  <IconSymbol name="lock.fill" size={14} color="#9CA3AF" />
+                  <LockIcon width={24} height={24} color="#9CA3AF" />
                 </View>
                 <Typography variation="caption" intent="muted" className="mt-1">
                   Email cannot be changed
@@ -264,7 +275,11 @@ export default function EditProfileScreen() {
           <View className="mx-4">
             <Card variant="elevated">
               <View className="gap-3">
-                <Typography variation="caption" intent="muted" className="uppercase tracking-wider">
+                <Typography
+                  variation="caption"
+                  intent="muted"
+                  className="uppercase tracking-wider"
+                >
                   Account Type
                 </Typography>
 
@@ -280,7 +295,7 @@ export default function EditProfileScreen() {
                       {SELLER_TYPE_INFO[sellerType]?.description}
                     </Typography>
                   </View>
-                  <IconSymbol name="lock.fill" size={14} color="#9CA3AF" />
+                  <LockIcon width={24} height={24} color="#9CA3AF" />
                 </View>
 
                 <Typography variation="caption" intent="muted">
@@ -295,7 +310,11 @@ export default function EditProfileScreen() {
         <View className="mx-4">
           <Card variant="elevated">
             <View className="gap-4">
-              <Typography variation="caption" intent="muted" className="uppercase tracking-wider">
+              <Typography
+                variation="caption"
+                intent="muted"
+                className="uppercase tracking-wider"
+              >
                 {isStore ? "Store Details" : "Creator Details"}
               </Typography>
 
@@ -328,14 +347,17 @@ export default function EditProfileScreen() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 placeholder="yourstore"
-                leftIcon={<AtSignIcon />}
+                leftIcon={<AtSignIcon color={INPUT_COLORS.icon} />}
                 errorMessage={usernameError}
                 variant={usernameError ? "error" : "default"}
               />
 
               {/* Bio */}
               <View>
-                <Typography variation="body" className="text-input-label font-sans-semibold mb-2">
+                <Typography
+                  variation="body"
+                  className="text-input-label font-sans-semibold mb-2"
+                >
                   Bio
                 </Typography>
                 <Input
@@ -381,7 +403,11 @@ export default function EditProfileScreen() {
         <View className="mx-4">
           <Card variant="elevated">
             <View className="gap-4">
-              <Typography variation="caption" intent="muted" className="uppercase tracking-wider">
+              <Typography
+                variation="caption"
+                intent="muted"
+                className="uppercase tracking-wider"
+              >
                 Location
               </Typography>
 
@@ -425,7 +451,6 @@ export default function EditProfileScreen() {
             disabled={!isDirty || saving}
           />
         </View>
-
       </View>
     </ScreenLayout>
   );

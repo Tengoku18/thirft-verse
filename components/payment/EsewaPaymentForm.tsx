@@ -1,7 +1,7 @@
+import { CreditCardFillIcon } from "@/components/icons";
 import IIcon from "@/components/icons/IIcon";
 import { ActionModal } from "@/components/ui/ActionModal";
 import { Button } from "@/components/ui/Button/Button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { useToast } from "@/contexts/ToastContext";
 import { updateUserProfile } from "@/lib/database-helpers";
@@ -195,7 +195,7 @@ export function EsewaPaymentForm({
       {/* Info box */}
       <View className="p-4 bg-[#FEF3C7] rounded-2xl flex-row items-start gap-3">
         <View className="text-xl pt-0.5">
-          <IIcon />
+          <IIcon color="#92400E" />
         </View>
         <Typography variation="body-sm" className="text-[#92400E] flex-1">
           Your eSewa details are used only to process your withdrawals. Make
@@ -226,7 +226,7 @@ export function EsewaPaymentForm({
       {/* Confirmation modal */}
       <ActionModal
         visible={showConfirmModal}
-        icon={<IconSymbol name="creditcard.fill" size={24} color="#3B3030" />}
+        icon={<CreditCardFillIcon width={24} height={24} color="#3B3030" />}
         title={isEditing ? "Update Payment Details?" : "Save Payment Details?"}
         description={
           isEditing

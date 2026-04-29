@@ -227,7 +227,7 @@ function RequirementItem({ met, text }: { met: boolean; text: string }) {
     <View className="flex-row items-center gap-3">
       {met ? (
         <View className="w-5 h-5">
-          <CheckMarkCircleIcon size={20} color="#22C55E" />
+          <CheckMarkCircleIcon width={20} height={20} color="#22C55E" />
         </View>
       ) : (
         <View className="w-5 h-5 rounded-full bg-slate-300" />

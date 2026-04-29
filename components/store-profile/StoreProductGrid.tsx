@@ -1,10 +1,10 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { Product } from "@/lib/types/database";
 import { useRouter } from "expo-router";
 import React from "react";
 import { FlatList, Image, TouchableOpacity, View } from "react-native";
+import { AddPhotoIcon, CubeIcon, HeartIcon } from "@/components/icons";
 
 interface ProductItemProps {
   product: Product;
@@ -34,7 +34,7 @@ function ProductItem({ product }: ProductItemProps) {
           />
         ) : (
           <View className="flex-1 items-center justify-center">
-            <IconSymbol name="photo" size={32} color="#D1D5DB" />
+            <AddPhotoIcon width={32} height={32} color="#D1D5DB" />
           </View>
         )}
 
@@ -43,7 +43,7 @@ function ProductItem({ product }: ProductItemProps) {
           activeOpacity={0.8}
           className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/85 items-center justify-center"
         >
-          <IconSymbol name="heart" size={16} color="#3B3030" />
+          <HeartIcon width={16} height={16} color="#3B3030" />
         </TouchableOpacity> */}
 
         {/* Sold out overlay */}
@@ -93,7 +93,7 @@ export function StoreProductGrid({
   if (products.length === 0) {
     return (
       <View className="py-16 items-center">
-        <IconSymbol name="cube" size={48} color="#D1D5DB" />
+        <CubeIcon width={48} height={48} color="#D1D5DB" />
         <Typography
           variation="body"
           className="text-ui-secondary font-sans-semibold mt-3"

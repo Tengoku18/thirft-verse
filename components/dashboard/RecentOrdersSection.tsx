@@ -1,12 +1,9 @@
-import {
-  BodyMediumText,
-  BodySemiboldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import { RecentOrderItem } from "./RecentOrderItem";
 import { useRouter } from "expo-router";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
+import { BagIcon, ChevronRightIcon } from "@/components/icons";
 
 interface OrderData {
   id: string;
@@ -35,22 +32,17 @@ export const RecentOrdersSection: React.FC<RecentOrdersSectionProps> = ({
   return (
     <View className="px-4 mb-4">
       <View className="flex-row items-center justify-between mb-3">
-        <BodySemiboldText style={{ fontSize: 15 }}>
+        <Typography variation="label" style={{ fontSize: 15 }}>
           Recent Orders
-        </BodySemiboldText>
+        </Typography>
         <TouchableOpacity
           onPress={() => router.push("/(tabs)/orders")}
           className="flex-row items-center"
         >
-          <BodyMediumText style={{ color: "#6B7280", fontSize: 13 }}>
+          <Typography variation="body-sm" style={{ color: "#6B7280", fontSize: 13 }}>
             View All
-          </BodyMediumText>
-          <IconSymbol
-            name="chevron.right"
-            size={14}
-            color="#6B7280"
-            style={{ marginLeft: 4 }}
-          />
+          </Typography>
+          <ChevronRightIcon width={14} height={14} color="#6B7280" style={{ marginLeft: 4 }} />
         </TouchableOpacity>
       </View>
 
@@ -82,16 +74,17 @@ export const RecentOrdersSection: React.FC<RecentOrdersSectionProps> = ({
               className="w-16 h-16 rounded-full items-center justify-center mb-4"
               style={{ backgroundColor: "#F3F4F6" }}
             >
-              <IconSymbol name="bag" size={28} color="#9CA3AF" />
+              <BagIcon width={28} height={28} color="#9CA3AF" />
             </View>
-            <BodySemiboldText style={{ color: "#6B7280", fontSize: 14 }}>
+            <Typography variation="label" style={{ color: "#6B7280", fontSize: 14 }}>
               No orders yet
-            </BodySemiboldText>
-            <BodyMediumText
+            </Typography>
+            <Typography
+              variation="body-sm"
               style={{ color: "#9CA3AF", fontSize: 13, marginTop: 4 }}
             >
               Orders will appear here
-            </BodyMediumText>
+            </Typography>
           </View>
         )}
       </View>
