@@ -1,8 +1,8 @@
 import { Typography } from "@/components/ui/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { formatAmount } from "@/lib/format-currency";
 import React from "react";
 import { View } from "react-native";
+import { BagIcon, ReceiptIcon } from "@/components/icons";
 
 const SECONDARY = "#D4A373";
 
@@ -45,7 +45,7 @@ export function PerformanceMetricGrid({
             marginBottom: 10,
           }}
         >
-          <IconSymbol name="bag.fill" size={18} color={SECONDARY} />
+          <BagIcon width={18} height={18} color={SECONDARY} />
         </View>
         <Typography
           variation="caption"
@@ -93,7 +93,7 @@ export function PerformanceMetricGrid({
             marginBottom: 10,
           }}
         >
-          <IconSymbol name="receipt" size={18} color={SECONDARY} />
+          <ReceiptIcon width={18} height={18} color={SECONDARY} />
         </View>
         <Typography
           variation="caption"

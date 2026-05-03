@@ -1,4 +1,4 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { IIcon } from "@/components/icons";
 import { Typography } from "@/components/ui/Typography/Typography";
 import React from "react";
 import { View, ViewProps } from "react-native";
@@ -34,16 +34,16 @@ export const InfoBox: React.FC<InfoBoxProps> = ({
         };
       case "warning":
         return {
-          bg: "bg-yellow-50",
-          border: "border-yellow-200",
-          icon: "#F59E0B",
-          text: "#F59E0B",
+          bg: "bg-[#FEF3C7]",
+          border: "border-[#FEF3C7]",
+          icon: "#92400E",
+          text: "#92400E",
         };
       case "secondary":
         return {
           bg: "rgba(212, 163, 115, 0.08)",
           border: "rgba(212, 163, 115, 0.25)",
-          icon: "#D4A373",
+          icon: "#6B705C",
           text: "#6B705C",
         };
       case "info":
@@ -81,7 +81,7 @@ export const InfoBox: React.FC<InfoBoxProps> = ({
     >
       {showIcon && (
         <View style={{ marginRight: 12, marginTop: 2 }}>
-          <IconSymbol name="info.circle.fill" size={20} color={styles.icon} />
+          <IIcon width={20} height={20} color={styles.icon} />
         </View>
       )}
       <Typography

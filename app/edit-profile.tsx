@@ -1,13 +1,10 @@
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
-import { CustomHeader } from "@/components/navigation/CustomHeader";
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
+import { CameraIcon, LockIcon } from "@/components/icons";
+import { ScreenLayout } from "@/components/layouts";
+import { Typography } from "@/components/ui/Typography";
+import { Colors } from "@/constants/theme";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { updateUserProfile } from "@/lib/database-helpers";
@@ -17,7 +14,6 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
@@ -216,17 +212,16 @@ export default function EditProfileScreen() {
   };
 
   if (loading) {
-    return (
-      <View className="flex-1 bg-white justify-center items-center">
-        <ActivityIndicator size="large" color="#3B2F2F" />
-      </View>
-    );
+    return <FullScreenLoader backgroundColor="#FFFFFF" />;
   }
 
   return (
-    <View className="flex-1 bg-white">
-      <CustomHeader title="Edit Profile" showBackButton={true} />
-
+    <ScreenLayout
+      title="Edit Profile"
+      backgroundColor={Colors.light.background}
+      contentBackgroundColor={Colors.light.background}
+      scrollable={false}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
@@ -267,9 +262,16 @@ export default function EditProfileScreen() {
                     borderColor: "#E5E7EB",
                   }}
                 >
-                  <HeadingBoldText style={{ color: "#FFFFFF", fontSize: 36 }}>
+                  <Typography
+                    variation="h1"
+                    style={{
+                      color: "#FFFFFF",
+                      fontSize: 36,
+                      fontWeight: "700",
+                    }}
+                  >
                     {profileData.name.charAt(0).toUpperCase() || "U"}
-                  </HeadingBoldText>
+                  </Typography>
                 </View>
               )}
 
@@ -289,16 +291,17 @@ export default function EditProfileScreen() {
                   borderColor: "#FFFFFF",
                 }}
               >
-                <IconSymbol name="camera.fill" size={16} color="#FFFFFF" />
+                <CameraIcon width={16} height={16} color="#FFFFFF" />
               </View>
             </TouchableOpacity>
 
-            <BodyRegularText
+            <Typography
+              variation="body-sm"
               className="mt-3"
               style={{ color: "#6B7280", fontSize: 13 }}
             >
               Tap to change profile photo
-            </BodyRegularText>
+            </Typography>
           </View>
 
           {/* Form Fields */}
@@ -330,9 +333,13 @@ export default function EditProfileScreen() {
 
             {/* Bio Field */}
             <View className="mb-6">
-              <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
+              <Typography
+                variation="label"
+                className="mb-3"
+                style={{ fontSize: 13, fontWeight: "600" }}
+              >
                 Bio
-              </BodySemiboldText>
+              </Typography>
               <View className="relative">
                 <FormInput
                   placeholder="Tell us about yourself and your thrift shop..."
@@ -347,54 +354,77 @@ export default function EditProfileScreen() {
                   label=""
                 />
               </View>
-              <CaptionText
+              <Typography
+                variation="caption"
                 className="mt-1"
                 style={{
                   color: profileData.bio.length > 300 ? "#EF4444" : "#9CA3AF",
                 }}
               >
                 {profileData.bio.length}/300 characters
-              </CaptionText>
+              </Typography>
             </View>
 
             {/* Username (Read-only) */}
             <View className="mb-6">
-              <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
+              <Typography
+                variation="label"
+                className="mb-3"
+                style={{ fontSize: 13, fontWeight: "600" }}
+              >
                 Username
-              </BodySemiboldText>
+              </Typography>
               <View className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center">
                 <View className="flex-row items-center">
-                  <BodyRegularText style={{ color: "#6B7280", fontSize: 15 }}>
+                  <Typography
+                    variation="body-sm"
+                    style={{ color: "#6B7280", fontSize: 15 }}
+                  >
                     @{user?.user_metadata?.username || "username"}
-                  </BodyRegularText>
+                  </Typography>
                   <View className="ml-2">
-                    <IconSymbol name="lock.fill" size={14} color="#9CA3AF" />
+                    <LockIcon width={14} height={14} color="#9CA3AF" />
                   </View>
                 </View>
               </View>
-              <CaptionText className="mt-2" style={{ color: "#9CA3AF" }}>
+              <Typography
+                variation="caption"
+                className="mt-2"
+                style={{ color: "#9CA3AF" }}
+              >
                 Username cannot be changed
-              </CaptionText>
+              </Typography>
             </View>
 
             {/* Email (Read-only) */}
             <View className="mb-6">
-              <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
+              <Typography
+                variation="label"
+                className="mb-3"
+                style={{ fontSize: 13, fontWeight: "600" }}
+              >
                 Email
-              </BodySemiboldText>
+              </Typography>
               <View className="h-[58px] px-4 rounded-2xl border-[2px] border-[#E5E7EB] bg-[#F9FAFB] justify-center">
                 <View className="flex-row items-center">
-                  <BodyRegularText style={{ color: "#6B7280", fontSize: 15 }}>
+                  <Typography
+                    variation="body-sm"
+                    style={{ color: "#6B7280", fontSize: 15 }}
+                  >
                     {user?.email || "email@example.com"}
-                  </BodyRegularText>
+                  </Typography>
                   <View className="ml-2">
-                    <IconSymbol name="lock.fill" size={14} color="#9CA3AF" />
+                    <LockIcon width={14} height={14} color="#9CA3AF" />
                   </View>
                 </View>
               </View>
-              <CaptionText className="mt-2" style={{ color: "#9CA3AF" }}>
+              <Typography
+                variation="caption"
+                className="mt-2"
+                style={{ color: "#9CA3AF" }}
+              >
                 Email cannot be changed from here
-              </CaptionText>
+              </Typography>
             </View>
           </View>
 
@@ -409,6 +439,6 @@ export default function EditProfileScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </ScreenLayout>
   );
 }

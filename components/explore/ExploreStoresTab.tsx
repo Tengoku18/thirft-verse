@@ -7,7 +7,13 @@ import { getAllStores } from "@/lib/api-helpers";
 import { filterStoresBySearch, sortStores } from "@/lib/explore-helpers";
 import { Profile } from "@/lib/types/database";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -25,7 +31,7 @@ export function ExploreStoresTab() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); // set by ExploreSearchBar's onDebouncedChange
   const pageRef = useRef(0);
   const fetchingRef = useRef(false);
   const hasMoreRef = useRef(true);
@@ -57,6 +63,7 @@ export function ExploreStoresTab() {
     fetchPage(0, true).finally(() => setLoading(false));
   }, [fetchPage]);
 
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     pageRef.current = 0;
@@ -66,7 +73,8 @@ export function ExploreStoresTab() {
   }, [fetchPage]);
 
   const handleEndReached = useCallback(() => {
-    if (loadingMore || !hasMoreRef.current || loading || fetchingRef.current) return;
+    if (loadingMore || !hasMoreRef.current || loading || fetchingRef.current)
+      return;
     const nextPage = pageRef.current + 1;
     pageRef.current = nextPage;
     setLoadingMore(true);
@@ -78,16 +86,9 @@ export function ExploreStoresTab() {
     [stores, searchQuery],
   );
 
-  const ListHeader = (
-    <View style={{ backgroundColor: "#FAF7F2", paddingBottom: 8 }}>
-      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }}>
-        <ExploreSearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Search stores..."
-        />
-      </View>
-    </View>
+  const renderListHeader = useCallback(
+    () => <View style={{ backgroundColor: "#FAF7F2", height: 8 }} />,
+    [],
   );
 
   const ListEmptyComponent = useMemo(() => {
@@ -113,38 +114,54 @@ export function ExploreStoresTab() {
   }, [loading]);
 
   return (
-    <FlatList
-      data={filteredStores}
-      keyExtractor={(item) => item.id}
-      ListHeaderComponent={ListHeader}
-      ListEmptyComponent={ListEmptyComponent}
-      ListFooterComponent={
-        loadingMore ? (
-          <ActivityIndicator
-            size="small"
-            color="#3B2F2F"
-            style={{ marginVertical: 16 }}
-          />
-        ) : null
-      }
-      contentContainerStyle={{ paddingBottom: 130 }}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.4}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          tintColor="#3B2F2F"
-          colors={["#3B2F2F"]}
+    <View style={{ flex: 1 }}>
+      {/* Search bar is outside FlatList so it never remounts on keystroke */}
+      <View
+        style={{
+          backgroundColor: "#FAF7F2",
+          paddingHorizontal: 16,
+          paddingTop: 12,
+          paddingBottom: 4,
+        }}
+      >
+        <ExploreSearchBar
+          onDebouncedChange={setSearchQuery}
+          placeholder="Search stores..."
         />
-      }
-      renderItem={({ item }) => (
-        <View style={{ paddingHorizontal: 16 }}>
-          <StoreCard store={item} />
-        </View>
-      )}
-    />
+      </View>
+      <FlatList
+        data={filteredStores}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={ListEmptyComponent}
+        ListFooterComponent={
+          loadingMore ? (
+            <ActivityIndicator
+              size="small"
+              color="#3B2F2F"
+              style={{ marginVertical: 16 }}
+            />
+          ) : null
+        }
+        contentContainerStyle={{ paddingBottom: 130 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.4}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#3B2F2F"
+            colors={["#3B2F2F"]}
+          />
+        }
+        renderItem={({ item }) => (
+          <View style={{ paddingHorizontal: 16 }}>
+            <StoreCard store={item} />
+          </View>
+        )}
+      />
+    </View>
   );
 }

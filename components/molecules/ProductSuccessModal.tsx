@@ -2,10 +2,10 @@ import { BlurModal } from "@/components/ui/BlurModal";
 import { Button } from "@/components/ui/Button";
 import { Link } from "@/components/ui/Link";
 import { Typography } from "@/components/ui/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import React, { ReactNode, useEffect, useRef } from "react";
 import { Animated, Image, View } from "react-native";
+import { BagIcon, CheckMarkCircleIcon } from "@/components/icons";
 
 interface ProductSuccessModalProps {
   visible: boolean;
@@ -97,11 +97,7 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
                 elevation: 6,
               }}
             >
-              <IconSymbol
-                name="checkmark.circle.fill"
-                size={52}
-                color="#16A34A"
-              />
+              <CheckMarkCircleIcon width={52} height={52} color="#16A34A" />
             </View>
           </Animated.View>
         </View>
@@ -160,11 +156,7 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
                     className="w-full h-full items-center justify-center"
                     style={{ backgroundColor: "rgba(59,47,47,0.06)" }}
                   >
-                    <IconSymbol
-                      name="bag.fill"
-                      size={26}
-                      color="rgba(59,47,47,0.22)"
-                    />
+                    <BagIcon width={26} height={26} color="rgba(59,47,47,0.22)" />
                   </View>
                 )}
               </View>

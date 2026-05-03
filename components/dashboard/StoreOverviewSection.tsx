@@ -1,5 +1,5 @@
-import { BodySemiboldText } from "@/components/Typography";
 import { useRouter } from "expo-router";
+import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { View } from "react-native";
 import { DashboardStatCard } from "./DashboardStatCard";
@@ -23,9 +23,9 @@ export const StoreOverviewSection: React.FC<StoreOverviewSectionProps> = ({
 
   return (
     <View className="px-4 mb-4">
-      <BodySemiboldText style={{ fontSize: 15, marginBottom: 12 }}>
+      <Typography variation="label" style={{ fontSize: 15, marginBottom: 12 }}>
         Store Overview
-      </BodySemiboldText>
+      </Typography>
       <View className="flex-row flex-wrap" style={{ gap: 12 }}>
         <View style={{ width: "48%" }}>
           <DashboardStatCard
@@ -64,7 +64,9 @@ export const StoreOverviewSection: React.FC<StoreOverviewSectionProps> = ({
             icon="exclamationmark.triangle.fill"
             iconColor="#EF4444"
             iconBgColor="rgba(239, 68, 68, 0.1)"
-            onPress={() => router.push("/(tabs)/my-products?filter=out_of_stock")}
+            onPress={() =>
+              router.push("/(tabs)/my-products?filter=out_of_stock")
+            }
           />
         </View>
       </View>

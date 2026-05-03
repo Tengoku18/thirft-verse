@@ -1,5 +1,6 @@
-import { BodyMediumText, HeadingSemiboldText } from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { BackIcon } from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
+import { renderSFSymbolIcon } from "@/lib/icon-mapper";
 import { useRouter } from "expo-router";
 import React from "react";
 import { StatusBar, TouchableOpacity, View } from "react-native";
@@ -54,12 +55,12 @@ export function CustomHeader({
                 className="w-10 h-10 justify-center items-start"
                 activeOpacity={0.7}
               >
-                <IconSymbol name="chevron.left" size={22} color="#3B2F2F" />
+                <BackIcon width={22} height={22} color="#3B2F2F" />
               </TouchableOpacity>
             )}
-            <HeadingSemiboldText style={{ fontSize: 18 }}>
+            <Typography variation="h5" style={{ fontSize: 18 }}>
               {title}
-            </HeadingSemiboldText>
+            </Typography>
           </View>
 
           {/* Right Section - Custom Component, Text Action, Icon, or Empty Space */}
@@ -70,25 +71,29 @@ export function CustomHeader({
               <TouchableOpacity
                 onPress={rightAction.onPress}
                 className="flex-row items-center px-3 py-1.5 rounded-full"
-                style={{ backgroundColor: rightAction.color ? `${rightAction.color}15` : "#3B2F2F15" }}
+                style={{
+                  backgroundColor: rightAction.color
+                    ? `${rightAction.color}15`
+                    : "#3B2F2F15",
+                }}
                 activeOpacity={0.7}
               >
                 {rightAction.icon && (
-                  <IconSymbol
-                    name={rightAction.icon as any}
-                    size={14}
-                    color={rightAction.color || "#3B2F2F"}
-                    style={{ marginRight: 4 }}
-                  />
+                  <View style={{ marginRight: 4 }}>
+                    {renderSFSymbolIcon(rightAction.icon, {
+                      size: 14,
+                      color: rightAction.color || "#3B2F2F",
+                    })}
+                  </View>
                 )}
-                <BodyMediumText
+                <Typography variation="body-sm"
                   style={{
                     fontSize: 13,
                     color: rightAction.color || "#3B2F2F",
                   }}
                 >
                   {rightAction.label}
-                </BodyMediumText>
+                </Typography>
               </TouchableOpacity>
             ) : rightIcon ? (
               <TouchableOpacity
@@ -96,11 +101,10 @@ export function CustomHeader({
                 className="w-10 h-10 justify-center items-end"
                 activeOpacity={0.7}
               >
-                <IconSymbol
-                  name={rightIcon.name as any}
-                  size={24}
-                  color="#3B2F2F"
-                />
+                {renderSFSymbolIcon(rightIcon.name, {
+                  size: 24,
+                  color: "#3B2F2F",
+                })}
               </TouchableOpacity>
             ) : (
               <View className="w-10" />

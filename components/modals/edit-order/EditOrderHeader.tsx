@@ -1,7 +1,7 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import Typography from "@/components/ui/Typography";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
+import { XIcon } from "@/components/icons";
 
 interface Props {
   onClose: () => void;
@@ -22,7 +22,7 @@ export function EditOrderHeader({ onClose, disabled }: Props) {
         disabled={disabled}
         className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center"
       >
-        <IconSymbol name="xmark" size={16} color="#6B7280" />
+        <XIcon width={16} height={16} color="#6B7280" />
       </TouchableOpacity>
     </View>
   );

@@ -194,7 +194,11 @@ export default function OfferCodeScreen() {
   };
 
   return (
-    <ScreenLayout title="Offer Code" paddingHorizontal={0}>
+    <ScreenLayout
+      title="Offer Code"
+      paddingHorizontal={0}
+      contentBackgroundColor="#F5F5F5"
+    >
       <View className="pt-4 pb-8 gap-6">
         {/* Info Section */}
         <View className="mx-4">

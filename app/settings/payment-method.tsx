@@ -1,8 +1,8 @@
-import { EsewaPaymentForm } from "@/components/payment/EsewaPaymentForm";
+import { CheckMarkCircleIcon } from "@/components/icons";
 import { ScreenLayout } from "@/components/layouts";
+import { EsewaPaymentForm } from "@/components/payment/EsewaPaymentForm";
 import { Button } from "@/components/ui/Button/Button";
 import { Card } from "@/components/ui/Card/Card";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { useToast } from "@/contexts/ToastContext";
 import { updateUserProfile } from "@/lib/database-helpers";
@@ -56,10 +56,9 @@ export default function PaymentMethodScreen() {
     <ScreenLayout
       title="Payment Method"
       paddingHorizontal={0}
-      contentBackgroundColor="#FAF7F2"
+      contentBackgroundColor="#F5F5F5"
     >
       <View className="pt-4 pb-8 gap-6">
-
         {/* ── Status Card ──────────────────────────────────────── */}
         <View className="mx-4">
           <Card variant="elevated">
@@ -96,7 +95,9 @@ export default function PaymentMethodScreen() {
               >
                 <View
                   className="w-1.5 h-1.5 rounded-full"
-                  style={{ backgroundColor: isLinked ? ESEWA_GREEN : "#9CA3AF" }}
+                  style={{
+                    backgroundColor: isLinked ? ESEWA_GREEN : "#9CA3AF",
+                  }}
                 />
                 <Typography
                   variation="caption"
@@ -111,11 +112,14 @@ export default function PaymentMethodScreen() {
             {isLinked && (
               <View
                 className="mt-4 pt-4 flex-row items-center gap-3"
-                style={{ borderTopWidth: 1, borderTopColor: "rgba(0,0,0,0.06)" }}
+                style={{
+                  borderTopWidth: 1,
+                  borderTopColor: "rgba(0,0,0,0.06)",
+                }}
               >
-                <IconSymbol
-                  name="checkmark.circle.fill"
-                  size={16}
+                <CheckMarkCircleIcon
+                  width={16}
+                  height={16}
                   color={ESEWA_GREEN}
                 />
                 <Typography variation="caption" intent="muted">
@@ -158,7 +162,6 @@ export default function PaymentMethodScreen() {
             />
           </View>
         )}
-
       </View>
     </ScreenLayout>
   );

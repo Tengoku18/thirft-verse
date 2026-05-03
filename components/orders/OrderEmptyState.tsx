@@ -1,10 +1,6 @@
 import BagIcon from "@/components/icons/BagIcon";
-import {
-  BodyMediumText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
+import { Typography } from "@/components/ui/Typography";
+
 import React from "react";
 import { View } from "react-native";
 
@@ -30,22 +26,22 @@ export function OrderEmptyState({ filterLabel }: OrderEmptyStateProps) {
           marginBottom: 20,
         }}
       >
-        <BagIcon size={36} color="rgba(59,48,48,0.3)" />
+        <BagIcon width={36} height={36} color="rgba(59,48,48,0.3)" />
       </View>
 
-      <HeadingBoldText
+      <Typography variation="h2"
         style={{ fontSize: 20, color: "#3B2F2F", marginBottom: 8, textAlign: "center" }}
       >
         {isFiltered ? `No ${filterLabel} Orders` : "No Orders Yet"}
-      </HeadingBoldText>
+      </Typography>
 
-      <BodyMediumText
+      <Typography variation="body-sm"
         style={{ color: "rgba(59,48,48,0.5)", textAlign: "center", lineHeight: 22 }}
       >
         {isFiltered
           ? `You don't have any ${filterLabel?.toLowerCase()} orders right now.`
           : "When customers purchase your products, their orders will appear here to manage and track."}
-      </BodyMediumText>
+      </Typography>
     </View>
   );
 }

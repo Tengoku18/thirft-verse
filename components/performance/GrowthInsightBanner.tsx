@@ -1,7 +1,7 @@
 import { Typography } from "@/components/ui/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import React from "react";
 import { View } from "react-native";
+import { LightbulbFillIcon } from "@/components/icons";
 
 interface GrowthInsightBannerProps {
   title?: string;
@@ -36,7 +36,7 @@ export function GrowthInsightBanner({
           flexShrink: 0,
         }}
       >
-        <IconSymbol name="lightbulb.fill" size={20} color="#3B2F2F" />
+        <LightbulbFillIcon width={20} height={20} color="#3B2F2F" />
       </View>
       <View style={{ flex: 1 }}>
         <Typography

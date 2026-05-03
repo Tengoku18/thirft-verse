@@ -1,5 +1,5 @@
-import { BodySemiboldText } from "@/components/Typography";
 import { useRouter } from "expo-router";
+import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { Linking, View } from "react-native";
 import { QuickActionButton } from "./QuickActionButton";
@@ -17,9 +17,9 @@ export const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
 
   return (
     <View className="px-4 mb-4">
-      <BodySemiboldText style={{ fontSize: 15, marginBottom: 12 }}>
+      <Typography variation="label" style={{ fontSize: 15, marginBottom: 12 }}>
         Quick Actions
-      </BodySemiboldText>
+      </Typography>
       <View
         className="flex-row justify-between bg-white rounded-2xl py-4 px-2"
         style={{

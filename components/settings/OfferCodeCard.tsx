@@ -1,7 +1,7 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
+import { TagFillIcon } from "@/components/icons";
 
 interface OfferCodeCardProps {
   code: string;
@@ -21,12 +21,9 @@ export function OfferCodeCard({
       className="bg-white rounded-2xl p-4 border border-brand-beige/60 shadow-sm flex-row items-center justify-between"
     >
       <View className="flex-row items-center gap-4 flex-1">
-        <IconSymbol
-          name="tag"
-          size={20}
-          color="#3B3030"
-          style={{ opacity: 0.55 }}
-        />
+        <View style={{ opacity: 0.55 }}>
+          <TagFillIcon width={20} height={20} color="#3B3030" />
+        </View>
         <View className="gap-0.5">
           <Typography
             variation="body"

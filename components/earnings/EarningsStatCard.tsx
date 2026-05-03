@@ -1,12 +1,8 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
+import { renderSFSymbolIcon } from "@/lib/icon-mapper";
 import React from "react";
 import { View } from "react-native";
-import {
-  BodySmallSemiboldText,
-  BodyMediumText,
-  HeadingBoldText,
-  CaptionText,
-} from "@/components/Typography";
 
 interface EarningsStatCardProps {
   label: string;
@@ -52,7 +48,8 @@ export function EarningsStatCard({
           marginBottom: 8,
         }}
       >
-        <BodySmallSemiboldText
+        <Typography
+          variation="caption"
           style={{
             color: "#3B2F2F",
             opacity: 0.65,
@@ -62,19 +59,23 @@ export function EarningsStatCard({
           }}
         >
           {label}
-        </BodySmallSemiboldText>
-        <IconSymbol name={iconName} size={20} color={iconColor} style={{ opacity: 0.6 }} />
+        </Typography>
+        <View style={{ opacity: 0.6 }}>
+          {renderSFSymbolIcon(iconName, { size: 20, color: iconColor })}
+        </View>
       </View>
 
       {/* Amount */}
-      <HeadingBoldText style={{ fontSize: 24, color: "#3B2F2F", marginBottom: 4 }}>
+      <Typography variation="h2"
+        style={{ fontSize: 24, color: "#3B2F2F", marginBottom: 4 }}
+      >
         {formatAmount(amount)}
-      </HeadingBoldText>
+      </Typography>
 
       {/* Description */}
-      <CaptionText style={{ color: "#3B2F2F", opacity: 0.5, fontSize: 12 }}>
+      <Typography variation="caption" style={{ color: "#3B2F2F", opacity: 0.5, fontSize: 12 }}>
         {description}
-      </CaptionText>
+      </Typography>
     </View>
   );
 }

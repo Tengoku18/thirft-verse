@@ -32,7 +32,7 @@ export const RevenueOverview: React.FC<RevenueOverviewProps> = ({
         <RevenueStatCard
           label="Pending"
           amount={formatAmount(pendingAmount, currencySymbol)}
-          icon={<ClockIcon size={20} color="#D97706" />}
+          icon={<ClockIcon width={20} height={20} color="#D97706" />}
           bgColor="#FFFBEB"
           borderColor="#FEF3C7"
           labelColor="#B45309"
@@ -40,7 +40,7 @@ export const RevenueOverview: React.FC<RevenueOverviewProps> = ({
         <RevenueStatCard
           label="Confirmed"
           amount={formatAmount(confirmedAmount, currencySymbol)}
-          icon={<CheckMarkCircleIcon size={20} color="#059669" />}
+          icon={<CheckMarkCircleIcon width={20} height={20} color="#059669" />}
           bgColor="#ECFDF5"
           borderColor="#D1FAE5"
           labelColor="#047857"
@@ -48,7 +48,7 @@ export const RevenueOverview: React.FC<RevenueOverviewProps> = ({
         <RevenueStatCard
           label="Withdrawn"
           amount={formatAmount(withdrawnAmount, currencySymbol)}
-          icon={<CashIcon size={20} color="#64748B" />}
+          icon={<CashIcon width={20} height={20} color="#64748B" />}
           bgColor="#F1F5F9"
           borderColor="#E2E8F0"
           labelColor="#475569"

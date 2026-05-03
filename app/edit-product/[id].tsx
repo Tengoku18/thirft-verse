@@ -4,7 +4,8 @@ import { supabase } from "@/lib/supabase";
 import { Product } from "@/lib/types/database";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
+import { Alert, View } from "react-native";
 
 export default function EditProductScreen() {
   const router = useRouter();
@@ -50,9 +51,7 @@ export default function EditProductScreen() {
     return (
       <View className="flex-1 bg-white">
         <CustomHeader title="Edit Product" showBackButton />
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#3B2F2F" />
-        </View>
+        <FullScreenLoader />
       </View>
     );
   }

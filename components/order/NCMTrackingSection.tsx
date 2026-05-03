@@ -1,15 +1,11 @@
-import {
-  BodyBoldText,
-  BodyMediumText,
-  BodySemiboldText,
-  CaptionText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import { getNCMOrderStatus, NCMOrderStatusItem } from "@/lib/ncm-helpers";
 import dayjs from "dayjs";
 import * as Clipboard from "expo-clipboard";
 import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, TouchableOpacity, View } from "react-native";
+import { ClockIcon, CopyIcon, RefreshIcon, ShippingBoxIcon, TrendingUpIcon, WifiSlashIcon } from "@/components/icons";
+import { renderSFSymbolIcon } from "@/lib/icon-mapper";
 
 // ============================================================================
 // TYPES
@@ -103,7 +99,7 @@ const getStatusConfig = (status: string) => {
     configs[status] || {
       color: "#6B7280",
       bgColor: "#F3F4F6",
-      icon: "circle.fill",
+      icon: "clock",
     }
   );
 };
@@ -203,17 +199,14 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
                 className="w-7 h-7 rounded-lg items-center justify-center"
                 style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
               >
-                <IconSymbol
-                  name="shippingbox.fill"
-                  size={15}
-                  color={NCM.white}
-                />
+                <ShippingBoxIcon width={15} height={15} color={NCM.white} />
               </View>
-              <BodyBoldText
+              <Typography
+                variation="label"
                 style={{ color: NCM.white, fontSize: 14, marginLeft: 8 }}
               >
                 Nepal Can Move
-              </BodyBoldText>
+              </Typography>
             </View>
             <TouchableOpacity
               onPress={handleSync}
@@ -225,17 +218,14 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
               {syncing ? (
                 <ActivityIndicator size="small" color={NCM.white} />
               ) : (
-                <IconSymbol
-                  name="arrow.clockwise"
-                  size={12}
-                  color={NCM.white}
-                />
+                <RefreshIcon width={12} height={12} color={NCM.white} />
               )}
-              <CaptionText
+              <Typography
+                variation="caption"
                 style={{ color: NCM.white, marginLeft: 4, fontSize: 11 }}
               >
                 {syncing ? "Syncing..." : "Sync"}
-              </CaptionText>
+              </Typography>
             </TouchableOpacity>
           </View>
 
@@ -251,7 +241,8 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
               style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
               activeOpacity={0.6}
             >
-              <CaptionText
+              <Typography
+                variation="caption"
                 style={{
                   color: "rgba(255,255,255,0.6)",
                   fontSize: 10,
@@ -259,18 +250,19 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
                 }}
               >
                 NCM ID
-              </CaptionText>
+              </Typography>
               <View className="flex-row items-center mt-1">
-                <BodyBoldText
+                <Typography
+                  variation="label"
                   style={{ fontSize: 22, color: NCM.white, letterSpacing: 0.5 }}
                 >
                   #37588
-                </BodyBoldText>
+                </Typography>
                 <View
                   className="ml-2 px-1.5 py-1 rounded"
                   style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
                 >
-                  <IconSymbol name="doc.on.doc" size={11} color={NCM.white} />
+                  <CopyIcon width={11} height={11} color={NCM.white} />
                 </View>
               </View>
             </TouchableOpacity>
@@ -285,7 +277,8 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
               style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
               activeOpacity={0.6}
             >
-              <CaptionText
+              <Typography
+                variation="caption"
                 style={{
                   color: "rgba(255,255,255,0.6)",
                   fontSize: 10,
@@ -293,18 +286,19 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
                 }}
               >
                 NCM ORDER ID
-              </CaptionText>
+              </Typography>
               <View className="flex-row items-center mt-1">
-                <BodyBoldText
+                <Typography
+                  variation="label"
                   style={{ fontSize: 22, color: NCM.white, letterSpacing: 0.5 }}
                 >
                   #{ncmOrderId}
-                </BodyBoldText>
+                </Typography>
                 <View
                   className="ml-2 px-1.5 py-1 rounded"
                   style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
                 >
-                  <IconSymbol name="doc.on.doc" size={11} color={NCM.white} />
+                  <CopyIcon width={11} height={11} color={NCM.white} />
                 </View>
               </View>
             </TouchableOpacity>
@@ -320,23 +314,21 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
                 className="w-8 h-8 rounded-full items-center justify-center"
                 style={{ backgroundColor: NCM.white }}
               >
-                <IconSymbol
-                  name={latestConfig.icon as any}
-                  size={16}
-                  color={latestConfig.color}
-                />
+                {renderSFSymbolIcon(latestConfig.icon, { size: 16, color: latestConfig.color })}
               </View>
               <View className="ml-3 flex-1">
-                <CaptionText
+                <Typography
+                  variation="caption"
                   style={{ color: "rgba(255,255,255,0.6)", fontSize: 10 }}
                 >
                   CURRENT STATUS
-                </CaptionText>
-                <BodySemiboldText
+                </Typography>
+                <Typography
+                  variation="label"
                   style={{ color: NCM.white, fontSize: 15, marginTop: 1 }}
                 >
                   {latestStatus || "Processing"}
-                </BodySemiboldText>
+                </Typography>
               </View>
             </View>
           </View>
@@ -345,11 +337,12 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
         {/* ── Info Row: Payment + Delivery Fee ── */}
         <View className="flex-row" style={{ backgroundColor: NCM.white }}>
           <View className="flex-1 px-4 py-3.5 border-r border-[#F3F4F6]">
-            <CaptionText
+            <Typography
+              variation="caption"
               style={{ color: "#9CA3AF", fontSize: 10, letterSpacing: 0.5 }}
             >
               PAYMENT
-            </CaptionText>
+            </Typography>
             <View className="flex-row items-center mt-1.5">
               <View
                 className="w-5 h-5 rounded-full items-center justify-center mr-2"
@@ -358,33 +351,35 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
                     paymentStatus === "Completed" ? "#D1FAE5" : "#FEF3C7",
                 }}
               >
-                <IconSymbol
-                  name={paymentStatus === "Completed" ? "checkmark" : "clock"}
-                  size={10}
-                  color={paymentStatus === "Completed" ? "#059669" : "#D97706"}
-                />
+                {renderSFSymbolIcon(
+                  paymentStatus === "Completed" ? "checkmark" : "clock",
+                  { size: 10, color: paymentStatus === "Completed" ? "#059669" : "#D97706" },
+                )}
               </View>
-              <BodySemiboldText
+              <Typography
+                variation="label"
                 style={{
                   fontSize: 14,
                   color: paymentStatus === "Completed" ? "#059669" : "#D97706",
                 }}
               >
                 {paymentStatus || "Pending"}
-              </BodySemiboldText>
+              </Typography>
             </View>
           </View>
           <View className="flex-1 px-4 py-3.5">
-            <CaptionText
+            <Typography
+              variation="caption"
               style={{ color: "#9CA3AF", fontSize: 10, letterSpacing: 0.5 }}
             >
               DELIVERY FEE
-            </CaptionText>
-            <BodySemiboldText
+            </Typography>
+            <Typography
+              variation="label"
               style={{ fontSize: 14, color: "#1F2937", marginTop: 4 }}
             >
               {deliveryCharge ? `Rs. ${deliveryCharge}` : "—"}
-            </BodySemiboldText>
+            </Typography>
           </View>
         </View>
 
@@ -397,44 +392,42 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
           }}
         >
           <View className="px-4 py-3 flex-row items-center">
-            <IconSymbol
-              name="point.topleft.down.to.point.bottomright.curvepath.fill"
-              size={14}
-              color={NCM.primary}
-            />
-            <BodySemiboldText
+            <TrendingUpIcon width={14} height={14} color={NCM.primary} />
+            <Typography
+              variation="label"
               style={{ fontSize: 13, color: "#374151", marginLeft: 8 }}
             >
               Tracking Updates
-            </BodySemiboldText>
+            </Typography>
           </View>
 
           <View className="px-4 pb-4">
             {error ? (
               <View className="items-center py-6">
-                <IconSymbol name="wifi.slash" size={28} color="#D1D5DB" />
-                <CaptionText style={{ color: "#9CA3AF", marginTop: 8 }}>
+                <WifiSlashIcon width={28} height={28} color="#D1D5DB" />
+                <Typography variation="caption" style={{ color: "#9CA3AF", marginTop: 8 }}>
                   {error}
-                </CaptionText>
-                <CaptionText
+                </Typography>
+                <Typography
+                  variation="caption"
                   style={{ color: "#B0B0B0", marginTop: 4, fontSize: 11 }}
                 >
                   Pull down to retry
-                </CaptionText>
+                </Typography>
               </View>
             ) : loading ? (
               <View className="items-center py-6">
                 <ActivityIndicator size="small" color={NCM.primary} />
-                <CaptionText style={{ color: "#9CA3AF", marginTop: 8 }}>
+                <Typography variation="caption" style={{ color: "#9CA3AF", marginTop: 8 }}>
                   Loading tracking...
-                </CaptionText>
+                </Typography>
               </View>
             ) : statusHistory.length === 0 ? (
               <View className="items-center py-6">
-                <IconSymbol name="clock" size={28} color="#D1D5DB" />
-                <CaptionText style={{ color: "#9CA3AF", marginTop: 8 }}>
+                <ClockIcon width={28} height={28} color="#D1D5DB" />
+                <Typography variation="caption" style={{ color: "#9CA3AF", marginTop: 8 }}>
                   No updates yet
-                </CaptionText>
+                </Typography>
               </View>
             ) : (
               <View>
@@ -468,11 +461,10 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
                             opacity: isLast ? 1 : 0.8,
                           }}
                         >
-                          <IconSymbol
-                            name={isLast ? (config.icon as any) : "checkmark"}
-                            size={isLast ? 14 : 11}
-                            color="#FFFFFF"
-                          />
+                          {renderSFSymbolIcon(
+                            isLast ? config.icon : "checkmark",
+                            { size: isLast ? 14 : 11, color: "#FFFFFF" },
+                          )}
                         </View>
                         {!isLast && (
                           <View
@@ -492,7 +484,8 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
                         className="flex-1 pb-4 pl-3"
                         style={{ paddingTop: isFirst ? 0 : 8 }}
                       >
-                        <BodyMediumText
+                        <Typography
+                          variation="body-sm"
                           style={{
                             fontSize: isLast ? 14 : 13,
                             color: isLast ? config.color : "#374151",
@@ -500,8 +493,9 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
                           }}
                         >
                           {item.status}
-                        </BodyMediumText>
-                        <CaptionText
+                        </Typography>
+                        <Typography
+                          variation="caption"
                           style={{
                             color: "#9CA3AF",
                             marginTop: 2,
@@ -509,7 +503,7 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
                           }}
                         >
                           {dayjs(item.added_time).format("DD MMM YYYY, h:mm A")}
-                        </CaptionText>
+                        </Typography>
                       </View>
                     </View>
                   );
@@ -529,11 +523,12 @@ export const NCMTrackingSection: React.FC<NCMTrackingSectionProps> = ({
               borderTopColor: "#F3F4F6",
             }}
           >
-            <CaptionText
+            <Typography
+              variation="caption"
               style={{ color: "#B0B0B0", fontSize: 10, textAlign: "center" }}
             >
               Last synced {dayjs(lastSyncedAt).format("DD MMM, h:mm A")}
-            </CaptionText>
+            </Typography>
           </View>
         )}
       </View>

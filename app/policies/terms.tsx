@@ -1,8 +1,33 @@
+import {
+  CalendarIcon,
+  CheckmarkSealFillIcon,
+  GearIcon,
+  HelpIcon,
+  LinkIcon,
+  LockIcon,
+  MailIcon,
+  PencilIcon,
+  UserIcon,
+} from "@/components/icons";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Typography } from "@/components/ui/Typography/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import React from "react";
 import { Linking, Pressable, ScrollView, View } from "react-native";
+
+// Icon mapping for policy sections
+const SECTION_ICON_MAP: Record<string, React.ReactNode> = {
+  "info.circle": <HelpIcon width={24} height={24} color="#3B2F2F" />,
+  gear: <GearIcon width={24} height={24} color="#3B2F2F" />,
+  "square.on.square": <LinkIcon width={24} height={24} color="#3B2F2F" />,
+  "lock.shield": <LockIcon width={24} height={24} color="#3B2F2F" />,
+  "checkmark.shield": (
+    <CheckmarkSealFillIcon width={24} height={24} color="#3B2F2F" />
+  ),
+  calendar: <CalendarIcon width={24} height={24} color="#3B2F2F" />,
+  "person.circle": <UserIcon width={24} height={24} color="#3B2F2F" />,
+  "pencil.circle": <PencilIcon width={24} height={24} color="#3B2F2F" />,
+  envelope: <MailIcon width={24} height={24} color="#3B2F2F" />,
+};
 
 export default function TermsScreen() {
   return (
@@ -10,7 +35,7 @@ export default function TermsScreen() {
       showHeader
       headerTitle="Terms & Conditions"
       headerAlignment="center"
-      backgroundColor="#FAF7F2"
+      backgroundColor="#F5F5F5"
       showBackButton
     >
       <ScrollView
@@ -343,7 +368,7 @@ export default function TermsScreen() {
               }
               className="flex-row items-center gap-2 bg-slate-50 p-4 rounded-lg"
             >
-              <IconSymbol name="envelope.fill" size={16} color="#3B2F2F" />
+              <MailIcon width={16} height={16} color="#3B2F2F" />
               <Typography variation="body-sm" className="text-slate-800">
                 thriiftverse.shop@gmail.com
               </Typography>
@@ -367,7 +392,9 @@ function SectionWithIcon({
   return (
     <View className="mb-8">
       <View className="flex-row items-center gap-3 mb-4">
-        <IconSymbol name={icon} size={24} color="#3B2F2F" />
+        {SECTION_ICON_MAP[icon] || (
+          <HelpIcon width={24} height={24} color="#3B2F2F" />
+        )}
         <Typography variation="h4" className="font-sans-bold text-slate-800">
           {title}
         </Typography>

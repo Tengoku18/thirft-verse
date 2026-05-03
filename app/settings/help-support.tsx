@@ -5,9 +5,10 @@ import {
   SocialLinksSection,
   TopQuestionsList,
 } from "@/components/help";
+import { ChatIcon, MailIcon, PhoneFillIcon } from "@/components/icons";
 import { ScreenLayout } from "@/components/layouts";
-import { FAQ_CATEGORIES, TOP_QUESTIONS } from "@/constants/help-content";
 import { WorkInProgressModal } from "@/components/molecules/WorkInProgressModal";
+import { FAQ_CATEGORIES, TOP_QUESTIONS } from "@/constants/help-content";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Linking, View } from "react-native";
@@ -67,9 +68,7 @@ export default function HelpSupportScreen() {
   return (
     <ScreenLayout
       title="Help & Support"
-      backgroundColor="#FAF7F2"
-      contentBackgroundColor="#FAF7F2"
-      headerBackgroundColor="#FAF7F2"
+      contentBackgroundColor="#F5F5F5"
       paddingHorizontal={0}
     >
       {/* FAQ Categories */}
@@ -98,18 +97,18 @@ export default function HelpSupportScreen() {
         description="Our support team is available 24/7 to help you with any vintage treasures or troubles."
         primaryOption={{
           label: "Chat with Us",
-          icon: "forum",
+          icon: <ChatIcon width={20} height={20} color="#3B3030" />,
           onPress: () => setShowWIP(true),
         }}
         secondaryOptions={[
           {
             label: "Email",
-            icon: "mail",
+            icon: <MailIcon width={18} height={18} color="#FFFFFF" />,
             onPress: handleEmail,
           },
           {
             label: "Call Us",
-            icon: "call",
+            icon: <PhoneFillIcon width={18} height={18} color="#FFFFFF" />,
             onPress: handleCall,
           },
         ]}

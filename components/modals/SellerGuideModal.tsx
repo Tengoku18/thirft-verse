@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/Button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import Typography from "@/components/ui/Typography";
 import React from "react";
 import { Linking, Modal, TouchableOpacity, View } from "react-native";
+import { ArrowUpRightIcon } from "@/components/icons";
 
 const STEPS = [
   {
@@ -106,11 +106,7 @@ export function SellerGuideModal({ visible, onClose }: SellerGuideModalProps) {
             <Typography variation="body-sm" className="text-brand-espresso/50">
               Read full guide
             </Typography>
-            <IconSymbol
-              name="arrow.up.right"
-              size={12}
-              color="rgba(59,48,48,0.4)"
-            />
+            <ArrowUpRightIcon width={12} height={12} color="rgba(59,48,48,0.4)" />
           </TouchableOpacity>
 
           <View className="mt-4">

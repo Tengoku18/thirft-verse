@@ -1,8 +1,8 @@
 import { Typography } from "@/components/ui/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Image, Pressable, View } from "react-native";
+import { ChevronRightIcon, CubeBoxIcon } from "@/components/icons";
 
 const SECONDARY = "#D4A373";
 
@@ -85,7 +85,7 @@ export function TopSellingItems({
               marginBottom: 12,
             }}
           >
-            <IconSymbol name="cube.box" size={24} color={SECONDARY} />
+            <CubeBoxIcon width={24} height={24} color={SECONDARY} />
           </View>
           <Typography
             variation="body"
@@ -195,12 +195,7 @@ export function TopSellingItems({
                             flexShrink: 0,
                           }}
                         >
-                          <IconSymbol
-                            name="cube.box"
-                            size={18}
-                            color={SECONDARY}
-                            style={{ opacity: 0.7 }}
-                          />
+                          <CubeBoxIcon width={18} height={18} color={SECONDARY} style={{ opacity: 0.7 }} />
                         </View>
                       )}
 
@@ -318,7 +313,7 @@ export function TopSellingItems({
               >
                 View All {sorted.length} Items
               </Typography>
-              <IconSymbol name="chevron.right" size={13} color={SECONDARY} />
+              <ChevronRightIcon width={13} height={13} color={SECONDARY} />
             </Pressable>
           )}
         </>

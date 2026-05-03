@@ -1,13 +1,9 @@
-import {
-  BodyBoldText,
-  BodySemiboldText,
-  CaptionText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import dayjs from "dayjs";
 import React from "react";
 import { Image, TouchableOpacity, View } from "react-native";
+import { BagIcon, TagFillIcon } from "@/components/icons";
 
 // ─────────────── Types ───────────────
 export type OrderStatus =
@@ -115,7 +111,8 @@ export function OrderCard({ item, onPress }: OrderCardProps) {
             backgroundColor: status.bg,
           }}
         >
-          <CaptionText
+          <Typography
+            variation="caption"
             style={{
               color: status.text,
               fontSize: 10,
@@ -125,12 +122,12 @@ export function OrderCard({ item, onPress }: OrderCardProps) {
             }}
           >
             {status.label}
-          </CaptionText>
+          </Typography>
         </View>
 
-        <CaptionText style={{ color: "rgba(59,48,48,0.45)", fontSize: 12, fontWeight: "500" }}>
+        <Typography variation="caption" style={{ color: "rgba(59,48,48,0.45)", fontSize: 12, fontWeight: "500" }}>
           {dateStr}
-        </CaptionText>
+        </Typography>
       </View>
 
       {/* ── Content row: image + details ── */}
@@ -159,7 +156,7 @@ export function OrderCard({ item, onPress }: OrderCardProps) {
                 justifyContent: "center",
               }}
             >
-              <IconSymbol name="bag.fill" size={28} color="#9CA3AF" />
+              <BagIcon width={28} height={28} color="#9CA3AF" />
             </View>
           )}
           {/* Multi-item badge */}
@@ -178,9 +175,9 @@ export function OrderCard({ item, onPress }: OrderCardProps) {
                 justifyContent: "center",
               }}
             >
-              <CaptionText style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "800" }}>
+              <Typography variation="caption" style={{ color: "#FFFFFF", fontSize: 10, fontWeight: "800" }}>
                 {item.items_count}
-              </CaptionText>
+              </Typography>
             </View>
           )}
         </View>
@@ -188,15 +185,16 @@ export function OrderCard({ item, onPress }: OrderCardProps) {
         {/* Details */}
         <View style={{ flex: 1, justifyContent: "space-between" }}>
           <View>
-            <BodyBoldText
+            <Typography
+              variation="label"
               style={{ fontSize: 14, color: "#3B2F2F", marginBottom: 3 }}
               numberOfLines={1}
             >
               {item.product_title}
-            </BodyBoldText>
-            <CaptionText style={{ color: "rgba(59,48,48,0.55)", fontSize: 12 }}>
+            </Typography>
+            <Typography variation="caption" style={{ color: "rgba(59,48,48,0.55)", fontSize: 12 }}>
               Buyer: {item.buyer_name} • Qty: {item.quantity}
-            </CaptionText>
+            </Typography>
           </View>
 
           {/* Price + action button */}
@@ -208,9 +206,9 @@ export function OrderCard({ item, onPress }: OrderCardProps) {
               marginTop: 10,
             }}
           >
-            <BodyBoldText style={{ fontSize: 18, color: "#D4A373" }}>
+            <Typography variation="label" style={{ fontSize: 18, color: "#D4A373" }}>
               {formatPrice(item.amount)}
-            </BodyBoldText>
+            </Typography>
 
             <TouchableOpacity
               onPress={onPress}
@@ -222,14 +220,15 @@ export function OrderCard({ item, onPress }: OrderCardProps) {
                 borderRadius: 10,
               }}
             >
-              <BodySemiboldText
+              <Typography
+                variation="label"
                 style={{
                   fontSize: 12,
                   color: action.dark ? "#FFFFFF" : "#3B2F2F",
                 }}
               >
                 {action.label}
-              </BodySemiboldText>
+              </Typography>
             </TouchableOpacity>
           </View>
 
@@ -247,15 +246,16 @@ export function OrderCard({ item, onPress }: OrderCardProps) {
                 marginTop: 6,
               }}
             >
-              <IconSymbol name="tag.fill" size={10} color="#059669" />
-              <CaptionText
+              <TagFillIcon width={10} height={10} color="#059669" />
+              <Typography
+                variation="caption"
                 style={{ color: "#059669", marginLeft: 4, fontSize: 10, fontWeight: "700" }}
               >
                 {item.offer_code_text}
                 {item.offer_discount_percent
                   ? ` (${item.offer_discount_percent}% OFF)`
                   : ""}
-              </CaptionText>
+              </Typography>
             </View>
           )}
         </View>

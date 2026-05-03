@@ -1,10 +1,11 @@
 import {
-  BodyRegularText,
-  BodySemiboldText,
-  HeadingBoldText,
-} from "@/components/Typography";
+  ArrowUpRightIcon,
+  CheckMarkCircleIcon,
+  XIcon,
+} from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
+
 import { BlurModal } from "@/components/ui/BlurModal";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import React from "react";
 import { Pressable, TouchableOpacity, View } from "react-native";
 
@@ -25,6 +26,18 @@ interface SuccessModalProps {
   children?: React.ReactNode;
   /** Simple message string (used when children is not provided) */
   message?: string;
+}
+
+// Helper to convert icon names to SVG components
+function getActionIcon(iconName: string, color: string): React.ReactNode {
+  const iconMap: Record<string, React.ReactNode> = {
+    "checkmark.circle.fill": (
+      <CheckMarkCircleIcon width={18} height={18} color={color} />
+    ),
+    "arrow.right": <ArrowUpRightIcon width={18} height={18} color={color} />,
+  };
+
+  return iconMap[iconName] || null;
 }
 
 export const SuccessModal: React.FC<SuccessModalProps> = ({
@@ -58,15 +71,15 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
               marginBottom: 16,
             }}
           >
-            <HeadingBoldText style={{ fontSize: 20, flex: 1 }}>
+            <Typography variation="h2" style={{ fontSize: 20, flex: 1 }}>
               {title}
-            </HeadingBoldText>
+            </Typography>
             <TouchableOpacity
               onPress={onClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               style={{ marginLeft: 12 }}
             >
-              <IconSymbol name="xmark" size={20} color="#9CA3AF" />
+              <XIcon width={20} height={20} color="#9CA3AF" />
             </TouchableOpacity>
           </View>
 
@@ -74,11 +87,11 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
           {children ? (
             <View style={{ marginBottom: 24 }}>{children}</View>
           ) : message ? (
-            <BodyRegularText
+            <Typography variation="body"
               style={{ color: "#6B7280", lineHeight: 22, marginBottom: 24 }}
             >
               {message}
-            </BodyRegularText>
+            </Typography>
           ) : null}
 
           {/* Action Buttons */}
@@ -99,9 +112,9 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
                     }}
                     activeOpacity={0.7}
                   >
-                    <BodyRegularText style={{ color: "#6B7280" }}>
+                    <Typography variation="body" style={{ color: "#6B7280" }}>
                       {action.label}
-                    </BodyRegularText>
+                    </Typography>
                   </TouchableOpacity>
                 );
               }
@@ -122,20 +135,18 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
                   }}
                   activeOpacity={0.8}
                 >
-                  {action.icon && (
-                    <IconSymbol
-                      name={action.icon as any}
-                      size={18}
-                      color={variant === "primary" ? "#FFFFFF" : "#3B2F2F"}
-                    />
-                  )}
-                  <BodySemiboldText
+                  {action.icon &&
+                    getActionIcon(
+                      action.icon,
+                      variant === "primary" ? "#FFFFFF" : "#3B2F2F",
+                    )}
+                  <Typography variation="label"
                     style={{
                       color: variant === "primary" ? "#FFFFFF" : "#3B2F2F",
                     }}
                   >
                     {action.label}
-                  </BodySemiboldText>
+                  </Typography>
                 </TouchableOpacity>
               );
             })}

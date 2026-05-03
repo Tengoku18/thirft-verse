@@ -5,12 +5,7 @@ import { FormTextarea } from "@/components/atoms/FormTextarea";
 import { CompleteProfileModal } from "@/components/molecules/CompleteProfileModal";
 import { ConfirmModal } from "@/components/molecules/ConfirmModal";
 import { ProductSuccessModal } from "@/components/molecules/ProductSuccessModal";
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { getProductImageUrl } from "@/lib/storage-helpers";
@@ -32,6 +27,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { Controller, FieldError, useForm } from "react-hook-form";
+import { AddPhotoIcon, CameraIcon, XIcon } from "@/components/icons";
 import {
   Alert,
   Image,
@@ -496,9 +492,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
           keyboardShouldPersistTaps="handled"
         >
           <View className="px-6 pt-4">
-            <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
+            <Typography variation="body-sm" className="mb-3" style={{ fontSize: 13, fontWeight: "600" }}>
               Cover Photo
-            </BodySemiboldText>
+            </Typography>
             <View
               style={{
                 aspectRatio: 1.15,
@@ -530,7 +526,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
                     }}
                     activeOpacity={0.8}
                   >
-                    <IconSymbol name="xmark" size={16} color="#FFFFFF" />
+                    <XIcon width={16} height={16} color="#FFFFFF" />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={pickCoverImage}
@@ -545,11 +541,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
                     }}
                     activeOpacity={0.8}
                   >
-                    <BodySemiboldText
-                      style={{ color: "#FFFFFF", fontSize: 13 }}
+                    <Typography
+                      variation="body-sm"
+                      style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "600" }}
                     >
                       Change Photo
-                    </BodySemiboldText>
+                    </Typography>
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -563,13 +560,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
                   activeOpacity={0.7}
                 >
                   <View className="items-center">
-                    <IconSymbol name="photo" size={48} color="#9CA3AF" />
-                    <BodySemiboldText
+                    <AddPhotoIcon width={48} height={48} color="#9CA3AF" />
+                    <Typography
+                      variation="body-sm"
                       className="mt-3"
-                      style={{ color: "#6B7280", fontSize: 16 }}
+                      style={{ color: "#6B7280", fontSize: 16, fontWeight: "600" }}
                     >
                       Tap to add cover photo
-                    </BodySemiboldText>
+                    </Typography>
                   </View>
                 </TouchableOpacity>
               )}
@@ -577,17 +575,19 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
 
             {/* Additional Photos Section */}
             <View className="flex-row items-center justify-between my-3">
-              <BodySemiboldText style={{ fontSize: 13 }}>
+              <Typography variation="body-sm" style={{ fontSize: 13, fontWeight: "600" }}>
                 Additional Photos
-              </BodySemiboldText>
-              <BodySemiboldText
+              </Typography>
+              <Typography
+                variation="body-sm"
                 style={{
                   color: otherImageUris.length >= 5 ? "#EF4444" : "#6B7280",
                   fontSize: 12,
+                  fontWeight: "600",
                 }}
               >
                 {otherImageUris.length}/5
-              </BodySemiboldText>
+              </Typography>
             </View>
             <View
               style={{
@@ -628,7 +628,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
                     }}
                     activeOpacity={0.8}
                   >
-                    <IconSymbol name="xmark" size={12} color="#FFFFFF" />
+                    <XIcon width={12} height={12} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -650,10 +650,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
                   activeOpacity={0.7}
                 >
                   <View className="items-center">
-                    <IconSymbol name="camera" size={24} color="#9CA3AF" />
-                    <CaptionText className="mt-1" style={{ color: "#9CA3AF" }}>
+                    <CameraIcon width={24} height={24} color="#9CA3AF" />
+                    <Typography variation="caption" className="mt-1" style={{ color: "#9CA3AF" }}>
                       Add
-                    </CaptionText>
+                    </Typography>
                   </View>
                 </TouchableOpacity>
               )}
@@ -767,16 +767,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
             {/* Error Summary */}
             {Object.keys(errors).length > 0 && (
               <View className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-6">
-                <BodySemiboldText className="mb-2" style={{ color: "#EF4444" }}>
+                <Typography className="mb-2" style={{ color: "#EF4444", fontWeight: "600" }}>
                   Please fix the following errors:
-                </BodySemiboldText>
+                </Typography>
                 {Object.entries(errors).map(([field, error]) => (
-                  <BodyRegularText
+                  <Typography variation="body"
                     key={field}
                     style={{ color: "#DC2626", fontSize: 13 }}
                   >
                     • {(error as FieldError)?.message}
-                  </BodyRegularText>
+                  </Typography>
                 ))}
               </View>
             )}

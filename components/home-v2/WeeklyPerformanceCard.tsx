@@ -1,5 +1,5 @@
+import { ChevronRightIcon } from "@/components/icons";
 import TrendingUpIcon from "@/components/icons/TrendingUpIcon";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -40,15 +40,12 @@ export const WeeklyPerformanceCard: React.FC<WeeklyPerformanceCardProps> = ({
         }}
       >
         <View className="flex-row items-center justify-between mb-6">
-          <Typography
-            variation="h5"
-            style={{ fontSize: 16, color: "#3B2F2F" }}
-          >
+          <Typography variation="h5" style={{ fontSize: 16, color: "#3B2F2F" }}>
             Weekly Performance
           </Typography>
           <View className="flex-row items-center" style={{ gap: 8 }}>
             <View className="flex-row items-center" style={{ gap: 4 }}>
-              <TrendingUpIcon size={14} color="#D4A373" />
+              <TrendingUpIcon width={14} height={14} color="#D4A373" />
               <Typography
                 variation="label"
                 style={{ fontSize: 12, fontWeight: "700", color: "#D4A373" }}
@@ -57,9 +54,9 @@ export const WeeklyPerformanceCard: React.FC<WeeklyPerformanceCardProps> = ({
                 {growthPercent}%
               </Typography>
             </View>
-            <IconSymbol
-              name="chevron.right"
-              size={14}
+            <ChevronRightIcon
+              width={14}
+              height={14}
               color="rgba(59,47,47,0.3)"
             />
           </View>

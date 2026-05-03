@@ -1,4 +1,4 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { CheckmarkIcon, CopyIcon } from "@/components/icons";
 import Typography from "@/components/ui/Typography";
 import * as Clipboard from "expo-clipboard";
 import React, { useState } from "react";
@@ -39,11 +39,10 @@ export function NCMSuccessContent({ ncmOrderId }: NCMSuccessContentProps) {
             activeOpacity={0.7}
             className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200"
           >
-            <IconSymbol
-              name={copied ? "checkmark" : "doc.on.doc"}
-              size={14}
-              color={copied ? "#059669" : "#6B7280"}
-            />
+            {copied
+              ? <CheckmarkIcon width={14} height={14} color="#059669" />
+              : <CopyIcon width={14} height={14} color="#6B7280" />
+            }
             <Typography
               variation="caption"
               style={{ color: copied ? "#059669" : "#6B7280" }}

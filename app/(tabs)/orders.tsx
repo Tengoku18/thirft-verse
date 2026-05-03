@@ -1,3 +1,4 @@
+import { PlusIcon } from "@/components/icons";
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import type { OrderItem } from "@/components/orders";
 import {
@@ -6,13 +7,12 @@ import {
   OrderFilterBar,
   StatusFilter,
 } from "@/components/orders";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Typography } from "@/components/ui/Typography/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { getOrdersBySeller } from "@/lib/database-helpers";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
+import { Pressable, View } from "react-native";
 
 // // ─────────────── Guide banner ───────────────
 // function GuideBanner({ onDismiss }: { onDismiss: () => void }) {
@@ -48,29 +48,24 @@ import { ActivityIndicator, Pressable, View } from "react-native";
 //             marginRight: 12,
 //           }}
 //         >
-//           <IconSymbol name="doc.text.fill" size={20} color="#D97706" />
+//           <ReceiptIcon width={20} height={20} color="#D97706" />
 //         </View>
 //         <View style={{ flex: 1 }}>
-//           <BodySemiboldText style={{ fontSize: 14, color: "#92400E" }}>
+//           <Typography variation="label" style={{ fontSize: 14, color: "#92400E" }}>
 //             New to selling?
-//           </BodySemiboldText>
-//           <BodyMediumText style={{ fontSize: 12, color: "#A16207", marginTop: 2 }}>
+//           </Typography>
+//           <Typography variation="body-sm" style={{ fontSize: 12, color: "#A16207", marginTop: 2 }}>
 //             Learn how to handle orders step by step
-//           </BodyMediumText>
+//           </Typography>
 //         </View>
-//         <IconSymbol
-//           name="arrow.up.right"
-//           size={14}
-//           color="#D97706"
-//           style={{ marginRight: 8 }}
-//         />
+//         <ArrowUpRightIcon width={14} height={14} color="#D97706" style={{ marginRight: 8 }} />
 //       </TouchableOpacity>
 //       <TouchableOpacity
 //         onPress={onDismiss}
 //         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
 //         activeOpacity={0.6}
 //       >
-//         <IconSymbol name="xmark" size={14} color="#D97706" />
+//         <XIcon width={14} height={14} color="#D97706" />
 //       </TouchableOpacity>
 //     </View>
 //   );
@@ -231,7 +226,7 @@ export default function OrdersScreen() {
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       className="p-1"
     >
-      <IconSymbol name="plus" size={22} color="#3B2F2F" />
+      <PlusIcon width={22} height={22} color="#3B2F2F" />
     </Pressable>
   ) : null;
 
@@ -245,17 +240,7 @@ export default function OrdersScreen() {
         scrollable={false}
         rightComponent={createOrderButton}
       >
-        <View
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        >
-          <ActivityIndicator size="large" color="#3B2F2F" />
-          <Typography
-            variation="body"
-            style={{ color: "#9CA3AF", marginTop: 12 }}
-          >
-            Loading orders...
-          </Typography>
-        </View>
+        <FullScreenLoader message="Loading orders..." />
       </TabScreenLayout>
     );
   }

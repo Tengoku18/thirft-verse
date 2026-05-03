@@ -1,5 +1,5 @@
 import { FormButton } from "@/components/atoms/FormButton";
-import { BodyRegularText, BodySemiboldText } from "@/components/Typography";
+import { Typography } from "@/components/ui/Typography";
 import { createUserProfile } from "@/lib/database-helpers";
 import { uploadProfileImage } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
@@ -279,24 +279,28 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
               onPress={handleResendCode}
               disabled={resendLoading}
             >
-              <BodySemiboldText>
+              <Typography variation="body-sm" style={{ fontWeight: "600" }}>
                 {resendLoading ? "Sending..." : "Resend Code"}
-              </BodySemiboldText>
+              </Typography>
             </TouchableOpacity>
           ) : (
-            <BodyRegularText style={{ color: "#9CA3AF" }}>
+            <Typography variation="body-sm" style={{ color: "#9CA3AF" }}>
               Resend code in {timer}s
-            </BodyRegularText>
+            </Typography>
           )}
         </View>
       </View>
 
       {/* Info */}
       <View className="mb-8 p-5 bg-[#FAFAFA] rounded-2xl border-[2px] border-[#E5E1DB]">
-        <BodyRegularText className="leading-6" style={{ color: "#6B7280" }}>
+        <Typography
+          variation="body-sm"
+          className="leading-6"
+          style={{ color: "#6B7280" }}
+        >
           Check your spam folder if you don&apos;t see the email. The code will
           expire in 60 minutes.
-        </BodyRegularText>
+        </Typography>
       </View>
 
       {/* Buttons */}

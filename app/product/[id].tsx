@@ -3,7 +3,6 @@ import { ActionModal } from "@/components/ui/ActionModal";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Carousel } from "@/components/ui/Carousel";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -16,8 +15,8 @@ import {
 } from "@/store/productsSlice";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
 import {
-  ActivityIndicator,
   Alert,
   Dimensions,
   Image,
@@ -27,6 +26,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { CheckMarkCircleIcon, GlobeIcon, ShareIcon, SquarePencilIcon, TrashIcon, WarningIcon } from "@/components/icons";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -138,11 +138,8 @@ export default function ProductDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-[#F5F5F5] justify-center items-center">
-        <ActivityIndicator size="large" color="#3B3030" />
-        <Typography variation="body-sm" className="text-ui-secondary mt-3">
-          Loading product...
-        </Typography>
+      <SafeAreaView className="flex-1" style={{ backgroundColor: "#F5F5F5" }}>
+        <FullScreenLoader message="Loading product..." />
       </SafeAreaView>
     );
   }
@@ -150,7 +147,7 @@ export default function ProductDetailScreen() {
   if (!product) {
     return (
       <SafeAreaView className="flex-1 bg-[#F5F5F5] justify-center items-center px-6">
-        <IconSymbol name="exclamationmark.triangle" size={48} color="#9CA3AF" />
+        <WarningIcon width={48} height={48} color="#9CA3AF" />
         <Typography variation="h3" className="text-brand-espresso mt-4 text-center">
           Product Not Found
         </Typography>
@@ -182,7 +179,7 @@ export default function ProductDetailScreen() {
       activeOpacity={0.7}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
-      <IconSymbol name="square.and.arrow.up" size={20} color="#3B3030" />
+      <ShareIcon width={20} height={20} color="#3B3030" />
     </TouchableOpacity>
   );
 
@@ -220,7 +217,7 @@ export default function ProductDetailScreen() {
             className="flex-row items-center gap-1.5 px-3 py-1 rounded-full"
             style={{ backgroundColor: currentStatus.bg }}
           >
-            <IconSymbol name="checkmark.circle.fill" size={14} color={currentStatus.text} />
+            <CheckMarkCircleIcon width={14} height={14} color={currentStatus.text} />
             <Typography
               variation="caption"
               style={{ color: currentStatus.text, fontWeight: "700" }}
@@ -291,7 +288,7 @@ export default function ProductDetailScreen() {
               label="Edit Product"
               variant="primary"
               onPress={handleEdit}
-              icon={<IconSymbol name="square.and.pencil" size={18} color="#FFFFFF" />}
+              icon={<SquarePencilIcon width={18} height={18} color="#FFFFFF" />}
               noShadow
             />
             <View className="flex-row gap-3">
@@ -300,7 +297,7 @@ export default function ProductDetailScreen() {
                   label="Share"
                   variant="secondary"
                   onPress={handleShare}
-                  icon={<IconSymbol name="square.and.arrow.up" size={18} color="#3B3030" />}
+                  icon={<ShareIcon width={18} height={18} color="#3B3030" />}
                   noShadow
                 />
               </View>
@@ -309,7 +306,7 @@ export default function ProductDetailScreen() {
                   label="Website"
                   variant="secondary"
                   onPress={handleViewInWebsite}
-                  icon={<IconSymbol name="globe" size={18} color="#3B3030" />}
+                  icon={<GlobeIcon width={18} height={18} color="#3B3030" />}
                   noShadow
                 />
               </View>
@@ -319,7 +316,7 @@ export default function ProductDetailScreen() {
               className="w-full h-14 flex-row items-center justify-center gap-2 rounded-3xl bg-red-50 border border-red-200"
               activeOpacity={0.8}
             >
-              <IconSymbol name="trash" size={18} color="#DC2626" />
+              <TrashIcon width={18} height={18} color="#DC2626" />
               <Typography variation="button" className="text-red-600">
                 Delete Product
               </Typography>
@@ -341,7 +338,7 @@ export default function ProductDetailScreen() {
       {/* Delete Confirmation Modal */}
       <ActionModal
         visible={showDeleteModal}
-        icon={<IconSymbol name="trash" size={24} color="#DC2626" />}
+        icon={<TrashIcon width={24} height={24} color="#DC2626" />}
         title="Delete Product?"
         description={`Are you sure you want to delete "${product.title}"? This action cannot be undone.`}
         primaryLabel={deleting ? "Deleting…" : "Delete"}
