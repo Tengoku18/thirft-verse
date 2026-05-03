@@ -1,9 +1,7 @@
-import CopyIcon from "@/components/icons/CopyIcon";
 import QRCodeIcon from "@/components/icons/QRCodeIcon";
 import StoreIcon from "@/components/icons/StoreIcon";
 import { Typography } from "@/components/ui/Typography";
-import { useToast } from "@/contexts/ToastContext";
-import * as Clipboard from "expo-clipboard";
+import * as WebBrowser from "expo-web-browser";
 import React, { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { StoreQRModal } from "./StoreQRModal";
@@ -18,19 +16,13 @@ export const StorefrontCard: React.FC<StorefrontCardProps> = ({
   storeUsername,
   storeName,
 }) => {
-  const toast = useToast();
   const [qrVisible, setQrVisible] = useState(false);
 
   const fullUrl = `https://${storeUsername}.thriftverse.shop`;
   const displayUrl = `${storeUsername}.thriftverse.shop`;
 
-  const handleCopy = async () => {
-    try {
-      await Clipboard.setStringAsync(fullUrl);
-      toast.success("Store link copied to clipboard");
-    } catch {
-      toast.error("Failed to copy link");
-    }
+  const handleVisitStore = async () => {
+    await WebBrowser.openBrowserAsync(fullUrl);
   };
 
   return (
@@ -79,18 +71,17 @@ export const StorefrontCard: React.FC<StorefrontCardProps> = ({
 
           <View className="flex-row" style={{ gap: 8 }}>
             <TouchableOpacity
-              onPress={handleCopy}
+              onPress={handleVisitStore}
               activeOpacity={0.85}
-              accessibilityLabel="Copy store link"
+              accessibilityLabel="Visit store"
               className="flex-1 flex-row items-center justify-center py-3 rounded-xl"
               style={{ backgroundColor: "#3B2F2F" }}
             >
-              <CopyIcon width={14} height={16} color="#FFFFFF" />
               <Typography
                 variation="label"
-                style={{ color: "#FFFFFF", fontSize: 14, marginLeft: 8 }}
+                style={{ color: "#FFFFFF", fontSize: 14 }}
               >
-                Copy Link
+                Visit Store
               </Typography>
             </TouchableOpacity>
 
