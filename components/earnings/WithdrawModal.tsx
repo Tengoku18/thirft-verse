@@ -1,5 +1,5 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import React, { useState } from "react";
+import { CashIcon, SendIcon, XIcon } from "@/components/icons";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -9,12 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  BodySemiboldText,
-  BodyMediumText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
+import { Typography } from "@/components/ui/Typography";
+
 
 interface WithdrawModalProps {
   visible: boolean;
@@ -129,9 +125,9 @@ export function WithdrawModal({
                 marginBottom: 20,
               }}
             >
-              <HeadingBoldText style={{ fontSize: 20, color: "#3B2F2F" }}>
+              <Typography variation="h2" style={{ fontSize: 20, color: "#3B2F2F" }}>
                 Request Withdrawal
-              </HeadingBoldText>
+              </Typography>
               <TouchableOpacity
                 onPress={handleClose}
                 style={{
@@ -144,7 +140,7 @@ export function WithdrawModal({
                 }}
                 activeOpacity={0.7}
               >
-                <IconSymbol name="xmark" size={14} color="#6B7280" />
+                <XIcon width={14} height={14} color="#6B7280" />
               </TouchableOpacity>
             </View>
 
@@ -160,14 +156,14 @@ export function WithdrawModal({
                 gap: 12,
               }}
             >
-              <IconSymbol name="banknote.fill" size={22} color="#22C55E" />
+              <CashIcon width={22} height={22} color="#22C55E" />
               <View>
-                <CaptionText style={{ color: "#6B7280", marginBottom: 2 }}>
+                <Typography variation="caption" style={{ color: "#6B7280", marginBottom: 2 }}>
                   Available Balance
-                </CaptionText>
-                <BodySemiboldText style={{ color: "#059669", fontSize: 18 }}>
+                </Typography>
+                <Typography variation="label" style={{ color: "#059669", fontSize: 18 }}>
                   {formatAmount(availableBalance)}
-                </BodySemiboldText>
+                </Typography>
               </View>
             </View>
 
@@ -194,27 +190,27 @@ export function WithdrawModal({
                   justifyContent: "center",
                 }}
               >
-                <BodySemiboldText style={{ color: "#FFFFFF", fontSize: 9 }}>
+                <Typography variation="label" style={{ color: "#FFFFFF", fontSize: 9 }}>
                   e
-                </BodySemiboldText>
+                </Typography>
               </View>
-              <CaptionText style={{ color: "rgba(59,48,48,0.6)", fontSize: 12 }}>
+              <Typography variation="caption" style={{ color: "rgba(59,48,48,0.6)", fontSize: 12 }}>
                 Payout to:{" "}
-                <BodySemiboldText style={{ color: "#3B2F2F", fontSize: 12 }}>
+                <Typography variation="label" style={{ color: "#3B2F2F", fontSize: 12 }}>
                   @{paymentUsername}
-                </BodySemiboldText>
-              </CaptionText>
+                </Typography>
+              </Typography>
             </View>
 
             {/* Amount input */}
             <View style={{ marginBottom: 14 }}>
               <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-                <BodySemiboldText style={{ fontSize: 14, color: "#374151" }}>
+                <Typography variation="label" style={{ fontSize: 14, color: "#374151" }}>
                   Withdraw Amount
-                </BodySemiboldText>
-                <BodySemiboldText style={{ color: "#EF4444", fontSize: 14 }}>
+                </Typography>
+                <Typography variation="label" style={{ color: "#EF4444", fontSize: 14 }}>
                   {" "}*
-                </BodySemiboldText>
+                </Typography>
               </View>
               <View
                 style={{
@@ -227,9 +223,9 @@ export function WithdrawModal({
                   borderColor: error ? "#EF4444" : "transparent",
                 }}
               >
-                <BodySemiboldText style={{ color: "#6B7280", fontSize: 16 }}>
+                <Typography variation="label" style={{ color: "#6B7280", fontSize: 16 }}>
                   रु
-                </BodySemiboldText>
+                </Typography>
                 <TextInput
                   value={amount}
                   onChangeText={(text) => {
@@ -250,22 +246,22 @@ export function WithdrawModal({
                 />
               </View>
               {error && (
-                <CaptionText style={{ color: "#EF4444", marginTop: 6 }}>
+                <Typography variation="caption" style={{ color: "#EF4444", marginTop: 6 }}>
                   {error}
-                </CaptionText>
+                </Typography>
               )}
             </View>
 
             {/* Note input */}
             <View style={{ marginBottom: 24 }}>
-              <BodySemiboldText
+              <Typography variation="label"
                 style={{ fontSize: 14, color: "#374151", marginBottom: 8 }}
               >
                 Note{" "}
-                <CaptionText style={{ color: "#9CA3AF", fontSize: 13 }}>
+                <Typography variation="caption" style={{ color: "#9CA3AF", fontSize: 13 }}>
                   (Optional)
-                </CaptionText>
-              </BodySemiboldText>
+                </Typography>
+              </Typography>
               <TextInput
                 value={note}
                 onChangeText={setNote}
@@ -305,16 +301,16 @@ export function WithdrawModal({
               {submitting ? (
                 <>
                   <ActivityIndicator size="small" color="#FFFFFF" />
-                  <BodySemiboldText style={{ color: "#FFFFFF", fontSize: 16 }}>
+                  <Typography variation="label" style={{ color: "#FFFFFF", fontSize: 16 }}>
                     Submitting...
-                  </BodySemiboldText>
+                  </Typography>
                 </>
               ) : (
                 <>
-                  <IconSymbol name="paperplane.fill" size={18} color="#FFFFFF" />
-                  <BodySemiboldText style={{ color: "#FFFFFF", fontSize: 16 }}>
+                  <SendIcon width={18} height={18} color="#FFFFFF" />
+                  <Typography variation="label" style={{ color: "#FFFFFF", fontSize: 16 }}>
                     Submit Request
-                  </BodySemiboldText>
+                  </Typography>
                 </>
               )}
             </TouchableOpacity>
@@ -326,9 +322,9 @@ export function WithdrawModal({
               activeOpacity={0.7}
               style={{ paddingVertical: 14, alignItems: "center", marginTop: 4 }}
             >
-              <BodyMediumText style={{ color: "#9CA3AF", fontSize: 15 }}>
+              <Typography variation="body-sm" style={{ color: "#9CA3AF", fontSize: 15 }}>
                 Cancel
-              </BodyMediumText>
+              </Typography>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>

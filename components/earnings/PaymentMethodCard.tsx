@@ -1,11 +1,8 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import React from "react";
 import { Image, TouchableOpacity, View } from "react-native";
-import {
-  BodySemiboldText,
-  CaptionText,
-  BodyMediumText,
-} from "@/components/Typography";
+import { QRCodeIcon } from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
+
 
 interface PaymentMethodCardProps {
   username: string;
@@ -42,13 +39,13 @@ export function PaymentMethodCard({
           marginBottom: 16,
         }}
       >
-        <BodySemiboldText style={{ fontSize: 16, color: "#3B2F2F" }}>
+        <Typography variation="label" style={{ fontSize: 16, color: "#3B2F2F" }}>
           Payment Method
-        </BodySemiboldText>
+        </Typography>
         <TouchableOpacity onPress={onChangePress} activeOpacity={0.7}>
-          <BodySemiboldText style={{ fontSize: 14, color: "#D4A373" }}>
+          <Typography variation="label" style={{ fontSize: 14, color: "#D4A373" }}>
             Change
-          </BodySemiboldText>
+          </Typography>
         </TouchableOpacity>
       </View>
 
@@ -76,7 +73,7 @@ export function PaymentMethodCard({
               resizeMode="contain"
             />
           ) : (
-            <IconSymbol name="qrcode" size={32} color="rgba(59,48,48,0.3)" />
+            <QRCodeIcon width={32} height={32} color="rgba(59,48,48,0.3)" />
           )}
         </View>
 
@@ -96,21 +93,21 @@ export function PaymentMethodCard({
                 justifyContent: "center",
               }}
             >
-              <BodySemiboldText style={{ color: "#FFFFFF", fontSize: 10 }}>
+              <Typography variation="label" style={{ color: "#FFFFFF", fontSize: 10 }}>
                 e
-              </BodySemiboldText>
+              </Typography>
             </View>
-            <BodySemiboldText style={{ fontSize: 15, color: "#3B2F2F" }}>
+            <Typography variation="label" style={{ fontSize: 15, color: "#3B2F2F" }}>
               eSewa Wallet
-            </BodySemiboldText>
+            </Typography>
           </View>
 
-          <CaptionText style={{ color: "rgba(59,48,48,0.55)", fontSize: 13, marginBottom: 2 }}>
+          <Typography variation="caption" style={{ color: "rgba(59,48,48,0.55)", fontSize: 13, marginBottom: 2 }}>
             @{username}
-          </CaptionText>
-          <CaptionText style={{ color: "rgba(59,48,48,0.35)", fontSize: 11 }}>
+          </Typography>
+          <Typography variation="caption" style={{ color: "rgba(59,48,48,0.35)", fontSize: 11 }}>
             Primary payout account
-          </CaptionText>
+          </Typography>
         </View>
       </View>
     </View>

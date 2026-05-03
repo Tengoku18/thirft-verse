@@ -1,14 +1,10 @@
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { uploadMultipleImages } from "@/lib/upload-helpers";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
+import { AddPhotoIcon, PlusIcon, TrashIcon } from "@/components/icons";
 import {
   ActivityIndicator,
   Alert,
@@ -125,16 +121,16 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
     <View className="mb-6">
       {/* Label */}
       <View className="flex-row items-center justify-between mb-3">
-        <BodySemiboldText
+        <Typography variation="label"
           style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: 0.5 }}
         >
           Product Photos
-        </BodySemiboldText>
-        <BodySemiboldText
+        </Typography>
+        <Typography variation="label"
           style={{ color: images.length >= maxImages ? "#EF4444" : "#6B7280", fontSize: 12 }}
         >
           {images.length}/{maxImages}
-        </BodySemiboldText>
+        </Typography>
       </View>
 
       {/* Main Image Display / Upload Area */}
@@ -167,12 +163,12 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
             {uploading ? (
               <View className="items-center">
                 <ActivityIndicator size="large" color="#3B2F2F" />
-                <BodySemiboldText className="mt-4" style={{ fontSize: 16 }}>
+                <Typography variation="label" className="mt-4" style={{ fontSize: 16 }}>
                   Uploading images...
-                </BodySemiboldText>
-                <BodyRegularText className="mt-2" style={{ color: "#6B7280", fontSize: 13 }}>
+                </Typography>
+                <Typography variation="body" className="mt-2" style={{ color: "#6B7280", fontSize: 13 }}>
                   Please wait
-                </BodyRegularText>
+                </Typography>
               </View>
             ) : (
               <View className="items-center">
@@ -187,21 +183,17 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
                     marginBottom: 16,
                   }}
                 >
-                  <IconSymbol
-                    name="photo.on.rectangle"
-                    size={40}
-                    color="#3B2F2F"
-                  />
+                  <AddPhotoIcon width={40} height={40} color="#3B2F2F" />
                 </View>
-                <HeadingBoldText className="mb-2" style={{ fontSize: 18 }}>
+                <Typography variation="h2" className="mb-2" style={{ fontSize: 18 }}>
                   Add Product Photos
-                </HeadingBoldText>
-                <BodyRegularText className="text-center px-8" style={{ color: "#6B7280" }}>
+                </Typography>
+                <Typography variation="body" className="text-center px-8" style={{ color: "#6B7280" }}>
                   Upload up to {maxImages} high-quality images
-                </BodyRegularText>
-                <CaptionText className="mt-2" style={{ color: "#9CA3AF" }}>
+                </Typography>
+                <Typography variation="caption" className="mt-2" style={{ color: "#9CA3AF" }}>
                   First image will be the cover photo
-                </CaptionText>
+                </Typography>
               </View>
             )}
           </TouchableOpacity>
@@ -253,7 +245,7 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
                     }}
                     activeOpacity={0.8}
                   >
-                    <IconSymbol name="trash" size={16} color="#EF4444" />
+                    <TrashIcon width={16} height={16} color="#EF4444" />
                   </TouchableOpacity>
                   {/* Cover Badge */}
                   {image.id === images[0].id && (
@@ -268,11 +260,11 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
                         backgroundColor: "rgba(59, 47, 47, 0.9)",
                       }}
                     >
-                      <CaptionText
+                      <Typography variation="caption"
                         style={{ color: "#FFFFFF", textTransform: "uppercase", letterSpacing: 0.5, fontSize: 11 }}
                       >
                         Cover Photo
-                      </CaptionText>
+                      </Typography>
                     </View>
                   )}
                 </View>
@@ -362,10 +354,10 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
                 <ActivityIndicator size="small" color="#3B2F2F" />
               ) : (
                 <>
-                  <IconSymbol name="plus" size={20} color="#3B2F2F" />
-                  <CaptionText className="mt-1" style={{ color: "#6B7280", fontSize: 9 }}>
+                  <PlusIcon width={20} height={20} color="#3B2F2F" />
+                  <Typography variation="caption" className="mt-1" style={{ color: "#6B7280", fontSize: 9 }}>
                     Add More
-                  </CaptionText>
+                  </Typography>
                 </>
               )}
             </TouchableOpacity>
@@ -376,18 +368,18 @@ export const ImageCarouselUploader: React.FC<ImageCarouselUploaderProps> = ({
       {/* Error Message */}
       {error && (
         <View className="mt-2">
-          <BodySemiboldText style={{ color: "#EF4444", fontSize: 12 }}>
+          <Typography variation="label" style={{ color: "#EF4444", fontSize: 12 }}>
             {error}
-          </BodySemiboldText>
+          </Typography>
         </View>
       )}
 
       {/* Helper Text */}
       {!error && images.length > 0 && (
         <View className="mt-2">
-          <CaptionText style={{ color: "#6B7280" }}>
+          <Typography variation="caption" style={{ color: "#6B7280" }}>
             Swipe to reorder images. First image is the cover photo.
-          </CaptionText>
+          </Typography>
         </View>
       )}
     </View>

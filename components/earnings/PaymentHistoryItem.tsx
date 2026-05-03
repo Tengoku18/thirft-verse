@@ -1,11 +1,10 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { CheckMarkCircleIcon, ClockIcon, XIcon } from "@/components/icons";
 import React from "react";
 import { View } from "react-native";
-import {
-  BodySemiboldText,
-  CaptionText,
-  BodySmallSemiboldText,
-} from "@/components/Typography";
+import { Typography } from "@/components/ui/Typography";
+
+import { ComponentType } from "react";
+import { SvgProps } from "react-native-svg";
 
 export type PaymentRequestStatus = "pending" | "released" | "rejected";
 
@@ -23,7 +22,7 @@ const STATUS_CONFIG: Record<
     iconBg: string;
     text: string;
     label: string;
-    iconName: string;
+    Icon: ComponentType<SvgProps>;
   }
 > = {
   pending: {
@@ -31,21 +30,21 @@ const STATUS_CONFIG: Record<
     iconBg: "#FEF3C7",
     text: "#D97706",
     label: "PENDING",
-    iconName: "clock.fill",
+    Icon: ClockIcon,
   },
   released: {
     bg: "rgba(209,231,209,0.7)",
     iconBg: "#D1FAE5",
     text: "#059669",
     label: "APPROVED",
-    iconName: "checkmark.circle.fill",
+    Icon: CheckMarkCircleIcon,
   },
   rejected: {
     bg: "rgba(254,226,226,0.7)",
     iconBg: "#FEE2E2",
     text: "#DC2626",
     label: "REJECTED",
-    iconName: "xmark.circle.fill",
+    Icon: XIcon,
   },
 };
 
@@ -99,26 +98,27 @@ export function PaymentHistoryItem({
               justifyContent: "center",
             }}
           >
-            <IconSymbol name={config.iconName} size={20} color={config.text} />
+            <config.Icon width={20} height={20} color={config.text} />
           </View>
 
           {/* Title + date */}
           <View style={{ flex: 1 }}>
-            <BodySemiboldText style={{ fontSize: 14, color: "#3B2F2F", marginBottom: 2 }}>
+            <Typography variation="label" style={{ fontSize: 14, color: "#3B2F2F", marginBottom: 2 }}>
               Withdrawal Request
-            </BodySemiboldText>
-            <CaptionText style={{ color: "rgba(59,48,48,0.4)", fontSize: 12 }}>
+            </Typography>
+            <Typography variation="caption" style={{ color: "rgba(59,48,48,0.4)", fontSize: 12 }}>
               {formatDate(createdAt)}
-            </CaptionText>
+            </Typography>
           </View>
         </View>
 
         {/* Right: amount + status badge */}
         <View style={{ alignItems: "flex-end", gap: 4 }}>
-          <BodySemiboldText style={{ fontSize: 14, color: "#3B2F2F" }}>
+          <Typography variation="label" style={{ fontSize: 14, color: "#3B2F2F" }}>
             {formatAmount(amount)}
-          </BodySemiboldText>
-          <BodySmallSemiboldText
+          </Typography>
+          <Typography
+            variation="caption"
             style={{
               fontSize: 10,
               color: config.text,
@@ -127,7 +127,7 @@ export function PaymentHistoryItem({
             }}
           >
             {config.label}
-          </BodySmallSemiboldText>
+          </Typography>
         </View>
       </View>
 
@@ -141,9 +141,9 @@ export function PaymentHistoryItem({
             borderTopColor: "rgba(59,48,48,0.06)",
           }}
         >
-          <CaptionText style={{ color: "rgba(59,48,48,0.5)", fontSize: 12 }}>
+          <Typography variation="caption" style={{ color: "rgba(59,48,48,0.5)", fontSize: 12 }}>
             Note: {adminNotes}
-          </CaptionText>
+          </Typography>
         </View>
       )}
     </View>

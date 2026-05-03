@@ -1,5 +1,5 @@
-import { BodySemiboldText, CaptionText } from "@/components/Typography";
 import { CameraIcon, UserIcon } from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
 import { getProfileImageUrl } from "@/lib/storage-helpers";
 import * as ImagePicker from "expo-image-picker";
 import React from "react";
@@ -112,12 +112,13 @@ export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
 
   return (
     <View className="items-center mb-6">
-      <BodySemiboldText
+      <Typography
+        variation="label"
         className="mb-3"
         style={{ color: "#3B2F2F", fontSize: 14 }}
       >
         {label}
-      </BodySemiboldText>
+      </Typography>
 
       <TouchableOpacity onPress={showOptions} className="relative">
         {value ? (
@@ -127,19 +128,23 @@ export const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
           />
         ) : (
           <View className="w-24 h-24 rounded-full bg-[#D4A373] justify-center items-center border-[3px] border-[#C7BFB3]">
-            <UserIcon size={48} color="#FFFFFF" />
+            <UserIcon width={48} height={48} color="#FFFFFF" />
           </View>
         )}
 
         {/* Add/Edit Icon */}
         <View className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#D4A373] border-2 border-white justify-center items-center">
-          <CameraIcon width={16} height={16} color="#FFFFFF" />
+          <CameraIcon width={12} height={12} color="#FFFFFF" />
         </View>
       </TouchableOpacity>
 
-      <CaptionText className="mt-2 text-center" style={{ color: "#6B705C" }}>
+      <Typography
+        variation="caption"
+        className="mt-2 text-center"
+        style={{ color: "#6B705C" }}
+      >
         Tap to {value ? "change" : "add"} photo
-      </CaptionText>
+      </Typography>
     </View>
   );
 };

@@ -1,5 +1,5 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
+import { renderSFSymbolIcon } from "@/lib/icon-mapper";
 import React from "react";
 import { Pressable, Switch, View } from "react-native";
 
@@ -22,12 +22,9 @@ export function SettingsToggleRow({
       className="flex-row items-center justify-between px-4 py-3.5"
     >
       <View className="flex-row items-center gap-4 flex-1">
-        <IconSymbol
-          name={icon as any}
-          size={20}
-          color="#3B3030"
-          style={{ opacity: 0.55 }}
-        />
+        <View style={{ opacity: 0.55 }}>
+          {renderSFSymbolIcon(icon, { size: 20, color: "#3B3030" })}
+        </View>
         <Typography
           variation="body"
           className="text-brand-espresso font-sans-semibold"

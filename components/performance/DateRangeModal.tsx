@@ -1,9 +1,9 @@
 import { Typography } from "@/components/ui/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import dayjs, { Dayjs } from "dayjs";
 import React, { useState } from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { BlurModal } from "../ui/BlurModal";
+import { BackIcon, CalendarIcon, ChevronRightIcon, XIcon } from "@/components/icons";
 
 export type DatePreset = "week" | "month" | "thisMonth";
 
@@ -207,7 +207,7 @@ export function DateRangeModal({
                 justifyContent: "center",
               }}
             >
-              <IconSymbol name="xmark" size={16} color="#3B2F2F" />
+              <XIcon width={16} height={16} color="#3B2F2F" />
             </TouchableOpacity>
           </View>
 
@@ -256,11 +256,7 @@ export function DateRangeModal({
                       selecting === "start" ? "#3B2F2F" : "transparent",
                   }}
                 >
-                  <IconSymbol
-                    name="calendar"
-                    size={16}
-                    color="rgba(59,47,47,0.6)"
-                  />
+                  <CalendarIcon width={16} height={16} color="rgba(59,47,47,0.6)" />
                   <Typography
                     variation="body-sm"
                     style={{
@@ -306,7 +302,7 @@ export function DateRangeModal({
                       selecting === "end" ? "#3B2F2F" : "transparent",
                   }}
                 >
-                  <IconSymbol name="calendar" size={16} color="#3B2F2F" />
+                  <CalendarIcon width={16} height={16} color="#3B2F2F" />
                   <Typography
                     variation="body-sm"
                     style={{
@@ -381,11 +377,7 @@ export function DateRangeModal({
                 </Typography>
                 <View style={{ flexDirection: "row", gap: 16 }}>
                   <TouchableOpacity onPress={prevMonth} activeOpacity={0.7}>
-                    <IconSymbol
-                      name="chevron.left"
-                      size={18}
-                      color="rgba(59,47,47,0.4)"
-                    />
+                    <BackIcon width={18} height={18} color="rgba(59,47,47,0.4)" />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={nextMonth}
@@ -402,11 +394,7 @@ export function DateRangeModal({
                           : 1,
                     }}
                   >
-                    <IconSymbol
-                      name="chevron.right"
-                      size={18}
-                      color="rgba(59,47,47,0.4)"
-                    />
+                    <ChevronRightIcon width={18} height={18} color="rgba(59,47,47,0.4)" />
                   </TouchableOpacity>
                 </View>
               </View>

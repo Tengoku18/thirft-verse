@@ -1,6 +1,9 @@
-import NotificationIcon from "@/components/icons/NotificationIcon";
-import { HeadingBoldText } from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import {
+  BackIcon,
+  GearIcon,
+  NotificationIcon,
+  SearchIcon,
+} from "@/components/icons";
 import { Typography } from "@/components/ui/Typography";
 import { LOGOS } from "@/constants/logos";
 import { useAppSelector } from "@/store/hooks";
@@ -99,11 +102,11 @@ function LightTabHeader({
       <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" />
 
       {/* Title */}
-      <HeadingBoldText
+      <Typography variation="h2"
         style={{ fontSize: 20, color: "#3B2F2F", letterSpacing: -0.3 }}
       >
         {title ?? ""}
-      </HeadingBoldText>
+      </Typography>
 
       {/* Right — notification + optional custom icon(s) */}
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -158,12 +161,12 @@ function DarkTabHeader({
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 activeOpacity={0.7}
               >
-                <IconSymbol name="chevron.left" size={22} color="#FFFFFF" />
+                <BackIcon width={22} height={22} color="#FFFFFF" />
               </TouchableOpacity>
               {title && (
-                <HeadingBoldText style={{ fontSize: 18, color: "#FFFFFF" }}>
+                <Typography variation="h2" style={{ fontSize: 18, color: "#FFFFFF" }}>
                   {title}
-                </HeadingBoldText>
+                </Typography>
               )}
             </>
           ) : showTextLogo ? (
@@ -179,11 +182,11 @@ function DarkTabHeader({
                 style={{ width: 32, height: 32 }}
                 resizeMode="contain"
               />
-              <HeadingBoldText
+              <Typography variation="h2"
                 style={{ fontSize: 20, color: "#FFFFFF", marginLeft: 10 }}
               >
                 {title || "Thriftverse"}
-              </HeadingBoldText>
+              </Typography>
             </View>
           )}
         </View>
@@ -199,7 +202,7 @@ function DarkTabHeader({
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 activeOpacity={0.7}
               >
-                <IconSymbol name="magnifyingglass" size={24} color="#FFFFFF" />
+                <SearchIcon width={24} height={24} color="#FFFFFF" />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => router.push("/notifications" as never)}
@@ -207,7 +210,7 @@ function DarkTabHeader({
                 activeOpacity={0.7}
               >
                 <View>
-                  <IconSymbol name="bell.fill" size={24} color="#FFFFFF" />
+                  <NotificationIcon width={24} height={24} color="#FFFFFF" />
                   {unreadCount > 0 && (
                     <View
                       style={{
@@ -241,7 +244,7 @@ function DarkTabHeader({
                 onPress={() => router.push("/settings")}
                 className="rounded-full items-center justify-center"
               >
-                <IconSymbol name="gearshape.fill" size={24} color="#FFFFFF" />
+                <GearIcon width={24} height={24} color="#FFFFFF" />
               </TouchableOpacity>
             </>
           ) : null}

@@ -1,9 +1,9 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import Typography from "@/components/ui/Typography";
 import { getNCMOrderStatus, NCMOrderStatusItem } from "@/lib/ncm-helpers";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, TouchableOpacity, View } from "react-native";
+import { ChevronRightIcon, ShippingBoxIcon } from "@/components/icons";
 
 const NCM_RED = "#D32F2F";
 
@@ -50,12 +50,12 @@ export function NCMStatusDropdown({ ncmOrderId }: Props) {
         style={{ flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start" }}
       >
         <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: NCM_RED, alignItems: "center", justifyContent: "center" }}>
-          <IconSymbol name="shippingbox.fill" size={9} color="#FFF" />
+          <ShippingBoxIcon width={9} height={9} color="#FFF" />
         </View>
         <Typography variation="caption" style={{ color: NCM_RED, fontWeight: "600" }}>
           NCM Delivery Updates
         </Typography>
-        <IconSymbol name={expanded ? "chevron.up" : "chevron.down"} size={10} color={NCM_RED} />
+        <ChevronRightIcon width={10} height={10} color={NCM_RED} style={{ transform: [{ rotate: expanded ? '-90deg' : '90deg' }] }} />
       </TouchableOpacity>
 
       {expanded && (

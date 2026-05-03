@@ -30,7 +30,7 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color, size }: any) => (
-            <HomeIcon size={size} color={color} />
+            <HomeIcon width={size} height={size} color={color} />
           ),
         }}
       />
@@ -39,7 +39,7 @@ export default function TabLayout() {
         options={{
           title: "Orders",
           tabBarIcon: ({ color, size }: any) => (
-            <BagIcon size={size} color={color} />
+            <BagIcon width={size} height={size} color={color} />
           ),
         }}
       />
@@ -48,7 +48,7 @@ export default function TabLayout() {
         options={{
           title: "Add",
           tabBarIcon: ({ color, size }: any) => (
-            <PlusIcon size={size} color={color} />
+            <PlusIcon width={size} height={size} color={color} />
           ),
         }}
       />
@@ -57,7 +57,7 @@ export default function TabLayout() {
         options={{
           title: "Cash",
           tabBarIcon: ({ color, size }: any) => (
-            <CashIcon size={size} color={color} />
+            <CashIcon width={size} height={size} color={color} />
           ),
         }}
       />
@@ -66,7 +66,7 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color, size }: any) => (
-            <UserIcon size={size} color={color} />
+            <UserIcon width={size} height={size} color={color} />
           ),
         }}
       />

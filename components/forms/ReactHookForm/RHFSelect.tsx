@@ -90,10 +90,7 @@ export function RHFSelect<
       rules={rules}
       defaultValue={defaultValue}
       shouldUnregister={shouldUnregister}
-      render={({
-        field: { onChange, value },
-        fieldState: { error },
-      }) => (
+      render={({ field: { onChange, value }, fieldState: { error } }) => (
         <Select
           label={label}
           placeholder={placeholder}

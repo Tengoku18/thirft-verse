@@ -28,7 +28,7 @@ export const HomeExploreSearchBar: React.FC = () => {
           borderColor: "rgba(59,47,47,0.08)",
         }}
       >
-        <SearchIcon size={18} color="#9CA3AF" />
+        <SearchIcon width={18} height={18} color="#9CA3AF" />
         <Typography
           variation="body"
           style={{ color: "#9CA3AF", marginLeft: 10, flex: 1, fontSize: 15 }}

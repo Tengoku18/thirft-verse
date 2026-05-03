@@ -1,16 +1,13 @@
-import { PaymentHistoryItem } from "@/components/earnings";
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
 import type { PaymentRequestStatus } from "@/components/earnings";
+import { PaymentHistoryItem } from "@/components/earnings";
+import { ClockArrowIcon } from "@/components/icons";
 import { ScreenLayout } from "@/components/layouts/ScreenLayout";
-import {
-  BodyMediumText,
-  BodySemiboldText,
-  CaptionText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
 // ─────────────── Types ───────────────
 interface PaymentRequest {
@@ -45,14 +42,16 @@ function FilterPill({ label, active, onPress }: FilterPillProps) {
         borderColor: active ? "#3B2F2F" : "rgba(59,48,48,0.15)",
       }}
     >
-      <BodySemiboldText
+      <Typography
+        variation="body-sm"
         style={{
           fontSize: 13,
           color: active ? "#FFFFFF" : "rgba(59,48,48,0.6)",
+          fontWeight: "600",
         }}
       >
         {label}
-      </BodySemiboldText>
+      </Typography>
     </TouchableOpacity>
   );
 }
@@ -89,9 +88,7 @@ export default function AllTransactionsScreen() {
   }, [loadRequests]);
 
   const filtered =
-    filter === "all"
-      ? requests
-      : requests.filter((r) => r.status === filter);
+    filter === "all" ? requests : requests.filter((r) => r.status === filter);
 
   // Stats summary
   const totalPending = requests
@@ -115,12 +112,7 @@ export default function AllTransactionsScreen() {
       onRefresh={loadRequests}
     >
       {loading ? (
-        <View style={{ flex: 1, alignItems: "center", paddingTop: 60 }}>
-          <ActivityIndicator size="large" color="#3B2F2F" />
-          <BodyMediumText style={{ color: "#9CA3AF", marginTop: 12 }}>
-            Loading transactions...
-          </BodyMediumText>
-        </View>
+        <FullScreenLoader message="Loading transactions..." />
       ) : (
         <>
           {/* ── Summary cards ── */}
@@ -143,14 +135,24 @@ export default function AllTransactionsScreen() {
                 borderColor: "rgba(0,0,0,0.04)",
               }}
             >
-              <CaptionText
-                style={{ fontSize: 10, color: "rgba(59,48,48,0.55)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}
+              <Typography
+                variation="caption"
+                style={{
+                  fontSize: 10,
+                  color: "rgba(59,48,48,0.55)",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.8,
+                  marginBottom: 4,
+                }}
               >
                 Pending
-              </CaptionText>
-              <BodySemiboldText style={{ fontSize: 13, color: "#3B2F2F" }}>
+              </Typography>
+              <Typography
+                variation="body-sm"
+                style={{ fontSize: 13, color: "#3B2F2F", fontWeight: "600" }}
+              >
                 {formatAmt(totalPending)}
-              </BodySemiboldText>
+              </Typography>
             </View>
 
             {/* Released */}
@@ -164,14 +166,24 @@ export default function AllTransactionsScreen() {
                 borderColor: "rgba(0,0,0,0.04)",
               }}
             >
-              <CaptionText
-                style={{ fontSize: 10, color: "rgba(59,48,48,0.55)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}
+              <Typography
+                variation="caption"
+                style={{
+                  fontSize: 10,
+                  color: "rgba(59,48,48,0.55)",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.8,
+                  marginBottom: 4,
+                }}
               >
                 Approved
-              </CaptionText>
-              <BodySemiboldText style={{ fontSize: 13, color: "#3B2F2F" }}>
+              </Typography>
+              <Typography
+                variation="body-sm"
+                style={{ fontSize: 13, color: "#3B2F2F", fontWeight: "600" }}
+              >
                 {formatAmt(totalReleased)}
-              </BodySemiboldText>
+              </Typography>
             </View>
 
             {/* Rejected */}
@@ -185,14 +197,24 @@ export default function AllTransactionsScreen() {
                 borderColor: "rgba(0,0,0,0.04)",
               }}
             >
-              <CaptionText
-                style={{ fontSize: 10, color: "rgba(59,48,48,0.55)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}
+              <Typography
+                variation="caption"
+                style={{
+                  fontSize: 10,
+                  color: "rgba(59,48,48,0.55)",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.8,
+                  marginBottom: 4,
+                }}
               >
                 Rejected
-              </CaptionText>
-              <BodySemiboldText style={{ fontSize: 13, color: "#3B2F2F" }}>
+              </Typography>
+              <Typography
+                variation="body-sm"
+                style={{ fontSize: 13, color: "#3B2F2F", fontWeight: "600" }}
+              >
                 {formatAmt(totalRejected)}
-              </BodySemiboldText>
+              </Typography>
             </View>
           </View>
 
@@ -209,11 +231,15 @@ export default function AllTransactionsScreen() {
               (f) => (
                 <FilterPill
                   key={f}
-                  label={f === "released" ? "Approved" : f.charAt(0).toUpperCase() + f.slice(1)}
+                  label={
+                    f === "released"
+                      ? "Approved"
+                      : f.charAt(0).toUpperCase() + f.slice(1)
+                  }
                   active={filter === f}
                   onPress={() => setFilter(f)}
                 />
-              )
+              ),
             )}
           </View>
 
@@ -241,11 +267,14 @@ export default function AllTransactionsScreen() {
                   marginBottom: 12,
                 }}
               >
-                <IconSymbol name="clock.arrow.circlepath" size={22} color="#9CA3AF" />
+                <ClockArrowIcon width={22} height={22} color="#9CA3AF" />
               </View>
-              <BodyMediumText style={{ color: "#6B7280", textAlign: "center" }}>
+              <Typography
+                variation="body-sm"
+                style={{ color: "#6B7280", textAlign: "center" }}
+              >
                 No {filter === "all" ? "" : filter} transactions found
-              </BodyMediumText>
+              </Typography>
             </View>
           ) : (
             <View style={{ gap: 10 }}>

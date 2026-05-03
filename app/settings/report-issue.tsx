@@ -148,9 +148,7 @@ export default function ReportIssueScreen() {
   return (
     <ScreenLayout
       title="Report an Issue"
-      backgroundColor="#FAF7F2"
-      contentBackgroundColor="#FAF7F2"
-      headerBackgroundColor="#FAF7F2"
+      contentBackgroundColor="#F5F5F5"
       paddingHorizontal={0}
     >
       <View>

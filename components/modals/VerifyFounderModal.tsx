@@ -1,16 +1,12 @@
 import { FormButton } from "@/components/atoms/FormButton";
 import { FormInput } from "@/components/atoms/FormInput";
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
 import { verifyFounderAccess } from "@/lib/database-helpers";
 import { fetchUserProfile } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import React, { useEffect, useState } from "react";
+import { CheckmarkSealFillIcon, CrownFillIcon, IIcon, WarningFillIcon, XIcon } from "@/components/icons";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -161,13 +157,9 @@ export function VerifyFounderModal({
                       marginBottom: 16,
                     }}
                   >
-                    <IconSymbol
-                      name="checkmark.seal.fill"
-                      size={32}
-                      color="#059669"
-                    />
+                    <CheckmarkSealFillIcon width={32} height={32} color="#059669" />
                   </View>
-                  <HeadingBoldText
+                  <Typography variation="h2"
                     style={{
                       fontSize: 22,
                       textAlign: "center",
@@ -175,8 +167,8 @@ export function VerifyFounderModal({
                     }}
                   >
                     Welcome, Founder!
-                  </HeadingBoldText>
-                  <BodyRegularText
+                  </Typography>
+                  <Typography variation="body"
                     style={{
                       color: "#6B7280",
                       textAlign: "center",
@@ -185,7 +177,7 @@ export function VerifyFounderModal({
                   >
                     Your Founder Circle status has been activated. Enjoy your
                     exclusive benefits.
-                  </BodyRegularText>
+                  </Typography>
                 </View>
               ) : (
                 /* ── Input state ── */
@@ -209,18 +201,18 @@ export function VerifyFounderModal({
                         marginRight: 12,
                       }}
                     >
-                      <IconSymbol name="crown.fill" size={22} color="#D97706" />
+                      <CrownFillIcon width={22} height={22} color="#D97706" />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <HeadingBoldText style={{ fontSize: 20 }}>
+                      <Typography variation="h2" style={{ fontSize: 20 }}>
                         Verify Founder Access
-                      </HeadingBoldText>
-                      <CaptionText style={{ color: "#6B7280", marginTop: 2 }}>
+                      </Typography>
+                      <Typography variation="caption" style={{ color: "#6B7280", marginTop: 2 }}>
                         Enter the code from your approval email
-                      </CaptionText>
+                      </Typography>
                     </View>
                     <Pressable onPress={handleClose} hitSlop={12}>
-                      <IconSymbol name="xmark" size={18} color="#9CA3AF" />
+                      <XIcon width={18} height={18} color="#9CA3AF" />
                     </Pressable>
                   </View>
 
@@ -237,12 +229,8 @@ export function VerifyFounderModal({
                       gap: 10,
                     }}
                   >
-                    <IconSymbol
-                      name="info.circle.fill"
-                      size={16}
-                      color="#16A34A"
-                    />
-                    <BodyRegularText
+                    <IIcon width={16} height={16} color="#16A34A" />
+                    <Typography variation="body"
                       style={{
                         color: "#15803D",
                         fontSize: 13,
@@ -251,13 +239,13 @@ export function VerifyFounderModal({
                       }}
                     >
                       Use the{" "}
-                      <BodySemiboldText
+                      <Typography variation="label"
                         style={{ color: "#15803D", fontSize: 13 }}
                       >
                         email you submitted your application with
-                      </BodySemiboldText>{" "}
+                      </Typography>{" "}
                       and the access code from your approval notification.
-                    </BodyRegularText>
+                    </Typography>
                   </View>
 
                   <FormInput
@@ -298,14 +286,10 @@ export function VerifyFounderModal({
                         marginBottom: 8,
                       }}
                     >
-                      <IconSymbol
-                        name="exclamationmark.circle.fill"
-                        size={14}
-                        color="#DC2626"
-                      />
-                      <CaptionText style={{ color: "#DC2626", flex: 1 }}>
+                      <WarningFillIcon width={14} height={14} color="#DC2626" />
+                      <Typography variation="caption" style={{ color: "#DC2626", flex: 1 }}>
                         {error}
-                      </CaptionText>
+                      </Typography>
                     </View>
                   )}
 

@@ -2,7 +2,8 @@ import * as yup from "yup";
 
 /**
  * Validation schema for Step 1: User Details
- * Fields: name, email, username, address, password, confirmPassword
+ * Fields: name, email, address, password, confirmPassword
+ * (username is collected in step 4)
  */
 export const userDetailsSchema = yup.object({
   name: yup
@@ -23,34 +24,7 @@ export const userDetailsSchema = yup.object({
     .email("Please enter a valid email address")
     .required("Email is required"),
 
-  // username: yup.string().trim().lowercase().optional().nullable(),
-
-  // address: yup
-  //   .string()
-  //   .trim()
-  //   .min(10, "Please enter a complete address (at least 10 characters)")
-  //   .max(200, "Address must be less than 200 characters")
-  //   .matches(
-  //     /^[a-zA-Z0-9\s,.\-/()#']+$/,
-  //     "Address can only contain letters, numbers, and common punctuation (,./-#')",
-  //   )
-  //   .test(
-  //     "has-letters",
-  //     "Address must contain at least some letters",
-  //     (value) => !value || /[a-zA-Z]/.test(value),
-  //   )
-  //   .test(
-  //     "has-location",
-  //     "Please include area/street name and city (e.g., Thamel, Kathmandu)",
-  //     (value) => {
-  //       if (!value) return true; // Optional field
-  //       // Check if address has at least 2 words (area + city)
-  //       const words = value.trim().split(/\s+/);
-  //       return words.length >= 2;
-  //     },
-  //   )
-  //   .optional()
-  //   .nullable(),
+  address: yup.string().trim().default(""),
 
   password: yup
     .string()

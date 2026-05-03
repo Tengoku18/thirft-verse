@@ -1,7 +1,7 @@
-import { BodyBoldText } from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
+import { BackIcon } from "@/components/icons";
 
 interface AuthHeaderProps {
   title: string;
@@ -18,11 +18,11 @@ export function AuthHeader({ title, onBack, rightComponent }: AuthHeaderProps) {
           className="w-10 h-10 items-center justify-center -ml-2"
           activeOpacity={0.7}
         >
-          <IconSymbol name="chevron.left" size={22} color="#3B2F2F" />
+          <BackIcon width={22} height={22} color="#3B2F2F" />
         </TouchableOpacity>
-        <BodyBoldText style={{ fontSize: 20, letterSpacing: -0.5 }}>
+        <Typography variation="h3" style={{ letterSpacing: -0.5 }}>
           {title}
-        </BodyBoldText>
+        </Typography>
       </View>
 
       {rightComponent && (

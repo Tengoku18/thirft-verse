@@ -3,17 +3,18 @@ import Svg, { Path, SvgProps } from "react-native-svg";
 
 interface RightArrowIconProps extends SvgProps {
   size?: number;
-  color?: string;
 }
 
-const RightArrowIcon: React.FC<RightArrowIconProps> = ({
-  size = 24,
-  color = "#000",
-  ...props
-}) => (
-  <Svg fill="none" viewBox="0 0 24 24" width={size} height={size} {...props}>
+const RightArrowIcon: React.FC<RightArrowIconProps> = ({ size, ...props }) => (
+  <Svg
+    fill="none"
+    viewBox="0 0 24 24"
+    width={size || (props.width as number) || 24}
+    height={size || (props.height as number) || 24}
+    {...props}
+  >
     <Path
-      stroke={color}
+      stroke={props.color || "#000000"}
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={3}

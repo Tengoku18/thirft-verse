@@ -1,11 +1,11 @@
 import { CustomHeader } from "@/components/navigation/CustomHeader";
 import { TopSellingItem } from "@/components/performance/TopSellingItems";
 import { Typography } from "@/components/ui/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useMemo } from "react";
 import { Image, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ChartBarFillIcon, CubeBoxIcon, FlameFillIcon } from "@/components/icons";
 
 const rankColors: Record<number, { bg: string; text: string }> = {
   0: { bg: "#FEF9C3", text: "#A16207" },
@@ -49,12 +49,7 @@ const ItemRow = ({
           className="items-center justify-center bg-brand-beige/30"
           style={{ width: 44, height: 44, borderRadius: 10, flexShrink: 0 }}
         >
-          <IconSymbol
-            name="cube.box"
-            size={20}
-            color="#3B3030"
-            style={{ opacity: 0.25 }}
-          />
+          <CubeBoxIcon width={20} height={20} color="#3B3030" style={{ opacity: 0.25 }} />
         </View>
       )}
 
@@ -113,7 +108,7 @@ export default function TopSellingScreen() {
         {/* Summary pill */}
         <View className="flex-row items-center gap-2 mb-4">
           <View className="w-6 h-6 bg-orange-100 rounded-lg items-center justify-center">
-            <IconSymbol name="flame.fill" size={14} color="#EA580C" />
+            <FlameFillIcon width={14} height={14} color="#EA580C" />
           </View>
           <Typography
             variation="body-sm"
@@ -132,11 +127,7 @@ export default function TopSellingScreen() {
 
           {items.length === 0 && (
             <View className="py-12 items-center gap-3">
-              <IconSymbol
-                name="chart.bar.fill"
-                size={32}
-                color="rgba(59,47,47,0.2)"
-              />
+              <ChartBarFillIcon width={32} height={32} color="rgba(59,47,47,0.2)" />
               <Typography
                 variation="body-sm"
                 className="text-sm text-brand-espresso/40 text-center"

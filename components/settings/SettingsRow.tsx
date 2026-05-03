@@ -1,5 +1,6 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ChevronRightIcon } from "@/components/icons";
 import { Typography } from "@/components/ui/Typography";
+import { renderSFSymbolIcon } from "@/lib/icon-mapper";
 import React from "react";
 import { Pressable, View } from "react-native";
 
@@ -20,18 +21,18 @@ export function SettingsRow({
   rightContent,
   destructive = false,
 }: SettingsRowProps) {
+  const iconColor = destructive ? "#DC2626" : "#3B3030";
+  const iconOpacity = destructive ? 1 : 0.55;
+
   return (
     <Pressable
       onPress={onPress}
       className="flex-row items-center justify-between px-4 py-3.5 active:bg-brand-espresso/5"
     >
       <View className="flex-row items-center gap-4 flex-1">
-        <IconSymbol
-          name={icon as any}
-          size={20}
-          color={destructive ? "#DC2626" : "#3B3030"}
-          style={{ opacity: destructive ? 1 : 0.55 }}
-        />
+        <View style={{ opacity: iconOpacity }}>
+          {renderSFSymbolIcon(icon, { size: 20, color: iconColor })}
+        </View>
         <Typography
           variation="body"
           className={
@@ -47,12 +48,7 @@ export function SettingsRow({
       {rightContent ? (
         rightContent
       ) : showChevron ? (
-        <IconSymbol
-          name="chevron.right"
-          size={16}
-          color="#3B3030"
-          style={{ opacity: 0.3 }}
-        />
+        <ChevronRightIcon width={16} height={16} color="#3B3030" style={{ opacity: 0.3 }} />
       ) : null}
     </Pressable>
   );

@@ -41,7 +41,7 @@ export function TopQuestionItem({
             transform: [{ rotate: isOpen ? "90deg" : "0deg" }],
           }}
         >
-          <RightArrowIcon size={18} color={isOpen ? "#D4A373" : "#9CA3AF"} />
+          <RightArrowIcon width={18} height={18} color={isOpen ? "#D4A373" : "#9CA3AF"} />
         </View>
       </View>
 

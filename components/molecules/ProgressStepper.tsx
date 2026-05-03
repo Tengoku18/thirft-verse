@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { BodySemiboldText, CaptionText } from '@/components/Typography';
+import { Typography } from '@/components/ui/Typography';
 
 export interface StepperStep {
   id: number;
@@ -40,21 +40,23 @@ export const ProgressStepper: React.FC<ProgressStepperProps> = ({ steps, current
                 className={`w-9 h-9 rounded-full justify-center items-center mb-2 ${circleColor} ${
                   isActive ? 'border-2 border-[#D4A373]' : ''
                 }`}>
-                <BodySemiboldText
+                <Typography
+                  variation="label"
                   style={{ color: isActive || isCompleted ? '#FFFFFF' : '#3B2F2F', fontSize: 14 }}>
                   {isCompleted ? '✓' : step.id}
-                </BodySemiboldText>
+                </Typography>
               </View>
 
               {/* Label */}
-              <CaptionText
+              <Typography
+                variation="caption"
                 className="text-center"
                 style={{
                   color: isActive ? '#D4A373' : isCompleted ? '#6B705C' : '#C7BFB3',
                   fontWeight: isActive ? '600' : '400',
                 }}>
                 {step.label}
-              </CaptionText>
+              </Typography>
             </View>
 
             {/* Connector Line */}

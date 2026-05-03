@@ -1,7 +1,7 @@
 {
   "name": "thriftverse",
   "main": "expo-router/entry",
-  "version": "1.1.3",
+  "version": "1.1.6",
   "scripts": {
     "start": "expo start --go",
     "android": "expo start --android",

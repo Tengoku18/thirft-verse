@@ -1,9 +1,6 @@
-import {
-  BodyMediumText,
-  BodySemiboldText,
-  CaptionText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { BagIcon } from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
+import { renderSFSymbolIcon } from "@/lib/icon-mapper";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -81,45 +78,46 @@ export const RecentOrderItem: React.FC<RecentOrderItemProps> = ({
           />
         ) : (
           <View className="flex-1 items-center justify-center">
-            <IconSymbol name="bag.fill" size={20} color="#9CA3AF" />
+            <BagIcon width={20} height={20} color="#9CA3AF" />
           </View>
         )}
       </View>
 
       {/* Order Info */}
       <View className="flex-1">
-        <BodySemiboldText style={{ fontSize: 14 }} numberOfLines={1}>
+        <Typography variation="label" style={{ fontSize: 14 }} numberOfLines={1}>
           {order.product?.title || "Product"}
-        </BodySemiboldText>
+        </Typography>
         <View className="flex-row items-center mt-1">
-          <CaptionText style={{ color: "#6B7280" }}>
+          <Typography variation="caption" style={{ color: "#6B7280" }}>
             {order.buyer_name}
-          </CaptionText>
+          </Typography>
           <View
             className="w-1 h-1 rounded-full mx-2"
             style={{ backgroundColor: "#D1D5DB" }}
           />
-          <CaptionText style={{ color: "#9CA3AF" }}>
+          <Typography variation="caption" style={{ color: "#9CA3AF" }}>
             {dayjs(order.created_at).fromNow()}
-          </CaptionText>
+          </Typography>
         </View>
       </View>
 
       {/* Earnings & Status */}
       <View className="items-end">
-        <BodySemiboldText style={{ fontSize: 14, color: "#059669" }}>
+        <Typography variation="label" style={{ fontSize: 14, color: "#059669" }}>
           Rs. {order.earnings.toLocaleString()}
-        </BodySemiboldText>
+        </Typography>
         <View
           className="flex-row items-center px-2 py-0.5 rounded-full mt-1"
           style={{ backgroundColor: config.bgColor }}
         >
-          <IconSymbol name={config.icon as any} size={10} color={config.color} />
-          <BodyMediumText
+          {renderSFSymbolIcon(config.icon, { size: 10, color: config.color })}
+          <Typography
+            variation="body-sm"
             style={{ color: config.color, fontSize: 10, marginLeft: 3 }}
           >
             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-          </BodyMediumText>
+          </Typography>
         </View>
       </View>
     </TouchableOpacity>

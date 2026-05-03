@@ -1,5 +1,5 @@
-import { BodyRegularText } from "@/components/Typography";
 import * as AppleAuthentication from "expo-apple-authentication";
+import { Typography } from "@/components/ui/Typography";
 import Constants from "expo-constants";
 import { Platform, View } from "react-native";
 
@@ -32,7 +32,7 @@ export function AppleSignInButton({ onPress }: AppleSignInButtonProps) {
           }}
           onPress={onPress}
         />
-        <BodyRegularText
+        <Typography variation="body"
           style={{
             color: "#9CA3AF",
             fontSize: 12,
@@ -42,7 +42,7 @@ export function AppleSignInButton({ onPress }: AppleSignInButtonProps) {
         >
           Note: Apple Sign-In works best after building with EAS. For testing in
           Expo Go, use Google Sign-In instead.
-        </BodyRegularText>
+        </Typography>
       </View>
     );
   }

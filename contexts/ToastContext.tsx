@@ -1,5 +1,9 @@
-import { BodyMediumText, BodySemiboldText } from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import {
+  CheckMarkCircleIcon,
+  WarningFillIcon,
+  XCircleFillIcon,
+} from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
 import React, {
   createContext,
   useCallback,
@@ -33,23 +37,23 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 const toastConfig = {
   success: {
     bg: "#3B2F2F",
-    icon: "checkmark.circle.fill" as const,
     iconColor: "#4ADE80",
+    icon: <CheckMarkCircleIcon width={22} height={22} color="#4ADE80" />,
   },
   error: {
     bg: "#DC2626",
-    icon: "xmark.circle.fill" as const,
     iconColor: "#FFFFFF",
+    icon: <XCircleFillIcon width={22} height={22} color="#FFFFFF" />,
   },
   warning: {
     bg: "#F59E0B",
-    icon: "exclamationmark.triangle.fill" as const,
     iconColor: "#FFFFFF",
+    icon: <WarningFillIcon width={22} height={22} color="#FFFFFF" />,
   },
   info: {
     bg: "#3B82F6",
-    icon: "info.circle.fill" as const,
     iconColor: "#FFFFFF",
+    icon: <CheckMarkCircleIcon width={22} height={22} color="#FFFFFF" />,
   },
 };
 
@@ -125,41 +129,43 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         hide();
       }, toastConfig.duration);
     },
-    [fadeAnim, translateY, hide]
+    [fadeAnim, translateY, hide],
   );
 
   const success = useCallback(
     (message: string, title?: string) => {
       show({ message, type: "success", title });
     },
-    [show]
+    [show],
   );
 
   const error = useCallback(
     (message: string, title?: string) => {
       show({ message, type: "error", title, duration: 4000 });
     },
-    [show]
+    [show],
   );
 
   const warning = useCallback(
     (message: string, title?: string) => {
       show({ message, type: "warning", title });
     },
-    [show]
+    [show],
   );
 
   const info = useCallback(
     (message: string, title?: string) => {
       show({ message, type: "info", title });
     },
-    [show]
+    [show],
   );
 
   const config = toastConfig[toastData.type];
 
   return (
-    <ToastContext.Provider value={{ show, success, error, warning, info, hide }}>
+    <ToastContext.Provider
+      value={{ show, success, error, warning, info, hide }}
+    >
       {children}
       {visible && (
         <Animated.View
@@ -174,21 +180,23 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           pointerEvents="none"
         >
           <View style={[styles.toast, { backgroundColor: config.bg }]}>
-            <View style={styles.iconContainer}>
-              <IconSymbol name={config.icon} size={22} color={config.iconColor} />
-            </View>
+            <View style={styles.iconContainer}>{config.icon}</View>
             <View style={styles.content}>
               {toastData.title && (
-                <BodySemiboldText style={styles.title}>
+                <Typography
+                  variation="body-sm"
+                  style={[styles.title, { fontWeight: "600" }]}
+                >
                   {toastData.title}
-                </BodySemiboldText>
+                </Typography>
               )}
-              <BodyMediumText
+              <Typography
+                variation="body-sm"
                 style={[styles.message, !toastData.title && styles.messageOnly]}
                 numberOfLines={2}
               >
                 {toastData.message}
-              </BodyMediumText>
+              </Typography>
             </View>
           </View>
         </Animated.View>

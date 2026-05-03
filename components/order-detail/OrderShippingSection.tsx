@@ -1,11 +1,8 @@
-import {
-  BodyMediumText,
-  BodySemiboldText,
-  CaptionText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
 import React from "react";
 import { View } from "react-native";
+import { LocationIcon } from "@/components/icons";
 
 interface ShippingAddress {
   street: string;
@@ -41,12 +38,12 @@ function InfoRow({
         borderBottomColor: "rgba(59,48,48,0.06)",
       }}
     >
-      <BodyMediumText style={{ fontSize: 13, color: "rgba(59,48,48,0.5)" }}>
+      <Typography variation="body-sm" style={{ fontSize: 13, color: "rgba(59,48,48,0.5)" }}>
         {label}
-      </BodyMediumText>
-      <BodySemiboldText style={{ fontSize: 14, color: "#3B2F2F" }}>
+      </Typography>
+      <Typography variation="label" style={{ fontSize: 14, color: "#3B2F2F" }}>
         {value}
-      </BodySemiboldText>
+      </Typography>
     </View>
   );
 }
@@ -77,11 +74,11 @@ export function OrderShippingSection({
     >
       {/* Section label */}
       <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4 }}>
-        <CaptionText
+        <Typography variation="caption"
           style={{ fontSize: 11, color: "rgba(59,48,48,0.4)", letterSpacing: 0.8, fontWeight: "700" }}
         >
           SHIPPING DETAILS
-        </CaptionText>
+        </Typography>
       </View>
 
       <InfoRow label="Method" value={method} />
@@ -113,17 +110,17 @@ export function OrderShippingSection({
                 marginTop: 2,
               }}
             >
-              <IconSymbol name="location.fill" size={14} color="#D4A373" />
+              <LocationIcon width={14} height={14} color="#D4A373" />
             </View>
             <View style={{ flex: 1 }}>
-              <CaptionText
+              <Typography variation="caption"
                 style={{ fontSize: 11, color: "rgba(59,48,48,0.4)", letterSpacing: 0.5, marginBottom: 4 }}
               >
                 DELIVERY ADDRESS
-              </CaptionText>
-              <BodyMediumText style={{ fontSize: 14, color: "#3B2F2F", lineHeight: 20 }}>
+              </Typography>
+              <Typography variation="body-sm" style={{ fontSize: 14, color: "#3B2F2F", lineHeight: 20 }}>
                 {fullAddress}
-              </BodyMediumText>
+              </Typography>
             </View>
           </View>
         </View>
@@ -131,9 +128,9 @@ export function OrderShippingSection({
 
       {!address && (
         <View style={{ paddingHorizontal: 16, paddingBottom: 14 }}>
-          <BodyMediumText style={{ fontSize: 13, color: "rgba(59,48,48,0.4)", fontStyle: "italic" }}>
+          <Typography variation="body-sm" style={{ fontSize: 13, color: "rgba(59,48,48,0.4)", fontStyle: "italic" }}>
             No delivery address provided
-          </BodyMediumText>
+          </Typography>
         </View>
       )}
     </View>

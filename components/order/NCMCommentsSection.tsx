@@ -1,9 +1,7 @@
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { MailIcon, SendIcon } from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
+
+import { renderSFSymbolIcon } from "@/lib/icon-mapper";
 import {
   createNCMComment,
   getNCMOrderComments,
@@ -133,11 +131,11 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
   return (
     <View className="mt-4">
       {/* Section Header */}
-      <BodySemiboldText
+      <Typography variation="label"
         style={{ fontSize: 15, marginBottom: 10, color: "#374151" }}
       >
         NCM Comments
-      </BodySemiboldText>
+      </Typography>
 
       {/* Card Container */}
       <View
@@ -157,29 +155,23 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
           activeOpacity={0.7}
         >
           <View className="flex-row items-center">
-            <IconSymbol
-              name="bubble.left.fill"
-              size={16}
-              color="#9CA3AF"
-              style={{ marginRight: 10 }}
-            />
-            <BodyRegularText style={{ color: "#6B7280", fontSize: 14 }}>
+            <MailIcon width={16} height={16} color="#9CA3AF" style={{ marginRight: 10 }} />
+            <Typography variation="body" style={{ color: "#6B7280", fontSize: 14 }}>
               Communication with NCM
-            </BodyRegularText>
+            </Typography>
           </View>
           <View className="flex-row items-center">
             {loading ? (
               <ActivityIndicator size="small" color="#9CA3AF" />
             ) : (
               <>
-                <CaptionText style={{ color: "#9CA3AF", marginRight: 4 }}>
+                <Typography variation="caption" style={{ color: "#9CA3AF", marginRight: 4 }}>
                   {comments.length > 0 ? `${comments.length} messages` : "View"}
-                </CaptionText>
-                <IconSymbol
-                  name={expanded ? "chevron.up" : "chevron.down"}
-                  size={12}
-                  color="#9CA3AF"
-                />
+                </Typography>
+                {renderSFSymbolIcon(expanded ? "chevron.up" : "chevron.down", {
+                  size: 12,
+                  color: "#9CA3AF",
+                })}
               </>
             )}
           </View>
@@ -226,19 +218,15 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
                   {submitting ? (
                     <ActivityIndicator size="small" color="#3B82F6" />
                   ) : (
-                    <IconSymbol
-                      name="paperplane.fill"
-                      size={18}
-                      color="#3B82F6"
-                    />
+                    <SendIcon width={18} height={18} color="#3B82F6" />
                   )}
                 </TouchableOpacity>
               </View>
-              <CaptionText
+              <Typography variation="caption"
                 style={{ color: "#9CA3AF", marginTop: 4, textAlign: "right" }}
               >
                 {newComment.length}/500
-              </CaptionText>
+              </Typography>
             </View>
 
             {/* Comments List */}
@@ -246,23 +234,19 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
               {loading ? (
                 <View className="py-6 items-center">
                   <ActivityIndicator size="small" color="#9CA3AF" />
-                  <CaptionText style={{ color: "#9CA3AF", marginTop: 8 }}>
+                  <Typography variation="caption" style={{ color: "#9CA3AF", marginTop: 8 }}>
                     Loading comments...
-                  </CaptionText>
+                  </Typography>
                 </View>
               ) : comments.length === 0 ? (
                 <View className="py-6 items-center">
-                  <IconSymbol
-                    name="bubble.left.and.bubble.right"
-                    size={32}
-                    color="#D1D5DB"
-                  />
-                  <CaptionText style={{ color: "#9CA3AF", marginTop: 8 }}>
+                  <MailIcon width={32} height={32} color="#D1D5DB" />
+                  <Typography variation="caption" style={{ color: "#9CA3AF", marginTop: 8 }}>
                     No comments yet
-                  </CaptionText>
-                  <CaptionText style={{ color: "#9CA3AF", marginTop: 2 }}>
+                  </Typography>
+                  <Typography variation="caption" style={{ color: "#9CA3AF", marginTop: 2 }}>
                     Add a comment to communicate with NCM
-                  </CaptionText>
+                  </Typography>
                 </View>
               ) : (
                 <View className="mt-3">
@@ -281,22 +265,22 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
                             className="px-2 py-0.5 rounded-full"
                             style={{ backgroundColor: authorConfig.bgColor }}
                           >
-                            <CaptionText
+                            <Typography variation="caption"
                               style={{
                                 color: authorConfig.color,
                                 fontSize: 11,
                               }}
                             >
                               {authorConfig.label}
-                            </CaptionText>
+                            </Typography>
                           </View>
-                          <CaptionText style={{ color: "#9CA3AF" }}>
+                          <Typography variation="caption" style={{ color: "#9CA3AF" }}>
                             {dayjs(comment.added_time).format("DD MMM, h:mm A")}
-                          </CaptionText>
+                          </Typography>
                         </View>
 
                         {/* Comment Content */}
-                        <BodyRegularText
+                        <Typography variation="body"
                           style={{
                             color: "#374151",
                             fontSize: 14,
@@ -304,7 +288,7 @@ export const NCMCommentsSection: React.FC<NCMCommentsSectionProps> = ({
                           }}
                         >
                           {comment.comments}
-                        </BodyRegularText>
+                        </Typography>
                       </View>
                     );
                   })}

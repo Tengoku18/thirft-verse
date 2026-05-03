@@ -1,10 +1,6 @@
-import { BodySemiboldText, CaptionText } from "@/components/Typography";
 import React, { useState } from "react";
-import {
-  TextInput,
-  TextInputProps,
-  View,
-} from "react-native";
+import { Typography } from "@/components/ui/Typography";
+import { TextInput, TextInputProps, View } from "react-native";
 
 export interface FormTextareaProps extends TextInputProps {
   label?: string;
@@ -16,7 +12,9 @@ export interface FormTextareaProps extends TextInputProps {
 export const FormTextarea = React.forwardRef<TextInput, FormTextareaProps>(
   ({ label, error, maxLength = 1000, required, className, ...props }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
-    const [charCount, setCharCount] = useState(props.value?.toString().length || 0);
+    const [charCount, setCharCount] = useState(
+      props.value?.toString().length || 0,
+    );
     const textColor = "#3B2F2F";
 
     const handleTextChange = (text: string) => {
@@ -29,17 +27,25 @@ export const FormTextarea = React.forwardRef<TextInput, FormTextareaProps>(
         {/* Label with character count */}
         <View className="flex-row items-center justify-between mb-3">
           {label && (
-            <BodySemiboldText style={{ fontSize: 13 }}>
+            <Typography variation="label" style={{ fontSize: 13 }}>
               {label}
-              {required && <BodySemiboldText style={{ color: "#EF4444", fontSize: 13 }}> *</BodySemiboldText>}
-            </BodySemiboldText>
+              {required && (
+                <Typography variation="label" style={{ color: "#EF4444", fontSize: 13 }}>
+                  {" "}
+                  *
+                </Typography>
+              )}
+            </Typography>
           )}
           {maxLength && (
-            <BodySemiboldText
-              style={{ color: charCount > maxLength ? '#EF4444' : '#6B7280', fontSize: 12 }}
+            <Typography variation="label"
+              style={{
+                color: charCount > maxLength ? "#EF4444" : "#6B7280",
+                fontSize: 12,
+              }}
             >
               {charCount}/{maxLength}
-            </BodySemiboldText>
+            </Typography>
           )}
         </View>
 
@@ -60,7 +66,7 @@ export const FormTextarea = React.forwardRef<TextInput, FormTextareaProps>(
                 ? "border-[#3B2F2F] bg-white"
                 : "border-[#E5E7EB] bg-white"
           } ${className || ""}`}
-          style={{ color: textColor, textAlignVertical: 'top' }}
+          style={{ color: textColor, textAlignVertical: "top" }}
           placeholderTextColor="#9CA3AF"
           multiline
           numberOfLines={5}
@@ -71,13 +77,16 @@ export const FormTextarea = React.forwardRef<TextInput, FormTextareaProps>(
         />
 
         {error && (
-          <CaptionText className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
+          <Typography variation="caption"
+            className="mt-2"
+            style={{ color: "#EF4444", fontSize: 13 }}
+          >
             {error}
-          </CaptionText>
+          </Typography>
         )}
       </View>
     );
-  }
+  },
 );
 
 FormTextarea.displayName = "FormTextarea";

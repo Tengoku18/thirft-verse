@@ -1,8 +1,8 @@
 import { ScreenHeader } from "@/components/navigation/ScreenHeader";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import Typography from "@/components/ui/Typography";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
+import { BookFillIcon, PencilIcon } from "@/components/icons";
 
 interface OrderDetailHeaderProps {
   orderCode: string;
@@ -28,7 +28,7 @@ export function OrderDetailHeader({
                 activeOpacity={0.7}
                 className="flex-row items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50"
               >
-                <IconSymbol name="pencil" size={14} color="#3B82F6" />
+                <PencilIcon width={14} height={14} color="#3B82F6" />
                 <Typography variation="body-sm" style={{ color: "#3B82F6" }}>Edit</Typography>
               </TouchableOpacity>
             )}
@@ -37,7 +37,7 @@ export function OrderDetailHeader({
               activeOpacity={0.7}
               className="flex-row items-center gap-1 px-3 py-1.5 rounded-full bg-brand-espresso/5"
             >
-              <IconSymbol name="book.fill" size={14} color="#3B2F2F" />
+              <BookFillIcon width={14} height={14} color="#3B2F2F" />
               <Typography variation="body-sm" className="text-brand-espresso">Guide</Typography>
             </TouchableOpacity>
           </View>

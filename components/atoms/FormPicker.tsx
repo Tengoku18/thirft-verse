@@ -1,11 +1,7 @@
-import {
-  BodyRegularText,
-  BodySemiboldText,
-  CaptionText,
-  HeadingBoldText,
-} from "@/components/Typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/Typography";
+
 import React, { useRef, useState } from "react";
+import { CheckmarkIcon, ChevronRightIcon, SearchIcon, XIcon } from "@/components/icons";
 import {
   View,
   TouchableOpacity,
@@ -84,16 +80,16 @@ export const FormPicker: React.FC<FormPickerProps> = ({
         activeOpacity={0.7}
       >
         <View className="flex-1 mr-2">
-          <BodyRegularText
+          <Typography variation="body"
             style={{
               color: isSelected ? "#FFFFFF" : "#3B2F2F",
               fontSize: 16,
             }}
           >
             {option.label}
-          </BodyRegularText>
+          </Typography>
           {option.description && (
-            <BodyRegularText
+            <Typography variation="body"
               style={{
                 color: isSelected ? "#E5E7EB" : "#6B7280",
                 fontSize: 13,
@@ -102,11 +98,11 @@ export const FormPicker: React.FC<FormPickerProps> = ({
               }}
             >
               {option.description}
-            </BodyRegularText>
+            </Typography>
           )}
         </View>
         {isSelected && (
-          <IconSymbol name="checkmark" size={20} color="#FFFFFF" />
+          <CheckmarkIcon width={20} height={20} color="#FFFFFF" />
         )}
       </TouchableOpacity>
     );
@@ -116,10 +112,10 @@ export const FormPicker: React.FC<FormPickerProps> = ({
     <View className="mb-6">
       {/* Label */}
       {label && (
-        <BodySemiboldText className="mb-3" style={{ fontSize: 13 }}>
+        <Typography variation="label" className="mb-3" style={{ fontSize: 13 }}>
           {label}
-          {required && <BodySemiboldText style={{ color: "#EF4444", fontSize: 13 }}> *</BodySemiboldText>}
-        </BodySemiboldText>
+          {required && <Typography variation="label" style={{ color: "#EF4444", fontSize: 13 }}> *</Typography>}
+        </Typography>
       )}
 
       {/* Picker Button */}
@@ -137,24 +133,20 @@ export const FormPicker: React.FC<FormPickerProps> = ({
         }`}
         activeOpacity={0.7}
       >
-        <BodyRegularText
+        <Typography variation="body"
           className="flex-1"
           style={{ color: disabled ? '#6B7280' : (selectedOption ? '#3B2F2F' : '#9CA3AF'), fontSize: 15 }}
         >
           {selectedOption?.label || placeholder}
-        </BodyRegularText>
-        <IconSymbol
-          name="chevron.down"
-          size={20}
-          color={disabled ? "#9CA3AF" : "#6B705C"}
-        />
+        </Typography>
+        <ChevronRightIcon width={20} height={20} color={disabled ? "#9CA3AF" : "#6B705C"} />
       </TouchableOpacity>
 
       {/* Error Message */}
       {error && (
-        <CaptionText className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
+        <Typography variation="caption" className="mt-2" style={{ color: "#EF4444", fontSize: 13 }}>
           {error}
-        </CaptionText>
+        </Typography>
       )}
 
       {/* Modal Picker */}
@@ -176,25 +168,21 @@ export const FormPicker: React.FC<FormPickerProps> = ({
               {/* Modal Header */}
               <View className="border-b border-[#E5E7EB] px-6 py-4">
                 <View className="flex-row items-center justify-between mb-3">
-                  <HeadingBoldText style={{ fontSize: 18 }}>
+                  <Typography variation="h2" style={{ fontSize: 18 }}>
                     {label || "Select an option"}
-                  </HeadingBoldText>
+                  </Typography>
                   <TouchableOpacity
                     onPress={handleClose}
                     className="w-8 h-8 items-center justify-center"
                   >
-                    <IconSymbol name="xmark" size={20} color="#6B7280" />
+                    <XIcon width={20} height={20} color="#6B7280" />
                   </TouchableOpacity>
                 </View>
 
                 {/* Search Input */}
                 {options.length > 5 && (
                   <View className="flex-row items-center bg-[#F3F4F6] rounded-xl px-4 py-2">
-                    <IconSymbol
-                      name="magnifyingglass"
-                      size={18}
-                      color="#6B7280"
-                    />
+                    <SearchIcon width={18} height={18} color="#6B7280" />
                     <TextInput
                       ref={searchInputRef}
                       value={searchQuery}
@@ -215,11 +203,7 @@ export const FormPicker: React.FC<FormPickerProps> = ({
                           searchInputRef.current?.focus();
                         }}
                       >
-                        <IconSymbol
-                          name="xmark.circle.fill"
-                          size={18}
-                          color="#9CA3AF"
-                        />
+                        <XIcon width={18} height={18} color="#9CA3AF" />
                       </TouchableOpacity>
                     )}
                   </View>
@@ -235,12 +219,8 @@ export const FormPicker: React.FC<FormPickerProps> = ({
                 keyboardShouldPersistTaps="handled"
                 ListEmptyComponent={
                   <View className="flex-1 justify-center items-center py-12">
-                    <IconSymbol
-                      name="magnifyingglass"
-                      size={40}
-                      color="#D1D5DB"
-                    />
-                    <BodySemiboldText
+                    <SearchIcon width={40} height={40} color="#D1D5DB" />
+                    <Typography variation="label"
                       style={{
                         color: "#6B7280",
                         fontSize: 15,
@@ -250,9 +230,9 @@ export const FormPicker: React.FC<FormPickerProps> = ({
                       {searchQuery.trim()
                         ? `No results for "${searchQuery.trim()}"`
                         : "No options available"}
-                    </BodySemiboldText>
+                    </Typography>
                     {searchQuery.trim() && (
-                      <BodyRegularText
+                      <Typography variation="body"
                         style={{
                           color: "#9CA3AF",
                           fontSize: 13,
@@ -260,7 +240,7 @@ export const FormPicker: React.FC<FormPickerProps> = ({
                         }}
                       >
                         Try a different search term
-                      </BodyRegularText>
+                      </Typography>
                     )}
                   </View>
                 }

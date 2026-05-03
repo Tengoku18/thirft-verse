@@ -1,5 +1,5 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Typography } from "@/components/ui/Typography";
+import { renderSFSymbolIcon } from "@/lib/icon-mapper";
 import React from "react";
 import { View } from "react-native";
 
@@ -56,11 +56,10 @@ export function FounderBenefitsList() {
               className="w-12 h-12 rounded-xl items-center justify-center flex-shrink-0"
               style={{ backgroundColor: benefit.iconBg }}
             >
-              <IconSymbol
-                name={benefit.icon as any}
-                size={20}
-                color={benefit.iconColor}
-              />
+              {renderSFSymbolIcon(benefit.icon, {
+                size: 20,
+                color: benefit.iconColor,
+              })}
             </View>
             <View className="flex-1">
               <Typography
