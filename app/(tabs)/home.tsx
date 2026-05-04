@@ -9,6 +9,7 @@ import {
   WeeklyPerformanceCard,
 } from "@/components/home-v2";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTour } from "@/contexts/TourContext";
 import { useRefresh } from "@/hooks/useRefresh";
 import {
   getOrdersBySeller,
@@ -20,8 +21,8 @@ import { fetchUserProfile } from "@/store/profileSlice";
 import dayjs from "dayjs";
 import { useFocusEffect } from "expo-router";
 import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
-import React, { useCallback, useEffect, useState } from "react";
-import { StatusBar } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ScrollView, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface ProfileRevenue {
@@ -69,6 +70,11 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.profile.profile);
+  const { isActive, isTransitioning, currentStep, registerTarget, measureAndSetSpotlight } =
+    useTour();
+  const searchBarRef = useRef<View>(null);
+  const browseSectionRef = useRef<View>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const unreadCount = useAppSelector(
     (state) => state.notifications.unreadCount,
   );
@@ -157,6 +163,28 @@ export default function HomeScreen() {
     }, [loadDashboardData]),
   );
 
+  useEffect(() => {
+    registerTarget("home_search", searchBarRef);
+    registerTarget("home_browse", browseSectionRef);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!isActive || isTransitioning) return;
+    if (currentStep?.key === "home_search") {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      const timer = setTimeout(() => {
+        measureAndSetSpotlight("home_search");
+      }, 200);
+      return () => clearTimeout(timer);
+    } else if (currentStep?.key === "home_browse") {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+      const timer = setTimeout(() => {
+        measureAndSetSpotlight("home_browse");
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [isActive, isTransitioning, currentStep?.key, measureAndSetSpotlight]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const { refreshing, onRefresh } = useRefresh(loadDashboardData);
 
   const revenue = profile?.revenue as ProfileRevenue | undefined;
@@ -185,14 +213,16 @@ export default function HomeScreen() {
       edges={["top"]}
     >
       <StatusBar barStyle="dark-content" />
-      <RefreshScrollView refreshing={refreshing} onRefresh={onRefresh}>
+      <RefreshScrollView ref={scrollViewRef} refreshing={refreshing} onRefresh={onRefresh}>
         <HomeGreetingHeader
           name={firstName}
           avatarUrl={avatarUrl}
           unreadCount={unreadCount}
         />
 
-        <HomeExploreSearchBar />
+        <View ref={searchBarRef} collapsable={false}>
+          <HomeExploreSearchBar />
+        </View>
 
         {profile?.store_username && (
           <StorefrontCard
@@ -216,7 +246,9 @@ export default function HomeScreen() {
 
         <HomeRecentOrders orders={recentOrders} />
 
-        <HomeBrowseSection />
+        <View ref={browseSectionRef} collapsable={false}>
+          <HomeBrowseSection />
+        </View>
       </RefreshScrollView>
     </SafeAreaView>
   );
