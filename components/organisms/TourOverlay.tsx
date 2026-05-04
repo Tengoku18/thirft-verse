@@ -1,7 +1,9 @@
+import { Typography } from "@/components/ui/Typography/Typography";
 import { useTour } from "@/contexts/TourContext";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Modal,
+  Platform,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -14,10 +16,10 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Typography } from "@/components/ui/Typography/Typography";
 
 const BACKDROP = "rgba(59,47,47,0.72)";
 const SPOTLIGHT_PADDING = 8;
+const SPOTLIGHT_BORDER_RADIUS = 16;
 const SPOTLIGHT_BORDER_COLOR = "#D4A373";
 const CARD_BG = "#FAF7F2";
 const ESPRESSO = "#3B2F2F";
@@ -71,14 +73,22 @@ export function TourOverlay() {
     : null;
 
   // Backdrop strips
+  // Use screenH + insets.bottom for the bottom strip so it always covers the full
+  // physical screen on Android edge-to-edge (where useWindowDimensions may return
+  // the app-window height, which excludes the system nav bar height).
   const topH = sp ? Math.max(0, sp.y) : screenH;
   const bottomY = sp ? sp.y + sp.h : 0;
-  const bottomH = sp ? Math.max(0, screenH - bottomY) : 0;
+  const bottomH = sp ? Math.max(0, screenH + insets.bottom - bottomY) : 0;
   const leftW = sp ? Math.max(0, sp.x) : 0;
   const rightX = sp ? sp.x + sp.w : 0;
-  const rightW = sp ? Math.max(0, screenW - rightX) : 0;
+  const rightW = sp ? Math.max(0, screenW + insets.right - rightX) : 0;
 
-  // Tooltip vertical position
+  // Tooltip vertical position — on Android with gesture nav the inset can be 0,
+  // so ensure a minimum bottom clearance so the card never overlaps the nav bar.
+  const bottomClearance = Math.max(
+    insets.bottom,
+    Platform.OS === "android" ? 16 : 8,
+  );
   let tooltipTop = 0;
   if (sp && currentStep) {
     if (currentStep.tooltipPlacement === "above") {
@@ -86,10 +96,12 @@ export function TourOverlay() {
     } else {
       tooltipTop = sp.y + sp.h + 16;
     }
-    // Clamp so it never bleeds off screen
     tooltipTop = Math.max(
       insets.top + 8,
-      Math.min(tooltipTop, screenH - cardHeightRef.current - insets.bottom - 8),
+      Math.min(
+        tooltipTop,
+        screenH - cardHeightRef.current - bottomClearance - 8,
+      ),
     );
   }
 
@@ -136,6 +148,7 @@ export function TourOverlay() {
             ]}
           />
         )}
+
         {/* Spotlight border ring */}
         {sp && (
           <View
@@ -147,7 +160,6 @@ export function TourOverlay() {
               height: sp.h,
               borderWidth: 2,
               borderColor: SPOTLIGHT_BORDER_COLOR,
-              borderRadius: 16,
             }}
             pointerEvents="none"
           />
@@ -157,11 +169,7 @@ export function TourOverlay() {
       {/* Tooltip card */}
       {sp && currentStep && (
         <Animated.View
-          style={[
-            styles.card,
-            { top: tooltipTop },
-            cardAnimatedStyle,
-          ]}
+          style={[styles.card, { top: tooltipTop }, cardAnimatedStyle]}
           onLayout={(e) => {
             const h = e.nativeEvent.layout.height;
             cardHeightRef.current = h;
@@ -236,6 +244,12 @@ export function TourOverlay() {
 const styles = StyleSheet.create({
   strip: {
     position: "absolute",
+    backgroundColor: BACKDROP,
+  },
+  corner: {
+    position: "absolute",
+    width: SPOTLIGHT_BORDER_RADIUS,
+    height: SPOTLIGHT_BORDER_RADIUS,
     backgroundColor: BACKDROP,
   },
   card: {
