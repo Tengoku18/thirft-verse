@@ -1,6 +1,7 @@
 import { getUserProfile } from "@/lib/database-helpers";
 import { supabase } from "@/lib/supabase";
 import { Profile } from "@/lib/types/database";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 type AppInitStatus =
@@ -9,8 +10,26 @@ type AppInitStatus =
   | "oauth_profile_setup" // OAuth user at step 1 — needs name/terms screen
   | "signup_incomplete" // Email user mid-signup — resume at signup_step + 1
   | "profile_incomplete" // Auth done but required profile fields missing
+  | "password_recovery" // Recovery session active — must change password before entering app
   | "ready"
   | "unauthenticated";
+
+// Decode JWT AMR claim to detect recovery sessions without an extra network call.
+// Recovery sessions have amr: [{ method: "recovery" }] per the OIDC spec.
+function isRecoverySession(accessToken: string): boolean {
+  try {
+    const payload = accessToken.split(".")[1];
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+    const decoded = JSON.parse(atob(base64 + padding));
+    return (
+      Array.isArray(decoded?.amr) &&
+      decoded.amr.some((m: { method: string }) => m.method === "recovery")
+    );
+  } catch {
+    return false;
+  }
+}
 
 interface InitializationResult {
   status: AppInitStatus;
@@ -79,6 +98,33 @@ export const initializeApp = createAsyncThunk(
       console.log(`✅ [STEP 1.2] User authenticated: ${user.id}`);
       console.log(`   Email: ${user.email}`);
       console.log(`   Provider: ${user.app_metadata?.provider || "email"}\n`);
+
+      // ──────────────────────────────────────────────────────────────
+      // STEP 1.3: Detect recovery sessions (forgot-password flow)
+      // Primary: AsyncStorage flag set by onAuthStateChange PASSWORD_RECOVERY.
+      // Fallback: decode JWT AMR claim (amr: [{method:"recovery"}]).
+      // Either condition forces password change before entering the app.
+      // ──────────────────────────────────────────────────────────────
+      const recoveryPending = await AsyncStorage.getItem("@thriftverse:recovery_pending");
+      if (recoveryPending === "true") {
+        console.log("🔑 [STEP 1.3] Recovery pending flag set — redirecting to password change\n");
+        return {
+          status: "password_recovery",
+          user,
+          profile: null,
+        } as InitializationResult;
+      }
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (accessToken && isRecoverySession(accessToken)) {
+        console.log("🔑 [STEP 1.3] Recovery session detected via JWT AMR — redirecting to password change\n");
+        return {
+          status: "password_recovery",
+          user,
+          profile: null,
+        } as InitializationResult;
+      }
 
       // ──────────────────────────────────────────────────────────────
       // STEP 2: Fetch user profile from database

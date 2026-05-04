@@ -10,6 +10,7 @@ type AppStatus =
   | "oauth_profile_setup"
   | "signup_incomplete"
   | "profile_incomplete"
+  | "password_recovery"
   | "ready"
   | "unauthenticated";
 
@@ -75,6 +76,9 @@ export default function Index() {
       } else if (appStatus === "profile_incomplete") {
         await SplashScreen.hideAsync();
         router.replace("/(auth)/google-profile-setup");
+      } else if (appStatus === "password_recovery") {
+        await SplashScreen.hideAsync();
+        router.replace("/(auth)/forgot-password-change");
       } else if (appStatus === "ready") {
         await SplashScreen.hideAsync();
         router.replace("/(tabs)/home");

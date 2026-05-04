@@ -1,17 +1,18 @@
 import { InfoBox } from "@/components/atoms/InfoBox";
+import { RHFInput } from "@/components/forms/ReactHookForm";
 import CheckMarkCircleIcon from "@/components/icons/CheckMarkCircleIcon";
 import ForwardIcon from "@/components/icons/ForwardIcon";
 import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input/Input";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { yupResolver } from "@hookform/resolvers/yup";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { ScrollView, View } from "react-native";
 import * as yup from "yup";
 
@@ -36,7 +37,7 @@ export type PasswordChangeFormData = yup.InferType<typeof passwordSchema>;
 export default function ForgotPasswordChangeScreen() {
   const router = useRouter();
   const toast = useToast();
-  const { updatePassword } = useAuth();
+  const { updatePassword, signOut } = useAuth();
   useLocalSearchParams<{ email: string }>();
 
   const [loading, setLoading] = useState(false);
@@ -69,7 +70,9 @@ export default function ForgotPasswordChangeScreen() {
         return;
       }
 
+      await AsyncStorage.removeItem("@thriftverse:recovery_pending");
       toast.success("Password updated successfully!");
+      await signOut(); // clear the recovery session before navigating
       router.replace("/(auth)/signin");
     } catch (error) {
       console.error("Error:", error);
@@ -126,47 +129,29 @@ export default function ForgotPasswordChangeScreen() {
 
             {/* New Password */}
             <View className="mb-6">
-              <Controller
+              <RHFInput
                 control={control}
                 name="newPassword"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="NEW PASSWORD"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    placeholder="Min. 8 characters with number & special char"
-                    secureTextEntry
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!loading}
-                    errorMessage={errors.newPassword?.message}
-                    variant={errors.newPassword ? "error" : "default"}
-                  />
-                )}
+                label="NEW PASSWORD"
+                placeholder="Enter your new password"
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!loading}
               />
             </View>
 
             {/* Confirm Password */}
             <View className="mb-6">
-              <Controller
+              <RHFInput
                 control={control}
                 name="confirmPassword"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="CONFIRM NEW PASSWORD"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    placeholder="Repeat your new password"
-                    secureTextEntry
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    editable={!loading}
-                    errorMessage={errors.confirmPassword?.message}
-                    variant={errors.confirmPassword ? "error" : "default"}
-                  />
-                )}
+                label="CONFIRM NEW PASSWORD"
+                placeholder="Repeat your new password"
+                secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!loading}
               />
             </View>
 
@@ -213,7 +198,7 @@ export default function ForgotPasswordChangeScreen() {
             isLoading={loading}
             disabled={loading || !isValid}
             fullWidth
-            icon={<ForwardIcon width={20} height={20} />}
+            icon={<ForwardIcon width={20} height={20} color={"#FFFFFF"} />}
             iconPosition="right"
           />
         </View>

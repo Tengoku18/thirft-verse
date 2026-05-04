@@ -80,8 +80,8 @@ export default function EditProfileScreen() {
     setBio(profile.bio ?? "");
     setStoreName(sd.store_name ?? "");
     setInstagramHandle(sd.instagram_handle ?? "");
-    setDistrict(profile.address ?? ""); // profile.address holds the district
-    setAddress(sd.address ?? "");
+    setDistrict(sd.district ?? "");
+    setAddress(profile.address ?? "");
   }, [profile]);
 
   // ── Dirty detection ───────────────────────────────────────────────
@@ -94,8 +94,8 @@ export default function EditProfileScreen() {
     bio !== (profile?.bio ?? "") ||
     storeName !== (sd.store_name ?? "") ||
     instagramHandle !== (sd.instagram_handle ?? "") ||
-    district !== (profile?.address ?? "") ||
-    address !== (sd.address ?? "");
+    district !== (sd.district ?? "") ||
+    address !== (profile?.address ?? "");
 
   // ── Save handler ──────────────────────────────────────────────────
   const handleSave = async () => {
@@ -171,7 +171,6 @@ export default function EditProfileScreen() {
       const updatedSellerData = {
         ...(profile?.seller_data ?? {}),
         district,
-        address: address.trim(),
         store_image: finalStoreImage,
         ...(isStore && { store_name: storeName.trim() }),
         ...(isCloset && { instagram_handle: instagramHandle.trim() }),
@@ -182,7 +181,7 @@ export default function EditProfileScreen() {
         name: name.trim(),
         store_username: normalizedUsername,
         bio: bio.trim(),
-        address: district, // profile.address = district (mirrors signup)
+        address: address.trim(),
         seller_data: updatedSellerData,
         ...(finalImage !== profile?.profile_image && {
           profile_image: finalImage ?? undefined,

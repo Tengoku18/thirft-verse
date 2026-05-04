@@ -70,6 +70,14 @@ export interface Profile {
   role: UserRole;
   plan: SubscriptionPlan;
   config: ProfileConfig;
+  seller_type: "store" | "closet" | null;
+  seller_data: {
+    district?: string;
+    store_name?: string;
+    instagram_handle?: string;
+    store_image?: string | null;
+    [key: string]: any;
+  } | null;
   payment_username: string | null;
   payment_qr_image: string | null;
   revenue: ProfileRevenue | null;
@@ -78,6 +86,10 @@ export interface Profile {
   // Signup progress — persisted in DB so progress survives reinstalls / device switches
   auth_completed: boolean;
   signup_step: number; // last completed step (1–6); auth_completed=true once step 6 done
+  // Verification
+  is_verified: boolean;
+  verified_at: string | null;
+  verified_by: string | null;
   // Founder Circle
   is_founder: boolean;
   is_founder_creator: boolean;

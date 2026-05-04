@@ -1,6 +1,7 @@
 import { decode } from "base64-arraybuffer";
 import { File } from "expo-file-system";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import { Image } from "react-native";
 import { supabase } from "./supabase";
 
 export interface UploadResult {
@@ -14,6 +15,42 @@ export interface UploadResult {
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
+function getImageSize(uri: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    Image.getSize(uri, (width, height) => resolve({ width, height }), reject);
+  });
+}
+
+/**
+ * Compresses an image to a max dimension and quality before upload.
+ * Always outputs JPEG (handles HEIC/HEIF conversion too).
+ */
+export async function compressImage(
+  uri: string,
+  options: { maxDimension?: number; quality?: number } = {}
+): Promise<string> {
+  const { maxDimension = 1280, quality = 0.75 } = options;
+
+  const { width, height } = await getImageSize(uri);
+
+  let context = ImageManipulator.manipulate(uri);
+
+  if (width > maxDimension || height > maxDimension) {
+    context =
+      width >= height
+        ? context.resize({ width: maxDimension })
+        : context.resize({ height: maxDimension });
+  }
+
+  const rendered = await context.renderAsync();
+  const result = await rendered.saveAsync({
+    format: SaveFormat.JPEG,
+    compress: quality,
+  });
+
+  return result.uri;
+}
+
 export async function uploadImageToStorage(
   imageUri: string,
   bucket: string = "products",
@@ -21,52 +58,31 @@ export async function uploadImageToStorage(
 ): Promise<UploadResult> {
   try {
     const file = new File(imageUri);
-    if (!file.exists || !file.size) {
-      const exists = await file.exists;
-      if (!exists) {
-        return { success: false, error: "File does not exist at URI" };
-      }
+    const exists = await file.exists;
+    if (!exists) {
+      return { success: false, error: "File does not exist at URI" };
     }
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      return {
-        success: false,
-        error: "File size must be less than 5MB",
-      };
+
+    const compressedUri = await compressImage(imageUri);
+
+    const compressedFile = new File(compressedUri);
+    if (compressedFile.size > MAX_FILE_SIZE_BYTES) {
+      return { success: false, error: "File size must be less than 5MB" };
     }
+
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2);
-    let fileExt = "jpg";
-    const uriParts = imageUri.split(".");
-    if (uriParts.length > 1) {
-      fileExt = uriParts[uriParts.length - 1].split("?")[0].toLowerCase();
-    }
+    const filePath = `${folder}/${random}-${timestamp}.jpg`;
 
-    // Convert HEIC/HEIF to JPG for browser compatibility
-    let finalUri = imageUri;
-    if (fileExt === "heic" || fileExt === "heif") {
-      const manipulated = await ImageManipulator.manipulate(imageUri)
-        .renderAsync();
-      const result = await manipulated.saveAsync({
-        format: SaveFormat.JPEG,
-        compress: 0.8,
-      });
-      finalUri = result.uri;
-      fileExt = "jpg";
-    }
-
-    const mimeType = `image/${fileExt === "jpg" ? "jpeg" : fileExt}`;
-    const fileName = `${random}-${timestamp}.${fileExt}`;
-    const filePath = `${folder}/${fileName}`;
-
-    const finalFile = new File(finalUri);
-    const base64Data = await finalFile.base64();
+    const base64Data = await compressedFile.base64();
     const arrayBuffer = decode(base64Data);
+
     const { error: uploadError, data } = await supabase.storage
       .from(bucket)
       .upload(filePath, arrayBuffer, {
         cacheControl: "3600",
         upsert: false,
-        contentType: mimeType,
+        contentType: "image/jpeg",
       });
 
     if (uploadError) {
@@ -76,12 +92,12 @@ export async function uploadImageToStorage(
           error: `Storage bucket "${bucket}" not configured. Please check Supabase Dashboard.`,
         };
       }
-
       return {
         success: false,
         error: uploadError.message || "Failed to upload image",
       };
     }
+
     const {
       data: { publicUrl },
     } = supabase.storage.from(bucket).getPublicUrl(filePath);

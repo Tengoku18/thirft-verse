@@ -166,34 +166,24 @@ export default function SignupStep4Screen() {
         updateData.address = newAddress;
       }
 
-      // Build seller_data with changed fields only
-      const sellerData: Record<string, any> = {};
-      let hasSellerDataChanges = false;
-
-      // District field
-      if (data.district !== signupState.formData.district) {
-        sellerData.district = data.district;
-        hasSellerDataChanges = true;
-      }
-
-      // Store Name field
+      // Build seller_data — always write all fields together to avoid partial
+      // overwrites of the JSONB column (a replace, not a merge).
       const newStoreName = data.storeName?.trim() || "";
       const oldStoreName = signupState.formData.storeName || "";
-      if (newStoreName !== oldStoreName) {
-        sellerData.store_name = newStoreName;
-        hasSellerDataChanges = true;
-      }
-
-      // Instagram Handle field
       const newInstagram = data.instagramHandle?.trim() || "";
       const oldInstagram = signupState.formData.instagramHandle || "";
-      if (newInstagram !== oldInstagram) {
-        sellerData.instagram_handle = newInstagram;
-        hasSellerDataChanges = true;
-      }
+
+      const hasSellerDataChanges =
+        data.district !== signupState.formData.district ||
+        newStoreName !== oldStoreName ||
+        newInstagram !== oldInstagram;
 
       if (hasSellerDataChanges) {
-        updateData.seller_data = sellerData;
+        updateData.seller_data = {
+          district: data.district,
+          store_name: newStoreName,
+          instagram_handle: newInstagram,
+        };
       }
 
       // Only update if there are changes
@@ -361,6 +351,7 @@ export default function SignupStep4Screen() {
             isLoading={loading}
             disabled={loading}
             fullWidth
+            iconPosition="right"
             icon={<ForwardIcon width={20} height={20} color={"#FFFFFF"} />}
           />
         </View>

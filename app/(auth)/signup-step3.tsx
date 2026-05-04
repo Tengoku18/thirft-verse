@@ -143,6 +143,7 @@ export default function SignupStep3Screen() {
             isLoading={loading}
             disabled={loading || !selectedType}
             fullWidth
+            iconPosition="right"
             icon={<ForwardIcon width={20} height={20} color={"#FFFFFF"} />}
           />
         </View>

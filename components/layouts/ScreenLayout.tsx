@@ -8,6 +8,7 @@ import {
   ScrollView,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ScreenLayoutProps {
   title: string;
@@ -56,6 +57,7 @@ export function ScreenLayout({
   paddingHorizontal = 16,
 }: ScreenLayoutProps) {
   const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleRefresh = async () => {
     if (!onRefresh) return;
@@ -99,7 +101,7 @@ export function ScreenLayout({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               paddingHorizontal,
-              paddingBottom: 100,
+              paddingBottom: insets.bottom,
             }}
             style={{ backgroundColor: contentBackgroundColor }}
             refreshControl={

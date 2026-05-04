@@ -55,8 +55,8 @@ export const getUserAuthMethod = async (
 
     if (error) {
       console.error("Error getting auth method:", error);
-      // If RPC doesn't exist, assume email auth
-      if (error.code === "PGRST202") {
+      // PGRST202 = RPC not found; 42703 = column doesn't exist in the SQL function
+      if (error.code === "PGRST202" || error.code === "42703") {
         return "email";
       }
       return null;
