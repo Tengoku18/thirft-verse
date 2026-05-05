@@ -22,8 +22,10 @@ import "react-native-reanimated";
 import "../global.css";
 
 import { ForceUpdateModal } from "@/components/modals/ForceUpdateModal";
+import { TourOverlay } from "@/components/organisms/TourOverlay";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { TourProvider } from "@/contexts/TourContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAppUpdate } from "@/hooks/useAppUpdate";
 import {
@@ -158,6 +160,7 @@ export default Sentry.wrap(function RootLayout() {
       <Provider store={store}>
         <AuthProvider>
           <ToastProvider>
+            <TourProvider>
             <ThemeProvider
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
@@ -232,6 +235,8 @@ export default Sentry.wrap(function RootLayout() {
                 onUpdate={appUpdate.openStore}
               />
             </ThemeProvider>
+            <TourOverlay />
+            </TourProvider>
           </ToastProvider>
         </AuthProvider>
       </Provider>

@@ -8,9 +8,10 @@ import {
   StatusFilter,
 } from "@/components/orders";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTour } from "@/contexts/TourContext";
 import { getOrdersBySeller } from "@/lib/database-helpers";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
 import { Pressable, View } from "react-native";
 
@@ -76,6 +77,9 @@ export default function OrdersScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const { filter: filterParam } = useLocalSearchParams<{ filter?: string }>();
+  const { isActive, isTransitioning, currentStep, registerTarget, measureAndSetSpotlight } =
+    useTour();
+  const ordersListRef = useRef<View>(null);
 
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -192,6 +196,26 @@ export default function OrdersScreen() {
     }, [loadData]),
   );
 
+  useEffect(() => {
+    registerTarget("orders_list", ordersListRef);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isActive && currentStep?.key === "orders_list") {
+        measureAndSetSpotlight("orders_list");
+      }
+    }, [isActive, currentStep, measureAndSetSpotlight]),
+  );
+
+  // Re-attempt after data loads — ordersListRef View only renders once loading=false.
+  useEffect(() => {
+    if (loading || !isActive || isTransitioning) return;
+    if (currentStep?.key === "orders_list") {
+      measureAndSetSpotlight("orders_list");
+    }
+  }, [loading, isActive, isTransitioning, currentStep?.key, measureAndSetSpotlight]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Derived state ──
   const counts: Record<StatusFilter, number> = {
     all: items.length,
@@ -256,17 +280,19 @@ export default function OrdersScreen() {
     >
       {/* {showGuideBanner && <GuideBanner onDismiss={dismissGuideBanner} />} */}
 
-      {filteredItems.length === 0 ? (
-        <OrderEmptyState filterLabel={activeFilterLabel} />
-      ) : (
-        filteredItems.map((item) => (
-          <OrderCard
-            key={item.id}
-            item={item}
-            onPress={() => router.push(`/order/${item.originalId}`)}
-          />
-        ))
-      )}
+      <View ref={ordersListRef} collapsable={false}>
+        {filteredItems.length === 0 ? (
+          <OrderEmptyState filterLabel={activeFilterLabel} />
+        ) : (
+          filteredItems.map((item) => (
+            <OrderCard
+              key={item.id}
+              item={item}
+              onPress={() => router.push(`/order/${item.originalId}`)}
+            />
+          ))
+        )}
+      </View>
     </TabScreenLayout>
   );
 }
