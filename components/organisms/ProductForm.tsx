@@ -364,7 +364,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
         store_id: user.id,
         cover_image: coverUploadResult.url,
         other_images: uploadedOtherImages,
-        is_verified: false,
+
       };
 
       // Use Redux action to create product
@@ -433,6 +433,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
         }
       }
 
+      const isResubmit = product.verification_status === 'rejected';
+
       // Use Redux action to update product
       await dispatch(
         updateProductAction({
@@ -448,12 +450,17 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
             other_images: finalOtherImages,
             status:
               pendingData.availability_count > 0 ? "available" : "out_of_stock",
+            // Reset to pending review only if previously rejected
+            ...(isResubmit && {
+              verification_status: 'pending',
+              rejected_reason: null,
+            }),
           },
         }),
       ).unwrap();
 
       setShowConfirmModal(false);
-      toast.success("Product updated successfully");
+      toast.success(isResubmit ? "Product re-submitted for review" : "Product updated successfully");
       router.back();
     } catch (error: any) {
       console.error("Error updating product:", error);
@@ -816,8 +823,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       {mode === "edit" && (
         <ConfirmModal
           visible={showConfirmModal}
-          title="Update Product"
-          message="Are you sure you want to save changes to this product? The updated information will be visible to all users."
+          title={product?.verification_status === 'rejected' ? "Re-submit for Review" : "Update Product"}
+          message={
+            product?.verification_status === 'rejected'
+              ? "Your changes will re-submit this product for admin review. It won't be visible on the marketplace until approved."
+              : "Are you sure you want to save changes to this product? The updated information will be visible to all users."
+          }
           confirmText="Update"
           cancelText="Cancel"
           onConfirm={handleConfirmUpdate}

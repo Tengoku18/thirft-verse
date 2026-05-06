@@ -22,6 +22,7 @@ import "react-native-reanimated";
 import "../global.css";
 
 import { ForceUpdateModal } from "@/components/modals/ForceUpdateModal";
+import { NotificationSync } from "@/components/notifications/NotificationSync";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -35,6 +36,7 @@ import { fetchNotifications, fetchUnreadCount, store } from "@/store";
 import * as Sentry from "@sentry/react-native";
 import * as Updates from "expo-updates";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider } from "react-redux";
 
 Sentry.init({
@@ -63,8 +65,12 @@ export const unstable_settings = {
 };
 
 function handleNotificationNavigation(data: Record<string, string>) {
-  if (data?.order_id) {
+  if (data?.href) {
+    router.push(data.href as never);
+  } else if (data?.order_id) {
     router.push(`/order/${data.order_id}` as never);
+  } else if (data?.product_id) {
+    router.push(`/product/${data.product_id}` as never);
   }
 }
 
@@ -154,10 +160,12 @@ export default Sentry.wrap(function RootLayout() {
   }
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <SafeAreaProvider>
       <Provider store={store}>
         <AuthProvider>
           <ToastProvider>
+            <NotificationSync />
             <ThemeProvider
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
@@ -236,5 +244,6 @@ export default Sentry.wrap(function RootLayout() {
         </AuthProvider>
       </Provider>
     </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 });

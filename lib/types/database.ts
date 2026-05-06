@@ -19,7 +19,10 @@ export type DeletionRequestStatus =
 export type NotificationType =
   | "new_order"
   | "order_cancelled"
-  | "order_refunded";
+  | "order_refunded"
+  | "product_rejected"
+  | "product_approved"
+  | "product_comment_added";
 
 export interface AppNotification {
   id: string;
@@ -30,6 +33,8 @@ export interface AppNotification {
   data: Record<string, string>;
   is_read: boolean;
   created_at: string;
+  product_id?: string;
+  comment_preview?: string;
 }
 
 export interface ProfileConfig {
@@ -134,6 +139,8 @@ export interface OfferCodeUsage {
   metadata: Record<string, unknown> | null;
 }
 
+export type ProductVerificationStatus = 'pending' | 'verified' | 'rejected';
+
 export interface Product {
   id: string;
   store_id: string;
@@ -145,7 +152,8 @@ export interface Product {
   other_images: string[];
   availability_count: number;
   status: ProductStatus;
-  is_verified: boolean;
+  verification_status: ProductVerificationStatus;
+  rejected_reason: string | null;
   created_at: string;
   updated_at: string;
   // AI semantic search fields

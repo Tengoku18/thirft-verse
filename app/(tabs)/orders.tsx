@@ -95,6 +95,7 @@ export default function OrdersScreen() {
 
   useEffect(() => {
     const valid: StatusFilter[] = [
+      "all",
       "pending",
       "processing",
       "completed",

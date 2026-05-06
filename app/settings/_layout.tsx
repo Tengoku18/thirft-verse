@@ -19,6 +19,7 @@ export default function SettingsLayout() {
       <Stack.Screen name="offer-code" options={{ headerShown: false }} />
       <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
       <Stack.Screen name="payment-method" options={{ headerShown: false }} />
+      <Stack.Screen name="data-privacy" options={{ headerShown: false }} />
     </Stack>
   );
 }

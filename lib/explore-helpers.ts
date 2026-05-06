@@ -147,5 +147,5 @@ export function filterProductsByVerification(
 ): ProductWithStore[] {
   if (!verifiedOnly) return products;
 
-  return products.filter((product) => product.is_verified === true);
+  return products.filter((product) => product.verification_status === 'verified');
 }

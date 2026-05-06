@@ -26,7 +26,14 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { CheckMarkCircleIcon, GlobeIcon, ShareIcon, SquarePencilIcon, TrashIcon, WarningIcon } from "@/components/icons";
+import {
+  CheckMarkCircleIcon,
+  GlobeIcon,
+  ShareIcon,
+  SquarePencilIcon,
+  TrashIcon,
+  WarningIcon,
+} from "@/components/icons";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -58,6 +65,7 @@ export default function ProductDetailScreen() {
   const {
     selectedProduct: product,
     selectedProductLoading: loading,
+    selectedProductError: error,
     deleting,
   } = useAppSelector((state) => state.products);
   const storeUsername = useAppSelector(
@@ -74,6 +82,12 @@ export default function ProductDetailScreen() {
       dispatch(clearSelectedProduct());
     };
   }, [id, dispatch]);
+
+  const handleRefresh = async () => {
+    if (id) {
+      await dispatch(fetchProductById(id));
+    }
+  };
 
   const handleShare = async () => {
     if (!product) return;
@@ -136,7 +150,8 @@ export default function ProductDetailScreen() {
   const allImages = getAllImages();
   const isOwner = user?.id === product?.store_id;
 
-  if (loading) {
+  // Initial load: show full screen loader until first response arrives
+  if (loading && !product) {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: "#F5F5F5" }}>
         <FullScreenLoader message="Loading product..." />
@@ -144,14 +159,60 @@ export default function ProductDetailScreen() {
     );
   }
 
+  // Fetch failed (network error, server error, etc.)
+  if (error && !product) {
+    return (
+      <SafeAreaView className="flex-1 bg-[#F5F5F5] justify-center items-center px-6">
+        <WarningIcon width={48} height={48} color="#EF4444" />
+        <Typography
+          variation="h3"
+          className="text-brand-espresso mt-4 text-center"
+        >
+          Something Went Wrong
+        </Typography>
+        <Typography
+          variation="body-sm"
+          className="text-ui-secondary mt-2 text-center"
+        >
+          {error}
+        </Typography>
+        <View className="flex-row gap-3 mt-6">
+          <TouchableOpacity
+            onPress={handleRefresh}
+            className="bg-brand-espresso px-6 py-3 rounded-full"
+          >
+            <Typography variation="button" className="text-white">
+              Try Again
+            </Typography>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="bg-brand-beige px-6 py-3 rounded-full"
+          >
+            <Typography variation="button" className="text-brand-espresso">
+              Go Back
+            </Typography>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Product was fetched but doesn't exist or was deleted
   if (!product) {
     return (
       <SafeAreaView className="flex-1 bg-[#F5F5F5] justify-center items-center px-6">
         <WarningIcon width={48} height={48} color="#9CA3AF" />
-        <Typography variation="h3" className="text-brand-espresso mt-4 text-center">
+        <Typography
+          variation="h3"
+          className="text-brand-espresso mt-4 text-center"
+        >
           Product Not Found
         </Typography>
-        <Typography variation="body-sm" className="text-ui-secondary mt-2 text-center">
+        <Typography
+          variation="body-sm"
+          className="text-ui-secondary mt-2 text-center"
+        >
           This product may have been removed or is no longer available.
         </Typography>
         <TouchableOpacity
@@ -167,6 +228,28 @@ export default function ProductDetailScreen() {
   }
 
   const currentStatus = statusConfig[product.status];
+  const verificationStatus = product.verification_status ?? "pending";
+  const verificationConfig = {
+    pending: {
+      bg: "#FEF3C7",
+      text: "#92400E",
+      label: "Awaiting Review",
+      message: "Your product is under review by the admin.",
+    },
+    verified: {
+      bg: "#D1FAE5",
+      text: "#065F46",
+      label: "Verified",
+      message: "Your product is verified and visible on the marketplace.",
+    },
+    rejected: {
+      bg: "#FEE2E2",
+      text: "#991B1B",
+      label: "Rejected",
+      message: "Your product was rejected by the admin.",
+    },
+  };
+  const verificationMeta = verificationConfig[verificationStatus];
   const imageCarouselData = allImages.map((img, i) => ({
     id: String(i),
     uri: getProductImageUrl(img),
@@ -189,6 +272,7 @@ export default function ProductDetailScreen() {
       contentBackgroundColor="#F5F5F5"
       paddingHorizontal={0}
       rightComponent={shareButton}
+      onRefresh={handleRefresh}
     >
       {/* Image Carousel */}
       <View className="pt-4">
@@ -217,7 +301,11 @@ export default function ProductDetailScreen() {
             className="flex-row items-center gap-1.5 px-3 py-1 rounded-full"
             style={{ backgroundColor: currentStatus.bg }}
           >
-            <CheckMarkCircleIcon width={14} height={14} color={currentStatus.text} />
+            <CheckMarkCircleIcon
+              width={14}
+              height={14}
+              color={currentStatus.text}
+            />
             <Typography
               variation="caption"
               style={{ color: currentStatus.text, fontWeight: "700" }}
@@ -227,15 +315,80 @@ export default function ProductDetailScreen() {
           </View>
           <Typography variation="body-sm" className="text-ui-secondary">
             Category:{" "}
-            <Typography variation="body-sm" className="text-brand-tan font-semibold">
+            <Typography
+              variation="body-sm"
+              className="text-brand-tan font-semibold"
+            >
               {product.category}
             </Typography>
           </Typography>
         </View>
 
+        {/* Verification Status (owner only) */}
+        {isOwner && (
+          <View
+            className="rounded-2xl p-4 gap-1"
+            style={{ backgroundColor: verificationMeta.bg }}
+          >
+            <View className="flex-row items-center gap-2">
+              <View
+                className="px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: verificationMeta.text + "22" }}
+              >
+                <Typography
+                  variation="caption"
+                  style={{ color: verificationMeta.text, fontWeight: "700" }}
+                >
+                  {verificationMeta.label}
+                </Typography>
+              </View>
+            </View>
+            <Typography
+              variation="body-sm"
+              style={{ color: verificationMeta.text }}
+            >
+              {verificationMeta.message}
+            </Typography>
+            {verificationStatus === "rejected" && product.rejected_reason && (
+              <>
+                <View
+                  className="mt-1 border-t"
+                  style={{ borderColor: verificationMeta.text + "33" }}
+                />
+                <Typography
+                  variation="body-sm"
+                  style={{ color: verificationMeta.text, fontWeight: "600" }}
+                  className="mt-1"
+                >
+                  Reason:
+                </Typography>
+                <Typography
+                  variation="body-sm"
+                  style={{ color: verificationMeta.text }}
+                >
+                  {product.rejected_reason}
+                </Typography>
+                <TouchableOpacity
+                  onPress={handleEdit}
+                  className="mt-2 py-2.5 rounded-xl items-center"
+                  style={{ backgroundColor: verificationMeta.text }}
+                  activeOpacity={0.8}
+                >
+                  <Typography variation="button" className="text-white">
+                    Update Product
+                  </Typography>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        )}
+
         {/* Title + Price */}
         <View className="gap-1">
-          <Typography variation="h2" className="text-brand-espresso leading-tight">
+          <Typography
+            variation="h2"
+            className="text-brand-espresso leading-tight"
+          >
             {product.title}
           </Typography>
           <Typography variation="h1" className="text-brand-espresso">
@@ -263,7 +416,11 @@ export default function ProductDetailScreen() {
             >
               Category
             </Typography>
-            <Typography variation="h4" className="text-brand-espresso" numberOfLines={1}>
+            <Typography
+              variation="h4"
+              className="text-brand-espresso"
+              numberOfLines={1}
+            >
               {product.category}
             </Typography>
           </Card>
@@ -275,7 +432,10 @@ export default function ProductDetailScreen() {
             <Typography variation="h5" className="text-brand-espresso mb-2">
               Description
             </Typography>
-            <Typography variation="body-sm" className="text-ui-secondary leading-relaxed">
+            <Typography
+              variation="body-sm"
+              className="text-ui-secondary leading-relaxed"
+            >
               {product.description}
             </Typography>
           </Card>
@@ -323,16 +483,6 @@ export default function ProductDetailScreen() {
             </TouchableOpacity>
           </View>
         )}
-
-        {/* Timestamps */}
-        <View className="flex-row justify-between pt-2 border-t border-brand-beige/60">
-          <Typography variation="body-xs" className="text-ui-secondary/60 italic">
-            Created: {formatDate(product.created_at)}
-          </Typography>
-          <Typography variation="body-xs" className="text-ui-secondary/60 italic">
-            Updated: {formatDate(product.updated_at)}
-          </Typography>
-        </View>
       </View>
 
       {/* Delete Confirmation Modal */}

@@ -141,7 +141,7 @@ export default function SettingsScreen() {
           <SettingsRow
             icon="eye.slash"
             label="Data & Privacy"
-            onPress={() => {}}
+            onPress={() => router.push("/settings/data-privacy" as any)}
           />
         </SettingsCard>
       </View>
