@@ -208,6 +208,7 @@ export async function createOrder(
         body: notifBody,
         type: 'new_order',
         data: {
+          href: `/order/${data.id}`,
           order_id: data.id,
           status: 'pending',
           product_title: productName,
@@ -424,6 +425,7 @@ export async function createMultiProductOrder(
         body: notifBody,
         type: 'new_order',
         data: {
+          href: `/order/${order.id}`,
           order_id: order.id,
           status: 'pending',
           product_title: productName,

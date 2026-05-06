@@ -3,6 +3,8 @@ import {
   getUnreadNotificationCount,
   markAllNotificationsAsRead,
   markNotificationAsRead,
+  markNotificationAsUnread,
+  softDeleteNotification,
 } from '@/lib/database-helpers';
 import { AppNotification } from '@/lib/types/database';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
@@ -61,6 +63,24 @@ export const markAllAsRead = createAsyncThunk(
   }
 );
 
+export const markAsUnread = createAsyncThunk(
+  'notifications/markAsUnread',
+  async (notificationId: string, { rejectWithValue }) => {
+    const success = await markNotificationAsUnread(notificationId);
+    if (!success) return rejectWithValue('Failed to mark as unread');
+    return notificationId;
+  }
+);
+
+export const deleteNotification = createAsyncThunk(
+  'notifications/deleteNotification',
+  async (notificationId: string, { rejectWithValue }) => {
+    const success = await softDeleteNotification(notificationId);
+    if (!success) return rejectWithValue('Failed to delete notification');
+    return notificationId;
+  }
+);
+
 const notificationsSlice = createSlice({
   name: 'notifications',
   initialState,
@@ -98,11 +118,29 @@ const notificationsSlice = createSlice({
       }
     });
 
+    builder.addCase(markAsUnread.fulfilled, (state, action) => {
+      const id = action.payload;
+      const notification = state.notifications.find((n) => n.id === id);
+      if (notification && notification.is_read) {
+        notification.is_read = false;
+        state.unreadCount += 1;
+      }
+    });
+
     builder.addCase(markAllAsRead.fulfilled, (state) => {
       state.notifications.forEach((n) => {
         n.is_read = true;
       });
       state.unreadCount = 0;
+    });
+
+    builder.addCase(deleteNotification.fulfilled, (state, action) => {
+      const id = action.payload;
+      const notification = state.notifications.find((n) => n.id === id);
+      if (notification && !notification.is_read) {
+        state.unreadCount = Math.max(0, state.unreadCount - 1);
+      }
+      state.notifications = state.notifications.filter((n) => n.id !== id);
     });
   },
 });

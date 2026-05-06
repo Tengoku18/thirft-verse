@@ -238,7 +238,7 @@ export function AddProductForm() {
           store_id: user.id,
           cover_image: coverUpload.url,
           other_images: uploadedOthers,
-          is_verified: false,
+
         }),
       ).unwrap();
 

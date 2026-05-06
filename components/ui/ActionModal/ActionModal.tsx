@@ -15,10 +15,14 @@ interface ActionModalProps {
   onPrimary: () => void;
   onSecondary: () => void;
   primaryLoading?: boolean;
+  /** Disables the primary button without showing a loading spinner */
+  primaryDisabled?: boolean;
   /** Tapping the dim backdrop calls onSecondary by default. Set false to disable. */
   dismissOnBackdrop?: boolean;
   /** Show close button (X icon) in top-right corner. Defaults to true. */
   showCloseButton?: boolean;
+  /** Extra content rendered between the description and the action buttons */
+  children?: React.ReactNode;
 }
 
 /**
@@ -49,8 +53,10 @@ export function ActionModal({
   onPrimary,
   onSecondary,
   primaryLoading = false,
+  primaryDisabled = false,
   dismissOnBackdrop = true,
   showCloseButton = true,
+  children,
 }: ActionModalProps) {
   return (
     <BlurModal visible={visible} onDismiss={onSecondary}>
@@ -74,10 +80,13 @@ export function ActionModal({
         {/* Description */}
         <Typography
           variation="body"
-          className="text-slate-500 text-center leading-relaxed mb-7"
+          className="text-slate-500 text-center leading-relaxed"
         >
           {description}
         </Typography>
+
+        {/* Extra content slot */}
+        {children}
 
         {/* Primary action */}
         <Button
@@ -86,7 +95,7 @@ export function ActionModal({
           size="large"
           onPress={onPrimary}
           isLoading={primaryLoading}
-          disabled={primaryLoading}
+          disabled={primaryLoading || primaryDisabled}
           fullWidth
           noShadow
         />

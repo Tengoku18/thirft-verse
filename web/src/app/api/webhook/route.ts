@@ -249,6 +249,7 @@ async function processOrderUpdate(
     body: notifBody,
     type: notifConfig.type,
     data: {
+      href: `/order/${order.id}`,
       order_id: order.id,
       status: displayStatus,
       ncm_status: status,

@@ -2,18 +2,22 @@ import { BagIcon, PartyIcon, ThreeStarsIcon } from "@/components/icons";
 import ShopIcon from "@/components/icons/ShopIcon";
 import { Button } from "@/components/ui/Button/Button";
 import { Typography } from "@/components/ui/Typography/Typography";
+import { useTour } from "@/contexts/TourContext";
 import { useRouter } from "expo-router";
 import React from "react";
 import { ScrollView, View } from "react-native";
 
 export default function SignupSuccessScreen() {
   const router = useRouter();
+  const { startTour } = useTour();
 
-  const handleGoToDashboard = () => {
+  const handleGoToDashboard = async () => {
+    await startTour();
     router.replace("/(tabs)/home");
   };
 
-  const handleAddFirstProduct = () => {
+  const handleAddFirstProduct = async () => {
+    await startTour();
     router.push("/(tabs)/product");
   };
 

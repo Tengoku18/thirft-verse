@@ -1552,6 +1552,7 @@ export const getNotifications = async (
       .from("notifications")
       .select("*", { count: "exact" })
       .eq("user_id", userId)
+      .neq("is_deleted", true)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -1565,6 +1566,17 @@ export const getNotifications = async (
     console.error("Error in getNotifications:", error);
     return { success: false, data: [], count: 0 };
   }
+};
+
+// Soft-delete: hides from app but keeps the row in Supabase for audit.
+// Requires: ALTER TABLE notifications ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false;
+export const softDeleteNotification = async (id: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from("notifications")
+    .update({ is_deleted: true })
+    .eq("id", id);
+  if (error) console.error("Error deleting notification:", error);
+  return !error;
 };
 
 export const getUnreadNotificationCount = async (
@@ -1620,6 +1632,23 @@ export const markNotificationAsRead = async (
     return true;
   } catch (error) {
     console.error("Error in markNotificationAsRead:", error);
+    return false;
+  }
+};
+
+export const markNotificationAsUnread = async (
+  notificationId: string,
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from("notifications")
+      .update({ is_read: false })
+      .eq("id", notificationId)
+      .select("id");
+    if (error) { console.error("Error marking notification as unread:", error); return false; }
+    return !!(data && data.length > 0);
+  } catch (error) {
+    console.error("Error in markNotificationAsUnread:", error);
     return false;
   }
 };

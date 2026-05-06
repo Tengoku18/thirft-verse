@@ -15,9 +15,10 @@ import { EsewaPaymentForm } from "@/components/payment/EsewaPaymentForm";
 import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import { useTour } from "@/contexts/TourContext";
 import { supabase } from "@/lib/supabase";
 import { router, useFocusEffect } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 
 // ─────────────── Types ───────────────
@@ -55,6 +56,9 @@ const PREVIEW_COUNT = 3;
 export default function EarningsScreen() {
   const { user } = useAuth();
   const toast = useToast();
+  const { isActive, isTransitioning, currentStep, registerTarget, measureAndSetSpotlight } =
+    useTour();
+  const earningsOverviewRef = useRef<View>(null);
 
   const [loading, setLoading] = useState(true);
   const [revenue, setRevenue] = useState<RevenueData | null>(null);
@@ -119,6 +123,27 @@ export default function EarningsScreen() {
       loadData();
     }, [loadData]),
   );
+
+  useEffect(() => {
+    registerTarget("earnings_overview", earningsOverviewRef);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isActive && currentStep?.key === "earnings_overview") {
+        measureAndSetSpotlight("earnings_overview");
+      }
+    }, [isActive, currentStep, measureAndSetSpotlight]),
+  );
+
+  // Re-attempt measurement after data loads — the ref View only renders once
+  // loading=false and hasPaymentDetails=true, so early attempts (during loading) fail silently.
+  useEffect(() => {
+    if (loading || !hasPaymentDetails || !isActive || isTransitioning) return;
+    if (currentStep?.key === "earnings_overview") {
+      measureAndSetSpotlight("earnings_overview");
+    }
+  }, [loading, hasPaymentDetails, isActive, isTransitioning, currentStep?.key, measureAndSetSpotlight]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Withdrawal submission ──
   const handleWithdrawSubmit = async (amount: number, note: string) => {
@@ -229,7 +254,7 @@ export default function EarningsScreen() {
       contentContainerStyle={{ padding: 16, gap: 16 }}
     >
       {/* ── Revenue stat cards ── */}
-      <View style={{ gap: 12 }}>
+      <View ref={earningsOverviewRef} collapsable={false} style={{ gap: 12 }}>
         <EarningsStatCard
           label="Pending"
           amount={revenue?.pendingAmount ?? 0}
