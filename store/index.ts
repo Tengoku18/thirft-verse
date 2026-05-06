@@ -42,10 +42,12 @@ export type { SignupFormData, SignupPaymentData } from "./signupSlice";
 // Export notifications slice
 export {
   clearNotifications,
+  deleteNotification,
   fetchNotifications,
   fetchUnreadCount,
   markAllAsRead,
   markAsRead,
+  markAsUnread,
 } from "./notificationsSlice";
 
 // Export initialization thunk

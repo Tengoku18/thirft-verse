@@ -101,6 +101,7 @@ export interface PaginatedResponse<T> {
 }
 
 export type ProductStatus = 'available' | 'out_of_stock';
+export type ProductVerificationStatus = 'pending' | 'verified' | 'rejected';
 
 export interface Product {
   id: string;
@@ -114,6 +115,8 @@ export interface Product {
   availability_count: number;
   status: ProductStatus;
   shipping_fee: number;
+  verification_status: ProductVerificationStatus;
+  rejected_reason: string | null;
   created_at: string;
   updated_at: string;
 }

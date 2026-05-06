@@ -25,7 +25,7 @@ const initialState: ProductsState = {
   userProductsError: null,
 
   selectedProduct: null,
-  selectedProductLoading: false,
+  selectedProductLoading: true,
   selectedProductError: null,
 
   creating: false,
@@ -174,7 +174,6 @@ export const createProduct = createAsyncThunk(
       store_id: string;
       cover_image: string;
       other_images: string[];
-      is_verified: boolean;
     },
     { rejectWithValue },
   ) => {
@@ -185,6 +184,7 @@ export const createProduct = createAsyncThunk(
           ...productData,
           status:
             productData.availability_count > 0 ? "available" : "out_of_stock",
+          verification_status: "pending",
         })
         .select()
         .single();
@@ -212,6 +212,7 @@ const productsSlice = createSlice({
     // Clear selected product
     clearSelectedProduct: (state) => {
       state.selectedProduct = null;
+      state.selectedProductLoading = true;
       state.selectedProductError = null;
     },
 
