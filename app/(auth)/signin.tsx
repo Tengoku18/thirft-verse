@@ -5,6 +5,7 @@ import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { CompleteYourProfileModal } from "@/components/modals/CompleteYourProfileModal";
 import { Link } from "@/components/ui/Link";
 import { Typography } from "@/components/ui/Typography/Typography";
+import { useTour } from "@/contexts/TourContext";
 import { useAppleSignIn } from "@/hooks/useAppleSignIn";
 import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
 import { supabase } from "@/lib/supabase";
@@ -67,6 +68,7 @@ export default function SignInScreen() {
     useState(false);
   const [nextSignupStep, setNextSignupStep] = useState(2);
 
+  const { startTour } = useTour();
   const displayError = loginError || googleError || appleError;
 
   const handleLoginSuccess = async (): Promise<void> => {
@@ -88,7 +90,7 @@ export default function SignInScreen() {
 
         if (profileError || !profile) {
           console.error("Failed to fetch profile:", profileError);
-          // If we can't check status, redirect to home
+          await startTour();
           router.replace("/(tabs)/home");
           return;
         }
@@ -109,11 +111,12 @@ export default function SignInScreen() {
           return;
         }
 
+        await startTour();
         router.replace("/(tabs)/home");
       }
     } catch (error) {
       console.error("[SignIn] Error checking signup status:", error);
-      // On error, redirect to home anyway
+      await startTour();
       router.replace("/(tabs)/home");
     }
   };

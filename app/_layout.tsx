@@ -23,8 +23,10 @@ import "../global.css";
 
 import { ForceUpdateModal } from "@/components/modals/ForceUpdateModal";
 import { NotificationSync } from "@/components/notifications/NotificationSync";
+import { TourOverlay } from "@/components/organisms/TourOverlay";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { TourProvider } from "@/contexts/TourContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAppUpdate } from "@/hooks/useAppUpdate";
 import {
@@ -35,8 +37,8 @@ import {
 import { fetchNotifications, fetchUnreadCount, store } from "@/store";
 import * as Sentry from "@sentry/react-native";
 import * as Updates from "expo-updates";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 
 Sentry.init({
@@ -161,89 +163,107 @@ export default Sentry.wrap(function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-    <SafeAreaProvider>
-      <Provider store={store}>
-        <AuthProvider>
-          <ToastProvider>
-            <NotificationSync />
-            <ThemeProvider
-              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-            >
-              <StatusBar style="dark" />
-              <Stack
-                screenOptions={{
-                  contentStyle: { backgroundColor: "#C08B7B" },
-                }}
-              >
-                <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="explore" options={{ headerShown: false }} />
-                <Stack.Screen name="profile" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="settings"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="policies"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="modal"
-                  options={{ presentation: "modal", title: "Modal" }}
-                />
-                <Stack.Screen
-                  name="sold-item/[id]"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="product/[id]"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="edit-product/[id]"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="order/[id]"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="notifications"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="offer-code"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="referral-code"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="founder-circle"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="earnings"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="performance"
-                  options={{ headerShown: false }}
-                />
-              </Stack>
-              <ForceUpdateModal
-                visible={appUpdate.isVisible}
-                currentVersion={appUpdate.currentVersion}
-                latestVersion={appUpdate.latestVersion}
-                onUpdate={appUpdate.openStore}
-              />
-            </ThemeProvider>
-          </ToastProvider>
-        </AuthProvider>
-      </Provider>
-    </SafeAreaProvider>
+      <SafeAreaProvider>
+        <Provider store={store}>
+          <AuthProvider>
+            <ToastProvider>
+              <NotificationSync />
+              <TourProvider>
+                <ThemeProvider
+                  value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+                >
+                  <StatusBar style="dark" />
+                  <Stack
+                    screenOptions={{
+                      contentStyle: { backgroundColor: "#C08B7B" },
+                    }}
+                  >
+                    <Stack.Screen
+                      name="index"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="(auth)"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="(tabs)"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="explore"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="profile"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="settings"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="policies"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="modal"
+                      options={{ presentation: "modal", title: "Modal" }}
+                    />
+                    <Stack.Screen
+                      name="sold-item/[id]"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="product/[id]"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="edit-product/[id]"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="order/[id]"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="notifications"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="offer-code"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="referral-code"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="founder-circle"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="earnings"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="performance"
+                      options={{ headerShown: false }}
+                    />
+                  </Stack>
+                  <ForceUpdateModal
+                    visible={appUpdate.isVisible}
+                    currentVersion={appUpdate.currentVersion}
+                    latestVersion={appUpdate.latestVersion}
+                    onUpdate={appUpdate.openStore}
+                  />
+                </ThemeProvider>
+                <TourOverlay />
+              </TourProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </Provider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 });

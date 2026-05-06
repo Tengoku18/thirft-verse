@@ -191,9 +191,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
           {/* Product Info */}
           <div className="flex flex-col">
             {/* Eyebrow: Visit Store */}
-            {product.store && (
-              <Link
-                href="/"
+            {product.store && storeUrl && (
+              <a
+                href={storeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group border-border/70 bg-surface text-primary/80 hover:border-primary/40 hover:text-primary mb-5 inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 font-sans text-xs font-semibold tracking-wide transition-colors sm:text-sm"
               >
                 <Store className="h-3.5 w-3.5" strokeWidth={2} />
@@ -202,7 +204,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   className="text-primary/40 group-hover:text-primary h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                   strokeWidth={2.5}
                 />
-              </Link>
+              </a>
             )}
 
             {/* Category eyebrow */}
