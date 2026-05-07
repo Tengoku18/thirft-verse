@@ -38,6 +38,8 @@ export const RevenueStatCard: React.FC<RevenueStatCardProps> = ({
       <Typography
         variation="h4"
         numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.6}
         className="text-primary !font-extrabold mt-2"
       >
         {amount}

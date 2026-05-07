@@ -36,7 +36,7 @@ export function OrderDetailBody({
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{
         padding: 16,
-        gap: 14,
+        gap: 18,
         paddingBottom: showBottomPadding ? 130 : 40,
       }}
       refreshControl={

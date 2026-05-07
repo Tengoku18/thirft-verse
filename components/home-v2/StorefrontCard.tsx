@@ -1,6 +1,9 @@
+import CopyIcon from "@/components/icons/CopyIcon";
 import QRCodeIcon from "@/components/icons/QRCodeIcon";
 import StoreIcon from "@/components/icons/StoreIcon";
 import { Typography } from "@/components/ui/Typography";
+import { useToast } from "@/contexts/ToastContext";
+import * as Clipboard from "expo-clipboard";
 import * as WebBrowser from "expo-web-browser";
 import React, { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
@@ -17,9 +20,15 @@ export const StorefrontCard: React.FC<StorefrontCardProps> = ({
   storeName,
 }) => {
   const [qrVisible, setQrVisible] = useState(false);
+  const toast = useToast();
 
   const fullUrl = `https://${storeUsername}.thriftverse.shop`;
   const displayUrl = `${storeUsername}.thriftverse.shop`;
+
+  const handleCopyUrl = async () => {
+    await Clipboard.setStringAsync(fullUrl);
+    toast.success("Store URL copied to clipboard!");
+  };
 
   const handleVisitStore = async () => {
     await WebBrowser.openBrowserAsync(fullUrl);
@@ -48,18 +57,30 @@ export const StorefrontCard: React.FC<StorefrontCardProps> = ({
               >
                 Your Storefront
               </Typography>
-              <Typography
-                variation="body-sm"
-                numberOfLines={1}
-                style={{
-                  color: "rgba(59,47,47,0.6)",
-                  fontSize: 13,
-                  fontStyle: "italic",
-                  marginTop: 2,
-                }}
+              <TouchableOpacity
+                onPress={handleCopyUrl}
+                activeOpacity={0.6}
+                accessibilityLabel="Copy store URL"
+                style={{ flexDirection: "row", alignItems: "center", marginTop: 2, gap: 6, alignSelf: "flex-start" }}
               >
-                {displayUrl}
-              </Typography>
+                <Typography
+                  variation="body-sm"
+                  numberOfLines={1}
+                  style={{
+                    color: "rgba(59,47,47,0.6)",
+                    fontSize: 13,
+                    fontStyle: "italic",
+                    flexShrink: 1,
+                  }}
+                >
+                  {displayUrl}
+                </Typography>
+                <CopyIcon
+                  width={13}
+                  height={13}
+                  color="rgba(59,47,47,0.45)"
+                />
+              </TouchableOpacity>
             </View>
             <View
               className="p-2 rounded-lg"

@@ -36,20 +36,20 @@ interface HeaderProps {
   selectedCategories: string[];
   onToggle: (cat: string) => void;
   onClearAll: () => void;
-  inStockOnly: boolean;
-  onToggleInStock: () => void;
   sortBy: ProductSortOption;
   onSortChange: (v: ProductSortOption) => void;
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
 }
 
 function ProductsListHeader({
   selectedCategories,
   onToggle,
   onClearAll,
-  inStockOnly,
-  onToggleInStock,
   sortBy,
   onSortChange,
+  hasActiveFilters,
+  onClearFilters,
 }: HeaderProps) {
   return (
     <View style={{ backgroundColor: "#FAF7F2", paddingBottom: 8 }}>
@@ -59,10 +59,10 @@ function ProductsListHeader({
         onClearAll={onClearAll}
       />
       <ExploreFilterRow
-        inStockOnly={inStockOnly}
-        onToggleInStock={onToggleInStock}
         sortBy={sortBy}
         onSortChange={onSortChange}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={onClearFilters}
       />
     </View>
   );
@@ -115,7 +115,6 @@ export function ExploreProductsTab() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState(""); // set by ExploreSearchBar's onDebouncedChange
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [inStockOnly, setInStockOnly] = useState(true);
   const [sortBy, setSortBy] = useState<ProductSortOption>("newest");
 
   const pageRef = useRef(0);
@@ -171,13 +170,20 @@ export function ExploreProductsTab() {
     fetchPage(nextPage).finally(() => setLoadingMore(false));
   }, [fetchPage]);
 
+  const hasActiveFilters = selectedCategories.length > 0 || sortBy !== "newest";
+
+  const handleClearFilters = useCallback(() => {
+    setSelectedCategories([]);
+    setSortBy("newest");
+  }, []);
+
   const filteredProducts = useMemo(() => {
     let r = filterProductsBySearch(products, searchQuery);
     r = filterProductsByCategory(r, selectedCategories);
-    r = filterProductsByAvailability(r, inStockOnly);
+    r = filterProductsByAvailability(r, true);
     r = filterProductsByVerification(r, true);
     return sortProducts(r, sortBy);
-  }, [products, searchQuery, selectedCategories, inStockOnly, sortBy]);
+  }, [products, searchQuery, selectedCategories, sortBy]);
 
   const toggleCategory = useCallback(
     (cat: string) =>
@@ -194,13 +200,13 @@ export function ExploreProductsTab() {
         selectedCategories={selectedCategories}
         onToggle={toggleCategory}
         onClearAll={() => setSelectedCategories([])}
-        inStockOnly={inStockOnly}
-        onToggleInStock={() => setInStockOnly((v) => !v)}
         sortBy={sortBy}
         onSortChange={setSortBy}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={handleClearFilters}
       />
     ),
-    [selectedCategories, inStockOnly, sortBy, toggleCategory],
+    [selectedCategories, sortBy, toggleCategory, hasActiveFilters, handleClearFilters],
   );
 
   const renderListEmpty = useCallback(

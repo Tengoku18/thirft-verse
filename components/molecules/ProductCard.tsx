@@ -58,7 +58,7 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
 
       {/* Product Info */}
       <View style={styles.infoContainer}>
-        <Text style={[styles.title, isOutOfStock && styles.titleOutOfStock]} numberOfLines={2}>
+        <Text style={[styles.title, isOutOfStock && styles.titleOutOfStock]} numberOfLines={1} ellipsizeMode="tail">
           {product.title}
         </Text>
         <View style={styles.bottomRow}>

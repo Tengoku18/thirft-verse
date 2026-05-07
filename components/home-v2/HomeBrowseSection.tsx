@@ -1,8 +1,10 @@
+import ShippingBoxIcon from "@/components/icons/ShippingBoxIcon";
 import ProductCard from "@/components/molecules/ProductCard";
 import { ProductCardSkeleton } from "@/components/molecules/ProductCardSkeleton";
 import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAllAvailableProducts } from "@/lib/api-helpers";
+import { filterProductsByAvailability, filterProductsByVerification } from "@/lib/explore-helpers";
 import { ProductWithStore } from "@/lib/types/database";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -23,10 +25,12 @@ export const HomeBrowseSection: React.FC = () => {
   const loadProducts = async () => {
     try {
       const result = await getAllAvailableProducts();
-      const filtered = user
+      const ownFiltered = user
         ? result.data.filter((p) => p.store_id !== user.id)
         : result.data;
-      setProducts(filtered.slice(0, PREVIEW_COUNT));
+      const verified = filterProductsByVerification(ownFiltered, true);
+      const inStock = filterProductsByAvailability(verified, true);
+      setProducts(inStock.slice(0, PREVIEW_COUNT));
     } catch {
       // silent fail — section simply won't show products
     } finally {
@@ -38,7 +42,7 @@ export const HomeBrowseSection: React.FC = () => {
     router.push("/explore" as never);
   };
 
-  if (!loading && products.length === 0) return null;
+  const isEmpty = !loading && products.length === 0;
 
   return (
     <View className="mx-5 mt-5 mb-2">
@@ -46,48 +50,107 @@ export const HomeBrowseSection: React.FC = () => {
         <Typography variation="h4" style={{ fontSize: 17, color: "#3B2F2F" }}>
           Browse Marketplace
         </Typography>
-        <TouchableOpacity onPress={handleViewAll} activeOpacity={0.7}>
-          <Typography
-            variation="body-sm"
-            style={{ color: "#D4A373", fontSize: 14, fontWeight: "600" }}
-          >
-            View All
-          </Typography>
-        </TouchableOpacity>
+        {!isEmpty && (
+          <TouchableOpacity onPress={handleViewAll} activeOpacity={0.7}>
+            <Typography
+              variation="body-sm"
+              style={{ color: "#D4A373", fontSize: 14, fontWeight: "600" }}
+            >
+              View All
+            </Typography>
+          </TouchableOpacity>
+        )}
       </View>
 
-      <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-        {loading
-          ? [0, 1, 2, 3].map((i) => (
-              <View key={i} style={{ width: "47%" }}>
-                <ProductCardSkeleton />
-              </View>
-            ))
-          : products.map((product) => (
-              <View key={product.id} style={{ width: "47%" }}>
-                <ProductCard product={product} />
-              </View>
-            ))}
-      </View>
-
-      {!loading && (
-        <TouchableOpacity
-          onPress={handleViewAll}
-          activeOpacity={0.85}
-          className="mt-4 py-3 rounded-xl items-center"
+      {isEmpty ? (
+        <View
           style={{
-            backgroundColor: "rgba(59,47,47,0.06)",
+            alignItems: "center",
+            paddingVertical: 36,
+            borderRadius: 20,
             borderWidth: 1,
             borderColor: "rgba(59,47,47,0.08)",
+            borderStyle: "dashed",
+            backgroundColor: "rgba(59,47,47,0.02)",
           }}
         >
-          <Typography
-            variation="label"
-            style={{ color: "#3B2F2F", fontSize: 14 }}
+          <View
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 32,
+              backgroundColor: "rgba(212,163,115,0.12)",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 14,
+            }}
           >
-            Explore All Products
+            <ShippingBoxIcon width={30} height={30} color="#D4A373" />
+          </View>
+          <Typography
+            variation="h4"
+            style={{ fontSize: 16, color: "#3B2F2F", marginBottom: 6 }}
+          >
+            No products yet
           </Typography>
-        </TouchableOpacity>
+          <Typography
+            variation="body-sm"
+            style={{ color: "rgba(59,47,47,0.5)", fontSize: 13, textAlign: "center", paddingHorizontal: 24 }}
+          >
+            Verified products from other sellers will show up here.
+          </Typography>
+          <TouchableOpacity
+            onPress={handleViewAll}
+            activeOpacity={0.8}
+            style={{
+              marginTop: 20,
+              paddingHorizontal: 24,
+              paddingVertical: 10,
+              borderRadius: 12,
+              backgroundColor: "#3B2F2F",
+            }}
+          >
+            <Typography variation="label" style={{ color: "#FFFFFF", fontSize: 13 }}>
+              Browse Explore
+            </Typography>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+            {loading
+              ? [0, 1, 2, 3].map((i) => (
+                  <View key={i} style={{ width: "47%" }}>
+                    <ProductCardSkeleton />
+                  </View>
+                ))
+              : products.map((product) => (
+                  <View key={product.id} style={{ width: "47%" }}>
+                    <ProductCard product={product} />
+                  </View>
+                ))}
+          </View>
+
+          {!loading && (
+            <TouchableOpacity
+              onPress={handleViewAll}
+              activeOpacity={0.85}
+              className="mt-4 py-3 rounded-xl items-center"
+              style={{
+                backgroundColor: "rgba(59,47,47,0.06)",
+                borderWidth: 1,
+                borderColor: "rgba(59,47,47,0.08)",
+              }}
+            >
+              <Typography
+                variation="label"
+                style={{ color: "#3B2F2F", fontSize: 14 }}
+              >
+                Explore All Products
+              </Typography>
+            </TouchableOpacity>
+          )}
+        </>
       )}
     </View>
   );
