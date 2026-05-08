@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "expo-router";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 
 interface UseGoogleSignInReturn {
@@ -14,7 +14,7 @@ interface UseGoogleSignInReturn {
  * Encapsulates authentication flow, error handling, and navigation
  */
 export const useGoogleSignIn = (): UseGoogleSignInReturn => {
-  const router = useRouter();
+  const navigation = useNavigation();
   const { signInWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -39,7 +39,9 @@ export const useGoogleSignIn = (): UseGoogleSignInReturn => {
       }
 
       setIsLoading(false);
-      router.replace("/");
+      navigation.dispatch(
+        CommonActions.reset({ index: 0, routes: [{ name: "index" }] }),
+      );
     } catch (error) {
       console.error("Unexpected Google sign in error:", error);
       setError("An unexpected error occurred. Please try again.");

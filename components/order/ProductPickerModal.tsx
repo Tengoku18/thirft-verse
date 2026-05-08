@@ -24,6 +24,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../ui/Button";
 import { CubeIcon } from "@/components/icons";
 
@@ -51,6 +52,7 @@ export function ProductPickerModal({
 }: ProductPickerModalProps) {
   const { user } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -362,7 +364,8 @@ export function ProductPickerModal({
           <View
             style={{
               paddingHorizontal: 16,
-              paddingVertical: 12,
+              paddingTop: 12,
+              paddingBottom: insets.bottom + 12,
               borderTopWidth: 1,
               borderTopColor: "#F3F4F6",
             }}

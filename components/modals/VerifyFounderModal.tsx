@@ -7,6 +7,7 @@ import { fetchUserProfile } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import React, { useEffect, useState } from "react";
 import { CheckmarkSealFillIcon, CrownFillIcon, IIcon, WarningFillIcon, XIcon } from "@/components/icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -30,6 +31,7 @@ export function VerifyFounderModal({
 }: VerifyFounderModalProps) {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const insets = useSafeAreaInsets();
 
   const [accessCode, setAccessCode] = useState("");
   const [email, setEmail] = useState("");
@@ -123,7 +125,7 @@ export function VerifyFounderModal({
               backgroundColor: "#FFFFFF",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
-              paddingBottom: 40,
+              paddingBottom: insets.bottom + 16,
             }}
           >
             <ScrollView

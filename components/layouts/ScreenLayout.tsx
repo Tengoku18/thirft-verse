@@ -116,7 +116,13 @@ export function ScreenLayout({
             {children}
           </ScrollView>
         ) : (
-          <View style={{ flex: 1, backgroundColor: contentBackgroundColor }}>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: contentBackgroundColor,
+              paddingBottom: insets.bottom,
+            }}
+          >
             {children}
           </View>
         )}

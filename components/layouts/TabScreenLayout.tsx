@@ -10,7 +10,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface TabScreenLayoutProps {
   // ── Header ──────────────────────────────────────────────────
@@ -49,7 +49,8 @@ interface TabScreenLayoutProps {
   contentContainerStyle?: StyleProp<ViewStyle>;
   /**
    * Bottom padding reserved for the floating tab bar.
-   * Default: 130 (72 px bar height + ~20 px safe area + buffer).
+   * Defaults to bar height (72) + center button overflow (5) + nav bar inset + buffer (32).
+   * Override only when a screen needs extra space beyond the tab bar.
    */
   tabBarPadding?: number;
   /**
@@ -81,12 +82,15 @@ export function TabScreenLayout({
   onRefresh,
   backgroundColor = "#FAF7F2",
   contentContainerStyle,
-  tabBarPadding = 130,
+  tabBarPadding,
   keyboardAvoiding = true,
 
   children,
 }: TabScreenLayoutProps) {
   const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
+  // 72px bar + 5px center-button overflow + system nav bar + 32px breathing room
+  const effectiveTabBarPadding = tabBarPadding ?? 72 + 5 + insets.bottom + 32;
 
   const handleRefresh = async () => {
     if (!onRefresh) return;
@@ -115,7 +119,7 @@ export function TabScreenLayout({
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={[
-        { paddingBottom: tabBarPadding },
+        { paddingBottom: effectiveTabBarPadding },
         contentContainerStyle,
       ]}
       refreshControl={
@@ -132,7 +136,9 @@ export function TabScreenLayout({
       {children}
     </ScrollView>
   ) : (
-    <View style={{ flex: 1, backgroundColor }}>{children}</View>
+    <View style={{ flex: 1, backgroundColor, paddingBottom: effectiveTabBarPadding }}>
+      {children}
+    </View>
   );
 
   // ── Keyboard avoidance wrapper ────────────────────────────

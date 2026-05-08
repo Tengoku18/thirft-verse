@@ -177,7 +177,7 @@ export function FloatingTabBar({
   position,
 }: BottomTabBarProps & { position?: AnimatedPosition }) {
   const insets = useSafeAreaInsets();
-  const bottomPadding = Math.max(insets.bottom - 100, 20);
+  const bottomPadding = insets.bottom + 16;
 
   const visibleItems = state.routes
     .map((route, stateIndex) => ({ route, stateIndex }))

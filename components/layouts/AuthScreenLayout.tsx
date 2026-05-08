@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import React from "react";
 import {
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StatusBar,
@@ -74,7 +73,7 @@ export function AuthScreenLayout({
     <SafeAreaView
       className="flex-1"
       style={{ backgroundColor }}
-      edges={["top", "left", "right"]}
+      edges={["top", "left", "right", "bottom"]}
     >
       <StatusBar barStyle={statusBarStyle} backgroundColor={backgroundColor} />
 
@@ -105,10 +104,7 @@ export function AuthScreenLayout({
         </View>
       )}
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
-      >
+      <KeyboardAvoidingView behavior="padding" className="flex-1">
         {showScrollView ? (
           <ScrollView
             className="flex-1"

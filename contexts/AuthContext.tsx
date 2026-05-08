@@ -176,30 +176,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: { message: "Sign in was cancelled" } };
       }
 
-      // Extract tokens from the redirect URL hash fragment
-      const url = result.url;
-      const hashParams = new URLSearchParams(url.split("#")[1] || "");
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
+      // Parse the redirect URL manually to avoid new URL() crashing on custom
+      // app schemes (e.g. thriftverse://) in React Native's Hermes URL polyfill.
+      // PKCE flow (Supabase v2 default): code is in the query string.
+      // Implicit flow (legacy): tokens are in the hash fragment.
+      const redirectUrl = result.url;
+      const queryPart = redirectUrl.split("?")[1]?.split("#")[0] ?? "";
+      const code = new URLSearchParams(queryPart).get("code");
 
-      if (!accessToken || !refreshToken) {
-        return {
-          error: {
-            message: "Failed to complete sign in. Please try again.",
-          },
-        };
-      }
+      let sessionError;
+      if (code) {
+        // PKCE: pass only the code string, not the full URL
+        ({ error: sessionError } =
+          await supabase.auth.exchangeCodeForSession(code));
+      } else {
+        const hashParams = new URLSearchParams(
+          redirectUrl.split("#")[1] ?? "",
+        );
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
 
-      // setSession triggers onAuthStateChange which handles Redux updates
-      const { error: sessionError, data: sessionData } =
-        await supabase.auth.setSession({
+        if (!accessToken || !refreshToken) {
+          return {
+            error: {
+              message: "Failed to complete sign in. Please try again.",
+            },
+          };
+        }
+
+        ({ error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
-        });
+        }));
+      }
 
-      // Check for email conflict error
       if (sessionError) {
-        // Supabase returns specific errors for email conflicts
         if (
           sessionError.message &&
           (sessionError.message.toLowerCase().includes("email") ||
@@ -347,30 +358,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: { message: "Sign in was cancelled" } };
       }
 
-      // Extract tokens from the redirect URL hash fragment
-      const url = result.url;
-      const hashParams = new URLSearchParams(url.split("#")[1] || "");
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
+      const redirectUrl = result.url;
+      const queryPart = redirectUrl.split("?")[1]?.split("#")[0] ?? "";
+      const code = new URLSearchParams(queryPart).get("code");
 
-      if (!accessToken || !refreshToken) {
-        return {
-          error: {
-            message: "Failed to complete sign in. Please try again.",
-          },
-        };
-      }
+      let sessionError;
+      if (code) {
+        ({ error: sessionError } =
+          await supabase.auth.exchangeCodeForSession(code));
+      } else {
+        const hashParams = new URLSearchParams(
+          redirectUrl.split("#")[1] ?? "",
+        );
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
 
-      // setSession triggers onAuthStateChange which handles Redux updates
-      const { error: sessionError, data: sessionData } =
-        await supabase.auth.setSession({
+        if (!accessToken || !refreshToken) {
+          return {
+            error: {
+              message: "Failed to complete sign in. Please try again.",
+            },
+          };
+        }
+
+        ({ error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
-        });
+        }));
+      }
 
-      // Check for email conflict error
       if (sessionError) {
-        // Supabase returns specific errors for email conflicts
         if (
           sessionError.message &&
           (sessionError.message.toLowerCase().includes("email") ||

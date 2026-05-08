@@ -12,6 +12,7 @@ import {
   cleanNepaliPhone,
   isValidNepaliPhone,
 } from "@/lib/validations/create-order";
+import { BlurView } from "expo-blur";
 import React, { useEffect, useState } from "react";
 import { XIcon } from "@/components/icons";
 import {
@@ -20,10 +21,13 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  Pressable,
   ScrollView,
+  StyleSheet,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface NCMOrderModalProps {
   visible: boolean;
@@ -68,6 +72,7 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
   onSuccess,
   orderData,
 }) => {
+  const insets = useSafeAreaInsets();
   const [branches, setBranches] = useState<NCMBranch[]>([]);
   const [loadingBranches, setLoadingBranches] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -193,25 +198,63 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
   return (
     <Modal
       visible={visible}
+      transparent
       animationType="slide"
       onRequestClose={onClose}
-      presentationStyle="pageSheet"
+      statusBarTranslucent
     >
-      <View className="flex-1 bg-white">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
+      <View style={{ flex: 1 }}>
+        {/* Blur backdrop */}
+        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: "rgba(0,0,0,0.45)" },
+          ]}
+        />
+        {/* Tap-to-dismiss area above the sheet */}
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+
+        {/* Sheet */}
+        <View
+          style={{
+            height: "80%",
+            backgroundColor: "#FFFFFF",
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            overflow: "hidden",
+          }}
         >
+          {/* Drag handle */}
+          <View className="items-center pt-3 pb-1">
+            <View
+              style={{
+                width: 36,
+                height: 4,
+                borderRadius: 2,
+                backgroundColor: "#E5E7EB",
+              }}
+            />
+          </View>
+
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+          >
           {/* Header */}
-          <View className="px-6 pt-4 pb-3 border-b border-gray-200 flex-row items-center justify-between">
+          <View className="px-5 pb-3 border-b border-gray-100 flex-row items-center justify-between">
             <View className="flex-1">
               <Typography variation="h3">Move to NCM</Typography>
-              <Typography variation="caption" intent="muted" className="mt-1">
+              <Typography variation="caption" intent="muted" className="mt-0.5">
                 Order: {orderData.orderCode}
               </Typography>
             </View>
-            <TouchableOpacity onPress={onClose} className="ml-4">
-              <XIcon width={24} height={24} color="#6B7280" />
+            <TouchableOpacity
+              onPress={onClose}
+              className="ml-4 w-9 h-9 rounded-full items-center justify-center"
+              style={{ backgroundColor: "#F3F4F6" }}
+            >
+              <XIcon width={15} height={15} />
             </TouchableOpacity>
           </View>
 
@@ -364,7 +407,20 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
 
           {/* Submit Button */}
           {!loadingBranches && (
-            <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4">
+            <View
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: "#FFFFFF",
+                borderTopWidth: 1,
+                borderTopColor: "#F3F4F6",
+                paddingHorizontal: 20,
+                paddingTop: 12,
+                paddingBottom: insets.bottom + 12,
+              }}
+            >
               <FormButton
                 title="Create NCM Order"
                 onPress={handleSubmit}
@@ -374,7 +430,8 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
               />
             </View>
           )}
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </View>
       </View>
     </Modal>
   );

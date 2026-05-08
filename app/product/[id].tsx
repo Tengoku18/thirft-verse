@@ -233,20 +233,20 @@ export default function ProductDetailScreen() {
     pending: {
       bg: "#FEF3C7",
       text: "#92400E",
-      label: "Awaiting Review",
-      message: "Your product is under review by the admin.",
+      label: "Under Review",
+      message: "This product is under review for marketplace visibility. In the meantime, it's already live on your storefront.",
     },
     verified: {
       bg: "#D1FAE5",
       text: "#065F46",
-      label: "Verified",
-      message: "Your product is verified and visible on the marketplace.",
+      label: "Live on Marketplace",
+      message: "Your product is approved and visible to buyers on the Thriftverse marketplace.",
     },
     rejected: {
       bg: "#FEE2E2",
       text: "#991B1B",
-      label: "Rejected",
-      message: "Your product was rejected by the admin.",
+      label: "Not Approved",
+      message: "Your product wasn't approved for the marketplace. Review the reason below, make the necessary updates, and resubmit.",
     },
   };
   const verificationMeta = verificationConfig[verificationStatus];
@@ -349,6 +349,26 @@ export default function ProductDetailScreen() {
             >
               {verificationMeta.message}
             </Typography>
+            {verificationStatus === "pending" && storeUsername && (
+              <TouchableOpacity
+                onPress={() =>
+                  Linking.openURL(`https://${storeUsername}.thriftverse.shop`)
+                }
+                activeOpacity={0.75}
+                className="flex-row items-center gap-1 mt-1"
+              >
+                <GlobeIcon width={13} height={13} color={verificationMeta.text} />
+                <Typography
+                  variation="caption"
+                  style={{
+                    color: verificationMeta.text,
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  View your storefront →
+                </Typography>
+              </TouchableOpacity>
+            )}
             {verificationStatus === "rejected" && product.rejected_reason && (
               <>
                 <View

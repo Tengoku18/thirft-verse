@@ -3,6 +3,7 @@ import { Typography } from "@/components/ui/Typography";
 
 import React from "react";
 import { IIcon, RefreshIcon, SquarePencilIcon, XIcon } from "@/components/icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -35,6 +36,7 @@ export function ChangeReferralCodeModal({
   onSave,
   onClose,
 }: ChangeReferralCodeModalProps) {
+  const insets = useSafeAreaInsets();
   return (
     <Modal
       visible={visible}
@@ -60,7 +62,7 @@ export function ChangeReferralCodeModal({
               backgroundColor: "#FFFFFF",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
-              paddingBottom: 40,
+              paddingBottom: insets.bottom + 16,
             }}
           >
             <ScrollView

@@ -1,19 +1,23 @@
-import { ScreenLayout } from "@/components/layouts";
 import { DangerZoneSection } from "@/components/data-privacy/DangerZoneSection";
-import { DataSummarySheet, DataSummary } from "@/components/data-privacy/DataSummarySheet";
-import { DeleteModal, DeleteInfo } from "@/components/data-privacy/DeleteModal";
+import {
+  DataSummary,
+  DataSummarySheet,
+} from "@/components/data-privacy/DataSummarySheet";
+import { DeleteInfo, DeleteModal } from "@/components/data-privacy/DeleteModal";
 import { PreferencesSection } from "@/components/data-privacy/PreferencesSection";
 import { PrivacyHeaderCard } from "@/components/data-privacy/PrivacyHeaderCard";
 import { YourDataSection } from "@/components/data-privacy/YourDataSection";
+import { ScreenLayout } from "@/components/layouts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { getOrdersBySeller } from "@/lib/database-helpers";
 import { supabase } from "@/lib/supabase";
 import { clearAuth, signOutUser } from "@/store/authSlice";
-import { clearProfile } from "@/store/profileSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { clearProfile } from "@/store/profileSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 import React, { useCallback, useEffect, useState } from "react";
 import { Linking, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -27,6 +31,7 @@ const ACTIVE_ORDER_STATUSES = ["pending", "processing", "confirmed", "shipped"];
 export default function DataPrivacyScreen() {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const navigation = useNavigation();
   const toast = useToast();
   const { user } = useAuth();
   const profile = useAppSelector((s) => s.profile.profile);
@@ -73,14 +78,29 @@ export default function DataPrivacyScreen() {
     setSummaryLoading(true);
     try {
       const [activeRes, totalRes, ordersRes] = await Promise.all([
-        supabase.from("products").select("id", { count: "exact", head: true }).eq("seller_id", user.id).eq("status", "active"),
-        supabase.from("products").select("id", { count: "exact", head: true }).eq("seller_id", user.id),
-        supabase.from("orders").select("id", { count: "exact", head: true }).eq("seller_id", user.id),
+        supabase
+          .from("products")
+          .select("id", { count: "exact", head: true })
+          .eq("seller_id", user.id)
+          .eq("status", "active"),
+        supabase
+          .from("products")
+          .select("id", { count: "exact", head: true })
+          .eq("seller_id", user.id),
+        supabase
+          .from("orders")
+          .select("id", { count: "exact", head: true })
+          .eq("seller_id", user.id),
       ]);
       setDataSummary({
         name: profile?.name || "—",
         email: user.email || "—",
-        memberSince: user.created_at ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "—",
+        memberSince: user.created_at
+          ? new Date(user.created_at).toLocaleDateString("en-US", {
+              month: "long",
+              year: "numeric",
+            })
+          : "—",
         activeListings: activeRes.count ?? 0,
         totalListings: totalRes.count ?? 0,
         totalOrders: ordersRes.count ?? 0,
@@ -96,8 +116,12 @@ export default function DataPrivacyScreen() {
   // ── Export ──
   const handleExportData = useCallback(() => {
     const subject = encodeURIComponent("Data Export Request – Thriftverse");
-    const body = encodeURIComponent(`Hi Thriftverse,\n\nPlease send an export of all data for my account.\n\nEmail: ${user?.email ?? ""}\n\nThank you.`);
-    Linking.openURL(`mailto:hello@thriftverse.shop?subject=${subject}&body=${body}`);
+    const body = encodeURIComponent(
+      `Hi Thriftverse,\n\nPlease send an export of all data for my account.\n\nEmail: ${user?.email ?? ""}\n\nThank you.`,
+    );
+    Linking.openURL(
+      `mailto:hello@thriftverse.shop?subject=${subject}&body=${body}`,
+    );
   }, [user]);
 
   // ── Open delete modal — check orders first ──
@@ -108,10 +132,15 @@ export default function DataPrivacyScreen() {
     try {
       const [ordersResult, listingsRes] = await Promise.all([
         getOrdersBySeller(user.id),
-        supabase.from("products").select("id", { count: "exact", head: true }).eq("seller_id", user.id),
+        supabase
+          .from("products")
+          .select("id", { count: "exact", head: true })
+          .eq("seller_id", user.id),
       ]);
       const activeOrders = ordersResult.success
-        ? ordersResult.data.filter((o: any) => ACTIVE_ORDER_STATUSES.includes(o.status)).length
+        ? ordersResult.data.filter((o: any) =>
+            ACTIVE_ORDER_STATUSES.includes(o.status),
+          ).length
         : 0;
       setDeleteInfo({
         activeOrders,
@@ -131,29 +160,47 @@ export default function DataPrivacyScreen() {
       // Re-verify no active orders at deletion time (race condition guard)
       const liveOrdersResult = await getOrdersBySeller(user.id);
       const liveActiveOrders = liveOrdersResult.success
-        ? liveOrdersResult.data.filter((o: any) => ACTIVE_ORDER_STATUSES.includes(o.status)).length
+        ? liveOrdersResult.data.filter((o: any) =>
+            ACTIVE_ORDER_STATUSES.includes(o.status),
+          ).length
         : 0;
       if (liveActiveOrders > 0) {
-        toast.error("You still have active orders. Complete them before deleting your account.");
+        toast.error(
+          "You still have active orders. Complete them before deleting your account.",
+        );
         setDeleteLoading(false);
-        setDeleteInfo({ activeOrders: liveActiveOrders, totalListings: deleteInfo?.totalListings ?? 0 });
+        setDeleteInfo({
+          activeOrders: liveActiveOrders,
+          totalListings: deleteInfo?.totalListings ?? 0,
+        });
         return;
       }
       await supabase.from("products").delete().eq("seller_id", user.id);
       const { error: rpcError } = await supabase.rpc("delete_user");
       if (rpcError) {
-        await supabase.from("profiles").update({ name: "Deleted User", profile_image: null, payment_username: null, payment_qr_image: null, store_username: null }).eq("id", user.id);
+        await supabase
+          .from("profiles")
+          .update({
+            name: "Deleted User",
+            profile_image: null,
+            payment_username: null,
+            payment_qr_image: null,
+            store_username: null,
+          })
+          .eq("id", user.id);
       }
       await AsyncStorage.multiRemove([MARKETING_KEY, ANALYTICS_KEY]);
       await dispatch(signOutUser());
       dispatch(clearAuth());
       dispatch(clearProfile());
-      router.replace("/(auth)/signin" as any);
+      navigation.dispatch(
+        CommonActions.reset({ index: 0, routes: [{ name: "(auth)" }] }),
+      );
     } catch {
       toast.error("Something went wrong. Please try again.");
       setDeleteLoading(false);
     }
-  }, [user, deleteInfo, dispatch, router, toast]);
+  }, [user, deleteInfo, dispatch, navigation, toast]);
 
   const handleCloseDeleteModal = useCallback(() => {
     if (deleteLoading) return;
@@ -177,7 +224,10 @@ export default function DataPrivacyScreen() {
           onMarketingToggle={handleMarketingToggle}
           onAnalyticsToggle={handleAnalyticsToggle}
         />
-        <YourDataSection onViewSummary={handleViewSummary} onExportData={handleExportData} />
+        <YourDataSection
+          onViewSummary={handleViewSummary}
+          onExportData={handleExportData}
+        />
         <DangerZoneSection onDeletePress={handleDeletePress} />
       </View>
 

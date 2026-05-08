@@ -3,22 +3,34 @@ import ShopIcon from "@/components/icons/ShopIcon";
 import { Button } from "@/components/ui/Button/Button";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { useTour } from "@/contexts/TourContext";
-import { useRouter } from "expo-router";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 import React from "react";
 import { ScrollView, View } from "react-native";
 
 export default function SignupSuccessScreen() {
-  const router = useRouter();
+  const navigation = useNavigation();
   const { startTour } = useTour();
 
   const handleGoToDashboard = async () => {
     await startTour();
-    router.replace("/(tabs)/home");
+    navigation.dispatch(
+      CommonActions.reset({ index: 0, routes: [{ name: "(tabs)" }] }),
+    );
   };
 
   const handleAddFirstProduct = async () => {
     await startTour();
-    router.push("/(tabs)/product");
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: "(tabs)",
+            state: { index: 2, routes: [{ name: "home" }, { name: "orders" }, { name: "product" }] },
+          },
+        ],
+      }),
+    );
   };
 
   return (

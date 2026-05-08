@@ -1,3 +1,4 @@
+import StoreIcon from "@/components/icons/StoreIcon";
 import ProductCard from "@/components/molecules/ProductCard";
 import { ProductCardSkeleton } from "@/components/molecules/ProductCardSkeleton";
 import { Typography } from "@/components/ui/Typography";
@@ -38,8 +39,6 @@ export const HomeBrowseSection: React.FC = () => {
     router.push("/explore" as never);
   };
 
-  if (!loading && products.length === 0) return null;
-
   return (
     <View className="mx-5 mt-5 mb-2">
       <View className="flex-row items-center justify-between mb-3">
@@ -56,21 +55,56 @@ export const HomeBrowseSection: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-        {loading
-          ? [0, 1, 2, 3].map((i) => (
-              <View key={i} style={{ width: "47%" }}>
-                <ProductCardSkeleton />
-              </View>
-            ))
-          : products.map((product) => (
-              <View key={product.id} style={{ width: "47%" }}>
-                <ProductCard product={product} />
-              </View>
-            ))}
-      </View>
+      {loading ? (
+        <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+          {[0, 1, 2, 3].map((i) => (
+            <View key={i} style={{ width: "47%" }}>
+              <ProductCardSkeleton />
+            </View>
+          ))}
+        </View>
+      ) : products.length > 0 ? (
+        <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+          {products.map((product) => (
+            <View key={product.id} style={{ width: "47%" }}>
+              <ProductCard product={product} />
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View
+          className="bg-white py-10 items-center rounded-2xl"
+          style={{
+            borderWidth: 1,
+            borderColor: "rgba(59,47,47,0.05)",
+          }}
+        >
+          <View
+            className="w-14 h-14 rounded-full items-center justify-center mb-3"
+            style={{ backgroundColor: "rgba(59,47,47,0.05)" }}
+          >
+            <StoreIcon width={24} height={24} />
+          </View>
+          <Typography
+            variation="label"
+            style={{ color: "#3B2F2F", fontSize: 14 }}
+          >
+            No products available
+          </Typography>
+          <Typography
+            variation="body-sm"
+            style={{
+              color: "rgba(59,47,47,0.5)",
+              fontSize: 12,
+              marginTop: 4,
+            }}
+          >
+            Check back soon for new items
+          </Typography>
+        </View>
+      )}
 
-      {!loading && (
+      {!loading && products.length > 0 && (
         <TouchableOpacity
           onPress={handleViewAll}
           activeOpacity={0.85}

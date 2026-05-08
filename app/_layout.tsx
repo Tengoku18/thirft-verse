@@ -144,6 +144,7 @@ export default Sentry.wrap(function RootLayout() {
           await Updates.reloadAsync();
         }
       } catch (error) {
+        // Download failures are non-fatal — app continues with existing bundle
         Sentry.captureException(error);
       }
     }

@@ -9,9 +9,10 @@ import { useTour } from "@/contexts/TourContext";
 import { useAppleSignIn } from "@/hooks/useAppleSignIn";
 import { useGoogleSignIn } from "@/hooks/useGoogleSignIn";
 import { supabase } from "@/lib/supabase";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ImageSourcePropType, Platform, View } from "react-native";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -53,6 +54,17 @@ const CAROUSEL_SLIDES: CarouselSlide[] = [
 
 export default function SignInScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
+
+  // Pre-warm Chrome Custom Tabs on Android so the first OAuth call doesn't fail.
+  // warmUpAsync is optional — swallow errors on devices without Google Play Services.
+  useEffect(() => {
+    WebBrowser.warmUpAsync().catch(() => {});
+    return () => {
+      WebBrowser.coolDownAsync().catch(() => {});
+    };
+  }, []);
+
   const {
     handleGoogleSignIn,
     isLoading: googleLoading,
@@ -112,12 +124,16 @@ export default function SignInScreen() {
         }
 
         await startTour();
-        router.replace("/(tabs)/home");
+        navigation.dispatch(
+          CommonActions.reset({ index: 0, routes: [{ name: "(tabs)" }] }),
+        );
       }
     } catch (error) {
       console.error("[SignIn] Error checking signup status:", error);
       await startTour();
-      router.replace("/(tabs)/home");
+      navigation.dispatch(
+        CommonActions.reset({ index: 0, routes: [{ name: "(tabs)" }] }),
+      );
     }
   };
 

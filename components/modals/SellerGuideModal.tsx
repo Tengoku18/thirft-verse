@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/Button";
 import Typography from "@/components/ui/Typography";
 import React from "react";
 import { Linking, Modal, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowUpRightIcon } from "@/components/icons";
 
 const STEPS = [
@@ -41,6 +42,7 @@ interface SellerGuideModalProps {
 }
 
 export function SellerGuideModal({ visible, onClose }: SellerGuideModalProps) {
+  const insets = useSafeAreaInsets();
   return (
     <Modal
       visible={visible}
@@ -52,7 +54,7 @@ export function SellerGuideModal({ visible, onClose }: SellerGuideModalProps) {
         className="flex-1 justify-end"
         style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
       >
-        <View className="bg-[#FAF7F2] rounded-t-[28px] px-5 pt-5 pb-10">
+        <View className="bg-[#FAF7F2] rounded-t-[28px] px-5 pt-5" style={{ paddingBottom: insets.bottom + 20 }}>
           <View
             className="w-10 h-1 rounded-full self-center mb-5"
             style={{ backgroundColor: "rgba(59,48,48,0.2)" }}

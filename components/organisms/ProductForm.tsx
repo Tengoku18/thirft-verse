@@ -826,8 +826,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
           title={product?.verification_status === 'rejected' ? "Re-submit for Review" : "Update Product"}
           message={
             product?.verification_status === 'rejected'
-              ? "Your changes will re-submit this product for admin review. It won't be visible on the marketplace until approved."
-              : "Are you sure you want to save changes to this product? The updated information will be visible to all users."
+              ? "Your updates will re-submit this product for review. It will remain visible on your storefront but won't appear on the marketplace until approved."
+              : "Are you sure you want to save these changes? The updated product details will be visible to all buyers."
           }
           confirmText="Update"
           cancelText="Cancel"

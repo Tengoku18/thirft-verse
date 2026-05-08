@@ -128,7 +128,7 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
             className="text-center mb-6"
             style={{ color: "rgba(59,47,47,0.55)", lineHeight: 20 }}
           >
-            Your item is live on your store.{"\n"}Admin approval required to show on marketplace.
+            Your product is live on your storefront.{"\n"}It's under review and will appear on the marketplace once approved.
           </Typography>
 
           {/* Product preview */}
@@ -191,7 +191,7 @@ export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
                     variation="caption"
                     style={{ color: "#15803D", fontSize: 11, fontWeight: "600" }}
                   >
-                    Pending Approval
+                    Under Review
                   </Typography>
                 </View>
               </View>
