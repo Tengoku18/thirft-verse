@@ -1,3 +1,4 @@
+import { DoorInIcon } from "@/components/icons";
 import { ScreenLayout } from "@/components/layouts";
 import {
   FounderCard,
@@ -18,7 +19,6 @@ import { clearProfile } from "@/store/profileSlice";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { View } from "react-native";
-import { DoorInIcon } from "@/components/icons";
 
 export default function SettingsScreen() {
   const dispatch = useAppDispatch();
@@ -37,6 +37,9 @@ export default function SettingsScreen() {
     await dispatch(signOutUser());
     dispatch(clearAuth());
     dispatch(clearProfile());
+    if (router?.canDismiss()) {
+      router?.dismissAll();
+    }
     router.replace("/(auth)/signin" as any);
   }
 
@@ -199,9 +202,7 @@ export default function SettingsScreen() {
       {/* Sign Out Modal */}
       <ActionModal
         visible={showSignOutModal}
-        icon={
-          <DoorInIcon width={24} height={24} color="#3B3030" />
-        }
+        icon={<DoorInIcon width={24} height={24} color="#3B3030" />}
         title="Sign Out?"
         description="Are you sure you want to sign out of Thriftverse? You'll need to log back in to access your saved items. You can always log back in later."
         primaryLabel={authLoading ? "Signing out…" : "Sign Out"}

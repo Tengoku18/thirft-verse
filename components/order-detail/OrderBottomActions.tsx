@@ -41,7 +41,7 @@ export function OrderBottomActions({
       }}
     >
       <SafeAreaView edges={["bottom"]}>
-        <View style={{ flexDirection: "row", padding: 16, gap: 12 }}>
+        <View style={{ flexDirection: "row", paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10, gap: 12 }}>
           {/* Edit Order — secondary */}
           {isEditable && (
             <TouchableOpacity

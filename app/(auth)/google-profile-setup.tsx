@@ -234,7 +234,7 @@ export default function GoogleProfileSetupScreen() {
             disabled={loading}
             fullWidth
             iconPosition="right"
-            icon={<ForwardIcon width={20} height={20} />}
+            icon={<ForwardIcon width={20} height={20} color={"#FFFFFF"} />}
           />
         </View>
       </View>

@@ -55,8 +55,8 @@ export const getUserAuthMethod = async (
 
     if (error) {
       console.error("Error getting auth method:", error);
-      // If RPC doesn't exist, assume email auth
-      if (error.code === "PGRST202") {
+      // PGRST202 = RPC not found; 42703 = column doesn't exist in the SQL function
+      if (error.code === "PGRST202" || error.code === "42703") {
         return "email";
       }
       return null;
@@ -1568,8 +1568,6 @@ export const getNotifications = async (
   }
 };
 
-// Soft-delete: hides from app but keeps the row in Supabase for audit.
-// Requires: ALTER TABLE notifications ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false;
 export const softDeleteNotification = async (id: string): Promise<boolean> => {
   const { error } = await supabase
     .from("notifications")
@@ -1592,7 +1590,8 @@ export const getUnreadNotificationCount = async (
       .from("notifications")
       .select("id")
       .eq("user_id", userId)
-      .eq("is_read", false);
+      .eq("is_read", false)
+      .neq("is_deleted", true);
 
     if (error) {
       console.error("Error fetching unread count:", JSON.stringify(error));

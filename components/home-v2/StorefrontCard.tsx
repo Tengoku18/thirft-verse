@@ -4,6 +4,7 @@ import StoreIcon from "@/components/icons/StoreIcon";
 import { Typography } from "@/components/ui/Typography";
 import { useToast } from "@/contexts/ToastContext";
 import * as Clipboard from "expo-clipboard";
+import * as WebBrowser from "expo-web-browser";
 import React, { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import { StoreQRModal } from "./StoreQRModal";
@@ -18,19 +19,19 @@ export const StorefrontCard: React.FC<StorefrontCardProps> = ({
   storeUsername,
   storeName,
 }) => {
-  const toast = useToast();
   const [qrVisible, setQrVisible] = useState(false);
+  const toast = useToast();
 
   const fullUrl = `https://${storeUsername}.thriftverse.shop`;
   const displayUrl = `${storeUsername}.thriftverse.shop`;
 
-  const handleCopy = async () => {
-    try {
-      await Clipboard.setStringAsync(fullUrl);
-      toast.success("Store link copied to clipboard");
-    } catch {
-      toast.error("Failed to copy link");
-    }
+  const handleCopyUrl = async () => {
+    await Clipboard.setStringAsync(fullUrl);
+    toast.success("Store URL copied to clipboard!");
+  };
+
+  const handleVisitStore = async () => {
+    await WebBrowser.openBrowserAsync(fullUrl);
   };
 
   return (
@@ -56,18 +57,30 @@ export const StorefrontCard: React.FC<StorefrontCardProps> = ({
               >
                 Your Storefront
               </Typography>
-              <Typography
-                variation="body-sm"
-                numberOfLines={1}
-                style={{
-                  color: "rgba(59,47,47,0.6)",
-                  fontSize: 13,
-                  fontStyle: "italic",
-                  marginTop: 2,
-                }}
+              <TouchableOpacity
+                onPress={handleCopyUrl}
+                activeOpacity={0.6}
+                accessibilityLabel="Copy store URL"
+                style={{ flexDirection: "row", alignItems: "center", marginTop: 2, gap: 6, alignSelf: "flex-start" }}
               >
-                {displayUrl}
-              </Typography>
+                <Typography
+                  variation="body-sm"
+                  numberOfLines={1}
+                  style={{
+                    color: "rgba(59,47,47,0.6)",
+                    fontSize: 13,
+                    fontStyle: "italic",
+                    flexShrink: 1,
+                  }}
+                >
+                  {displayUrl}
+                </Typography>
+                <CopyIcon
+                  width={13}
+                  height={13}
+                  color="rgba(59,47,47,0.45)"
+                />
+              </TouchableOpacity>
             </View>
             <View
               className="p-2 rounded-lg"
@@ -79,18 +92,17 @@ export const StorefrontCard: React.FC<StorefrontCardProps> = ({
 
           <View className="flex-row" style={{ gap: 8 }}>
             <TouchableOpacity
-              onPress={handleCopy}
+              onPress={handleVisitStore}
               activeOpacity={0.85}
-              accessibilityLabel="Copy store link"
+              accessibilityLabel="Visit store"
               className="flex-1 flex-row items-center justify-center py-3 rounded-xl"
               style={{ backgroundColor: "#3B2F2F" }}
             >
-              <CopyIcon width={14} height={16} color="#FFFFFF" />
               <Typography
                 variation="label"
-                style={{ color: "#FFFFFF", fontSize: 14, marginLeft: 8 }}
+                style={{ color: "#FFFFFF", fontSize: 14 }}
               >
-                Copy Link
+                Visit Store
               </Typography>
             </TouchableOpacity>
 

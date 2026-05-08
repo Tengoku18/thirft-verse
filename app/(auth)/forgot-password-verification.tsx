@@ -223,7 +223,7 @@ export default function ForgotPasswordVerificationScreen() {
             isLoading={loading}
             disabled={loading}
             fullWidth
-            icon={<ForwardIcon width={20} height={20} />}
+            icon={<ForwardIcon width={20} height={20} color={"#FFFFFF"} />}
             iconPosition="right"
           />
         </View>

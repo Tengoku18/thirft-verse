@@ -65,6 +65,7 @@ export const getAllStores = async (limit = 15, offset = 0): Promise<PaginatedRes
       .from('profiles')
       .select('*', { count: 'exact' })
       .eq('role', 'USER')
+      .eq('is_verified', true)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 

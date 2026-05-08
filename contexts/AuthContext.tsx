@@ -85,6 +85,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       dispatch(setSession(session));
       dispatch(setUser(session?.user ?? null));
 
+      if (event === "PASSWORD_RECOVERY") {
+        // Recovery session — user verified OTP but hasn't set password yet.
+        // Persist a flag so initializeApp can detect this on app re-open and
+        // route back to forgot-password-change instead of home.
+        AsyncStorage.setItem("@thriftverse:recovery_pending", "true").catch(console.error);
+        console.log("🔑 [auth] PASSWORD_RECOVERY — awaiting password change");
+      }
+
       if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
         // TODO: these three dispatches are duplicated inside signIn() and the
         // OAuth flows — on every fresh sign-in they fire twice. Remove them
@@ -99,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (event === "SIGNED_OUT") {
         console.warn("🚪 [auth] SIGNED_OUT received — session ended (could be manual signOut, token revoked, or refresh failed)");
+        AsyncStorage.removeItem("@thriftverse:recovery_pending").catch(console.error);
         dispatch(clearAuth());
         dispatch(clearProfile());
         dispatch(clearNotifications());

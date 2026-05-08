@@ -252,35 +252,26 @@ export function FloatingTabBar({
           })()}
 
         {/* The pill bar */}
-        <BlurView
-          intensity={55}
-          tint="light"
-          style={{
-            height: BAR_HEIGHT,
-            borderRadius: BAR_HEIGHT / 2,
-            overflow: "hidden",
-            borderWidth: 1,
-            borderColor: "rgba(255, 255, 255, 0.4)",
-            shadowColor: "#3B2F2F",
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.1,
-            shadowRadius: 30,
-            elevation: 10,
-          }}
-        >
+        {Platform.OS === "android" ? (
           <View
             style={{
-              flex: 1,
+              height: BAR_HEIGHT,
+              borderRadius: BAR_HEIGHT / 2,
+              overflow: "hidden",
+              borderWidth: 1,
+              borderColor: "rgba(59, 47, 47, 0.08)",
+              shadowColor: "#3B2F2F",
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.12,
+              shadowRadius: 30,
+              elevation: 10,
+              backgroundColor: "#FFFFFF",
               flexDirection: "row",
-              backgroundColor: "rgba(255, 255, 255, 0.25)",
             }}
           >
             {leftItems.map(({ route, stateIndex }) => {
               const { options } = descriptors[route.key];
-              const { isFocused, onPress, onLongPress } = buildHandlers(
-                route,
-                stateIndex,
-              );
+              const { isFocused, onPress, onLongPress } = buildHandlers(route, stateIndex);
               return (
                 <TabButton
                   key={route.key}
@@ -293,16 +284,10 @@ export function FloatingTabBar({
                 />
               );
             })}
-
-            {/* Empty space for center button */}
             <View style={{ flex: 1 }} />
-
             {rightItems.map(({ route, stateIndex }) => {
               const { options } = descriptors[route.key];
-              const { isFocused, onPress, onLongPress } = buildHandlers(
-                route,
-                stateIndex,
-              );
+              const { isFocused, onPress, onLongPress } = buildHandlers(route, stateIndex);
               return (
                 <TabButton
                   key={route.key}
@@ -316,7 +301,73 @@ export function FloatingTabBar({
               );
             })}
           </View>
-        </BlurView>
+        ) : (
+          <BlurView
+            intensity={55}
+            tint="light"
+            style={{
+              height: BAR_HEIGHT,
+              borderRadius: BAR_HEIGHT / 2,
+              overflow: "hidden",
+              borderWidth: 1,
+              borderColor: "rgba(255, 255, 255, 0.4)",
+              shadowColor: "#3B2F2F",
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.1,
+              shadowRadius: 30,
+              elevation: 10,
+            }}
+          >
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                backgroundColor: "rgba(255, 255, 255, 0.25)",
+              }}
+            >
+              {leftItems.map(({ route, stateIndex }) => {
+                const { options } = descriptors[route.key];
+                const { isFocused, onPress, onLongPress } = buildHandlers(
+                  route,
+                  stateIndex,
+                );
+                return (
+                  <TabButton
+                    key={route.key}
+                    isFocused={isFocused}
+                    options={options}
+                    onPress={onPress}
+                    onLongPress={onLongPress}
+                    stateIndex={stateIndex}
+                    position={position}
+                  />
+                );
+              })}
+
+              {/* Empty space for center button */}
+              <View style={{ flex: 1 }} />
+
+              {rightItems.map(({ route, stateIndex }) => {
+                const { options } = descriptors[route.key];
+                const { isFocused, onPress, onLongPress } = buildHandlers(
+                  route,
+                  stateIndex,
+                );
+                return (
+                  <TabButton
+                    key={route.key}
+                    isFocused={isFocused}
+                    options={options}
+                    onPress={onPress}
+                    onLongPress={onLongPress}
+                    stateIndex={stateIndex}
+                    position={position}
+                  />
+                );
+              })}
+            </View>
+          </BlurView>
+        )}
       </View>
     </View>
   );

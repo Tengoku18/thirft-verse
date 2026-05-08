@@ -1,7 +1,7 @@
 import { readAsStringAsync } from "expo-file-system/legacy";
 import { decode } from "base64-arraybuffer";
-import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { supabase } from "./supabase";
+import { compressImage } from "./upload-helpers";
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 
@@ -155,49 +155,20 @@ export const uploadImageFromUri = async (
   folder: string
 ): Promise<{ success: boolean; url?: string; error?: any }> => {
   try {
-    // Extract extension properly (handle query params in URI)
-    const uriWithoutParams = localUri.split("?")[0];
-    let extension = uriWithoutParams.split(".").pop()?.toLowerCase() || "jpg";
+    const compressedUri = await compressImage(localUri);
 
-    // Convert HEIC/HEIF to JPG for browser compatibility
-    let finalUri = localUri;
-    if (extension === "heic" || extension === "heif") {
-      const manipulated = await ImageManipulator.manipulate(localUri)
-        .renderAsync();
-      const result = await manipulated.saveAsync({
-        format: SaveFormat.JPEG,
-        compress: 0.8,
-      });
-      finalUri = result.uri;
-      extension = "jpg";
-    }
-
-    // Determine MIME type
-    const mimeType =
-      extension === "png"
-        ? "image/png"
-        : extension === "gif"
-          ? "image/gif"
-          : extension === "webp"
-            ? "image/webp"
-            : "image/jpeg";
-
-    const fileName = `${Math.random()
-      .toString(36)
-      .substring(2)}-${Date.now()}.${extension}`;
+    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.jpg`;
     const filePath = `${folder}/${fileName}`;
 
-    // Read file as base64 using expo-file-system (reliable in React Native)
-    const base64 = await readAsStringAsync(finalUri, {
+    const base64 = await readAsStringAsync(compressedUri, {
       encoding: "base64",
     });
 
-    // Upload to Supabase Storage using base64-arraybuffer decode
     const { error } = await supabase.storage
       .from(bucket)
       .upload(filePath, decode(base64), {
         cacheControl: "3600",
-        contentType: mimeType,
+        contentType: "image/jpeg",
         upsert: true,
       });
 
@@ -206,7 +177,6 @@ export const uploadImageFromUri = async (
       return { success: false, error };
     }
 
-    // Get the full public URL (matching web logic)
     const {
       data: { publicUrl },
     } = supabase.storage.from(bucket).getPublicUrl(filePath);
