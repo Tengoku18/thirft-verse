@@ -1,3 +1,5 @@
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
+import { GearIcon } from "@/components/icons";
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import { TAB_ICON_BTN_STYLE } from "@/components/navigation/TabHeader";
 import {
@@ -14,9 +16,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchUserProfile } from "@/store/profileSlice";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
-import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
-import { Share, TouchableOpacity, View } from "react-native";
-import { GearIcon } from "@/components/icons";
+import { Share, TouchableOpacity } from "react-native";
 
 export default function ProfileV2Screen() {
   const { user } = useAuth();
@@ -24,9 +24,9 @@ export default function ProfileV2Screen() {
   const router = useRouter();
   const profile = useAppSelector((state) => state.profile.profile);
 
-  const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<StoreTab>("items");
+  const [activeTab, setActiveTab] = useState<StoreTab>("active");
 
   const loadData = useCallback(async () => {
     if (!user) {
@@ -35,17 +35,28 @@ export default function ProfileV2Screen() {
     }
     try {
       dispatch(fetchUserProfile(user.id));
+      // Fetch all products without status filter
       const result = await getProductsByStoreId({
         storeId: user.id,
-        status: "available",
+        limit: 1000, // Fetch all products
       });
-      setProducts(result.data ?? []);
+      setAllProducts(result.data ?? []);
     } catch (e) {
       console.error("Error loading profile data:", e);
     } finally {
       setLoading(false);
     }
   }, [user, dispatch]);
+
+  // Filter products based on active tab
+  const products = allProducts.filter((product) => {
+    if (activeTab === "active") {
+      return product.status === "available";
+    } else if (activeTab === "out_of_stock") {
+      return product.status === "out_of_stock";
+    }
+    return true;
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -113,7 +124,14 @@ export default function ProfileV2Screen() {
 
       <StoreTabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <StoreProductGrid products={products} />
+      <StoreProductGrid
+        products={products}
+        emptyMessage={
+          activeTab === "out_of_stock"
+            ? "No out of stock items"
+            : "No products yet"
+        }
+      />
     </TabScreenLayout>
   );
 }
