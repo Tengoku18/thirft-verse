@@ -17,6 +17,9 @@ interface PaymentRequest {
   notes: string | null;
   admin_notes: string | null;
   created_at: string;
+  processed_at: string | null;
+  released_at: string | null;
+  transaction_id: string | null;
 }
 
 type FilterStatus = "all" | PaymentRequestStatus;
@@ -69,7 +72,7 @@ export default function AllTransactionsScreen() {
     try {
       const { data, error } = await supabase
         .from("payment_requests")
-        .select("id, amount, status, notes, admin_notes, created_at")
+        .select("id, amount, status, notes, admin_notes, created_at, processed_at, released_at, transaction_id")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -176,7 +179,7 @@ export default function AllTransactionsScreen() {
                   marginBottom: 4,
                 }}
               >
-                Approved
+                Released
               </Typography>
               <Typography
                 variation="body-sm"
@@ -227,15 +230,11 @@ export default function AllTransactionsScreen() {
               flexWrap: "wrap",
             }}
           >
-            {(["all", "pending", "released", "rejected"] as FilterStatus[]).map(
+            {(["all", "pending", "approved", "released", "rejected"] as FilterStatus[]).map(
               (f) => (
                 <FilterPill
                   key={f}
-                  label={
-                    f === "released"
-                      ? "Approved"
-                      : f.charAt(0).toUpperCase() + f.slice(1)
-                  }
+                  label={f.charAt(0).toUpperCase() + f.slice(1)}
                   active={filter === f}
                   onPress={() => setFilter(f)}
                 />
@@ -281,10 +280,14 @@ export default function AllTransactionsScreen() {
               {filtered.map((req) => (
                 <PaymentHistoryItem
                   key={req.id}
+                  id={req.id}
                   amount={req.amount}
                   createdAt={req.created_at}
                   status={req.status}
                   adminNotes={req.admin_notes}
+                  transactionId={req.transaction_id}
+                  processedAt={req.processed_at}
+                  releasedAt={req.released_at}
                 />
               ))}
             </View>

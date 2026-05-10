@@ -1,3 +1,4 @@
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
 import { PlusIcon } from "@/components/icons";
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import type { OrderItem } from "@/components/orders";
@@ -12,7 +13,6 @@ import { useTour } from "@/contexts/TourContext";
 import { getOrdersBySeller } from "@/lib/database-helpers";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
 import { Pressable, View } from "react-native";
 
 // // ─────────────── Guide banner ───────────────
@@ -77,8 +77,13 @@ export default function OrdersScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const { filter: filterParam } = useLocalSearchParams<{ filter?: string }>();
-  const { isActive, isTransitioning, currentStep, registerTarget, measureAndSetSpotlight } =
-    useTour();
+  const {
+    isActive,
+    isTransitioning,
+    currentStep,
+    registerTarget,
+    measureAndSetSpotlight,
+  } = useTour();
   const ordersListRef = useRef<View>(null);
 
   const [items, setItems] = useState<OrderItem[]>([]);
@@ -215,7 +220,13 @@ export default function OrdersScreen() {
     if (currentStep?.key === "orders_list") {
       measureAndSetSpotlight("orders_list");
     }
-  }, [loading, isActive, isTransitioning, currentStep?.key, measureAndSetSpotlight]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    loading,
+    isActive,
+    isTransitioning,
+    currentStep?.key,
+    measureAndSetSpotlight,
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Derived state ──
   const counts: Record<StatusFilter, number> = {
@@ -281,7 +292,7 @@ export default function OrdersScreen() {
     >
       {/* {showGuideBanner && <GuideBanner onDismiss={dismissGuideBanner} />} */}
 
-      <View ref={ordersListRef} collapsable={false}>
+      <View ref={ordersListRef} collapsable={false} style={{ gap: 12 }}>
         {filteredItems.length === 0 ? (
           <OrderEmptyState filterLabel={activeFilterLabel} />
         ) : (
