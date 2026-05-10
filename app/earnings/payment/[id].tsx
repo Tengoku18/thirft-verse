@@ -1,5 +1,5 @@
-import { Typography } from "@/components/ui/Typography";
 import { ScreenLayout } from "@/components/layouts/ScreenLayout";
+import { Typography } from "@/components/ui/Typography";
 import { useToast } from "@/contexts/ToastContext";
 import { supabase } from "@/lib/supabase";
 import * as Clipboard from "expo-clipboard";
@@ -46,23 +46,52 @@ const formatDateTime = (dateStr: string | null | undefined) => {
 };
 
 const STATUS_META = {
-  pending:  { label: "Under review",               color: "#B45309", bg: "#FFFBEB" },
-  approved: { label: "Payment coming soon",         color: "#1D4ED8", bg: "#EFF6FF" },
-  released: { label: "Payment sent to your eSewa",  color: "#065F46", bg: "#ECFDF5" },
-  rejected: { label: "Request rejected",            color: "#B91C1C", bg: "#FEF2F2" },
+  pending: { label: "Under review", color: "#B45309", bg: "#FFFBEB" },
+  approved: { label: "Payment coming soon", color: "#1D4ED8", bg: "#EFF6FF" },
+  released: {
+    label: "Payment sent to your eSewa",
+    color: "#065F46",
+    bg: "#ECFDF5",
+  },
+  rejected: { label: "Request rejected", color: "#B91C1C", bg: "#FEF2F2" },
 };
 
 function getTimelineSteps(req: PaymentRequestDetail): TimelineStep[] {
   if (req.status === "rejected") {
     return [
-      { label: "Submitted", state: "done",     timestamp: req.created_at,   description: "Withdrawal request submitted" },
-      { label: "Rejected",  state: "rejected", timestamp: req.processed_at, description: req.admin_notes ?? "Your request was rejected" },
+      {
+        label: "Submitted",
+        state: "done",
+        timestamp: req.created_at,
+        description: "Withdrawal request submitted",
+      },
+      {
+        label: "Rejected",
+        state: "rejected",
+        timestamp: req.processed_at,
+        description: req.admin_notes ?? "Your request was rejected",
+      },
     ];
   }
   return [
-    { label: "Submitted", state: "done",                                           timestamp: req.created_at,   description: "Withdrawal request submitted" },
-    { label: "Approved",  state: req.status === "pending" ? "upcoming" : "done",  timestamp: req.processed_at, description: "Admin reviewed and approved your request" },
-    { label: "Paid",      state: req.status === "released" ? "done" : "upcoming", timestamp: req.released_at,  description: "Payment sent to your eSewa account" },
+    {
+      label: "Submitted",
+      state: "done",
+      timestamp: req.created_at,
+      description: "Withdrawal request submitted",
+    },
+    {
+      label: "Approved",
+      state: req.status === "pending" ? "upcoming" : "done",
+      timestamp: req.processed_at,
+      description: "Admin reviewed and approved your request",
+    },
+    {
+      label: "Paid",
+      state: req.status === "released" ? "done" : "upcoming",
+      timestamp: req.released_at,
+      description: "Payment sent to your eSewa account",
+    },
   ];
 }
 
@@ -71,34 +100,22 @@ function StepDot({ state }: { state: StepState }) {
   if (state === "done") {
     return (
       <View
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: 11,
-          backgroundColor: "#3B2F2F",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        className="w-[22px] h-[22px] rounded-full items-center justify-center"
+        style={{ backgroundColor: "#3B2F2F" }}
       >
-        <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: "#FFFFFF" }} />
+        <View className="w-[7px] h-[7px] rounded-full bg-white" />
       </View>
     );
   }
   if (state === "rejected") {
     return (
       <View
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: 11,
-          backgroundColor: "#DC2626",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        className="w-[22px] h-[22px] rounded-full items-center justify-center"
+        style={{ backgroundColor: "#DC2626" }}
       >
         <Typography
           variation="caption"
-          style={{ color: "#FFFFFF", fontSize: 11, fontWeight: "700", lineHeight: 13 }}
+          style={{ color: "#FFFFFF", lineHeight: 13 }}
         >
           ✕
         </Typography>
@@ -107,14 +124,8 @@ function StepDot({ state }: { state: StepState }) {
   }
   return (
     <View
-      style={{
-        width: 22,
-        height: 22,
-        borderRadius: 11,
-        backgroundColor: "#F3F4F6",
-        borderWidth: 1.5,
-        borderColor: "#D1D5DB",
-      }}
+      className="w-[22px] h-[22px] rounded-full border-[1.5px]"
+      style={{ backgroundColor: "#F3F4F6", borderColor: "#D1D5DB" }}
     />
   );
 }
@@ -130,30 +141,19 @@ function InfoRow({
 }) {
   return (
     <View
+      className="flex-row justify-between items-center py-3"
       style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingVertical: 12,
         borderBottomWidth: last ? 0 : 1,
         borderBottomColor: "rgba(59,48,48,0.06)",
       }}
     >
-      <Typography
-        variation="caption"
-        style={{ color: "rgba(59,48,48,0.5)", fontSize: 13 }}
-      >
+      <Typography variation="caption" style={{ color: "rgba(59,48,48,0.5)" }}>
         {label}
       </Typography>
       <Typography
-        variation="body-sm"
-        style={{
-          color: "#3B2F2F",
-          fontSize: 13,
-          fontWeight: "600",
-          maxWidth: "60%",
-          textAlign: "right",
-        }}
+        variation="label"
+        className="text-right"
+        style={{ color: "#3B2F2F", maxWidth: "60%" }}
         numberOfLines={2}
       >
         {value}
@@ -162,11 +162,9 @@ function InfoRow({
   );
 }
 
-const CARD_STYLE = {
+const CARD_CLASS = "rounded-[20px] p-4 border";
+const cardStyle = {
   backgroundColor: "#FFFFFF",
-  borderRadius: 20,
-  padding: 16,
-  borderWidth: 1,
   borderColor: "rgba(59,48,48,0.07)",
   shadowColor: "#000",
   shadowOffset: { width: 0, height: 1 },
@@ -187,7 +185,9 @@ export default function PaymentDetailScreen() {
     try {
       const { data, error } = await supabase
         .from("payment_requests")
-        .select("id, amount, status, notes, admin_notes, payment_method, transaction_id, created_at, processed_at, released_at")
+        .select(
+          "id, amount, status, notes, admin_notes, payment_method, transaction_id, created_at, processed_at, released_at",
+        )
         .eq("id", id)
         .single();
       if (!error && data) {
@@ -206,8 +206,12 @@ export default function PaymentDetailScreen() {
 
   if (loading) {
     return (
-      <ScreenLayout title="Payment Details" backgroundColor="#FAF7F2" contentBackgroundColor="#FAF7F2">
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 80 }}>
+      <ScreenLayout
+        title="Payment Details"
+        backgroundColor="#FAF7F2"
+        contentBackgroundColor="#FAF7F2"
+      >
+        <View className="flex-1 items-center justify-center pt-20">
           <ActivityIndicator size="large" color="#3B2F2F" />
         </View>
       </ScreenLayout>
@@ -216,9 +220,16 @@ export default function PaymentDetailScreen() {
 
   if (!request) {
     return (
-      <ScreenLayout title="Payment Details" backgroundColor="#FAF7F2" contentBackgroundColor="#FAF7F2">
-        <View style={{ alignItems: "center", paddingTop: 80 }}>
-          <Typography variation="body-sm" style={{ color: "rgba(59,48,48,0.5)" }}>
+      <ScreenLayout
+        title="Payment Details"
+        backgroundColor="#FAF7F2"
+        contentBackgroundColor="#FAF7F2"
+      >
+        <View className="items-center pt-20">
+          <Typography
+            variation="body-sm"
+            style={{ color: "rgba(59,48,48,0.5)" }}
+          >
             Payment request not found.
           </Typography>
         </View>
@@ -242,51 +253,40 @@ export default function PaymentDetailScreen() {
       contentBackgroundColor="#FAF7F2"
       onRefresh={loadRequest}
     >
-      <View style={{ gap: 14, paddingTop: 16, paddingBottom: 32 }}>
-
+      <View className="gap-3.5 pt-4 pb-8">
         {/* ── Amount hero ── */}
-        <View style={{ ...CARD_STYLE, alignItems: "center", paddingVertical: 28 }}>
+        <View className={`${CARD_CLASS} items-center py-7`} style={cardStyle}>
           <Typography
             variation="h1"
-            style={{ fontSize: 36, fontWeight: "700", color: "#3B2F2F", marginBottom: 10 }}
+            style={{ fontSize: 36, color: "#3B2F2F", marginBottom: 10 }}
           >
             {formatAmount(request.amount)}
           </Typography>
           <View
-            style={{
-              backgroundColor: meta.bg,
-              paddingHorizontal: 14,
-              paddingVertical: 5,
-              borderRadius: 20,
-              marginBottom: 10,
-            }}
+            className="px-3.5 py-[5px] rounded-full mb-2.5"
+            style={{ backgroundColor: meta.bg }}
           >
             <Typography
               variation="caption"
-              style={{ fontSize: 12, color: meta.color, fontWeight: "600" }}
+              style={{ color: meta.color, fontWeight: "600" }}
             >
               {meta.label}
             </Typography>
           </View>
           <Typography
             variation="caption"
-            style={{ color: "rgba(59,48,48,0.4)", fontSize: 12 }}
+            style={{ color: "rgba(59,48,48,0.4)" }}
           >
             Submitted {formatDateTime(request.created_at)}
           </Typography>
         </View>
 
         {/* ── Payment timeline ── */}
-        <View style={CARD_STYLE}>
+        <View className={CARD_CLASS} style={cardStyle}>
           <Typography
             variation="caption"
-            style={{
-              fontSize: 10,
-              color: "rgba(59,48,48,0.45)",
-              textTransform: "uppercase",
-              letterSpacing: 0.8,
-              marginBottom: 16,
-            }}
+            className="uppercase mb-4"
+            style={{ color: "rgba(59,48,48,0.45)", letterSpacing: 0.8 }}
           >
             Payment Journey
           </Typography>
@@ -307,19 +307,16 @@ export default function PaymentDetailScreen() {
                   : "#3B2F2F";
 
             return (
-              <View key={step.label} style={{ flexDirection: "row" }}>
+              <View key={step.label} className="flex-row">
                 {/* Dot + vertical line */}
-                <View style={{ width: 22, alignItems: "center" }}>
+                <View className="w-[22px] items-center">
                   <StepDot state={step.state} />
                   {!isLast && (
                     <View
+                      className="w-0.5 flex-1 mt-1"
                       style={{
-                        width: 2,
-                        flex: 1,
                         minHeight: 20,
                         backgroundColor: lineColor,
-                        marginTop: 4,
-                        marginBottom: 0,
                         opacity: step.state === "upcoming" ? 0.3 : 1,
                       }}
                     />
@@ -328,29 +325,25 @@ export default function PaymentDetailScreen() {
 
                 {/* Label + timestamp */}
                 <View
-                  style={{
-                    flex: 1,
-                    marginLeft: 14,
-                    paddingBottom: isLast ? 0 : 20,
-                  }}
+                  className="flex-1 ml-3.5"
+                  style={{ paddingBottom: isLast ? 0 : 20 }}
                 >
-                  <Typography
-                    variation="label"
-                    style={{ fontSize: 14, color: labelColor, fontWeight: "600" }}
-                  >
+                  <Typography variation="label" style={{ color: labelColor }}>
                     {step.label}
                   </Typography>
                   {step.timestamp ? (
                     <Typography
                       variation="caption"
-                      style={{ color: "rgba(59,48,48,0.45)", fontSize: 12, marginTop: 2 }}
+                      className="mt-0.5"
+                      style={{ color: "rgba(59,48,48,0.45)" }}
                     >
                       {formatDateTime(step.timestamp)}
                     </Typography>
                   ) : (
                     <Typography
                       variation="caption"
-                      style={{ color: "#D1D5DB", fontSize: 12, marginTop: 2 }}
+                      className="mt-0.5"
+                      style={{ color: "#D1D5DB" }}
                     >
                       {step.state === "upcoming" ? "Pending" : "—"}
                     </Typography>
@@ -362,16 +355,11 @@ export default function PaymentDetailScreen() {
         </View>
 
         {/* ── Payment details ── */}
-        <View style={CARD_STYLE}>
+        <View className={CARD_CLASS} style={cardStyle}>
           <Typography
             variation="caption"
-            style={{
-              fontSize: 10,
-              color: "rgba(59,48,48,0.45)",
-              textTransform: "uppercase",
-              letterSpacing: 0.8,
-              marginBottom: 4,
-            }}
+            className="uppercase mb-1"
+            style={{ color: "rgba(59,48,48,0.45)", letterSpacing: 0.8 }}
           >
             Request Details
           </Typography>
@@ -388,23 +376,15 @@ export default function PaymentDetailScreen() {
 
         {/* ── Your note ── */}
         {request.notes && (
-          <View style={CARD_STYLE}>
+          <View className={CARD_CLASS} style={cardStyle}>
             <Typography
               variation="caption"
-              style={{
-                fontSize: 10,
-                color: "rgba(59,48,48,0.45)",
-                textTransform: "uppercase",
-                letterSpacing: 0.8,
-                marginBottom: 8,
-              }}
+              className="uppercase mb-2"
+              style={{ color: "rgba(59,48,48,0.45)", letterSpacing: 0.8 }}
             >
               Your Note
             </Typography>
-            <Typography
-              variation="body-sm"
-              style={{ color: "#3B2F2F", fontSize: 14, lineHeight: 20 }}
-            >
+            <Typography variation="body-sm" style={{ color: "#3B2F2F" }}>
               {request.notes}
             </Typography>
           </View>
@@ -413,9 +393,11 @@ export default function PaymentDetailScreen() {
         {/* ── Admin notes ── */}
         {request.admin_notes && (
           <View
+            className={CARD_CLASS}
             style={{
-              ...CARD_STYLE,
-              backgroundColor: request.status === "rejected" ? "#FEF2F2" : "#FFFFFF",
+              ...cardStyle,
+              backgroundColor:
+                request.status === "rejected" ? "#FEF2F2" : "#FFFFFF",
               borderColor:
                 request.status === "rejected"
                   ? "rgba(220,38,38,0.12)"
@@ -424,25 +406,23 @@ export default function PaymentDetailScreen() {
           >
             <Typography
               variation="caption"
+              className="uppercase mb-2"
               style={{
-                fontSize: 10,
                 color:
                   request.status === "rejected"
                     ? "rgba(185,28,28,0.6)"
                     : "rgba(59,48,48,0.45)",
-                textTransform: "uppercase",
                 letterSpacing: 0.8,
-                marginBottom: 8,
               }}
             >
-              {request.status === "rejected" ? "Rejection Reason" : "Admin Note"}
+              {request.status === "rejected"
+                ? "Rejection Reason"
+                : "Admin Note"}
             </Typography>
             <Typography
               variation="body-sm"
               style={{
                 color: request.status === "rejected" ? "#B91C1C" : "#3B2F2F",
-                fontSize: 14,
-                lineHeight: 20,
               }}
             >
               {request.admin_notes}
@@ -452,47 +432,32 @@ export default function PaymentDetailScreen() {
 
         {/* ── Transaction ID (released only) ── */}
         {request.transaction_id && request.status === "released" && (
-          <View style={CARD_STYLE}>
+          <View className={CARD_CLASS} style={cardStyle}>
             <Typography
               variation="caption"
-              style={{
-                fontSize: 10,
-                color: "rgba(59,48,48,0.45)",
-                textTransform: "uppercase",
-                letterSpacing: 0.8,
-                marginBottom: 8,
-              }}
+              className="uppercase mb-2"
+              style={{ color: "rgba(59,48,48,0.45)", letterSpacing: 0.8 }}
             >
               Transaction ID
             </Typography>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
+            <View className="flex-row items-center justify-between gap-3">
               <Typography
-                variation="body-sm"
-                style={{ color: "#3B2F2F", fontSize: 13, flex: 1 }}
+                variation="body-xs"
+                className="flex-1"
                 numberOfLines={2}
+                style={{ color: "#3B2F2F" }}
               >
                 {request.transaction_id}
               </Typography>
               <TouchableOpacity
                 onPress={handleCopyTxn}
                 activeOpacity={0.75}
-                style={{
-                  backgroundColor: "#3B2F2F",
-                  paddingHorizontal: 14,
-                  paddingVertical: 7,
-                  borderRadius: 10,
-                }}
+                className="px-3.5 py-[7px] rounded-[10px]"
+                style={{ backgroundColor: "#3B2F2F" }}
               >
                 <Typography
                   variation="caption"
-                  style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600" }}
+                  style={{ color: "#FFFFFF", fontWeight: "600" }}
                 >
                   Copy
                 </Typography>
@@ -500,7 +465,6 @@ export default function PaymentDetailScreen() {
             </View>
           </View>
         )}
-
       </View>
     </ScreenLayout>
   );
