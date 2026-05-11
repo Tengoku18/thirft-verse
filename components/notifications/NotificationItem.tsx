@@ -1,7 +1,9 @@
 import {
   BagIcon,
   BellFillIcon,
+  CashIcon,
   CheckmarkSealFillIcon,
+  CreditCardFillIcon,
   RefundIcon,
   WarningFillIcon,
   XCircleFillIcon,
@@ -50,6 +52,21 @@ const ICON_MAP: Record<
     color: "#6B7280",
     bg: "#F3F4F6",
     icon: <BellFillIcon width={20} height={20} color="#6B7280" />,
+  },
+  payment_approved: {
+    color: "#2563EB",
+    bg: "#DBEAFE",
+    icon: <CreditCardFillIcon width={20} height={20} color="#2563EB" />,
+  },
+  payment_rejected: {
+    color: "#DC2626",
+    bg: "#FEE2E2",
+    icon: <XCircleFillIcon width={20} height={20} color="#DC2626" />,
+  },
+  payment_released: {
+    color: "#059669",
+    bg: "#D1FAE5",
+    icon: <CashIcon width={20} height={20} color="#059669" />,
   },
 };
 

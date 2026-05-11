@@ -2,10 +2,11 @@ import { Typography } from "@/components/ui/Typography";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
 
-export type StoreTab = "items";
+export type StoreTab = "active" | "out_of_stock";
 
 const TABS: { key: StoreTab; label: string }[] = [
-  { key: "items", label: "All Items" },
+  { key: "active", label: "Active" },
+  { key: "out_of_stock", label: "Out of Stock" },
 ];
 
 interface StoreTabBarProps {
@@ -23,11 +24,17 @@ export function StoreTabBar({ activeTab, onTabChange }: StoreTabBarProps) {
             key={tab.key}
             onPress={() => onTabChange(tab.key)}
             activeOpacity={0.7}
-            className={`py-3.5 border-b-2 ${isActive ? "border-brand-espresso" : "border-transparent"}`}
+            className={`py-3.5 border-b-2 ${
+              isActive ? "border-brand-espresso" : "border-transparent"
+            }`}
           >
             <Typography
               variation="label"
-              className={`${isActive ? "text-brand-espresso font-sans-bold" : "text-ui-secondary font-sans-semibold"}`}
+              className={`${
+                isActive
+                  ? "text-brand-espresso font-sans-bold"
+                  : "text-ui-secondary font-sans-semibold"
+              }`}
             >
               {tab.label}
             </Typography>

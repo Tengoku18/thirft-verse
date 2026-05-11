@@ -93,6 +93,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const startTour = useCallback(async () => {
+    return; // tour disabled
     const seen = await AsyncStorage.getItem(TOUR_SEEN_KEY);
     if (seen === "true") return;
     setIsActive(true);

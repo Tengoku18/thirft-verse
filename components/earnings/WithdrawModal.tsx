@@ -1,16 +1,22 @@
+import { FormButton } from "@/components/atoms/FormButton";
+import { InfoBox } from "@/components/atoms/InfoBox";
+import { RHFInput } from "@/components/forms/ReactHookForm/RHFInput";
+import { RHFTextarea } from "@/components/forms/ReactHookForm/RHFTextarea";
+import { CashIcon, XIcon } from "@/components/icons";
+import { Typography } from "@/components/ui/Typography";
+import { createWithdrawSchema, WithdrawFormData } from "@/lib/validations/withdraw";
+import { yupResolver } from "@hookform/resolvers/yup";
 import React, { useState } from "react";
-import { CashIcon, SendIcon, XIcon } from "@/components/icons";
+import { useForm } from "react-hook-form";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Modal,
   Platform,
-  TextInput,
+  ScrollView,
   TouchableOpacity,
   View,
 } from "react-native";
-import { Typography } from "@/components/ui/Typography";
-
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface WithdrawModalProps {
   visible: boolean;
@@ -19,6 +25,9 @@ interface WithdrawModalProps {
   onClose: () => void;
   onSubmit: (amount: number, note: string) => Promise<void>;
 }
+
+const MIN_WITHDRAWAL = 100;
+const MAX_WITHDRAWAL = 50000;
 
 const formatAmount = (amount: number) =>
   `रु ${amount.toLocaleString("en-IN", {
@@ -33,299 +42,184 @@ export function WithdrawModal({
   onClose,
   onSubmit,
 }: WithdrawModalProps) {
-  const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
   const [submitting, setSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  const { control, handleSubmit, reset } = useForm<WithdrawFormData>({
+    resolver: yupResolver(createWithdrawSchema(availableBalance)),
+    mode: "onBlur",
+    defaultValues: { amount: undefined, note: "" },
+  });
 
   const handleClose = () => {
     if (submitting) return;
-    setAmount("");
-    setNote("");
-    setError(null);
+    reset();
+    setApiError(null);
     onClose();
   };
 
-  const handleSubmit = async () => {
-    const parsedAmount = parseFloat(amount);
-
-    if (!amount.trim() || isNaN(parsedAmount) || parsedAmount <= 0) {
-      setError("Please enter a valid amount");
-      return;
-    }
-
-    if (parsedAmount > availableBalance) {
-      setError(
-        `Amount exceeds available balance (${formatAmount(availableBalance)})`
-      );
-      return;
-    }
-
-    if (parsedAmount < 100) {
-      setError("Minimum withdrawal amount is रु 100");
-      return;
-    }
-
-    setError(null);
+  const onFormSubmit = async (data: WithdrawFormData) => {
     setSubmitting(true);
+    setApiError(null);
     try {
-      await onSubmit(parsedAmount, note.trim());
-      setAmount("");
-      setNote("");
+      await onSubmit(data.amount, data.note?.trim() ?? "");
+      reset();
     } catch {
-      setError("Something went wrong. Please try again.");
+      setApiError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const isDisabled = submitting || !amount.trim();
-
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      transparent
       onRequestClose={handleClose}
+      presentationStyle="pageSheet"
     >
-      <View
-        style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.45)", justifyContent: "flex-end" }}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+      <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+        {/* Header — outside KAV so it never moves */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: 24,
+            paddingTop: 16,
+            paddingBottom: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: "#F3F4F6",
+          }}
         >
           <View
             style={{
-              backgroundColor: "#FFFFFF",
-              borderTopLeftRadius: 28,
-              borderTopRightRadius: 28,
-              paddingHorizontal: 20,
-              paddingTop: 24,
-              paddingBottom: Platform.OS === "ios" ? 40 : 24,
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              backgroundColor: "#D1FAE5",
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: 12,
             }}
           >
-            {/* Drag handle */}
-            <View
-              style={{
-                width: 40,
-                height: 4,
-                backgroundColor: "rgba(59,48,48,0.15)",
-                borderRadius: 2,
-                alignSelf: "center",
-                marginBottom: 20,
-              }}
-            />
+            <CashIcon width={20} height={20} color="#059669" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Typography variation="h3">Request Withdrawal</Typography>
+            <Typography variation="caption" style={{ color: "#6B7280", marginTop: 2 }}>
+              Funds will be sent to your eSewa wallet
+            </Typography>
+          </View>
+          <TouchableOpacity onPress={handleClose} hitSlop={12}>
+            <XIcon width={22} height={22} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
 
-            {/* Header */}
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 20,
-              }}
-            >
-              <Typography variation="h2" style={{ fontSize: 20, color: "#3B2F2F" }}>
-                Request Withdrawal
-              </Typography>
-              <TouchableOpacity
-                onPress={handleClose}
+        {/* KAV wraps scroll + footer so both move up together when keyboard opens */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <ScrollView
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ padding: 24, paddingBottom: 16 }}
+          >
+            {/* Balance + payout cards */}
+            <View style={{ flexDirection: "row", gap: 10, marginBottom: 20 }}>
+              <View
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: "#F3F4F6",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  flex: 1,
+                  backgroundColor: "#F0FDF4",
+                  borderWidth: 1,
+                  borderColor: "#86EFAC",
+                  borderRadius: 12,
+                  padding: 12,
                 }}
-                activeOpacity={0.7}
               >
-                <XIcon width={14} height={14} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Available balance info */}
-            <View
-              style={{
-                backgroundColor: "#F0FDF4",
-                borderRadius: 14,
-                padding: 16,
-                marginBottom: 20,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
-              <CashIcon width={22} height={22} color="#22C55E" />
-              <View>
-                <Typography variation="caption" style={{ color: "#6B7280", marginBottom: 2 }}>
-                  Available Balance
+                <Typography variation="caption" style={{ color: "#6B7280", marginBottom: 4 }}>
+                  Available
                 </Typography>
-                <Typography variation="label" style={{ color: "#059669", fontSize: 18 }}>
+                <Typography variation="label" style={{ color: "#059669", fontSize: 16 }}>
                   {formatAmount(availableBalance)}
                 </Typography>
               </View>
-            </View>
-
-            {/* Payout to label */}
-            <View
-              style={{
-                backgroundColor: "#FAF7F2",
-                borderRadius: 12,
-                paddingHorizontal: 14,
-                paddingVertical: 10,
-                marginBottom: 20,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
               <View
                 style={{
-                  width: 20,
-                  height: 20,
-                  backgroundColor: "#4CAF50",
-                  borderRadius: 5,
-                  alignItems: "center",
-                  justifyContent: "center",
+                  flex: 1,
+                  backgroundColor: "#F9FAFB",
+                  borderWidth: 1,
+                  borderColor: "#E5E7EB",
+                  borderRadius: 12,
+                  padding: 12,
                 }}
               >
-                <Typography variation="label" style={{ color: "#FFFFFF", fontSize: 9 }}>
-                  e
+                <Typography variation="caption" style={{ color: "#6B7280", marginBottom: 4 }}>
+                  Payout to
                 </Typography>
-              </View>
-              <Typography variation="caption" style={{ color: "rgba(59,48,48,0.6)", fontSize: 12 }}>
-                Payout to:{" "}
-                <Typography variation="label" style={{ color: "#3B2F2F", fontSize: 12 }}>
+                <Typography
+                  variation="label"
+                  style={{ color: "#3B2F2F", fontSize: 13 }}
+                  numberOfLines={1}
+                >
                   @{paymentUsername}
                 </Typography>
-              </Typography>
+              </View>
             </View>
+
+            {/* Info banner */}
+            <InfoBox
+              message={`Min ${formatAmount(MIN_WITHDRAWAL)} · Max ${formatAmount(MAX_WITHDRAWAL)} per request. Admin reviews within 1–2 business days.`}
+              type="info"
+              style={{ marginBottom: 20 }}
+            />
 
             {/* Amount input */}
-            <View style={{ marginBottom: 14 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-                <Typography variation="label" style={{ fontSize: 14, color: "#374151" }}>
-                  Withdraw Amount
-                </Typography>
-                <Typography variation="label" style={{ color: "#EF4444", fontSize: 14 }}>
-                  {" "}*
-                </Typography>
-              </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  backgroundColor: "#F3F4F6",
-                  borderRadius: 14,
-                  paddingHorizontal: 16,
-                  borderWidth: error ? 1.5 : 0,
-                  borderColor: error ? "#EF4444" : "transparent",
-                }}
-              >
-                <Typography variation="label" style={{ color: "#6B7280", fontSize: 16 }}>
-                  रु
-                </Typography>
-                <TextInput
-                  value={amount}
-                  onChangeText={(text) => {
-                    setAmount(text.replace(/[^0-9.]/g, ""));
-                    if (error) setError(null);
-                  }}
-                  placeholder="0.00"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="numeric"
-                  style={{
-                    flex: 1,
-                    paddingVertical: 14,
-                    paddingHorizontal: 8,
-                    fontSize: 18,
-                    color: "#1F2937",
-                    fontWeight: "600",
-                  }}
-                />
-              </View>
-              {error && (
-                <Typography variation="caption" style={{ color: "#EF4444", marginTop: 6 }}>
-                  {error}
-                </Typography>
-              )}
-            </View>
+            <RHFInput
+              control={control}
+              name="amount"
+              label="Withdraw Amount"
+              placeholder="0.00"
+              keyboardType="decimal-pad"
+            />
 
-            {/* Note input */}
-            <View style={{ marginBottom: 24 }}>
-              <Typography variation="label"
-                style={{ fontSize: 14, color: "#374151", marginBottom: 8 }}
-              >
-                Note{" "}
-                <Typography variation="caption" style={{ color: "#9CA3AF", fontSize: 13 }}>
-                  (Optional)
-                </Typography>
-              </Typography>
-              <TextInput
-                value={note}
-                onChangeText={setNote}
+            {/* Note */}
+            <View style={{ marginTop: 20 }}>
+              <RHFTextarea
+                control={control}
+                name="note"
+                label="Additional Note"
                 placeholder="Add a note for the admin..."
-                placeholderTextColor="#9CA3AF"
-                multiline
-                numberOfLines={3}
-                style={{
-                  backgroundColor: "#F3F4F6",
-                  borderRadius: 14,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  fontSize: 15,
-                  color: "#1F2937",
-                  minHeight: 80,
-                  textAlignVertical: "top",
-                }}
+                maxLength={300}
               />
             </View>
 
-            {/* Submit button */}
-            <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={isDisabled}
-              activeOpacity={0.85}
-              style={{
-                backgroundColor: "#3B2F2F",
-                borderRadius: 14,
-                paddingVertical: 16,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                opacity: isDisabled ? 0.5 : 1,
-              }}
-            >
-              {submitting ? (
-                <>
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                  <Typography variation="label" style={{ color: "#FFFFFF", fontSize: 16 }}>
-                    Submitting...
-                  </Typography>
-                </>
-              ) : (
-                <>
-                  <SendIcon width={18} height={18} color="#FFFFFF" />
-                  <Typography variation="label" style={{ color: "#FFFFFF", fontSize: 16 }}>
-                    Submit Request
-                  </Typography>
-                </>
-              )}
-            </TouchableOpacity>
+            {/* API error */}
+            {apiError && (
+              <InfoBox message={apiError} type="error" style={{ marginTop: 12 }} />
+            )}
+          </ScrollView>
 
-            {/* Cancel */}
-            <TouchableOpacity
-              onPress={handleClose}
+          {/* Footer in normal flow — rises with KAV when keyboard opens */}
+          <View
+            style={{
+              paddingHorizontal: 24,
+              paddingTop: 12,
+              paddingBottom: insets.bottom + 16,
+              borderTopWidth: 1,
+              borderTopColor: "#F3F4F6",
+              backgroundColor: "#FFFFFF",
+            }}
+          >
+            <FormButton
+              title="Submit Request"
+              onPress={handleSubmit(onFormSubmit)}
+              loading={submitting}
               disabled={submitting}
-              activeOpacity={0.7}
-              style={{ paddingVertical: 14, alignItems: "center", marginTop: 4 }}
-            >
-              <Typography variation="body-sm" style={{ color: "#9CA3AF", fontSize: 15 }}>
-                Cancel
-              </Typography>
-            </TouchableOpacity>
+              variant="primary"
+            />
           </View>
         </KeyboardAvoidingView>
       </View>

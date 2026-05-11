@@ -22,7 +22,10 @@ export type NotificationType =
   | "order_refunded"
   | "product_rejected"
   | "product_approved"
-  | "product_comment_added";
+  | "product_comment_added"
+  | "payment_approved"
+  | "payment_rejected"
+  | "payment_released";
 
 export interface AppNotification {
   id: string;

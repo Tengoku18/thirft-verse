@@ -1,10 +1,10 @@
+import { AddPhotoIcon, CubeIcon } from "@/components/icons";
 import { Typography } from "@/components/ui/Typography";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { Product } from "@/lib/types/database";
 import { useRouter } from "expo-router";
 import React from "react";
 import { FlatList, Image, TouchableOpacity, View } from "react-native";
-import { AddPhotoIcon, CubeIcon, HeartIcon } from "@/components/icons";
 
 interface ProductItemProps {
   product: Product;
@@ -15,7 +15,7 @@ function ProductItem({ product }: ProductItemProps) {
   const imageUri = product.cover_image
     ? getProductImageUrl(product.cover_image)
     : null;
-  const isSoldOut = product.availability_count === 0;
+  const isSoldOut = product.status === "out_of_stock";
 
   return (
     <TouchableOpacity
@@ -25,7 +25,11 @@ function ProductItem({ product }: ProductItemProps) {
       className="p-1.5"
     >
       {/* Image container */}
-      <View className="rounded-[18px] overflow-hidden bg-primary/5 aspect-square">
+      <View
+        className={`rounded-[18px] overflow-hidden bg-primary/5 aspect-square ${
+          isSoldOut ? "opacity-60" : ""
+        }`}
+      >
         {imageUri ? (
           <Image
             source={{ uri: imageUri }}
@@ -46,15 +50,15 @@ function ProductItem({ product }: ProductItemProps) {
           <HeartIcon width={16} height={16} color="#3B3030" />
         </TouchableOpacity> */}
 
-        {/* Sold out overlay */}
+        {/* Out of stock overlay */}
         {isSoldOut && (
-          <View className="absolute inset-0 bg-black/30 items-center justify-center">
-            <View className="bg-status-error px-2.5 py-1 rounded-md">
+          <View className="absolute inset-0 bg-black/40 items-center justify-center">
+            <View className="bg-status-error/90 px-3 py-1.5 rounded-lg">
               <Typography
                 variation="caption"
-                className="text-white font-sans-bold tracking-wide"
+                className="text-white font-sans-bold tracking-wide text-xs"
               >
-                Sold Out
+                Out of Stock
               </Typography>
             </View>
           </View>
@@ -66,16 +70,28 @@ function ProductItem({ product }: ProductItemProps) {
         <Typography
           variation="body-sm"
           numberOfLines={1}
-          className="text-brand-espresso font-sans-medium"
+          className={`font-sans-medium ${
+            isSoldOut ? "text-brand-espresso/50" : "text-brand-espresso"
+          }`}
         >
           {product.title}
         </Typography>
         <Typography
           variation="body"
-          className="text-brand-espresso font-sans-bold mt-0.5"
+          className={`font-sans-bold mt-0.5 ${
+            isSoldOut ? "text-brand-espresso/50" : "text-brand-espresso"
+          }`}
         >
           NPR {product.price.toLocaleString()}
         </Typography>
+        {isSoldOut && (
+          <Typography
+            variation="caption"
+            className="text-status-error font-sans-semibold mt-1"
+          >
+            Not Available
+          </Typography>
+        )}
       </View>
     </TouchableOpacity>
   );

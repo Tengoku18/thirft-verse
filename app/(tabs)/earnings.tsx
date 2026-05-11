@@ -44,10 +44,13 @@ interface RevenueData {
 interface PaymentRequest {
   id: string;
   amount: number;
-  status: "pending" | "released" | "rejected";
+  status: "pending" | "approved" | "released" | "rejected";
   notes: string | null;
   admin_notes: string | null;
   created_at: string;
+  processed_at: string | null;
+  released_at: string | null;
+  transaction_id: string | null;
 }
 
 const PREVIEW_COUNT = 3;
@@ -100,7 +103,7 @@ export default function EarningsScreen() {
 
       const { data: requests, error: requestsError } = await supabase
         .from("payment_requests")
-        .select("id, amount, status, notes, admin_notes, created_at")
+        .select("id, amount, status, notes, admin_notes, created_at, processed_at, released_at, transaction_id")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -175,16 +178,6 @@ export default function EarningsScreen() {
     const updated: RevenueData = {
       ...current,
       confirmedAmount: Math.max(0, current.confirmedAmount - amount),
-      withdrawnAmount: current.withdrawnAmount + amount,
-      withdrawalHistory: [
-        ...current.withdrawalHistory,
-        {
-          amount,
-          settledBy: "",
-          transactionId: "",
-          settlementDate: new Date().toISOString(),
-        },
-      ],
     };
 
     const { error: revenueError } = await supabase
@@ -395,10 +388,14 @@ export default function EarningsScreen() {
             {previewRequests.map((req) => (
               <PaymentHistoryItem
                 key={req.id}
+                id={req.id}
                 amount={req.amount}
                 createdAt={req.created_at}
                 status={req.status}
                 adminNotes={req.admin_notes}
+                transactionId={req.transaction_id}
+                processedAt={req.processed_at}
+                releasedAt={req.released_at}
               />
             ))}
 
