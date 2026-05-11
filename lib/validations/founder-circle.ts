@@ -7,7 +7,7 @@ export const founderCircleSchema = yup.object({
   verificationCode: yup
     .string()
     .required("Verification code is required")
-    .matches(/^\d{8}$/, "Please enter a valid 8-digit code")
+    .matches(/^[A-Z]{2}-[A-Z0-9]{7}$/, "Enter a valid code (e.g. FC-4DFANQC)")
     .defined(),
 });
 

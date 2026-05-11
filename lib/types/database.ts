@@ -178,7 +178,7 @@ export interface Product {
 }
 
 export interface ProductWithStore extends Product {
-  store: Pick<Profile, "id" | "name" | "store_username" | "currency"> | null;
+  store: Pick<Profile, "id" | "name" | "store_username" | "currency" | "is_founder"> | null;
 }
 
 export interface PaginatedResponse<T> {

@@ -17,9 +17,9 @@ export function FounderCircleHeroCard() {
             variation="body-sm"
             className="text-white/75 leading-relaxed"
           >
-            Become a verified member of the Thriftverse Founder Circle. Enjoy
-            exclusive badges, early access to new features, and premium
-            marketplace placement.
+            Become a verified member of the Thriftverse Founder Circle. Two
+            tracks — Founding Seller and Founding Creator — each with exclusive
+            perks, priority exposure, and permanent Founder status.
           </Typography>
         </View>
 
@@ -37,7 +37,15 @@ export function FounderCircleHeroCard() {
               variation="caption"
               className="text-white font-sans-semibold uppercase tracking-widest text-xs"
             >
-              Early Access
+              Order Protection
+            </Typography>
+          </View>
+          <View className="px-3 py-2 bg-white/15 rounded-full border border-white/25">
+            <Typography
+              variation="caption"
+              className="text-white font-sans-semibold uppercase tracking-widest text-xs"
+            >
+              20% Profit Share
             </Typography>
           </View>
         </View>

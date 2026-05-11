@@ -1,4 +1,4 @@
-import { ChevronRightIcon } from "@/components/icons";
+import { ChevronRightIcon, CrownCircleIcon } from "@/components/icons";
 import { Profile } from "@/lib/types/database";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -40,6 +40,11 @@ export default function StoreCard({ store, onPress }: StoreCardProps) {
               <Text style={styles.placeholderText}>
                 {store.name.charAt(0).toUpperCase()}
               </Text>
+            </View>
+          )}
+          {store.is_founder && (
+            <View style={styles.crownBadge}>
+              <CrownCircleIcon size={18} />
             </View>
           )}
         </View>
@@ -127,5 +132,10 @@ const styles = StyleSheet.create({
   },
   arrowContainer: {
     padding: 4,
+  },
+  crownBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
   },
 });

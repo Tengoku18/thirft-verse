@@ -1,5 +1,5 @@
 import { SkeletonLoader } from "@/components/atoms/SkeletonLoader";
-import { CubeIcon, IIcon, WarningIcon } from "@/components/icons";
+import { CrownCircleIcon, CubeIcon, IIcon, WarningIcon } from "@/components/icons";
 import { ScreenLayout } from "@/components/layouts";
 import { ProductCardSkeleton } from "@/components/molecules/ProductCardSkeleton";
 import ProductCard from "@/components/molecules/ProductCard";
@@ -250,35 +250,45 @@ export default function StoreDetailsScreen() {
           {/* Store Header */}
           <View className="bg-white px-6 py-8 border-b border-slate-100">
             <View className="items-center mb-6">
-              {store.profile_image ? (
-                <Image
-                  source={{ uri: store.profile_image }}
-                  style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: 60,
-                    borderWidth: 3,
-                    borderColor: "#E5E7EB",
-                  }}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View
-                  className="w-32 h-32 rounded-full items-center justify-center border-4"
-                  style={{
-                    backgroundColor: Colors.light.text,
-                    borderColor: "#E5E7EB",
-                  }}
-                >
-                  <Typography
-                    variation="h1"
-                    className="text-white"
-                    style={{ fontSize: 48 }}
+              <View style={{ position: "relative" }}>
+                {store.profile_image ? (
+                  <Image
+                    source={{ uri: store.profile_image }}
+                    style={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: 60,
+                      borderWidth: 3,
+                      borderColor: "#E5E7EB",
+                    }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View
+                    className="w-32 h-32 rounded-full items-center justify-center border-4"
+                    style={{
+                      backgroundColor: Colors.light.text,
+                      borderColor: "#E5E7EB",
+                    }}
                   >
-                    {store.name.charAt(0).toUpperCase()}
-                  </Typography>
-                </View>
-              )}
+                    <Typography
+                      variation="h1"
+                      className="text-white"
+                      style={{ fontSize: 48 }}
+                    >
+                      {store.name.charAt(0).toUpperCase()}
+                    </Typography>
+                  </View>
+                )}
+                {store.is_founder && (
+                  <View style={{
+                    position: "absolute", bottom: 2, right: 2,
+                    borderWidth: 2, borderColor: "#FFFFFF", borderRadius: 14,
+                  }}>
+                    <CrownCircleIcon size={26} />
+                  </View>
+                )}
+              </View>
             </View>
 
             <View className="items-center mb-6">

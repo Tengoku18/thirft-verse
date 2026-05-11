@@ -55,6 +55,7 @@ export { default as CheckmarkSealFillIcon } from "./CheckmarkSealFillIcon";
 export { default as ClockArrowIcon } from "./ClockArrowIcon";
 export { default as CreditCardFillIcon } from "./CreditCardFillIcon";
 export { default as CreditCardIcon } from "./CreditCardIcon";
+export { default as CrownCircleIcon } from "./CrownCircleIcon";
 export { default as CrownFillIcon } from "./CrownFillIcon";
 export { default as CubeBoxIcon } from "./CubeBoxIcon";
 export { default as CubeIcon } from "./CubeIcon";

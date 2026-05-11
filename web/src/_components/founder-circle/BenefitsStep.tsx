@@ -16,18 +16,20 @@ interface BenefitsStepProps {
 }
 
 const CREATOR_BENEFITS = [
-  { icon: <BadgeCheck className="h-5 w-5" />, title: 'Permanent Founder Badge', desc: 'Exclusive badge on your profile — forever.' },
-  { icon: <Star className="h-5 w-5" />, title: 'Rs. 50 per Sale Referral', desc: 'Earn Rs. 50 for every sale made by sellers you refer, for 6 months.' },
-  { icon: <Crown className="h-5 w-5" />, title: 'Unique Referral Code', desc: 'Share your code with up to 6 sellers — choose your circle wisely.' },
-  { icon: <Trophy className="h-5 w-5" />, title: 'Monthly Cash Rewards', desc: 'Top 3 creators each month win cash or product prizes.' },
-  { icon: <Sparkles className="h-5 w-5" />, title: 'Featured Visibility', desc: 'Get showcased on the leaderboard and featured creator section.' },
+  { icon: <BadgeCheck className="h-5 w-5" />, title: 'Permanent Founder Badge', desc: 'Official Founder status and digital badge — marks you as a pioneer of the platform.' },
+  { icon: <Sparkles className="h-5 w-5" />, title: 'No Verification Charge', desc: 'Gain full platform access and Verified Creator status without any setup or verification fees.' },
+  { icon: <Crown className="h-5 w-5" />, title: 'Unique Referral Code', desc: 'Your own personalized referral link to build your creator empire and track your influence in real-time.' },
+  { icon: <Star className="h-5 w-5" />, title: '20% Profit Share', desc: 'Earn 20% of the platform\'s profit for every successful sale made through your referral.' },
+  { icon: <Trophy className="h-5 w-5" />, title: 'Monthly Cash Rewards', desc: 'Win Rs. 1,000–Rs. 2,000 monthly cash bonuses for top-performing curators on the leaderboard.' },
+  { icon: <Store className="h-5 w-5" />, title: 'Priority Product Exposure', desc: 'Your recommended products get priority placement across the Thriftverse marketplace.' },
 ];
 
 const SELLER_BENEFITS = [
-  { icon: <BadgeCheck className="h-5 w-5" />, title: 'Permanent Founder Badge', desc: 'Exclusive Founder badge on your store — forever.' },
-  { icon: <Star className="h-5 w-5" />, title: 'Extra 2% Commission Discount', desc: 'Reduced platform commission for your first 12 months.' },
-  { icon: <Store className="h-5 w-5" />, title: 'Priority Marketplace Exposure', desc: 'Your verified store is shown first on the marketplace.' },
-  { icon: <Crown className="h-5 w-5" />, title: 'Early Access to Campaigns', desc: 'Receive news about marketing campaigns 3 days before anyone else.' },
+  { icon: <BadgeCheck className="h-5 w-5" />, title: 'Permanent Founder Badge', desc: 'Prestigious digital seal prominently displayed on your storefront — forever.' },
+  { icon: <Sparkles className="h-5 w-5" />, title: 'Zero Verification Fees', desc: 'Skip the professional setup costs and get verified as a premier seller at no charge during Phase 1.' },
+  { icon: <Store className="h-5 w-5" />, title: 'Priority Marketplace Exposure', desc: 'Algorithm priority and featured placement across the platform to get your curated finds in front of more buyers.' },
+  { icon: <Crown className="h-5 w-5" />, title: 'Order Protection', desc: 'Thriftverse handles the shipping costs for unreceived COD orders to protect your business from scams.' },
+  { icon: <Star className="h-5 w-5" />, title: '2% Commission Discount', desc: 'Exclusive 2% reduction on platform commissions for your first 12 months.' },
 ];
 
 export default function BenefitsStep({ role, onBack, onContinue }: BenefitsStepProps) {

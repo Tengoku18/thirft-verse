@@ -1,5 +1,6 @@
+import { RHFInput } from "@/components/forms/ReactHookForm";
+import { CheckMarkCircleIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Link } from "@/components/ui/Link";
 import { Typography } from "@/components/ui/Typography";
 import {
@@ -8,9 +9,8 @@ import {
 } from "@/lib/validations/founder-circle";
 import { yupResolver } from "@hookform/resolvers/yup";
 import React from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { View } from "react-native";
-import { CheckMarkCircleIcon } from "@/components/icons";
 
 interface FounderCircleVerificationFormProps {
   loading: boolean;
@@ -70,21 +70,15 @@ export function FounderCircleVerificationForm({
           </View>
         )}
 
-        <Controller
+        <RHFInput
           control={control}
           name="verificationCode"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <Input
-              value={value}
-              onChangeText={onChange}
-              onBlur={onBlur}
-              placeholder="ENTER 8-DIGIT CODE"
-              keyboardType="number-pad"
-              maxLength={8}
-              editable={!loading}
-              className="text-center tracking-widest text-lg font-sans-bold"
-            />
-          )}
+          placeholder="e.g. FC-XXXXXX"
+          keyboardType="default"
+          autoCapitalize="characters"
+          maxLength={10}
+          editable={!loading}
+          inputClassName="text-center tracking-widest text-lg font-sans-bold"
         />
 
         <Button
@@ -93,9 +87,7 @@ export function FounderCircleVerificationForm({
           isLoading={loading}
           disabled={loading}
           fullWidth
-          icon={
-            <CheckMarkCircleIcon width={20} height={20} color="white" />
-          }
+          icon={<CheckMarkCircleIcon width={20} height={20} color="white" />}
           iconPosition="right"
         />
       </View>

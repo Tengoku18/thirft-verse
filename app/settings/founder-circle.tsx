@@ -7,14 +7,18 @@ import {
   FounderStatusSection,
 } from "@/components/founder";
 import { ScreenLayout } from "@/components/layouts";
+import { verifyFounderAccess } from "@/lib/database-helpers";
+import { supabase } from "@/lib/supabase";
 import { FounderCircleFormData } from "@/lib/validations/founder-circle";
-import { useAppSelector } from "@/store/hooks";
+import { fetchUserProfile } from "@/store/profileSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView } from "react-native";
 
 export default function FounderCircleScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const profile = useAppSelector((s) => s.profile.profile);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
@@ -29,12 +33,27 @@ export default function FounderCircleScreen() {
       setLoading(true);
       setError("");
 
-      console.log("Verifying founder code:", data.verificationCode);
-      setSuccessMessage("✅ Founder verification successful!");
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user?.email) {
+        setError("Could not retrieve your account email. Please sign out and back in.");
+        setLoading(false);
+        return;
+      }
+
+      const result = await verifyFounderAccess(data.verificationCode, user.email);
+
+      if (!result.success) {
+        setError(result.error ?? "Verification failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      await dispatch(fetchUserProfile(user.id));
+      setSuccessMessage("✅ Founder verification successful! Welcome to the circle.");
       setLoading(false);
       setTimeout(() => {
         router.back();
-      }, 1500);
+      }, 1800);
     } catch (err: any) {
       console.error("Verification error:", err);
       setError(err.message || "Verification failed. Please try again.");
@@ -66,7 +85,9 @@ export default function FounderCircleScreen() {
           />
         )}
 
-        <FounderBenefitsList />
+        <FounderBenefitsList
+          type={isCreator && isSeller ? "both" : isCreator ? "creator" : isSeller ? "seller" : "both"}
+        />
 
         {!isFounder && <FounderEmailCTA />}
       </ScrollView>

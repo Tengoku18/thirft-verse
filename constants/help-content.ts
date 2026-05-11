@@ -47,7 +47,7 @@ export const FAQ_CATEGORIES: FAQCategory[] = [
         id: "gs-5",
         question: "What is the Founder Circle?",
         answer:
-          "Founder Circle is our exclusive early-seller program. Founders receive a verified badge, priority customer support, reduced platform fees, and access to exclusive promotions. Check Settings → Founder Circle to learn more.",
+          "Founder Circle is our exclusive early-access program with two tracks. Founding Sellers get a permanent Founder Badge, zero verification fees during Phase 1, priority marketplace exposure, COD order protection (Thriftverse covers shipping costs for unreceived orders), and a 2% commission discount for their first 12 months. Founding Creators get a permanent Founder Badge, no verification charge, a unique referral code, 20% profit share on every sale made through their referral, monthly cash rewards of Rs. 1,000–Rs. 2,000 for top curators, and priority product exposure. Apply via Settings → Founder Circle.",
       },
     ],
   },

@@ -5,6 +5,7 @@ import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Button } from "@/components/ui/Button/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
+import { applyReferralCode } from "@/lib/database-helpers";
 import { supabase } from "@/lib/supabase";
 import { fetchUserProfile } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -45,6 +46,7 @@ export default function SignupStep6Screen() {
   const [loading, setLoading] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
+  const [isCodeVerified, setIsCodeVerified] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [verificationMessage, setVerificationMessage] = useState<string | null>(
     null,
@@ -69,26 +71,34 @@ export default function SignupStep6Screen() {
 
     setVerifyLoading(true);
     setVerificationMessage(null);
+    setIsCodeVerified(false);
 
     try {
-      // Verify referral code exists in Supabase
+      const trimmedCode = referralCode.trim().toUpperCase();
+
       const { data, error } = await supabase
-        .from("referral_codes")
-        .select("*")
-        .eq("code", referralCode.trim().toUpperCase())
-        .single();
+        .from("referrals")
+        .select("id, is_active, expires_at")
+        .eq("code", trimmedCode)
+        .maybeSingle();
 
       if (error || !data) {
-        setVerificationMessage(
-          "Invalid referral code. Please check and try again.",
-        );
-        setVerifyLoading(false);
+        setVerificationMessage("Invalid referral code. Please check and try again.");
         return;
       }
 
-      setVerificationMessage(
-        `✓ Code "${referralCode}" verified! You'll receive the bonus benefits.`,
-      );
+      if (data.is_active === false) {
+        setVerificationMessage("This referral code is currently inactive.");
+        return;
+      }
+
+      if (data.expires_at && data.expires_at <= new Date().toISOString()) {
+        setVerificationMessage("This referral code has expired.");
+        return;
+      }
+
+      setIsCodeVerified(true);
+      setVerificationMessage(`✓ Code "${trimmedCode}" verified! You'll receive the bonus benefits.`);
     } catch (error) {
       console.error("Error verifying code:", error);
       setVerificationMessage("Failed to verify code. Please try again.");
@@ -112,18 +122,9 @@ export default function SignupStep6Screen() {
         return;
       }
 
-      // Save referral code if provided, and mark signup as complete in DB
-      const profileUpdate: Record<string, any> = {
-        signup_step: 6,
-        auth_completed: true,
-      };
-      if (referralCode?.trim()) {
-        profileUpdate.referral_code_used = referralCode.trim().toUpperCase();
-      }
-
       const { error } = await supabase
         .from("profiles")
-        .update(profileUpdate)
+        .update({ signup_step: 6, auth_completed: true })
         .eq("id", user.id);
 
       if (error) {
@@ -131,6 +132,16 @@ export default function SignupStep6Screen() {
         setGeneralError("Failed to complete signup. Please try again.");
         setLoading(false);
         return;
+      }
+
+      // Link this user to the founder who referred them.
+      // Non-blocking — a failed referral should never block signup completion.
+      if (referralCode?.trim()) {
+        applyReferralCode(
+          referralCode.trim().toUpperCase(),
+          user.id,
+          user.email ?? "",
+        ).catch((err) => console.warn("applyReferralCode failed:", err));
       }
 
       await dispatch(fetchUserProfile(user.id));

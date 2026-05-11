@@ -1,10 +1,10 @@
+import { AddPhotoIcon, CrownCircleIcon } from "@/components/icons";
 import { Typography } from "@/components/ui/Typography";
 import { getProductImageUrl } from "@/lib/storage-helpers";
 import { ProductWithStore } from "@/lib/types/database";
 import * as Linking from "expo-linking";
 import React from "react";
 import { Image, TouchableOpacity, View } from "react-native";
-import { AddPhotoIcon } from "@/components/icons";
 
 interface Props {
   product: ProductWithStore;
@@ -77,12 +77,17 @@ export function ExploreProductCard({ product, onPress }: Props) {
           {product.title}
         </Typography>
         {storeHandle && (
-          <Typography
-            variation="body-xs"
-            style={{ color: "#D4A373", fontWeight: "600" }}
-          >
-            {storeHandle}
-          </Typography>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+            {product.store?.is_founder && (
+              <CrownCircleIcon size={13} />
+            )}
+            <Typography
+              variation="body-xs"
+              style={{ color: "#D4A373", fontWeight: "600" }}
+            >
+              {storeHandle}
+            </Typography>
+          </View>
         )}
         <Typography
           variation="body"

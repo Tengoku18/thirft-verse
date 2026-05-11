@@ -32,7 +32,7 @@ export const getAllAvailableProducts = async (limit = 20, offset = 0): Promise<P
     // Fetch all stores
     const { data: stores, error: storesError } = await supabase
       .from('profiles')
-      .select('id, name, store_username, currency')
+      .select('id, name, store_username, currency, is_founder')
       .in('id', storeIds);
 
     if (storesError) {
@@ -105,7 +105,7 @@ export const getProductById = async (id: string): Promise<ProductWithStore | nul
     // Fetch store profile
     const { data: store, error: storeError } = await supabase
       .from('profiles')
-      .select('id, name, store_username, currency')
+      .select('id, name, store_username, currency, is_founder')
       .eq('id', product.store_id)
       .maybeSingle();
 

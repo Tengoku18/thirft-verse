@@ -43,6 +43,8 @@ export default function SettingsScreen() {
     router.replace("/(auth)/signin" as any);
   }
 
+  const isFounder = profile?.is_founder ?? false;
+
   const referralCode = profile?.store_username
     ? profile.store_username.toUpperCase().slice(0, 6) + "24"
     : "THRIFT24";
@@ -64,14 +66,18 @@ export default function SettingsScreen() {
             label="Payment Method"
             onPress={() => router.push("/settings/payment-method" as any)}
           />
-          <SettingsDivider />
-          <SettingsRow
-            icon="qrcode"
-            label="Referral Code"
-            onPress={() => router.push("/settings/referral-code" as any)}
-            showChevron={false}
-            rightContent={<ReferralCodeBadge code={referralCode} />}
-          />
+          {isFounder && (
+            <>
+              <SettingsDivider />
+              <SettingsRow
+                icon="qrcode"
+                label="Referral Code"
+                onPress={() => router.push("/settings/referral-code" as any)}
+                showChevron={false}
+                rightContent={<ReferralCodeBadge code={referralCode} />}
+              />
+            </>
+          )}
         </SettingsCard>
       </View>
 

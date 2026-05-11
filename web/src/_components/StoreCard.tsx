@@ -2,7 +2,7 @@
 
 import { Profile } from '@/types/database'
 import { getStorefrontUrl } from '@/utils/domainHelpers'
-import { BadgeCheck, Store } from 'lucide-react'
+import { BadgeCheck, Crown, Store } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -46,6 +46,9 @@ const StoreCard = ({ profile }: StoreCardProps) => {
               <h3 className="truncate text-sm leading-tight font-semibold text-neutral-900 transition-colors group-hover:text-[#D4A373] sm:text-base">
                 {profile.name}
               </h3>
+              {profile.is_founder && (
+                <Crown className="h-3.5 w-3.5 shrink-0 text-amber-500 sm:h-4 sm:w-4" strokeWidth={2.5} />
+              )}
               {profile.is_verified && (
                 <BadgeCheck className="h-4 w-4 shrink-0 fill-blue-500 text-white sm:h-5 sm:w-5" />
               )}
