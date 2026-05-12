@@ -1,5 +1,20 @@
 import * as yup from "yup";
 
+// Reserved subdomains that cannot be used as store usernames.
+// These are claimed by infra, DNS, or common web services.
+const RESERVED_USERNAMES = new Set([
+  "www", "api", "admin", "app", "mail", "smtp", "imap", "ftp",
+  "shop", "store", "help", "support", "blog", "dev", "staging",
+  "test", "dashboard", "cdn", "static", "assets", "auth", "login",
+  "signup", "thriftverse",
+]);
+
+// DNS label rules (RFC 1035):
+// - Lowercase alphanumerics and hyphens only
+// - Must start and end with alphanumeric (no leading/trailing hyphen)
+// - Max 63 characters
+const DNS_LABEL_REGEX = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/;
+
 /**
  * Validation schema for Step 4: Store/Creator Profile Details
  * Fields: username, bio, district, instagramHandle (optional username only), storeName, address
@@ -10,10 +25,15 @@ export const signupStep4Schema = yup.object({
     .trim()
     .lowercase()
     .min(3, "Username must be at least 3 characters")
-    .max(50, "Username must be less than 50 characters")
+    .max(63, "Username must be 63 characters or less")
     .matches(
-      /^[a-zA-Z0-9._]+$/,
-      "Username can only contain letters, numbers, dots, and underscores",
+      DNS_LABEL_REGEX,
+      "Username can only contain lowercase letters, numbers, and hyphens — no underscores, dots, or special characters. It cannot start or end with a hyphen.",
+    )
+    .test(
+      "not-reserved",
+      "This username is reserved and cannot be used",
+      (value) => !RESERVED_USERNAMES.has(value ?? ""),
     )
     .required("Username is required"),
 

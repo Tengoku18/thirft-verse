@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { useSignupFormRestore } from "@/hooks/useSignupFormRestore";
+import { FeatureFlags, useFeatureFlagRaw } from "@/lib/feature-flags";
 import { uploadPaymentQRImage } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import { setPaymentData } from "@/store";
@@ -38,6 +39,7 @@ export default function SignupStep5Screen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
+  const referralFlag = useFeatureFlagRaw(FeatureFlags.REFERRAL_CODE);
 
   const handleBack = () => {
     router.push("/(auth)/signup-step4");
@@ -111,8 +113,14 @@ export default function SignupStep5Screen() {
         return;
       }
 
-      // Update profile with payment data only if changed
-      const updatePayload: Record<string, any> = { signup_step: 5 };
+      // Update profile with payment data only if changed.
+      // If the referral code flag is definitively OFF, complete signup here
+      // and skip step 6 entirely (signup_step 6 = referral step done, auth_completed = true).
+      const referralStepEnabled = referralFlag === true;
+      const updatePayload: Record<string, any> = {
+        signup_step: referralStepEnabled ? 5 : 6,
+        ...(referralStepEnabled ? {} : { auth_completed: true }),
+      };
 
       const newPaymentUsername = data.paymentUsername.trim();
       const oldPaymentUsername = signupState.paymentData.paymentUsername;
@@ -146,7 +154,11 @@ export default function SignupStep5Screen() {
         }),
       );
 
-      router.push("/(auth)/signup-step6");
+      if (referralStepEnabled) {
+        router.push("/(auth)/signup-step6");
+      } else {
+        router.replace("/(auth)/signup-success");
+      }
     } catch (error) {
       console.error("Error in signup-step5:", error);
       setGeneralError("An unexpected error occurred. Please try again.");
@@ -191,12 +203,20 @@ export default function SignupStep5Screen() {
         return;
       }
 
+      const referralStepEnabled = referralFlag === true;
       await supabase
         .from("profiles")
-        .update({ signup_step: 5 })
+        .update({
+          signup_step: referralStepEnabled ? 5 : 6,
+          ...(referralStepEnabled ? {} : { auth_completed: true }),
+        })
         .eq("id", user.id);
 
-      router.push("/(auth)/signup-step6");
+      if (referralStepEnabled) {
+        router.push("/(auth)/signup-step6");
+      } else {
+        router.replace("/(auth)/signup-success");
+      }
     } catch (error) {
       console.error("Error skipping step 5:", error);
       setGeneralError("An unexpected error occurred. Please try again.");
@@ -211,7 +231,7 @@ export default function SignupStep5Screen() {
       headerTitle="Payment Setup"
       onBack={handleBack}
     >
-      <Stepper title="Payout Info" currentStep={5} totalSteps={6} />
+      <Stepper title="Payout Info" currentStep={5} totalSteps={referralFlag === true ? 6 : 5} />
 
       <View className="flex-1">
         <ScrollView

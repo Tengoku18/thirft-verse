@@ -5,14 +5,15 @@ import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Button } from "@/components/ui/Button/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
+import { FeatureFlags, useFeatureFlagRaw } from "@/lib/feature-flags";
 import { supabase } from "@/lib/supabase";
 import { fetchUserProfile } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import * as yup from "yup";
 
 // Validation schema for step 6
@@ -37,6 +38,7 @@ export default function SignupStep6Screen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
+  const referralFlag = useFeatureFlagRaw(FeatureFlags.REFERRAL_CODE);
 
   const handleBack = () => {
     router.push("/(auth)/signup-step5");
@@ -44,6 +46,29 @@ export default function SignupStep6Screen() {
 
   const [loading, setLoading] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
+
+  // Resume case: user has signup_step=5 in DB but referral flag is now OFF.
+  // index.tsx routes them here — auto-complete without showing the form.
+  useEffect(() => {
+    if (referralFlag === true) return;
+
+    const autoComplete = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        await supabase
+          .from("profiles")
+          .update({ signup_step: 6, auth_completed: true })
+          .eq("id", user.id);
+        await dispatch(fetchUserProfile(user.id));
+        router.replace("/(auth)/signup-success");
+      } catch (e) {
+        console.error("Auto-complete signup-step6 failed:", e);
+      }
+    };
+
+    autoComplete();
+  }, [referralFlag]);
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [verificationMessage, setVerificationMessage] = useState<string | null>(
@@ -180,6 +205,20 @@ export default function SignupStep6Screen() {
       setIsSkipping(false);
     }
   };
+
+  // Flag is definitively OFF — show a blank loading state while auto-completing
+  if (referralFlag !== true) {
+    return (
+      <AuthScreenLayout showHeader headerTitle="Almost there!" onBack={handleBack}>
+        <View className="flex-1 items-center justify-center gap-4">
+          <ActivityIndicator size="large" color="#C08B7B" />
+          <Typography variation="body" className="text-slate-500">
+            Completing your signup…
+          </Typography>
+        </View>
+      </AuthScreenLayout>
+    );
+  }
 
   return (
     <AuthScreenLayout

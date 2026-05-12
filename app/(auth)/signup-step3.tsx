@@ -6,6 +6,7 @@ import { AuthScreenLayout } from "@/components/layouts/AuthScreenLayout";
 import { Button } from "@/components/ui/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
+import { FeatureFlags, useFeatureFlagRaw } from "@/lib/feature-flags";
 import { supabase } from "@/lib/supabase";
 import { setFormData } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -17,6 +18,7 @@ export default function SignupStep3Screen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
+  const referralFlag = useFeatureFlagRaw(FeatureFlags.REFERRAL_CODE);
 
   const [selectedType, setSelectedType] = useState<"store" | "closet" | "">(
     signupState.formData.sellerType || "",
@@ -77,7 +79,7 @@ export default function SignupStep3Screen() {
       showScrollView={false}
       onBack={handleBack}
     >
-      <Stepper title="Seller Type" currentStep={3} totalSteps={6} />
+      <Stepper title="Seller Type" currentStep={3} totalSteps={referralFlag === true ? 6 : 5} />
 
       <View className="flex-1">
         <ScrollView
@@ -108,7 +110,7 @@ export default function SignupStep3Screen() {
                 }}
                 icon={<ShopIcon />}
                 title="Open a Store"
-                description="Best for professional vintage curators, boutique owners, and regular high-volume sellers."
+                description="Best for professional sellers and curators offering a wide variety of thrifted items in bulk."
               />
 
               <SellerTypeCard
@@ -118,8 +120,8 @@ export default function SignupStep3Screen() {
                   setErrorMessage(null);
                 }}
                 icon={<HangerIcon />}
-                title="Sell Your Closet"
-                description="Perfect for liquidating your personal wardrobe and selling individual one-level items."
+                title="Sell Your Items"
+                description="Perfect for individuals clearing out and selling their personal thrifted collection."
               />
             </View>
 

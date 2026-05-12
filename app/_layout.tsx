@@ -21,6 +21,7 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import "../global.css";
 
+import { PostHogSync } from "@/components/analytics/PostHogSync";
 import { ForceUpdateModal } from "@/components/modals/ForceUpdateModal";
 import { NotificationSync } from "@/components/notifications/NotificationSync";
 import { TourOverlay } from "@/components/organisms/TourOverlay";
@@ -37,6 +38,7 @@ import {
 import { fetchNotifications, fetchUnreadCount, store } from "@/store";
 import * as Sentry from "@sentry/react-native";
 import * as Updates from "expo-updates";
+import { PostHogProvider } from "posthog-react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
@@ -165,10 +167,15 @@ export default Sentry.wrap(function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <Provider store={store}>
-          <AuthProvider>
-            <ToastProvider>
-              <NotificationSync />
+        <PostHogProvider
+          apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY!}
+          options={{ host: process.env.EXPO_PUBLIC_POSTHOG_HOST }}
+        >
+          <Provider store={store}>
+            <PostHogSync />
+            <AuthProvider>
+              <ToastProvider>
+                <NotificationSync />
               <TourProvider>
                 <ThemeProvider
                   value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
@@ -261,9 +268,10 @@ export default Sentry.wrap(function RootLayout() {
                 </ThemeProvider>
                 <TourOverlay />
               </TourProvider>
-            </ToastProvider>
-          </AuthProvider>
-        </Provider>
+              </ToastProvider>
+            </AuthProvider>
+          </Provider>
+        </PostHogProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

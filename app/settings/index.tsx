@@ -13,6 +13,7 @@ import {
 import { ActionModal } from "@/components/ui/ActionModal";
 import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
+import { FeatureFlags, useFeatureFlag } from "@/lib/feature-flags";
 import { clearAuth, signOutUser } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearProfile } from "@/store/profileSlice";
@@ -32,6 +33,11 @@ export default function SettingsScreen() {
 
   const canChangePassword = hasPasswordAuth();
   const authProvider = getAuthProvider();
+
+  const showFounderCircle = useFeatureFlag(FeatureFlags.FOUNDER_CIRCLE);
+  const showReferralCode = useFeatureFlag(FeatureFlags.REFERRAL_CODE);
+
+  console.log({ showFounderCircle, showReferralCode });
 
   async function handleSignOut() {
     await dispatch(signOutUser());
@@ -64,24 +70,30 @@ export default function SettingsScreen() {
             label="Payment Method"
             onPress={() => router.push("/settings/payment-method" as any)}
           />
-          <SettingsDivider />
-          <SettingsRow
-            icon="qrcode"
-            label="Referral Code"
-            onPress={() => router.push("/settings/referral-code" as any)}
-            showChevron={false}
-            rightContent={<ReferralCodeBadge code={referralCode} />}
-          />
+          {showReferralCode && (
+            <>
+              <SettingsDivider />
+              <SettingsRow
+                icon="qrcode"
+                label="Referral Code"
+                onPress={() => router.push("/settings/referral-code" as any)}
+                showChevron={false}
+                rightContent={<ReferralCodeBadge code={referralCode} />}
+              />
+            </>
+          )}
         </SettingsCard>
       </View>
 
       {/* Founder Dashboard */}
-      <FounderCard
-        onViewBenefits={() => router.push("/settings/founder-circle" as any)}
-      />
+      {showFounderCircle && (
+        <FounderCard
+          onViewBenefits={() => router.push("/settings/founder-circle" as any)}
+        />
+      )}
 
       {/* Sales */}
-      <View className="gap-2 mt-6">
+      <View className={`gap-2 ${showFounderCircle ? "mt-6" : "mt-0"}`}>
         <SettingsSectionHeader title="Sales" />
         <OfferCodeCard
           code={profile?.offer_code_object?.code ?? "No code set"}
