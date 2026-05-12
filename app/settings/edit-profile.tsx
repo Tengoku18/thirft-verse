@@ -20,7 +20,8 @@ import { fetchUserProfile } from "@/store/profileSlice";
 import React, { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 
-const USERNAME_REGEX = /^[a-z0-9_]{3,30}$/;
+// DNS label rules: lowercase alphanumerics and hyphens, no leading/trailing hyphen, max 63 chars
+const USERNAME_REGEX = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/;
 const BIO_MAX = 500;
 
 const SELLER_TYPE_INFO = {
@@ -112,7 +113,7 @@ export default function EditProfileScreen() {
 
     const normalizedUsername = username.trim().toLowerCase();
     if (!USERNAME_REGEX.test(normalizedUsername)) {
-      setUsernameError("3–30 characters: letters, numbers, or underscores.");
+      setUsernameError("3–63 characters: lowercase letters, numbers, and hyphens only. No underscores or dots.");
       hasError = true;
     } else {
       setUsernameError("");

@@ -21,6 +21,7 @@ import {
   updateUserProfile,
 } from "@/lib/database-helpers";
 
+import { FeatureFlags, useFeatureFlagRaw } from "@/lib/feature-flags";
 import { supabase } from "@/lib/supabase";
 import {
   SignupStep4FormData,
@@ -47,7 +48,7 @@ const CONTENT = {
       "Share your thrift story, style aesthetic, and shipping info...",
     bioHint: "Your bio is the first thing buyers see. Share your thrift story!",
     usernameLabel: "STORE USERNAME",
-    usernamePlaceholder: "eco_warrior_99",
+    usernamePlaceholder: "eco-warrior-99",
     buttonLabel: "Next Step",
   },
   closet: {
@@ -68,6 +69,7 @@ export default function SignupStep4Screen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
+  const referralFlag = useFeatureFlagRaw(FeatureFlags.REFERRAL_CODE);
 
   const handleBack = () => {
     // Decrement step and navigate to previous step
@@ -233,7 +235,7 @@ export default function SignupStep4Screen() {
       headerTitle="Store Details"
       onBack={handleBack}
     >
-      <Stepper title={content.stepTitle} currentStep={4} totalSteps={6} />
+      <Stepper title={content.stepTitle} currentStep={4} totalSteps={referralFlag === true ? 6 : 5} />
 
       <View className="flex-1">
         <View className="px-6">

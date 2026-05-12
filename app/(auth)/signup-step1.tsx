@@ -9,6 +9,7 @@ import { Link } from "@/components/ui/Link/Link";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { useSignupFormRestore } from "@/hooks/useSignupFormRestore";
+import { FeatureFlags, useFeatureFlagRaw } from "@/lib/feature-flags";
 import { supabase } from "@/lib/supabase";
 import {
   UserDetailsFormData,
@@ -49,6 +50,7 @@ export default function SignupStep1Screen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const signupState = useAppSelector((state) => state.signup);
+  const referralFlag = useFeatureFlagRaw(FeatureFlags.REFERRAL_CODE);
   const profileState = useAppSelector((state) => state.profile);
 
   const handleBack = () => {
@@ -241,7 +243,7 @@ export default function SignupStep1Screen() {
       showScrollView={false}
       onBack={handleBack}
     >
-      <Stepper title="User Details" currentStep={1} totalSteps={6} />
+      <Stepper title="User Details" currentStep={1} totalSteps={referralFlag === true ? 6 : 5} />
 
       <ScrollView
         className="flex-1"

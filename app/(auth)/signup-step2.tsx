@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Stepper } from "@/components/ui/Stepper/Stepper";
 import { Typography } from "@/components/ui/Typography/Typography";
 import { useToast } from "@/contexts/ToastContext";
+import { FeatureFlags, useFeatureFlagRaw } from "@/lib/feature-flags";
 import { supabase } from "@/lib/supabase";
 import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "expo-router";
@@ -16,6 +17,7 @@ import { ScrollView, TextInput, View } from "react-native";
 export default function SignupStep2Screen() {
   const router = useRouter();
   const signupState = useAppSelector((state) => state.signup);
+  const referralFlag = useFeatureFlagRaw(FeatureFlags.REFERRAL_CODE);
 
   const toast = useToast();
   // Use Redux draft email if available, otherwise fall back to the authenticated session
@@ -180,7 +182,7 @@ export default function SignupStep2Screen() {
       showScrollView={false}
       onBack={handleBack}
     >
-      <Stepper title="Verify Email" currentStep={2} totalSteps={6} />
+      <Stepper title="Verify Email" currentStep={2} totalSteps={referralFlag === true ? 6 : 5} />
 
       <View className="flex-1">
         <ScrollView
