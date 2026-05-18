@@ -208,7 +208,7 @@ export const StoreQRModal: React.FC<StoreQRModalProps> = ({
                 className="flex-1 flex-row items-center justify-center py-4 rounded-2xl"
                 style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
               >
-                <CopyIcon width={14} height={16} />
+                <CopyIcon width={14} height={16} color="#FFFFFF" />
                 <Typography
                   variation="label"
                   style={{ color: "#FFFFFF", fontSize: 14, marginLeft: 8 }}

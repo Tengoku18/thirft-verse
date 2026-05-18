@@ -1,6 +1,5 @@
 import { ChevronRightIcon, SearchIcon } from "@/components/icons";
 import CheckIcon from "@/components/icons/CheckIcon";
-import { SearchInput } from "@/components/ui/SearchInput";
 import { Colors, INPUT_COLORS } from "@/constants/theme";
 import { BlurView } from "expo-blur";
 import React, { useRef, useState } from "react";
@@ -16,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SearchInput } from "../SearchInput";
 import Typography from "../Typography";
 
 export type SelectVariant = "default" | "error" | "disabled";
@@ -80,6 +80,8 @@ export function Select({
     setSearchQuery("");
   };
 
+  const showSearch = searchable && options.length > 5;
+
   const filteredOptions = options.filter((option) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase().trim();
@@ -98,7 +100,7 @@ export function Select({
     return (
       <TouchableOpacity
         onPress={() => handleSelect(option.value)}
-        className="py-4 px-4 rounded-xl my-1 flex-row items-center justify-between"
+        className="py-4 px-4 rounded-xl my-1  flex-row items-center justify-between"
         style={{
           backgroundColor: isSelected
             ? "rgba(212, 163, 115, 0.15)"
@@ -209,23 +211,25 @@ export function Select({
               onPress={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <View className="px-6 py-4">
-                <View className="py-4 border-b border-gray-100 mb-4">
+              <View className="px-6">
+                <View className={`py-4 border-b border-gray-100`}>
                   <Typography variation="h2" className="font-heading-bold">
                     {modalTitle || label || "Select an option"}
                   </Typography>
                 </View>
 
                 {/* Search */}
-                {searchable && options.length > 5 && (
-                  <SearchInput
-                    ref={searchInputRef}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    placeholder={searchPlaceholder}
-                    clearable
-                    onClear={() => searchInputRef.current?.focus()}
-                  />
+                {showSearch && (
+                  <View className="py-4">
+                    <SearchInput
+                      ref={searchInputRef}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      placeholder={searchPlaceholder}
+                      clearable
+                      onClear={() => searchInputRef.current?.focus()}
+                    />
+                  </View>
                 )}
               </View>
 
@@ -234,9 +238,9 @@ export function Select({
                 data={filteredOptions}
                 renderItem={renderOption}
                 keyExtractor={(item) => item.value}
+                // className="bg-red-500"
                 contentContainerStyle={{
                   paddingHorizontal: 16,
-                  paddingVertical: 8,
                   flexGrow: 1,
                 }}
                 keyboardShouldPersistTaps="handled"

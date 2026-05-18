@@ -1,8 +1,8 @@
-import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
 import { GearIcon } from "@/components/icons";
 import { TabScreenLayout } from "@/components/layouts/TabScreenLayout";
 import { TAB_ICON_BTN_STYLE } from "@/components/navigation/TabHeader";
 import {
+  ProfileScreenSkeleton,
   StoreProductGrid,
   StoreProfileActions,
   StoreProfileHeader,
@@ -35,10 +35,9 @@ export default function ProfileV2Screen() {
     }
     try {
       dispatch(fetchUserProfile(user.id));
-      // Fetch all products without status filter
       const result = await getProductsByStoreId({
         storeId: user.id,
-        limit: 1000, // Fetch all products
+        limit: 1000,
       });
       setAllProducts(result.data ?? []);
     } catch (e) {
@@ -48,7 +47,6 @@ export default function ProfileV2Screen() {
     }
   }, [user, dispatch]);
 
-  // Filter products based on active tab
   const products = allProducts.filter((product) => {
     if (activeTab === "active") {
       return product.status === "available";
@@ -83,21 +81,8 @@ export default function ProfileV2Screen() {
   );
 
   if (loading) {
-    return (
-      <TabScreenLayout
-        title="Profile"
-        headerVariant="light"
-        scrollable={false}
-        rightComponent={settingsButton}
-      >
-        <FullScreenLoader />
-      </TabScreenLayout>
-    );
+    return <ProfileScreenSkeleton rightComponent={settingsButton} />;
   }
-
-  // const salesCount = (profile?.revenue as any)?.confirmedAmount
-  //   ? Math.floor((profile?.revenue as any).confirmedAmount / 500)
-  //   : 0;
 
   return (
     <TabScreenLayout

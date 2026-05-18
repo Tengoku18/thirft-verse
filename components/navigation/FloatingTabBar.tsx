@@ -2,12 +2,7 @@ import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import React from "react";
-import {
-  Animated,
-  Platform,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Animated, Platform, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const CENTER_TAB_INDEX = 2;
@@ -101,7 +96,11 @@ function CenterTabButton({
           }}
         />
         <View style={{ zIndex: 1 }}>
-          {options.tabBarIcon?.({ focused: isFocused, color: "#FFFFFF", size: 24 })}
+          {options.tabBarIcon?.({
+            focused: isFocused,
+            color: "#FFFFFF",
+            size: 24,
+          })}
         </View>
       </View>
     </TouchableOpacity>
@@ -157,7 +156,9 @@ function TabButton({
         />
 
         {/* Inactive icon (dark color) — fades out as tab activates */}
-        <Animated.View style={{ position: "absolute", opacity: inverseProgress }}>
+        <Animated.View
+          style={{ position: "absolute", opacity: inverseProgress }}
+        >
           {options.tabBarIcon?.({ focused: false, color: "#3B2F2F", size: 18 })}
         </Animated.View>
 
@@ -177,7 +178,8 @@ export function FloatingTabBar({
   position,
 }: BottomTabBarProps & { position?: AnimatedPosition }) {
   const insets = useSafeAreaInsets();
-  const bottomPadding = insets.bottom + 16;
+  const bottomPadding =
+    Platform.OS === "ios" ? insets.bottom : insets.bottom + 16;
 
   const visibleItems = state.routes
     .map((route, stateIndex) => ({ route, stateIndex }))
@@ -271,7 +273,10 @@ export function FloatingTabBar({
           >
             {leftItems.map(({ route, stateIndex }) => {
               const { options } = descriptors[route.key];
-              const { isFocused, onPress, onLongPress } = buildHandlers(route, stateIndex);
+              const { isFocused, onPress, onLongPress } = buildHandlers(
+                route,
+                stateIndex,
+              );
               return (
                 <TabButton
                   key={route.key}
@@ -287,7 +292,10 @@ export function FloatingTabBar({
             <View style={{ flex: 1 }} />
             {rightItems.map(({ route, stateIndex }) => {
               const { options } = descriptors[route.key];
-              const { isFocused, onPress, onLongPress } = buildHandlers(route, stateIndex);
+              const { isFocused, onPress, onLongPress } = buildHandlers(
+                route,
+                stateIndex,
+              );
               return (
                 <TabButton
                   key={route.key}

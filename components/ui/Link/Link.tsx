@@ -2,7 +2,7 @@ import { Typography } from "@/components/ui/Typography/Typography";
 import type { TypographyVariation } from "@/components/ui/Typography/Typography.types";
 import { Link as ExpoLink } from "expo-router";
 import React from "react";
-import { Pressable, StyleProp, ViewStyle } from "react-native";
+import { Linking, Pressable, StyleProp, ViewStyle } from "react-native";
 
 export type LinkVariant = "primary" | "secondary" | "destructive";
 export type LinkType = "internal" | "external";
@@ -95,10 +95,20 @@ export function Link({
   const textClass = className || styles.text;
 
   if (type === "external") {
+    const handleExternalPress = async () => {
+      onPress?.();
+      if (!href) return;
+      try {
+        await Linking.openURL(href);
+      } catch (error) {
+        console.warn("Failed to open external link:", href, error);
+      }
+    };
+
     return (
       <Pressable
         style={style}
-        onPress={onPress}
+        onPress={handleExternalPress}
         disabled={disabled}
         accessible={true}
         accessibilityRole="link"

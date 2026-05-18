@@ -1,8 +1,10 @@
 import { RefreshScrollView } from "@/components/atoms/RefreshScrollView";
 import {
+  BuyerHomeView,
   HomeBrowseSection,
   HomeExploreSearchBar,
   HomeGreetingHeader,
+  HomeModeToggle,
   HomeRecentOrders,
   RevenueOverview,
   StorefrontCard,
@@ -78,16 +80,21 @@ export default function HomeScreen() {
   const unreadCount = useAppSelector(
     (state) => state.notifications.unreadCount,
   );
+  const homeMode = useAppSelector((state) => state.ui.homeMode);
+  const uiHydrated = useAppSelector((state) => state.ui.hydrated);
 
   const [recentOrders, setRecentOrders] = useState<OrderData[]>([]);
   const [weeklyData, setWeeklyData] = useState<WeeklyData>(initialWeekly);
-  const [loading, setLoading] = useState(true);
 
   const loadDashboardData = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
+
+    // Wait until we know which mode the user is in (avoids a flash of seller
+    // content for users who persisted into buyer mode).
+    if (!uiHydrated) return;
+
+    // Skip seller-only data fetches while the user is viewing buyer home.
+    if (homeMode !== "seller") return;
 
     try {
       dispatch(fetchUserProfile(user.id));
@@ -148,10 +155,8 @@ export default function HomeScreen() {
       setWeeklyData(calculateWeeklyData(orderItems));
     } catch (error) {
       console.error("Error loading home data:", error);
-    } finally {
-      setLoading(false);
     }
-  }, [user, dispatch]);
+  }, [user, dispatch, homeMode, uiHydrated]);
 
   useEffect(() => {
     loadDashboardData();
@@ -193,7 +198,10 @@ export default function HomeScreen() {
     ? getProfileImageUrl(profile.profile_image)
     : null;
 
-  if (loading) {
+  // Only block the very first paint until we know which mode to render. After
+  // that, data fetches happen silently and the UI stays responsive — toggling
+  // modes never shows a full-screen loader.
+  if (!uiHydrated) {
     return (
       <SafeAreaView
         className="flex-1"
@@ -220,35 +228,43 @@ export default function HomeScreen() {
           unreadCount={unreadCount}
         />
 
-        <View ref={searchBarRef} collapsable={false}>
-          <HomeExploreSearchBar />
-        </View>
+        <HomeModeToggle />
 
-        {profile?.store_username && (
-          <StorefrontCard
-            storeUsername={profile.store_username}
-            storeName={profile.name || profile.store_username}
-          />
+        {homeMode === "buyer" ? (
+          <BuyerHomeView />
+        ) : (
+          <>
+            <View ref={searchBarRef} collapsable={false}>
+              <HomeExploreSearchBar />
+            </View>
+
+            {profile?.store_username && (
+              <StorefrontCard
+                storeUsername={profile.store_username}
+                storeName={profile.name || profile.store_username}
+              />
+            )}
+
+            <RevenueOverview
+              pendingAmount={revenue?.pendingAmount || 0}
+              confirmedAmount={revenue?.confirmedAmount || 0}
+              withdrawnAmount={revenue?.withdrawnAmount || 0}
+            />
+
+            <WeeklyPerformanceCard
+              data={weeklyData.data}
+              labels={weeklyData.labels}
+              highlightIndex={weeklyData.highlightIndex}
+              growthPercent={weeklyData.growthPercent}
+            />
+
+            <HomeRecentOrders orders={recentOrders} />
+
+            <View ref={browseSectionRef} collapsable={false}>
+              <HomeBrowseSection />
+            </View>
+          </>
         )}
-
-        <RevenueOverview
-          pendingAmount={revenue?.pendingAmount || 0}
-          confirmedAmount={revenue?.confirmedAmount || 0}
-          withdrawnAmount={revenue?.withdrawnAmount || 0}
-        />
-
-        <WeeklyPerformanceCard
-          data={weeklyData.data}
-          labels={weeklyData.labels}
-          highlightIndex={weeklyData.highlightIndex}
-          growthPercent={weeklyData.growthPercent}
-        />
-
-        <HomeRecentOrders orders={recentOrders} />
-
-        <View ref={browseSectionRef} collapsable={false}>
-          <HomeBrowseSection />
-        </View>
       </RefreshScrollView>
     </SafeAreaView>
   );

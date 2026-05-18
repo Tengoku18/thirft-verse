@@ -13,6 +13,7 @@ import { getProductImageUrl } from "@/lib/storage-helpers";
 import { uploadImageToStorage } from "@/lib/upload-helpers";
 import {
   PRODUCT_CATEGORIES,
+  PRODUCT_CONDITIONS,
   ProductFormData,
   productSchema,
 } from "@/lib/validations/product";
@@ -57,6 +58,7 @@ export function AddProductForm() {
         "cover_image",
         "title",
         "category",
+        "condition",
         "price",
         "availability_count",
         "description",
@@ -111,6 +113,7 @@ export function AddProductForm() {
       description: "",
       price: undefined,
       category: "",
+      condition: "",
       availability_count: undefined,
       cover_image: "",
       other_images: [],
@@ -120,6 +123,12 @@ export function AddProductForm() {
   const categoryOptions = PRODUCT_CATEGORIES.map((cat) => ({
     label: cat,
     value: cat,
+  }));
+
+  const conditionOptions = PRODUCT_CONDITIONS.map((c) => ({
+    label: c.label,
+    value: c.value,
+    description: c.description,
   }));
 
   const pickCoverImage = async () => {
@@ -234,11 +243,11 @@ export function AddProductForm() {
           description: data.description,
           price: data.price,
           category: data.category,
+          condition: data.condition,
           availability_count: data.availability_count,
           store_id: user.id,
           cover_image: coverUpload.url,
           other_images: uploadedOthers,
-
         }),
       ).unwrap();
 
@@ -299,7 +308,7 @@ export function AddProductForm() {
 
             {/* Form fields */}
             <View
-              className="px-8 gap-4"
+              className="px-6 gap-4"
               onLayout={(e) => {
                 formViewY.current = e.nativeEvent.layout.y;
               }}
@@ -321,6 +330,18 @@ export function AddProductForm() {
                   placeholder="Select Category"
                   options={categoryOptions}
                   modalTitle="Select Category"
+                />
+              </View>
+
+              <View onLayout={onFieldLayout("condition")}>
+                <RHFSelect
+                  control={control}
+                  name="condition"
+                  label="Condition"
+                  placeholder="Select item condition"
+                  options={conditionOptions}
+                  modalTitle="How worn is this item?"
+                  searchable={false}
                 />
               </View>
 

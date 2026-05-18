@@ -96,7 +96,9 @@ export function RHFInput<
           inputClassName={inputClassName}
           labelClassName={labelClassName}
           errorMessage={error?.message}
-          value={value ?? ""}
+          // Coerce to string so numeric form values (e.g. price pre-filled
+          // in edit mode) don't crash the underlying TextInput.
+          value={value === undefined || value === null ? "" : String(value)}
           onChangeText={onChange}
           onBlur={onBlur}
           secureTextEntry={secureTextEntry}

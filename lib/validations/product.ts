@@ -13,6 +13,40 @@ export const PRODUCT_CATEGORIES = [
   'Other',
 ] as const;
 
+// Product condition tiers - Thriftverse listing policy.
+// `description` is surfaced inside the Select modal so sellers know
+// exactly which tier to pick.
+export const PRODUCT_CONDITIONS = [
+  {
+    value: "brand_new",
+    label: "Brand New (with tags)",
+    description:
+      "Unworn and unused, with the original tags still attached.",
+  },
+  {
+    value: "like_new",
+    label: "Like New",
+    description:
+      "No tags, but shows no signs of wear — looks and feels brand new.",
+  },
+  {
+    value: "gently_used",
+    label: "Gently Used",
+    description:
+      "Worn a few times with only minor signs of wear. Still in great shape.",
+  },
+  {
+    value: "thrifted_chic",
+    label: "Thrifted Chic",
+    description:
+      "Visible character or vintage wear that adds to its unique charm.",
+  },
+] as const;
+
+export const PRODUCT_CONDITION_VALUES = PRODUCT_CONDITIONS.map(
+  (c) => c.value,
+) as unknown as string[];
+
 // Product form schema - matches admin structure
 export const productSchema = yup.object().shape({
   title: yup
@@ -42,6 +76,11 @@ export const productSchema = yup.object().shape({
       PRODUCT_CATEGORIES as unknown as string[],
       'Invalid category selected'
     ),
+
+  condition: yup
+    .string()
+    .required('Please select the item condition')
+    .oneOf(PRODUCT_CONDITION_VALUES, 'Invalid condition selected'),
 
   availability_count: yup
     .number()

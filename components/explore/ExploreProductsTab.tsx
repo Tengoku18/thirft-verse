@@ -1,10 +1,11 @@
 import { ExploreCategoryChips } from "@/components/explore/ExploreCategoryChips";
 import { ExploreFilterRow } from "@/components/explore/ExploreFilterRow";
-import { ExploreProductCard } from "@/components/explore/ExploreProductCard";
-import { ExploreProductSkeleton } from "@/components/explore/ExploreProductSkeleton";
+import ProductCard from "@/components/molecules/ProductCard";
+import { ProductCardGridSkeleton } from "@/components/molecules/ProductCardSkeleton";
 import { ExploreSearchBar } from "@/components/explore/ExploreSearchBar";
 import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { getAllAvailableProducts } from "@/lib/api-helpers";
 import {
   filterProductsByAvailability,
@@ -70,19 +71,8 @@ function ProductsListHeader({
 
 function ProductsEmptyLoading() {
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        flexWrap: "wrap",
-        paddingHorizontal: 16,
-        gap: 10,
-      }}
-    >
-      {[0, 1, 2, 3, 4, 5].map((i) => (
-        <View key={i} style={{ width: "47%" }}>
-          <ExploreProductSkeleton />
-        </View>
-      ))}
+    <View style={{ paddingHorizontal: 16 }}>
+      <ProductCardGridSkeleton count={6} variant="grid" />
     </View>
   );
 }
@@ -106,6 +96,8 @@ function ProductsEmptyState() {
 
 export function ExploreProductsTab() {
   const { user } = useAuth();
+  const router = useRouter();
+  const params = useLocalSearchParams<{ category?: string }>();
   // Use stable primitive (string) so fetchPage doesn't recreate on every render
   const userId = user?.id;
 
@@ -114,8 +106,18 @@ export function ExploreProductsTab() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState(""); // set by ExploreSearchBar's onDebouncedChange
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() =>
+    params.category ? [params.category] : [],
+  );
   const [sortBy, setSortBy] = useState<ProductSortOption>("newest");
+
+  // Sync category filter when the URL param changes (e.g. user taps another
+  // category tile from the buyer home while already on /explore).
+  useEffect(() => {
+    if (params.category) {
+      setSelectedCategories([params.category]);
+    }
+  }, [params.category]);
 
   const pageRef = useRef(0);
   const fetchingRef = useRef(false);
@@ -229,10 +231,14 @@ export function ExploreProductsTab() {
   const renderItem = useCallback(
     ({ item }: { item: ProductWithStore }) => (
       <View style={{ width: "48%" }}>
-        <ExploreProductCard product={item} />
+        <ProductCard
+          product={item}
+          variant="grid"
+          onPress={() => router.push(`/product/${item.id}` as any)}
+        />
       </View>
     ),
-    [],
+    [router],
   );
 
   return (

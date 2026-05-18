@@ -1,12 +1,13 @@
 import ShippingBoxIcon from "@/components/icons/ShippingBoxIcon";
 import ProductCard from "@/components/molecules/ProductCard";
-import { ProductCardSkeleton } from "@/components/molecules/ProductCardSkeleton";
+import { ProductCardGridSkeleton } from "@/components/molecules/ProductCardSkeleton";
 import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { getAllAvailableProducts } from "@/lib/api-helpers";
 import { filterProductsByAvailability, filterProductsByVerification } from "@/lib/explore-helpers";
 import { ProductWithStore } from "@/lib/types/database";
 import { useRouter } from "expo-router";
+
 import React, { useEffect, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 
@@ -117,19 +118,21 @@ export const HomeBrowseSection: React.FC = () => {
         </View>
       ) : (
         <>
-          <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-            {loading
-              ? [0, 1, 2, 3].map((i) => (
-                  <View key={i} style={{ width: "47%" }}>
-                    <ProductCardSkeleton />
-                  </View>
-                ))
-              : products.map((product) => (
-                  <View key={product.id} style={{ width: "47%" }}>
-                    <ProductCard product={product} />
-                  </View>
-                ))}
-          </View>
+          {loading ? (
+            <ProductCardGridSkeleton count={4} variant="elevated" gap={12} />
+          ) : (
+            <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+              {products.map((product) => (
+                <View key={product.id} style={{ width: "47%" }}>
+                  <ProductCard
+                    product={product}
+                    variant="elevated"
+                    onPress={() => router.push(`/product/${product.id}` as any)}
+                  />
+                </View>
+              ))}
+            </View>
+          )}
 
           {!loading && (
             <TouchableOpacity

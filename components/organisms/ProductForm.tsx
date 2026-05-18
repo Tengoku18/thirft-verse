@@ -1,59 +1,83 @@
-import { FormButton } from "@/components/atoms/FormButton";
-import { FormInput } from "@/components/atoms/FormInput";
-import { FormPicker } from "@/components/atoms/FormPicker";
-import { FormTextarea } from "@/components/atoms/FormTextarea";
-import { CompleteProfileModal } from "@/components/molecules/CompleteProfileModal";
+import { Button } from "@/components/ui/Button";
+import {
+  RHFInput,
+  RHFSelect,
+  RHFTextarea,
+} from "@/components/forms/ReactHookForm";
 import { ConfirmModal } from "@/components/molecules/ConfirmModal";
-import { ProductSuccessModal } from "@/components/molecules/ProductSuccessModal";
+import { ProductPhotoPicker } from "@/components/product";
 import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
 import { getProductImageUrl } from "@/lib/storage-helpers";
-import { Product } from "@/lib/types/database";
+import { Product, ProductCondition } from "@/lib/types/database";
 import { uploadImageToStorage } from "@/lib/upload-helpers";
 import {
   PRODUCT_CATEGORIES,
+  PRODUCT_CONDITIONS,
   ProductFormData,
   productSchema,
 } from "@/lib/validations/product";
-import { fetchUserProfile } from "@/store";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  createProduct as createProductAction,
-  updateProduct as updateProductAction,
-} from "@/store/productsSlice";
+import { useAppDispatch } from "@/store/hooks";
+import { updateProduct as updateProductAction } from "@/store/productsSlice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as ImagePicker from "expo-image-picker";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
-import { Controller, FieldError, useForm } from "react-hook-form";
-import { AddPhotoIcon, CameraIcon, XIcon } from "@/components/icons";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import {
   Alert,
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  TouchableOpacity,
   View,
 } from "react-native";
 
 interface ProductFormProps {
-  mode: "create" | "edit";
-  product?: Product | null;
+  product: Product | null;
 }
 
-export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
+const RsPrefix = (
+  <Typography variation="body" intent="muted">
+    Rs.
+  </Typography>
+);
+
+const categoryOptions = PRODUCT_CATEGORIES.map((cat) => ({
+  label: cat,
+  value: cat,
+}));
+
+const conditionOptions = PRODUCT_CONDITIONS.map((c) => ({
+  label: c.label,
+  value: c.value,
+  description: c.description,
+}));
+
+export const ProductForm: React.FC<ProductFormProps> = ({ product }) => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user } = useAuth();
   const toast = useToast();
-  const profile = useAppSelector((state) => state.profile.profile);
   const [loading, setLoading] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  // Track keyboard visibility
+  // For edit mode an image can be a local URI (newly picked) or an existing URL.
+  const [coverImageUri, setCoverImageUri] = useState<string | null>(null);
+  const [otherImageUris, setOtherImageUris] = useState<string[]>([]);
+
+  // Track which images are new (local) vs existing (remote URL) to avoid
+  // re-uploading images that are already in storage.
+  const [isNewCoverImage, setIsNewCoverImage] = useState(false);
+  const [newOtherImageIndices, setNewOtherImageIndices] = useState<Set<number>>(
+    new Set(),
+  );
+
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingData, setPendingData] = useState<ProductFormData | null>(null);
+
+  // Track keyboard visibility (controls scroll padding)
   useEffect(() => {
     const showEvent =
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
@@ -73,43 +97,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
     };
   }, []);
 
-  // Refresh profile when screen comes into focus (e.g., after updating payment details)
-  useFocusEffect(
-    useCallback(() => {
-      if (user?.id && mode === "create") {
-        dispatch(fetchUserProfile(user.id));
-      }
-    }, [user?.id, mode, dispatch]),
-  );
-
-  // For create mode: store local URIs
-  // For edit mode: can be local URI (new image) or existing URL
-  const [coverImageUri, setCoverImageUri] = useState<string | null>(null);
-  const [otherImageUris, setOtherImageUris] = useState<string[]>([]);
-
-  // Track which images are new (local) vs existing (URLs)
-  const [isNewCoverImage, setIsNewCoverImage] = useState(false);
-  const [newOtherImageIndices, setNewOtherImageIndices] = useState<Set<number>>(
-    new Set(),
-  );
-
-  // Success modal state (for create mode)
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [createdProduct, setCreatedProduct] = useState<{
-    id: string;
-    title: string;
-    price: number;
-    cover_image: string;
-  } | null>(null);
-
-  // Confirm modal state (for edit mode)
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [pendingData, setPendingData] = useState<ProductFormData | null>(null);
-
-  // Complete profile modal state (for create mode)
-  const [showCompleteProfileModal, setShowCompleteProfileModal] =
-    useState(false);
-
   const {
     control,
     handleSubmit,
@@ -123,43 +110,36 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       description: "",
       price: undefined,
       category: "",
+      condition: "",
       availability_count: undefined,
       cover_image: "",
       other_images: [] as string[],
     },
   });
 
-  console.log("user", user);
-
-  // Initialize form with product data in edit mode
+  // Initialize the form with the product being edited
   useEffect(() => {
-    if (mode === "edit" && product) {
-      reset({
-        title: product.title,
-        description: product.description || "",
-        price: product.price,
-        category: product.category,
-        availability_count: product.availability_count,
-        cover_image: product.cover_image,
-        other_images: product.other_images || [],
-      });
-      setCoverImageUri(product.cover_image);
-      setOtherImageUris(product.other_images || []);
-      setIsNewCoverImage(false);
-      setNewOtherImageIndices(new Set());
-    }
-  }, [mode, product]);
-
-  const categoryOptions = PRODUCT_CATEGORIES.map((cat) => ({
-    label: cat,
-    value: cat,
-  }));
+    if (!product) return;
+    reset({
+      title: product.title,
+      description: product.description || "",
+      price: product.price,
+      category: product.category,
+      condition: product.condition || "",
+      availability_count: product.availability_count,
+      cover_image: product.cover_image,
+      other_images: product.other_images || [],
+    });
+    setCoverImageUri(product.cover_image);
+    setOtherImageUris(product.other_images || []);
+    setIsNewCoverImage(false);
+    setNewOtherImageIndices(new Set());
+  }, [product, reset]);
 
   const pickCoverImage = async () => {
     try {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-
       if (status !== "granted") {
         Alert.alert(
           "Permission Required",
@@ -167,17 +147,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
         );
         return;
       }
-
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsEditing: true,
         quality: 0.8,
       });
-
       if (!result.canceled && result.assets[0]) {
         const uri = result.assets[0].uri;
         setCoverImageUri(uri);
-        setValue("cover_image", uri);
+        setValue("cover_image", uri, { shouldValidate: true });
         setIsNewCoverImage(true);
       }
     } catch (error) {
@@ -188,7 +166,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
 
   const pickAdditionalImages = async () => {
     const remainingSlots = 5 - otherImageUris.length;
-
     if (remainingSlots <= 0) {
       Alert.alert(
         "Limit Reached",
@@ -196,11 +173,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       );
       return;
     }
-
     try {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-
       if (status !== "granted") {
         Alert.alert(
           "Permission Required",
@@ -208,21 +183,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
         );
         return;
       }
-
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsMultipleSelection: true,
         selectionLimit: remainingSlots,
         quality: 0.8,
       });
-
       if (!result.canceled && result.assets.length > 0) {
         const selectedUris = result.assets.map((asset) => asset.uri);
         const newUris = [...otherImageUris, ...selectedUris];
         setOtherImageUris(newUris);
         setValue("other_images", newUris);
 
-        // Mark new images
         const newIndices = new Set(newOtherImageIndices);
         for (let i = otherImageUris.length; i < newUris.length; i++) {
           newIndices.add(i);
@@ -237,7 +209,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
 
   const removeCoverImage = () => {
     setCoverImageUri(null);
-    setValue("cover_image", "");
+    setValue("cover_image", "", { shouldValidate: true });
     setIsNewCoverImage(false);
   };
 
@@ -253,152 +225,31 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
     setNewOtherImageIndices(newIndices);
   };
 
-  const handleViewProduct = () => {
-    if (!createdProduct) return;
-    setShowSuccessModal(false);
-    reset();
-    setCoverImageUri(null);
-    setOtherImageUris([]);
-    router.push(`/product/${createdProduct.id}` as any);
-  };
+  const isLocalUri = (uri: string) =>
+    uri.startsWith("file://") ||
+    uri.startsWith("content://") ||
+    uri.startsWith("ph://");
 
-  const handleCloseSuccessModal = () => {
-    setShowSuccessModal(false);
-    reset();
-    setCoverImageUri(null);
-    setOtherImageUris([]);
-    setCreatedProduct(null);
-    router.push("/(tabs)/product");
-  };
+  const getDisplayUri = (uri: string) =>
+    isLocalUri(uri) ? uri : getProductImageUrl(uri);
 
-  // Helper to check if URI is a local file
-  const isLocalUri = (uri: string) => {
-    return (
-      uri.startsWith("file://") ||
-      uri.startsWith("content://") ||
-      uri.startsWith("ph://")
-    );
-  };
-
-  // Check if user has completed payment details
-  const hasPaymentDetails = () => {
-    return !!(
-      profile?.payment_username?.trim() && profile?.payment_qr_image?.trim()
-    );
-  };
-
-  const handleGoToEditProfile = () => {
-    setShowCompleteProfileModal(false);
-    router.push("/(tabs)/earnings");
-  };
-
-  const onSubmit = async (data: ProductFormData) => {
+  const onSubmit = (data: ProductFormData) => {
     if (!user) {
       Alert.alert("Authentication Required", "Please sign in to continue.");
       return;
     }
-
-    if (!data.cover_image) {
-      Alert.alert("Cover Image Required", "Please upload a cover image.");
-      return;
-    }
-
-    if (mode === "edit") {
-      // Show confirmation modal for edit
-      setPendingData(data);
-      setShowConfirmModal(true);
-    } else {
-      // Check payment details for create mode
-      if (!hasPaymentDetails()) {
-        setShowCompleteProfileModal(true);
-        return;
-      }
-      // Direct submit for create
-      await handleCreate(data);
-    }
-  };
-
-  const handleCreate = async (data: ProductFormData) => {
-    if (!user) return;
-
-    setLoading(true);
-
-    try {
-      // Upload cover image
-      const coverUploadResult = await uploadImageToStorage(
-        data.cover_image,
-        "products",
-        "products",
-      );
-
-      if (!coverUploadResult.success || !coverUploadResult.url) {
-        Alert.alert(
-          "Upload Error",
-          "Failed to upload cover image. Please try again.",
-        );
-        setLoading(false);
-        return;
-      }
-
-      // Upload additional images
-      const uploadedOtherImages: string[] = [];
-      for (const uri of data.other_images || []) {
-        if (uri) {
-          const uploadResult = await uploadImageToStorage(
-            uri,
-            "products",
-            "products",
-          );
-          if (uploadResult.success && uploadResult.url) {
-            uploadedOtherImages.push(uploadResult.url);
-          }
-        }
-      }
-
-      const productData = {
-        title: data.title,
-        description: data.description,
-        price: data.price,
-        category: data.category,
-        availability_count: data.availability_count,
-        store_id: user.id,
-        cover_image: coverUploadResult.url,
-        other_images: uploadedOtherImages,
-
-      };
-
-      // Use Redux action to create product
-      const createdProductResult = await dispatch(
-        createProductAction(productData),
-      ).unwrap();
-
-      setCreatedProduct({
-        id: createdProductResult.id,
-        title: data.title,
-        price: data.price,
-        cover_image: coverUploadResult.url,
-      });
-      setShowSuccessModal(true);
-    } catch (error: any) {
-      console.error("Error creating product:", error);
-      Alert.alert(
-        "Error",
-        error?.message || "Failed to create product. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
+    setPendingData(data);
+    setShowConfirmModal(true);
   };
 
   const handleConfirmUpdate = async () => {
     if (!pendingData || !user || !product) return;
 
     setLoading(true);
-
     try {
       let finalCoverImage = pendingData.cover_image;
 
-      // Upload new cover image if changed
+      // Upload a new cover image only if it changed
       if (isNewCoverImage && isLocalUri(pendingData.cover_image)) {
         const uploadResult = await uploadImageToStorage(
           pendingData.cover_image,
@@ -415,7 +266,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
         }
       }
 
-      // Process other images - upload new ones, keep existing URLs
+      // Upload only newly added additional images, keep existing URLs
       const finalOtherImages: string[] = [];
       for (let i = 0; i < (pendingData.other_images || []).length; i++) {
         const uri = pendingData.other_images![i];
@@ -433,9 +284,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
         }
       }
 
-      const isResubmit = product.verification_status === 'rejected';
+      const isResubmit = product.verification_status === "rejected";
 
-      // Use Redux action to update product
       await dispatch(
         updateProductAction({
           productId: product.id,
@@ -445,14 +295,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
             description: pendingData.description,
             price: pendingData.price,
             category: pendingData.category,
+            condition: pendingData.condition as ProductCondition,
             availability_count: pendingData.availability_count,
             cover_image: finalCoverImage,
             other_images: finalOtherImages,
             status:
               pendingData.availability_count > 0 ? "available" : "out_of_stock",
-            // Reset to pending review only if previously rejected
+            // Re-enter review only if the product was previously rejected
             ...(isResubmit && {
-              verification_status: 'pending',
+              verification_status: "pending",
               rejected_reason: null,
             }),
           },
@@ -460,7 +311,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
       ).unwrap();
 
       setShowConfirmModal(false);
-      toast.success(isResubmit ? "Product re-submitted for review" : "Product updated successfully");
+      toast.success(
+        isResubmit
+          ? "Product re-submitted for review"
+          : "Product updated successfully",
+      );
       router.back();
     } catch (error: any) {
       console.error("Error updating product:", error);
@@ -475,13 +330,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
     }
   };
 
-  // Get display URI for images (handle both local and remote URLs)
-  const getDisplayUri = (uri: string) => {
-    if (isLocalUri(uri)) {
-      return uri;
-    }
-    return getProductImageUrl(uri);
-  };
+  if (!product) return null;
+
+  const isRejected = product.verification_status === "rejected";
 
   return (
     <>
@@ -491,365 +342,112 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, product }) => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 20}
       >
         <ScrollView
-          className="flex-1 bg-white"
+          className="flex-1 bg-white "
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingBottom: isKeyboardVisible ? 40 : 120,
           }}
           keyboardShouldPersistTaps="handled"
         >
-          <View className="px-6 pt-4">
-            <Typography variation="body-sm" className="mb-3" style={{ fontSize: 13, fontWeight: "600" }}>
-              Cover Photo
-            </Typography>
-            <View
-              style={{
-                aspectRatio: 1.15,
-                borderRadius: 16,
-                overflow: "hidden",
-                backgroundColor: "#E5E7EB",
-                flex: 1,
-              }}
-            >
-              {coverImageUri ? (
-                <View style={{ flex: 1, position: "relative" }}>
-                  <Image
-                    source={{ uri: getDisplayUri(coverImageUri) }}
-                    style={{ width: "100%", height: "100%" }}
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    onPress={removeCoverImage}
-                    style={{
-                      position: "absolute",
-                      top: 12,
-                      right: 12,
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      backgroundColor: "rgba(59, 47, 47, 0.85)",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <XIcon width={16} height={16} color="#FFFFFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={pickCoverImage}
-                    style={{
-                      position: "absolute",
-                      bottom: 16,
-                      left: 16,
-                      backgroundColor: "rgba(0, 0, 0, 0.6)",
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 8,
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Typography
-                      variation="body-sm"
-                      style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "600" }}
-                    >
-                      Change Photo
-                    </Typography>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  onPress={pickCoverImage}
-                  style={{
-                    flex: 1,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View className="items-center">
-                    <AddPhotoIcon width={48} height={48} color="#9CA3AF" />
-                    <Typography
-                      variation="body-sm"
-                      className="mt-3"
-                      style={{ color: "#6B7280", fontSize: 16, fontWeight: "600" }}
-                    >
-                      Tap to add cover photo
-                    </Typography>
-                  </View>
-                </TouchableOpacity>
-              )}
-            </View>
+          <View className="px-6 pt-4 gap-4">
+            <ProductPhotoPicker
+              coverUri={coverImageUri ? getDisplayUri(coverImageUri) : null}
+              additionalUris={otherImageUris.map(getDisplayUri)}
+              onPickCover={pickCoverImage}
+              onRemoveCover={removeCoverImage}
+              onPickAdditional={pickAdditionalImages}
+              onRemoveAdditional={removeAdditionalImage}
+              coverError={errors.cover_image?.message}
+            />
 
-            {/* Additional Photos Section */}
-            <View className="flex-row items-center justify-between my-3">
-              <Typography variation="body-sm" style={{ fontSize: 13, fontWeight: "600" }}>
-                Additional Photos
-              </Typography>
-              <Typography
-                variation="body-sm"
-                style={{
-                  color: otherImageUris.length >= 5 ? "#EF4444" : "#6B7280",
-                  fontSize: 12,
-                  fontWeight: "600",
-                }}
-              >
-                {otherImageUris.length}/5
-              </Typography>
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                gap: 10,
-                marginBottom: 24,
-              }}
-            >
-              {otherImageUris.map((uri, index) => (
-                <View
-                  key={index}
-                  style={{
-                    width: 90,
-                    height: 90,
-                    borderRadius: 10,
-                    overflow: "hidden",
-                    position: "relative",
-                  }}
-                >
-                  <Image
-                    source={{ uri: getDisplayUri(uri) }}
-                    style={{ width: "100%", height: "100%" }}
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    onPress={() => removeAdditionalImage(index)}
-                    style={{
-                      position: "absolute",
-                      top: 6,
-                      right: 6,
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      backgroundColor: "rgba(59, 47, 47, 0.85)",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <XIcon width={12} height={12} color="#FFFFFF" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-
-              {otherImageUris.length < 5 && (
-                <TouchableOpacity
-                  onPress={pickAdditionalImages}
-                  style={{
-                    width: 90,
-                    height: 90,
-                    borderRadius: 10,
-                    borderWidth: 2,
-                    borderStyle: "dashed",
-                    borderColor: "#D1D5DB",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    backgroundColor: "#FAFAFA",
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View className="items-center">
-                    <CameraIcon width={24} height={24} color="#9CA3AF" />
-                    <Typography variation="caption" className="mt-1" style={{ color: "#9CA3AF" }}>
-                      Add
-                    </Typography>
-                  </View>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* Product Name */}
-            <Controller
+            <RHFInput
               control={control}
               name="title"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <FormInput
-                  label="Product name"
-                  placeholder="Eg: Jeans"
-                  required
-                  value={value}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  error={errors.title?.message}
-                  autoCapitalize="words"
-                />
-              )}
+              label="Product name"
+              placeholder="Eg: Jeans"
+              autoCapitalize="words"
             />
 
-            {/* Description */}
-            <Controller
-              control={control}
-              name="description"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <FormTextarea
-                  label="Description"
-                  placeholder="Explain your product here..."
-                  required
-                  value={value}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  error={errors.description?.message}
-                  maxLength={1000}
-                />
-              )}
-            />
-
-            {/* Category */}
-            <Controller
+            <RHFSelect
               control={control}
               name="category"
-              render={({ field: { onChange, value } }) => (
-                <FormPicker
-                  label="Category"
-                  placeholder="Select a category"
-                  required
-                  value={value}
-                  onChange={onChange}
-                  options={categoryOptions}
-                  error={errors.category?.message}
-                />
-              )}
+              label="Category"
+              placeholder="Select a category"
+              options={categoryOptions}
+              modalTitle="Select Category"
             />
 
-            {/* Pricing */}
-            <Controller
+            <RHFSelect
               control={control}
-              name="price"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <FormInput
-                  label="Pricing"
-                  placeholder="Enter price in NPR"
-                  required
-                  value={value ? value.toString() : ""}
-                  onBlur={onBlur}
-                  onChangeText={(text) => {
-                    // Only allow numbers and decimal point
-                    const cleanedText = text.replace(/[^0-9.]/g, "");
-                    // Prevent multiple decimal points
-                    const parts = cleanedText.split(".");
-                    const sanitizedText =
-                      parts.length > 2
-                        ? parts[0] + "." + parts.slice(1).join("")
-                        : cleanedText;
-                    const numValue = parseFloat(sanitizedText);
-                    onChange(isNaN(numValue) ? undefined : numValue);
-                  }}
-                  error={errors.price?.message}
-                  keyboardType="numeric"
-                />
-              )}
+              name="condition"
+              label="Condition"
+              placeholder="Select item condition"
+              options={conditionOptions}
+              modalTitle="How worn is this item?"
+              searchable={false}
             />
 
-            {/* Quantity */}
-            <Controller
-              control={control}
-              name="availability_count"
-              render={({ field: { onChange, onBlur, value } }) => (
-                <FormInput
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <RHFInput
+                  control={control}
+                  name="price"
+                  label="Price (NPR)"
+                  placeholder="0.00"
+                  keyboardType="decimal-pad"
+                  leftIcon={RsPrefix}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <RHFInput
+                  control={control}
+                  name="availability_count"
                   label="Quantity"
-                  placeholder="Enter available quantity"
-                  required
-                  value={value ? value.toString() : ""}
-                  onBlur={onBlur}
-                  onChangeText={(text) => {
-                    // Only allow whole numbers
-                    const cleanedText = text.replace(/[^0-9]/g, "");
-                    const numValue = parseInt(cleanedText);
-                    onChange(isNaN(numValue) ? undefined : numValue);
-                  }}
-                  error={errors.availability_count?.message}
+                  placeholder="1"
                   keyboardType="number-pad"
                 />
-              )}
+              </View>
+            </View>
+            <RHFTextarea
+              control={control}
+              name="description"
+              label="Description"
+              placeholder="Explain your product here..."
+              maxLength={1000}
+              numberOfLines={4}
             />
 
-            {/* Error Summary */}
-            {Object.keys(errors).length > 0 && (
-              <View className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-6">
-                <Typography className="mb-2" style={{ color: "#EF4444", fontWeight: "600" }}>
-                  Please fix the following errors:
-                </Typography>
-                {Object.entries(errors).map(([field, error]) => (
-                  <Typography variation="body"
-                    key={field}
-                    style={{ color: "#DC2626", fontSize: 13 }}
-                  >
-                    • {(error as FieldError)?.message}
-                  </Typography>
-                ))}
-              </View>
-            )}
-
-            {/* Submit Button */}
-            <FormButton
-              title={
-                loading
-                  ? mode === "edit"
-                    ? "Updating..."
-                    : "Posting..."
-                  : mode === "edit"
-                    ? "Update Product"
-                    : "Post"
-              }
-              onPress={handleSubmit(onSubmit)}
-              loading={loading}
+            <Button
+              label="Update Product"
               variant="primary"
+              fullWidth
+              onPress={handleSubmit(onSubmit)}
+              isLoading={loading}
+              disabled={loading}
             />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Success Modal (Create mode) */}
-      {mode === "create" && (
-        <ProductSuccessModal
-          visible={showSuccessModal}
-          product={createdProduct}
-          storeUsername={profile?.store_username}
-          onShare={() => {}}
-          onViewProduct={handleViewProduct}
-          onClose={handleCloseSuccessModal}
-        />
-      )}
-
-      {/* Confirm Update Modal (Edit mode) */}
-      {mode === "edit" && (
-        <ConfirmModal
-          visible={showConfirmModal}
-          title={product?.verification_status === 'rejected' ? "Re-submit for Review" : "Update Product"}
-          message={
-            product?.verification_status === 'rejected'
-              ? "Your updates will re-submit this product for review. It will remain visible on your storefront but won't appear on the marketplace until approved."
-              : "Are you sure you want to save these changes? The updated product details will be visible to all buyers."
-          }
-          confirmText="Update"
-          cancelText="Cancel"
-          onConfirm={handleConfirmUpdate}
-          onCancel={() => {
-            setShowConfirmModal(false);
-            setPendingData(null);
-          }}
-          loading={loading}
-          variant="default"
-          icon="square.and.pencil"
-        />
-      )}
-
-      {/* Complete Profile Modal (Create mode - payment details required) */}
-      {mode === "create" && (
-        <CompleteProfileModal
-          visible={showCompleteProfileModal}
-          onGoToProfile={handleGoToEditProfile}
-          onCancel={() => setShowCompleteProfileModal(false)}
-        />
-      )}
+      <ConfirmModal
+        visible={showConfirmModal}
+        title={isRejected ? "Re-submit for Review" : "Update Product"}
+        message={
+          isRejected
+            ? "Your updates will re-submit this product for review. It will remain visible on your storefront but won't appear on the marketplace until approved."
+            : "Are you sure you want to save these changes? The updated product details will be visible to all buyers."
+        }
+        confirmText="Update"
+        cancelText="Cancel"
+        onConfirm={handleConfirmUpdate}
+        onCancel={() => {
+          setShowConfirmModal(false);
+          setPendingData(null);
+        }}
+        loading={loading}
+        variant="default"
+        icon="square.and.pencil"
+      />
     </>
   );
 };

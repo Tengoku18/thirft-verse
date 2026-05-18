@@ -59,7 +59,7 @@ export default function EditProductScreen() {
   return (
     <View className="flex-1 bg-white">
       <CustomHeader title="Edit Product" showBackButton />
-      <ProductForm mode="edit" product={product} />
+      <ProductForm product={product} />
     </View>
   );
 }

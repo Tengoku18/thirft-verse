@@ -89,6 +89,13 @@ export function mapOrderResponse(o: any, orderItems: any[]): OrderDetail {
     },
     ncm: o.ncm_order_id ? { orderId: o.ncm_order_id, status: o.ncm_status || null, deliveryStatus: o.ncm_delivery_status || null, paymentStatus: o.ncm_payment_status || null, deliveryCharge: o.ncm_delivery_charge || null, lastSyncedAt: o.ncm_last_synced_at || null } : null,
     sellerId: o.seller_id,
+    seller: o.seller
+      ? {
+          id: o.seller.id,
+          name: o.seller.name ?? null,
+          storeUsername: o.seller.store_username ?? null,
+        }
+      : null,
     createdAt: o.created_at,
     updatedAt: o.updated_at,
   };
@@ -104,6 +111,6 @@ export function mapProductFallback(p: Product): OrderDetail {
     buyer: { name: "Customer", email: "Not available", phone: "Not available" },
     shipping: { method: "N/A", fee: 0, address: null },
     payment: { method: "Direct Sale", transactionCode: "N/A", subtotal: p.price, discountedSubtotal: p.price, offerCode: null, offerDiscountPercent: null, offerDiscountAmount: 0, total: p.price, sellersEarning: p.price },
-    ncm: null, sellerId: p.store_id, createdAt: p.created_at, updatedAt: p.updated_at,
+    ncm: null, sellerId: p.store_id, seller: null, createdAt: p.created_at, updatedAt: p.updated_at,
   };
 }

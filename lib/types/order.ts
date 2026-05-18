@@ -61,6 +61,12 @@ export interface OrderDetail {
   } | null;
 
   sellerId: string;
+  /** Store/seller the order was bought from. Present on buyer-side reads. */
+  seller: {
+    id: string;
+    name: string | null;
+    storeUsername: string | null;
+  } | null;
   createdAt: string;
   updatedAt: string;
 }

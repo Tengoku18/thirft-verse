@@ -1,4 +1,4 @@
-import { FormButton } from "@/components/atoms/FormButton";
+import { Button } from "@/components/ui/Button";
 import { Typography } from "@/components/ui/Typography";
 
 import React from "react";
@@ -180,11 +180,13 @@ export function ChangeReferralCodeModal({
                 )}
               </View>
 
-              <FormButton
-                title="Save New Code"
+              <Button
+                label="Save New Code"
                 onPress={onSave}
-                loading={loading}
+                isLoading={loading}
+                disabled={loading}
                 variant="primary"
+                fullWidth
               />
             </ScrollView>
           </Pressable>

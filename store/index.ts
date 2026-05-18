@@ -39,6 +39,17 @@ export {
 
 export type { SignupFormData, SignupPaymentData } from "./signupSlice";
 
+// Export checkout slice
+export {
+  resetCheckout,
+  setAppliedOffer,
+  setCheckoutData,
+  setCheckoutOfferInput,
+  setCheckoutQuantity,
+} from "./checkoutSlice";
+
+export type { CheckoutFormData } from "./checkoutSlice";
+
 // Export notifications slice
 export {
   clearNotifications,
@@ -52,3 +63,11 @@ export {
 
 // Export initialization thunk
 export { initializeApp } from "./initializationThunk";
+
+// Export UI slice
+export {
+  hydrateHomeMode,
+  setHomeMode,
+  setHomeModeLocal,
+} from "./uiSlice";
+export type { HomeMode } from "./uiSlice";

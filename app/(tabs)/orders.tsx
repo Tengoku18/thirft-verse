@@ -8,12 +8,66 @@ import {
   OrderFilterBar,
   StatusFilter,
 } from "@/components/orders";
+import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTour } from "@/contexts/TourContext";
-import { getOrdersBySeller } from "@/lib/database-helpers";
+import { getOrdersByBuyer, getOrdersBySeller } from "@/lib/database-helpers";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
+
+type OrderMode = "selling" | "buying";
+
+// ─────────────── Selling / Buying toggle ───────────────
+function OrderModeToggle({
+  mode,
+  onChange,
+}: {
+  mode: OrderMode;
+  onChange: (m: OrderMode) => void;
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        backgroundColor: "rgba(59,47,47,0.06)",
+        borderRadius: 999,
+        padding: 4,
+        marginHorizontal: 16,
+        marginTop: 10,
+        marginBottom: 4,
+      }}
+    >
+      {(["selling", "buying"] as OrderMode[]).map((m) => {
+        const active = mode === m;
+        return (
+          <Pressable
+            key={m}
+            onPress={() => onChange(m)}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 9,
+              borderRadius: 999,
+              backgroundColor: active ? "#3B2F2F" : "transparent",
+            }}
+          >
+            <Typography
+              variation="label"
+              style={{
+                fontSize: 13,
+                color: active ? "#FFFFFF" : "rgba(59,47,47,0.7)",
+              }}
+            >
+              {m === "selling" ? "Selling" : "Buying"}
+            </Typography>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
 
 // // ─────────────── Guide banner ───────────────
 // function GuideBanner({ onDismiss }: { onDismiss: () => void }) {
@@ -88,6 +142,7 @@ export default function OrdersScreen() {
 
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mode, setMode] = useState<OrderMode>("selling");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending");
   // const [showGuideBanner, setShowGuideBanner] = useState(false);
 
@@ -123,6 +178,57 @@ export default function OrdersScreen() {
       return;
     }
     try {
+      // ── Buying view: orders where the current user is the buyer ──
+      if (mode === "buying") {
+        const buyRes = await getOrdersByBuyer(user.email ?? "");
+        if (!buyRes.success) {
+          setItems([]);
+          return;
+        }
+        const mappedBuys: OrderItem[] = buyRes.data.map((order: any) => {
+          const shippingFee = order.shipping_fee || 0;
+          const productPrice = (order.amount || 0) - shippingFee;
+          const itemsSubtotal = order.items_subtotal ?? productPrice;
+          const discountedItemsTotal =
+            order.discounted_items_total ?? itemsSubtotal;
+          const offerDiscountAmount =
+            order.offer_discount_amount ??
+            Math.max(
+              0,
+              Math.round((itemsSubtotal - discountedItemsTotal) * 100) / 100,
+            );
+          const storeName =
+            order.seller?.store_username ||
+            order.seller?.name ||
+            "Store";
+
+          return {
+            id: order.id,
+            type: "order" as const,
+            order_code: order.order_code || order.transaction_code || null,
+            product_title: order.product?.title || "Order Item",
+            product_image: order.product?.cover_image || null,
+            // Shown via counterpartyLabel="Seller" on the card.
+            buyer_name: storeName,
+            amount: productPrice,
+            shipping_fee: shippingFee,
+            payment_method: order.payment_method || "COD",
+            status: order.status || "pending",
+            created_at: order.created_at || new Date().toISOString(),
+            quantity: order.quantity || 1,
+            items_count: 1,
+            items_subtotal: itemsSubtotal,
+            discounted_items_total: discountedItemsTotal,
+            offer_code_text: order.offer_code_text || null,
+            offer_discount_percent: order.offer_discount_percent || null,
+            offer_discount_amount: offerDiscountAmount,
+            originalId: order.id,
+          };
+        });
+        setItems(mappedBuys);
+        return;
+      }
+
       const result = await getOrdersBySeller(user.id);
       if (!result.success) {
         setItems([]);
@@ -193,7 +299,7 @@ export default function OrdersScreen() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, mode]);
 
   useFocusEffect(
     useCallback(() => {
@@ -201,6 +307,13 @@ export default function OrdersScreen() {
       loadData();
     }, [loadData]),
   );
+
+  // Switching Selling/Buying refetches immediately (not just on focus).
+  useEffect(() => {
+    setLoading(true);
+    setStatusFilter("pending");
+    loadData();
+  }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     registerTarget("orders_list", ordersListRef);
@@ -248,15 +361,18 @@ export default function OrdersScreen() {
       ? "All"
       : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
 
-  const filterBar = (
-    <OrderFilterBar
-      active={statusFilter}
-      counts={counts}
-      onChange={setStatusFilter}
-    />
+  const stickyHeader = (
+    <View>
+      <OrderModeToggle mode={mode} onChange={setMode} />
+      <OrderFilterBar
+        active={statusFilter}
+        counts={counts}
+        onChange={setStatusFilter}
+      />
+    </View>
   );
 
-  const createOrderButton = __DEV__ ? (
+  const createOrderButton = __DEV__ && mode === "selling" ? (
     <Pressable
       onPress={() => router.push("/order/custom-order")}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -272,7 +388,7 @@ export default function OrdersScreen() {
       <TabScreenLayout
         title="Orders"
         headerVariant="light"
-        stickyComponent={filterBar}
+        stickyComponent={stickyHeader}
         scrollable={false}
         rightComponent={createOrderButton}
       >
@@ -285,7 +401,7 @@ export default function OrdersScreen() {
     <TabScreenLayout
       title="Orders"
       headerVariant="light"
-      stickyComponent={filterBar}
+      stickyComponent={stickyHeader}
       onRefresh={loadData}
       rightComponent={createOrderButton}
       contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, gap: 12 }}
@@ -300,7 +416,14 @@ export default function OrdersScreen() {
             <OrderCard
               key={item.id}
               item={item}
-              onPress={() => router.push(`/order/${item.originalId}`)}
+              counterpartyLabel={mode === "buying" ? "Seller" : "Buyer"}
+              onPress={() =>
+                router.push(
+                  mode === "buying"
+                    ? `/purchase/${item.originalId}`
+                    : `/order/${item.originalId}`,
+                )
+              }
             />
           ))
         )}

@@ -70,9 +70,16 @@ const formatPrice = (amount: number) =>
 interface OrderCardProps {
   item: OrderItem;
   onPress: () => void;
+  /** Label for the counterparty line: "Buyer" in the selling view (default),
+   *  "Seller" in the buying view. `item.buyer_name` holds whichever name. */
+  counterpartyLabel?: string;
 }
 
-export function OrderCard({ item, onPress }: OrderCardProps) {
+export function OrderCard({
+  item,
+  onPress,
+  counterpartyLabel = "Buyer",
+}: OrderCardProps) {
   const status = STATUS_CONFIG[item.status] ?? DEFAULT_STATUS;
   const action = ACTION_CONFIG[item.status] ?? DEFAULT_ACTION;
   const dateStr = dayjs(item.created_at).format("MMM D, YYYY");
@@ -193,7 +200,7 @@ export function OrderCard({ item, onPress }: OrderCardProps) {
               {item.product_title}
             </Typography>
             <Typography variation="caption" style={{ color: "rgba(59,48,48,0.55)", fontSize: 12 }}>
-              Buyer: {item.buyer_name} • Qty: {item.quantity}
+              {counterpartyLabel}: {item.buyer_name} • Qty: {item.quantity}
             </Typography>
           </View>
 

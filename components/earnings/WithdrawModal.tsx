@@ -1,4 +1,4 @@
-import { FormButton } from "@/components/atoms/FormButton";
+import { Button } from "@/components/ui/Button";
 import { InfoBox } from "@/components/atoms/InfoBox";
 import { RHFInput } from "@/components/forms/ReactHookForm/RHFInput";
 import { RHFTextarea } from "@/components/forms/ReactHookForm/RHFTextarea";
@@ -213,12 +213,13 @@ export function WithdrawModal({
               backgroundColor: "#FFFFFF",
             }}
           >
-            <FormButton
-              title="Submit Request"
+            <Button
+              label="Submit Request"
               onPress={handleSubmit(onFormSubmit)}
-              loading={submitting}
+              isLoading={submitting}
               disabled={submitting}
               variant="primary"
+              fullWidth
             />
           </View>
         </KeyboardAvoidingView>

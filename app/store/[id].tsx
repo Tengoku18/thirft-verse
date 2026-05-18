@@ -1,10 +1,11 @@
 import { SkeletonLoader } from "@/components/atoms/SkeletonLoader";
 import { CubeIcon, IIcon, WarningIcon } from "@/components/icons";
 import { ScreenLayout } from "@/components/layouts";
-import { ProductCardSkeleton } from "@/components/molecules/ProductCardSkeleton";
 import ProductCard from "@/components/molecules/ProductCard";
+import { ProductCardGridSkeleton } from "@/components/molecules/ProductCardSkeleton";
 import { Typography } from "@/components/ui/Typography";
 import { Colors } from "@/constants/theme";
+import { getProfileImageUrl } from "@/lib/storage-helpers";
 import { supabase } from "@/lib/supabase";
 import { Product, Profile } from "@/lib/types/database";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -45,29 +46,56 @@ function StoreHeaderSkeleton() {
 }
 
 function ProductsGridSkeleton() {
-  return (
-    <>
-      <View className="flex-row gap-3 mb-3">
-        <View style={{ flex: 1 }}>
-          <ProductCardSkeleton />
-        </View>
-        <View style={{ flex: 1 }}>
-          <ProductCardSkeleton />
-        </View>
-      </View>
-      <View className="flex-row gap-3">
-        <View style={{ flex: 1 }}>
-          <ProductCardSkeleton />
-        </View>
-        <View style={{ flex: 1 }}>
-          <ProductCardSkeleton />
-        </View>
-      </View>
-    </>
-  );
+  return <ProductCardGridSkeleton count={4} variant="elevated" gap={12} />;
 }
 
 type StoreError = "not_found" | "network_error" | null;
+
+function StoreAvatar({ store }: { store: Profile }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const initial = (store.store_username || store.name || "?")
+    .charAt(0)
+    .toUpperCase();
+  const imageUrl = store.profile_image
+    ? getProfileImageUrl(store.profile_image)
+    : "";
+  const showImage = !!imageUrl && !imageFailed;
+
+  if (showImage) {
+    return (
+      <Image
+        source={{ uri: imageUrl }}
+        style={{
+          width: 120,
+          height: 120,
+          borderRadius: 60,
+          borderWidth: 3,
+          borderColor: "#E5E7EB",
+        }}
+        resizeMode="cover"
+        onError={() => setImageFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <View
+      className="w-32 h-32 rounded-full items-center justify-center border-4"
+      style={{
+        backgroundColor: Colors.light.text,
+        borderColor: "#E5E7EB",
+      }}
+    >
+      <Typography
+        variation="h1"
+        className="text-white"
+        style={{ fontSize: 40 }}
+      >
+        {initial}
+      </Typography>
+    </View>
+  );
+}
 
 export default function StoreDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -82,7 +110,9 @@ export default function StoreDetailsScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchStore = useCallback(
-    async (storeId: string): Promise<{ data: Profile | null; notFound: boolean }> => {
+    async (
+      storeId: string,
+    ): Promise<{ data: Profile | null; notFound: boolean }> => {
       try {
         const { data, error } = await supabase
           .from("profiles")
@@ -197,10 +227,16 @@ export default function StoreDetailsScreen() {
           <View className="w-20 h-20 rounded-full bg-slate-100 items-center justify-center mb-4">
             <IIcon width={48} height={48} color="#CCCCCC" />
           </View>
-          <Typography variation="h3" className="mb-2 text-center text-slate-900">
+          <Typography
+            variation="h3"
+            className="mb-2 text-center text-slate-900"
+          >
             Store Not Found
           </Typography>
-          <Typography variation="body-sm" className="text-center text-slate-600 mb-6">
+          <Typography
+            variation="body-sm"
+            className="text-center text-slate-600 mb-6"
+          >
             This store is no longer available.
           </Typography>
           <TouchableOpacity
@@ -218,11 +254,18 @@ export default function StoreDetailsScreen() {
           <View className="w-20 h-20 rounded-full bg-red-50 items-center justify-center mb-4">
             <WarningIcon width={36} height={36} color="#EF4444" />
           </View>
-          <Typography variation="h3" className="mb-2 text-center text-slate-900">
+          <Typography
+            variation="h3"
+            className="mb-2 text-center text-slate-900"
+          >
             Something Went Wrong
           </Typography>
-          <Typography variation="body-sm" className="text-center text-slate-600 mb-6">
-            Could not load this store. Please check your connection and try again.
+          <Typography
+            variation="body-sm"
+            className="text-center text-slate-600 mb-6"
+          >
+            Could not load this store. Please check your connection and try
+            again.
           </Typography>
           <TouchableOpacity
             onPress={handleRetryStore}
@@ -250,39 +293,14 @@ export default function StoreDetailsScreen() {
           {/* Store Header */}
           <View className="bg-white px-6 py-8 border-b border-slate-100">
             <View className="items-center mb-6">
-              {store.profile_image ? (
-                <Image
-                  source={{ uri: store.profile_image }}
-                  style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: 60,
-                    borderWidth: 3,
-                    borderColor: "#E5E7EB",
-                  }}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View
-                  className="w-32 h-32 rounded-full items-center justify-center border-4"
-                  style={{
-                    backgroundColor: Colors.light.text,
-                    borderColor: "#E5E7EB",
-                  }}
-                >
-                  <Typography
-                    variation="h1"
-                    className="text-white"
-                    style={{ fontSize: 48 }}
-                  >
-                    {store.name.charAt(0).toUpperCase()}
-                  </Typography>
-                </View>
-              )}
+              <StoreAvatar store={store} />
             </View>
 
             <View className="items-center mb-6">
-              <Typography variation="h2" className="text-center text-slate-900 mb-1">
+              <Typography
+                variation="h2"
+                className="text-center text-slate-900 mb-1"
+              >
                 {store.name}
               </Typography>
               <Typography
@@ -381,10 +399,16 @@ export default function StoreDetailsScreen() {
                 <View className="w-16 h-16 rounded-full bg-slate-100 items-center justify-center mb-4">
                   <CubeIcon width={32} height={32} color="#CCCCCC" />
                 </View>
-                <Typography variation="h3" className="text-slate-900 mb-2 text-center">
+                <Typography
+                  variation="h3"
+                  className="text-slate-900 mb-2 text-center"
+                >
                   No Products Yet
                 </Typography>
-                <Typography variation="body-sm" className="text-slate-600 text-center">
+                <Typography
+                  variation="body-sm"
+                  className="text-slate-600 text-center"
+                >
                   This store has not listed any products yet.
                 </Typography>
               </View>
@@ -394,15 +418,9 @@ export default function StoreDetailsScreen() {
                 renderItem={({ item }) => (
                   <View style={{ width: "48%" }}>
                     <ProductCard
-                      product={{
-                        ...item,
-                        store: {
-                          id: store.id,
-                          name: store.name,
-                          store_username: store.store_username,
-                          currency: store.currency,
-                        },
-                      }}
+                      product={{ ...item, store: null }}
+                      variant="elevated"
+                      onPress={() => router.push(`/product/${item.id}` as any)}
                     />
                   </View>
                 )}

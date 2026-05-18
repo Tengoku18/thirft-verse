@@ -156,12 +156,19 @@ export interface OfferCodeUsage {
 
 export type ProductVerificationStatus = 'pending' | 'verified' | 'rejected';
 
+export type ProductCondition =
+  | 'brand_new'
+  | 'like_new'
+  | 'gently_used'
+  | 'thrifted_chic';
+
 export interface Product {
   id: string;
   store_id: string;
   title: string;
   description: string | null;
   category: string;
+  condition: ProductCondition | null;
   price: number;
   cover_image: string;
   other_images: string[];
@@ -178,7 +185,7 @@ export interface Product {
 }
 
 export interface ProductWithStore extends Product {
-  store: Pick<Profile, "id" | "name" | "store_username" | "currency"> | null;
+  store: Pick<Profile, "id" | "name" | "store_username" | "currency" | "profile_image"> | null;
 }
 
 export interface PaginatedResponse<T> {

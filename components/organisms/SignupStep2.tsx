@@ -1,4 +1,4 @@
-import { FormButton } from "@/components/atoms/FormButton";
+import { Button } from "@/components/ui/Button";
 import { Typography } from "@/components/ui/Typography";
 import { createUserProfile } from "@/lib/database-helpers";
 import { uploadProfileImage } from "@/lib/storage-helpers";
@@ -305,15 +305,22 @@ export const SignupStep2: React.FC<SignupStep2Props> = ({
 
       {/* Buttons */}
       <View className="mt-auto">
-        <FormButton
-          title="Verify & Continue"
+        <Button
+          label="Verify & Continue"
           onPress={handleVerifyOtp}
-          loading={loading}
+          isLoading={loading}
+          disabled={loading}
           variant="primary"
-          className="mb-4"
+          fullWidth
+          style={{ marginBottom: 16 }}
         />
 
-        <FormButton title="Back" onPress={onBack} variant="outline" />
+        <Button
+          label="Back"
+          onPress={onBack}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );

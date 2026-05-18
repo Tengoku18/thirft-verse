@@ -1,101 +1,10 @@
-import { AddPhotoIcon, CubeIcon } from "@/components/icons";
+import { CubeIcon } from "@/components/icons";
+import ProductCard from "@/components/molecules/ProductCard";
 import { Typography } from "@/components/ui/Typography";
-import { getProductImageUrl } from "@/lib/storage-helpers";
 import { Product } from "@/lib/types/database";
 import { useRouter } from "expo-router";
 import React from "react";
-import { FlatList, Image, TouchableOpacity, View } from "react-native";
-
-interface ProductItemProps {
-  product: Product;
-}
-
-function ProductItem({ product }: ProductItemProps) {
-  const router = useRouter();
-  const imageUri = product.cover_image
-    ? getProductImageUrl(product.cover_image)
-    : null;
-  const isSoldOut = product.status === "out_of_stock";
-
-  return (
-    <TouchableOpacity
-      onPress={() => router.push(`/product/${product.id}` as any)}
-      activeOpacity={0.85}
-      style={{ width: "50%" }}
-      className="p-1.5"
-    >
-      {/* Image container */}
-      <View
-        className={`rounded-[18px] overflow-hidden bg-primary/5 aspect-square ${
-          isSoldOut ? "opacity-60" : ""
-        }`}
-      >
-        {imageUri ? (
-          <Image
-            source={{ uri: imageUri }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="flex-1 items-center justify-center">
-            <AddPhotoIcon width={32} height={32} color="#D1D5DB" />
-          </View>
-        )}
-
-        {/* Heart button */}
-        {/* <TouchableOpacity
-          activeOpacity={0.8}
-          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/85 items-center justify-center"
-        >
-          <HeartIcon width={16} height={16} color="#3B3030" />
-        </TouchableOpacity> */}
-
-        {/* Out of stock overlay */}
-        {isSoldOut && (
-          <View className="absolute inset-0 bg-black/40 items-center justify-center">
-            <View className="bg-status-error/90 px-3 py-1.5 rounded-lg">
-              <Typography
-                variation="caption"
-                className="text-white font-sans-bold tracking-wide text-xs"
-              >
-                Out of Stock
-              </Typography>
-            </View>
-          </View>
-        )}
-      </View>
-
-      {/* Info */}
-      <View className="px-0.5 pt-2">
-        <Typography
-          variation="body-sm"
-          numberOfLines={1}
-          className={`font-sans-medium ${
-            isSoldOut ? "text-brand-espresso/50" : "text-brand-espresso"
-          }`}
-        >
-          {product.title}
-        </Typography>
-        <Typography
-          variation="body"
-          className={`font-sans-bold mt-0.5 ${
-            isSoldOut ? "text-brand-espresso/50" : "text-brand-espresso"
-          }`}
-        >
-          NPR {product.price.toLocaleString()}
-        </Typography>
-        {isSoldOut && (
-          <Typography
-            variation="caption"
-            className="text-status-error font-sans-semibold mt-1"
-          >
-            Not Available
-          </Typography>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-}
+import { FlatList, View } from "react-native";
 
 interface StoreProductGridProps {
   products: Product[];
@@ -106,6 +15,8 @@ export function StoreProductGrid({
   products,
   emptyMessage = "No products yet",
 }: StoreProductGridProps) {
+  const router = useRouter();
+
   if (products.length === 0) {
     return (
       <View className="py-16 items-center">
@@ -120,14 +31,37 @@ export function StoreProductGrid({
     );
   }
 
+  const paddedProducts: (Product | { __placeholder: true })[] =
+    products.length % 2 === 1
+      ? [...products, { __placeholder: true }]
+      : products;
+
   return (
     <FlatList
-      data={products}
-      keyExtractor={(item) => item.id}
+      data={paddedProducts}
+      keyExtractor={(item, index) =>
+        "__placeholder" in item ? `placeholder-${index}` : item.id
+      }
       numColumns={2}
       scrollEnabled={false}
       contentContainerStyle={{ padding: 10 }}
-      renderItem={({ item }) => <ProductItem product={item} />}
+      columnWrapperStyle={{ gap: 10 }}
+      ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+      renderItem={({ item }) => {
+        if ("__placeholder" in item) {
+          return <View style={{ flex: 1 }} />;
+        }
+        return (
+          <View style={{ flex: 1 }}>
+            <ProductCard
+              product={{ ...item, store: null }}
+              variant="grid"
+              aspectRatio={1}
+              onPress={() => router.push(`/product/${item.id}` as any)}
+            />
+          </View>
+        );
+      }}
     />
   );
 }

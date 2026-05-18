@@ -1,4 +1,4 @@
-import { FormButton } from "@/components/atoms/FormButton";
+import { Button } from "@/components/ui/Button";
 import { FormInput } from "@/components/atoms/FormInput";
 import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
 import { CameraIcon, LockIcon } from "@/components/icons";
@@ -430,11 +430,13 @@ export default function EditProfileScreen() {
 
           {/* Save Button */}
           <View className="px-6 mt-4">
-            <FormButton
-              title="Save Changes"
+            <Button
+              label="Save Changes"
               onPress={handleSave}
-              loading={saving}
+              isLoading={saving}
+              disabled={saving}
               variant="primary"
+              fullWidth
             />
           </View>
         </ScrollView>

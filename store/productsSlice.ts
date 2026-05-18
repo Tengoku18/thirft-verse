@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { Product } from "@/lib/types/database";
+import { Product, ProductWithStore } from "@/lib/types/database";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface ProductsState {
@@ -9,7 +9,7 @@ interface ProductsState {
   userProductsError: string | null;
 
   // Selected product (for product details screen)
-  selectedProduct: Product | null;
+  selectedProduct: ProductWithStore | null;
   selectedProductLoading: boolean;
   selectedProductError: string | null;
 
@@ -56,14 +56,14 @@ export const fetchUserProducts = createAsyncThunk(
   },
 );
 
-// Fetch single product by ID
+// Fetch single product by ID (includes store profile for buyer view)
 export const fetchProductById = createAsyncThunk(
   "products/fetchProductById",
   async (productId: string, { rejectWithValue }) => {
     try {
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select("*, store:profiles!store_id(id, name, store_username, currency, profile_image)")
         .eq("id", productId)
         .single();
 
@@ -71,7 +71,7 @@ export const fetchProductById = createAsyncThunk(
         return rejectWithValue(error.message);
       }
 
-      return data as Product;
+      return data as ProductWithStore;
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch product");
     }
@@ -170,6 +170,7 @@ export const createProduct = createAsyncThunk(
       description: string;
       price: number;
       category: string;
+      condition: string;
       availability_count: number;
       store_id: string;
       cover_image: string;
@@ -205,7 +206,7 @@ const productsSlice = createSlice({
   initialState,
   reducers: {
     // Set selected product directly (useful when navigating from list)
-    setSelectedProduct: (state, action: PayloadAction<Product | null>) => {
+    setSelectedProduct: (state, action: PayloadAction<ProductWithStore | null>) => {
       state.selectedProduct = action.payload;
     },
 
@@ -254,7 +255,7 @@ const productsSlice = createSlice({
     });
     builder.addCase(fetchProductById.fulfilled, (state, action) => {
       state.selectedProductLoading = false;
-      state.selectedProduct = action.payload;
+      state.selectedProduct = action.payload as ProductWithStore;
     });
     builder.addCase(fetchProductById.rejected, (state, action) => {
       state.selectedProductLoading = false;
@@ -277,9 +278,9 @@ const productsSlice = createSlice({
         state.userProducts[index] = updatedProduct;
       }
 
-      // Update selectedProduct if it's the same product
+      // Update selectedProduct if it's the same product, preserving the store join
       if (state.selectedProduct?.id === updatedProduct.id) {
-        state.selectedProduct = updatedProduct;
+        state.selectedProduct = { ...updatedProduct, store: state.selectedProduct.store };
       }
     });
     builder.addCase(updateProduct.rejected, (state) => {

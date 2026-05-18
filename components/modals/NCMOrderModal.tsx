@@ -1,4 +1,4 @@
-import { FormButton } from "@/components/atoms/FormButton";
+import { Button } from "@/components/ui/Button";
 import { FormInput } from "@/components/atoms/FormInput";
 import { FormPicker, PickerOption } from "@/components/atoms/FormPicker";
 import { Typography } from "@/components/ui/Typography";
@@ -421,12 +421,13 @@ export const NCMOrderModal: React.FC<NCMOrderModalProps> = ({
                 paddingBottom: insets.bottom + 12,
               }}
             >
-              <FormButton
-                title="Create NCM Order"
+              <Button
+                label="Create NCM Order"
                 onPress={handleSubmit}
-                loading={submitting}
+                isLoading={submitting}
                 disabled={submitting || loadingBranches}
                 variant="primary"
+                fullWidth
               />
             </View>
           )}

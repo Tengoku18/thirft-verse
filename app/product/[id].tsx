@@ -1,12 +1,22 @@
+import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
+import { InfoBox } from "@/components/atoms/InfoBox";
+import { BagIcon, ShareIcon, TrashIcon, WarningIcon } from "@/components/icons";
 import { ScreenLayout } from "@/components/layouts";
+import {
+  BuyerActions,
+  OwnerActions,
+  ProductDescription,
+  ProductImageGallery,
+  ProductInfo,
+  ProductStats,
+  ProductStatusRow,
+  VerificationBanner,
+} from "@/components/product";
 import { ActionModal } from "@/components/ui/ActionModal";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Carousel } from "@/components/ui/Carousel";
 import { Typography } from "@/components/ui/Typography";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
-import { getProductImageUrl } from "@/lib/storage-helpers";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   clearSelectedProduct,
@@ -15,45 +25,10 @@ import {
 } from "@/store/productsSlice";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { FullScreenLoader } from "@/components/atoms/FullScreenLoader";
-import {
-  Alert,
-  Dimensions,
-  Image,
-  Linking,
-  Share,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  CheckMarkCircleIcon,
-  GlobeIcon,
-  ShareIcon,
-  SquarePencilIcon,
-  TrashIcon,
-  WarningIcon,
-} from "@/components/icons";
+import { Alert, Linking, Share, TouchableOpacity, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
-const formatPrice = (amount: number) => {
-  return `NPR ${amount.toLocaleString()}`;
-};
-
-const formatDate = (iso: string) => {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
-
-const statusConfig = {
-  available: { bg: "#D1FAE5", text: "#059669", label: "Available" },
-  out_of_stock: { bg: "#FEE2E2", text: "#DC2626", label: "Out of Stock" },
-};
+const formatPrice = (amount: number) => `NPR ${amount.toLocaleString()}`;
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -61,6 +36,7 @@ export default function ProductDetailScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAuth();
   const toast = useToast();
+  const insets = useSafeAreaInsets();
 
   const {
     selectedProduct: product,
@@ -73,44 +49,39 @@ export default function ProductDetailScreen() {
   );
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    if (id) {
-      dispatch(fetchProductById(id));
-    }
-    return () => {
-      dispatch(clearSelectedProduct());
-    };
+    if (id) dispatch(fetchProductById(id));
+    return () => { dispatch(clearSelectedProduct()); };
   }, [id, dispatch]);
 
   const handleRefresh = async () => {
-    if (id) {
-      await dispatch(fetchProductById(id));
-    }
+    if (id) await dispatch(fetchProductById(id));
   };
 
   const handleShare = async () => {
     if (!product) return;
+    const productUrl = `https://thriftverse.shop/product/${product.id}`;
     try {
-      const productUrl = `https://thriftverse.shop/product/${product.id}`;
       await Share.share({
         message: `Check out "${product.title}" on Thriftverse!\n\nPrice: ${formatPrice(product.price)}\n\n${productUrl}`,
         url: productUrl,
         title: product.title,
       });
-    } catch (error) {
-      console.error("Error sharing:", error);
+    } catch {
+      // share sheet dismissed
     }
   };
 
-  const handleViewInWebsite = async () => {
+  const handleWebsite = async () => {
     if (!product) return;
     const url = storeUsername
       ? `https://${storeUsername}.thriftverse.shop/product/${product.id}`
       : `https://thriftverse.shop/product/${product.id}`;
     try {
       await Linking.openURL(url);
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Could not open the website.");
     }
   };
@@ -129,28 +100,17 @@ export default function ProductDetailScreen() {
       setShowDeleteModal(false);
       toast.success("Product deleted successfully");
       router.back();
-    } catch (error: any) {
+    } catch (err: any) {
       setShowDeleteModal(false);
-      Alert.alert(
-        "Error",
-        error || "Failed to delete product. Please try again.",
-      );
+      Alert.alert("Error", err || "Failed to delete product. Please try again.");
     }
   };
 
-  const getAllImages = (): string[] => {
-    if (!product) return [];
-    const images = [product.cover_image];
-    if (product.other_images && product.other_images.length > 0) {
-      images.push(...product.other_images);
-    }
-    return images;
+  const handleBuyNow = () => {
+    if (!product) return;
+    router.push(`/checkout?productId=${product.id}&quantity=${quantity}` as any);
   };
 
-  const allImages = getAllImages();
-  const isOwner = user?.id === product?.store_id;
-
-  // Initial load: show full screen loader until first response arrives
   if (loading && !product) {
     return (
       <SafeAreaView className="flex-1" style={{ backgroundColor: "#F5F5F5" }}>
@@ -159,23 +119,14 @@ export default function ProductDetailScreen() {
     );
   }
 
-  // Fetch failed (network error, server error, etc.)
   if (error && !product) {
     return (
       <SafeAreaView className="flex-1 bg-[#F5F5F5] justify-center items-center px-6">
         <WarningIcon width={48} height={48} color="#EF4444" />
-        <Typography
-          variation="h3"
-          className="text-brand-espresso mt-4 text-center"
-        >
+        <Typography variation="h3" className="text-brand-espresso mt-4 text-center">
           Something Went Wrong
         </Typography>
-        <Typography
-          variation="body-sm"
-          className="text-ui-secondary mt-2 text-center"
-        >
-          {error}
-        </Typography>
+        <InfoBox message={error} type="error" className="mt-3 w-full" />
         <View className="flex-row gap-3 mt-6">
           <TouchableOpacity
             onPress={handleRefresh}
@@ -198,23 +149,18 @@ export default function ProductDetailScreen() {
     );
   }
 
-  // Product was fetched but doesn't exist or was deleted
   if (!product) {
     return (
       <SafeAreaView className="flex-1 bg-[#F5F5F5] justify-center items-center px-6">
         <WarningIcon width={48} height={48} color="#9CA3AF" />
-        <Typography
-          variation="h3"
-          className="text-brand-espresso mt-4 text-center"
-        >
+        <Typography variation="h3" className="text-brand-espresso mt-4 text-center">
           Product Not Found
         </Typography>
-        <Typography
-          variation="body-sm"
-          className="text-ui-secondary mt-2 text-center"
-        >
-          This product may have been removed or is no longer available.
-        </Typography>
+        <InfoBox
+          message="This product may have been removed or is no longer available."
+          type="secondary"
+          className="mt-3 w-full"
+        />
         <TouchableOpacity
           onPress={() => router.back()}
           className="mt-6 bg-brand-espresso px-6 py-3 rounded-full"
@@ -227,33 +173,9 @@ export default function ProductDetailScreen() {
     );
   }
 
-  const currentStatus = statusConfig[product.status];
-  const verificationStatus = product.verification_status ?? "pending";
-  const verificationConfig = {
-    pending: {
-      bg: "#FEF3C7",
-      text: "#92400E",
-      label: "Under Review",
-      message: "This product is under review for marketplace visibility. In the meantime, it's already live on your storefront.",
-    },
-    verified: {
-      bg: "#D1FAE5",
-      text: "#065F46",
-      label: "Live on Marketplace",
-      message: "Your product is approved and visible to buyers on the Thriftverse marketplace.",
-    },
-    rejected: {
-      bg: "#FEE2E2",
-      text: "#991B1B",
-      label: "Not Approved",
-      message: "Your product wasn't approved for the marketplace. Review the reason below, make the necessary updates, and resubmit.",
-    },
-  };
-  const verificationMeta = verificationConfig[verificationStatus];
-  const imageCarouselData = allImages.map((img, i) => ({
-    id: String(i),
-    uri: getProductImageUrl(img),
-  }));
+  const isOwner = user?.id === product.store_id;
+  const isAvailable = product.status === "available";
+  const allImages = [product.cover_image, ...(product.other_images ?? [])];
 
   const shareButton = (
     <TouchableOpacity
@@ -267,256 +189,116 @@ export default function ProductDetailScreen() {
   );
 
   return (
-    <ScreenLayout
-      title="Product Details"
-      contentBackgroundColor="#F5F5F5"
-      paddingHorizontal={0}
-      rightComponent={shareButton}
-      onRefresh={handleRefresh}
-    >
-      {/* Image Carousel */}
-      <View className="pt-4">
-        <Carousel
-          data={imageCarouselData}
-          itemWidth={SCREEN_WIDTH * 0.85}
-          itemHeight={SCREEN_WIDTH * 0.85 * 1.25}
-          autoPlayInterval={0}
-          showDots={allImages.length > 1}
-          snapToAlignment="center"
-          renderItem={(item) => (
-            <Image
-              source={{ uri: item.uri }}
-              style={{ width: "100%", height: "100%", borderRadius: 16 }}
-              resizeMode="cover"
+    <View style={{ flex: 1 }}>
+      <ScreenLayout
+        title="Product Details"
+        contentBackgroundColor="#F5F5F5"
+        paddingHorizontal={0}
+        rightComponent={shareButton}
+        onRefresh={handleRefresh}
+      >
+        <ProductImageGallery images={allImages} />
+
+        <View
+          className="px-4 mt-5 gap-4"
+          style={{ paddingBottom: isOwner ? 24 : insets.bottom + 104 }}
+        >
+          <ProductStatusRow status={product.status} category={product.category} />
+
+          {isOwner && (
+            <VerificationBanner
+              status={product.verification_status}
+              rejectedReason={product.rejected_reason}
+              storeUsername={storeUsername}
+              onEdit={handleEdit}
             />
           )}
+
+          <ProductInfo title={product.title} price={product.price} />
+
+          <ProductStats
+            availabilityCount={product.availability_count}
+            category={product.category}
+          />
+
+          {product.description && (
+            <ProductDescription description={product.description} />
+          )}
+
+          {isOwner ? (
+            <OwnerActions
+              onEdit={handleEdit}
+              onShare={handleShare}
+              onWebsite={handleWebsite}
+              onDelete={() => setShowDeleteModal(true)}
+            />
+          ) : (
+            <BuyerActions
+              product={product}
+              quantity={quantity}
+              onQuantityChange={setQuantity}
+              onViewStore={() => router.push(`/store/${product.store_id}` as any)}
+            />
+          )}
+        </View>
+
+        <ActionModal
+          visible={showDeleteModal}
+          icon={<TrashIcon width={24} height={24} color="#DC2626" />}
+          title="Delete Product?"
+          description={`Are you sure you want to delete "${product.title}"? This action cannot be undone.`}
+          primaryLabel={deleting ? "Deleting…" : "Delete"}
+          secondaryLabel="Keep Product"
+          onPrimary={handleConfirmDelete}
+          onSecondary={() => setShowDeleteModal(false)}
+          primaryLoading={deleting}
         />
-      </View>
+      </ScreenLayout>
 
-      {/* Content */}
-      <View className="px-4 mt-5 gap-4 pb-6">
-        {/* Status + Category row */}
-        <View className="flex-row items-center justify-between">
-          <View
-            className="flex-row items-center gap-1.5 px-3 py-1 rounded-full"
-            style={{ backgroundColor: currentStatus.bg }}
-          >
-            <CheckMarkCircleIcon
-              width={14}
-              height={14}
-              color={currentStatus.text}
-            />
-            <Typography
-              variation="caption"
-              style={{ color: currentStatus.text, fontWeight: "700" }}
-            >
-              {currentStatus.label}
-            </Typography>
-          </View>
-          <Typography variation="body-sm" className="text-ui-secondary">
-            Category:{" "}
-            <Typography
-              variation="body-sm"
-              className="text-brand-tan font-semibold"
-            >
-              {product.category}
-            </Typography>
-          </Typography>
-        </View>
-
-        {/* Verification Status (owner only) */}
-        {isOwner && (
-          <View
-            className="rounded-2xl p-4 gap-1"
-            style={{ backgroundColor: verificationMeta.bg }}
-          >
-            <View className="flex-row items-center gap-2">
-              <View
-                className="px-2 py-0.5 rounded-full"
-                style={{ backgroundColor: verificationMeta.text + "22" }}
-              >
-                <Typography
-                  variation="caption"
-                  style={{ color: verificationMeta.text, fontWeight: "700" }}
-                >
-                  {verificationMeta.label}
-                </Typography>
-              </View>
-            </View>
-            <Typography
-              variation="body-sm"
-              style={{ color: verificationMeta.text }}
-            >
-              {verificationMeta.message}
-            </Typography>
-            {verificationStatus === "pending" && storeUsername && (
-              <TouchableOpacity
-                onPress={() =>
-                  Linking.openURL(`https://${storeUsername}.thriftverse.shop`)
-                }
-                activeOpacity={0.75}
-                className="flex-row items-center gap-1 mt-1"
-              >
-                <GlobeIcon width={13} height={13} color={verificationMeta.text} />
-                <Typography
-                  variation="caption"
-                  style={{
-                    color: verificationMeta.text,
-                    textDecorationLine: "underline",
-                  }}
-                >
-                  View your storefront →
-                </Typography>
-              </TouchableOpacity>
-            )}
-            {verificationStatus === "rejected" && product.rejected_reason && (
-              <>
-                <View
-                  className="mt-1 border-t"
-                  style={{ borderColor: verificationMeta.text + "33" }}
-                />
-                <Typography
-                  variation="body-sm"
-                  style={{ color: verificationMeta.text, fontWeight: "600" }}
-                  className="mt-1"
-                >
-                  Reason:
-                </Typography>
-                <Typography
-                  variation="body-sm"
-                  style={{ color: verificationMeta.text }}
-                >
-                  {product.rejected_reason}
-                </Typography>
-                <TouchableOpacity
-                  onPress={handleEdit}
-                  className="mt-2 py-2.5 rounded-xl items-center"
-                  style={{ backgroundColor: verificationMeta.text }}
-                  activeOpacity={0.8}
-                >
-                  <Typography variation="button" className="text-white">
-                    Update Product
-                  </Typography>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        )}
-
-        {/* Title + Price */}
-        <View className="gap-1">
-          <Typography
-            variation="h2"
-            className="text-brand-espresso leading-tight"
-          >
-            {product.title}
-          </Typography>
-          <Typography variation="h1" className="text-brand-espresso">
-            {formatPrice(product.price)}
-          </Typography>
-        </View>
-
-        {/* Stats Grid */}
-        <View className="flex-row gap-3">
-          <Card variant="outlined" className="flex-1">
-            <Typography
-              variation="caption"
-              className="text-ui-secondary uppercase tracking-widest font-sans-bold mb-1"
-            >
-              Stock Level
-            </Typography>
-            <Typography variation="h4" className="text-amber-700">
-              {product.availability_count} items left
-            </Typography>
-          </Card>
-          <Card variant="outlined" className="flex-1">
-            <Typography
-              variation="caption"
-              className="text-ui-secondary uppercase tracking-widest font-sans-bold mb-1"
-            >
-              Category
-            </Typography>
-            <Typography
-              variation="h4"
-              className="text-brand-espresso"
-              numberOfLines={1}
-            >
-              {product.category}
-            </Typography>
-          </Card>
-        </View>
-
-        {/* Description */}
-        {product.description && (
-          <Card variant="outlined">
-            <Typography variation="h5" className="text-brand-espresso mb-2">
-              Description
-            </Typography>
-            <Typography
-              variation="body-sm"
-              className="text-ui-secondary leading-relaxed"
-            >
-              {product.description}
-            </Typography>
-          </Card>
-        )}
-
-        {/* Action Buttons (owner only) */}
-        {isOwner && (
-          <View className="gap-3">
-            <Button
-              label="Edit Product"
-              variant="primary"
-              onPress={handleEdit}
-              icon={<SquarePencilIcon width={18} height={18} color="#FFFFFF" />}
-              noShadow
-            />
-            <View className="flex-row gap-3">
-              <View className="flex-1">
-                <Button
-                  label="Share"
-                  variant="secondary"
-                  onPress={handleShare}
-                  icon={<ShareIcon width={18} height={18} color="#3B3030" />}
-                  noShadow
-                />
-              </View>
-              <View className="flex-1">
-                <Button
-                  label="Website"
-                  variant="secondary"
-                  onPress={handleViewInWebsite}
-                  icon={<GlobeIcon width={18} height={18} color="#3B3030" />}
-                  noShadow
-                />
-              </View>
-            </View>
-            <TouchableOpacity
-              onPress={() => setShowDeleteModal(true)}
-              className="w-full h-14 flex-row items-center justify-center gap-2 rounded-3xl bg-red-50 border border-red-200"
-              activeOpacity={0.8}
-            >
-              <TrashIcon width={18} height={18} color="#DC2626" />
-              <Typography variation="button" className="text-red-600">
-                Delete Product
+      {/* Docked bottom action bar — buyer only */}
+      {!isOwner && (
+        <View
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "#FFFFFF",
+            borderTopWidth: 1,
+            borderTopColor: "#F1F5F9",
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            paddingBottom: Math.max(insets.bottom, 12),
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.06,
+            shadowRadius: 10,
+            elevation: 12,
+          }}
+        >
+          <View className="flex-row items-center gap-3">
+            <View className="flex-1">
+              <Typography variation="caption" className="text-ui-secondary">
+                {quantity > 1 ? `${quantity} × ${formatPrice(product.price)}` : "Total"}
               </Typography>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+              <Typography variation="h3" className="text-brand-espresso">
+                {formatPrice(product.price * quantity)}
+              </Typography>
+            </View>
 
-      {/* Delete Confirmation Modal */}
-      <ActionModal
-        visible={showDeleteModal}
-        icon={<TrashIcon width={24} height={24} color="#DC2626" />}
-        title="Delete Product?"
-        description={`Are you sure you want to delete "${product.title}"? This action cannot be undone.`}
-        primaryLabel={deleting ? "Deleting…" : "Delete"}
-        secondaryLabel="Keep Product"
-        onPrimary={handleConfirmDelete}
-        onSecondary={() => setShowDeleteModal(false)}
-        primaryLoading={deleting}
-      />
-    </ScreenLayout>
+            <View style={{ flex: 1.3 }}>
+              <Button
+                label={isAvailable ? "Buy Now" : "Out of Stock"}
+                variant="primary"
+                onPress={handleBuyNow}
+                disabled={!isAvailable}
+                icon={<BagIcon width={18} height={18} color="#FFFFFF" />}
+                noShadow
+              />
+            </View>
+          </View>
+        </View>
+      )}
+    </View>
   );
 }

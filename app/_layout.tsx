@@ -35,7 +35,7 @@ import {
   addNotificationResponseReceivedListener,
   initializePushNotifications,
 } from "@/lib/push-notifications";
-import { fetchNotifications, fetchUnreadCount, store } from "@/store";
+import { fetchNotifications, fetchUnreadCount, hydrateHomeMode, store } from "@/store";
 import * as Sentry from "@sentry/react-native";
 import * as Updates from "expo-updates";
 import { PostHogProvider } from "posthog-react-native";
@@ -102,6 +102,11 @@ export default Sentry.wrap(function RootLayout() {
   // Initialize push notifications on app launch (request permission + get token)
   useEffect(() => {
     initializePushNotifications();
+  }, []);
+
+  // Hydrate persisted UI preferences (e.g. home buyer/seller mode) once at launch
+  useEffect(() => {
+    store.dispatch(hydrateHomeMode());
   }, []);
 
   // Handle notification interactions (foreground, background, quit)

@@ -1,4 +1,4 @@
-import { FormButton } from "@/components/atoms/FormButton";
+import { Button } from "@/components/ui/Button";
 import { FormInput } from "@/components/atoms/FormInput";
 import { Typography } from "@/components/ui/Typography";
 
@@ -301,9 +301,11 @@ export function VerifyFounderModal({
                       <ActivityIndicator color="#3B2F2F" />
                     </View>
                   ) : (
-                    <FormButton
-                      title="Verify & Activate"
+                    <Button
+                      label="Verify & Activate"
                       onPress={handleVerify}
+                      variant="primary"
+                      fullWidth
                       style={{ marginTop: 8 }}
                     />
                   )}

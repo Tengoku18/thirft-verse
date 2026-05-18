@@ -610,6 +610,100 @@ export const deleteMyOfferCode = async (): Promise<{
   }
 };
 
+/** Resolved offer code, ready to apply to a checkout total. */
+export interface AppliedCheckoutOffer {
+  offerCodeId: string;
+  code: string;
+  discountPercent: number;
+  itemsSubtotal: number;
+  discountAmount: number;
+  discountedItemsTotal: number;
+  expiresAt: string;
+}
+
+/**
+ * Buyer-side offer code validation for native checkout.
+ * Mirrors the web's resolveAppliedOfferForCheckout, but goes through the
+ * SECURITY DEFINER RPC (008 migration) since RLS won't let a buyer read a
+ * seller's offer_codes row directly.
+ */
+export const validateCheckoutOfferCode = async (params: {
+  sellerId: string;
+  code: string;
+  itemsSubtotal: number;
+}): Promise<{
+  success: boolean;
+  offer?: AppliedCheckoutOffer;
+  error?: string;
+}> => {
+  try {
+    const normalized = normalizeOfferCode(params.code);
+    if (!OFFER_CODE_REGEX.test(normalized)) {
+      return { success: false, error: "Enter a valid offer code." };
+    }
+    if (!params.sellerId) {
+      return { success: false, error: "Seller not found for this checkout." };
+    }
+    if (
+      !Number.isFinite(params.itemsSubtotal) ||
+      params.itemsSubtotal <= 0
+    ) {
+      return {
+        success: false,
+        error: "Offer code cannot be applied to an empty order.",
+      };
+    }
+
+    const { data, error } = await supabase.rpc(
+      "validate_offer_code_for_checkout",
+      {
+        p_seller_id: params.sellerId,
+        p_code: normalized,
+        p_items_subtotal: params.itemsSubtotal,
+      },
+    );
+
+    if (error) {
+      if (error.code === "PGRST202" || error.code === "PGRST205") {
+        return {
+          success: false,
+          error:
+            "Offer codes are not configured yet. Please run the latest Supabase migration.",
+        };
+      }
+      console.error("validateCheckoutOfferCode RPC failed:", error);
+      return {
+        success: false,
+        error: "Could not validate offer code right now.",
+      };
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) {
+      return { success: false, error: "Invalid or expired offer code." };
+    }
+
+    return {
+      success: true,
+      offer: {
+        offerCodeId: row.offer_code_id,
+        code: row.code,
+        discountPercent: Number(row.discount_percent),
+        itemsSubtotal: Number(row.items_subtotal),
+        discountAmount: Number(row.discount_amount),
+        discountedItemsTotal: Number(row.discounted_items_total),
+        expiresAt: row.expires_at,
+      },
+    };
+  } catch (error) {
+    console.error("Unexpected error in validateCheckoutOfferCode:", error);
+    return {
+      success: false,
+      error: "Could not validate offer code right now.",
+    };
+  }
+};
+
 /**
  * Create a new product
  */
@@ -819,7 +913,8 @@ export const getOrderById = async (orderId: string) => {
       .select(
         `
         *,
-        product:products(id, title, cover_image, price)
+        product:products(id, title, cover_image, price),
+        seller:profiles!orders_seller_id_fkey(id, name, store_username)
       `,
       )
       .eq("id", orderId)
@@ -2798,5 +2893,103 @@ export const createCustomOrder = async (params: CreateCustomOrderParams) => {
   } catch (error) {
     console.error("💥 Error in createCustomOrder:", error);
     return { success: false, error };
+  }
+};
+
+// ─── Buyer-initiated COD order ────────────────────────────────────────────────
+
+export interface CreateBuyerCodOrderParams {
+  productId: string;
+  sellerId: string;
+  productName: string;
+  productPrice: number;
+  quantity: number;
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone: string;
+  street: string;
+  city: string;
+  district: string;
+  shippingOption: "home" | "branch";
+  shippingFee: number;
+  buyerNotes?: string;
+  /** Optional offer code resolved via validateCheckoutOfferCode. */
+  offer?: AppliedCheckoutOffer | null;
+}
+
+export const createBuyerCodOrder = async (
+  params: CreateBuyerCodOrderParams,
+): Promise<{ success: boolean; orderId?: string; orderCode?: string; error?: string }> => {
+  try {
+    // Generate order code
+    const now = new Date();
+    const timestamp = Date.now();
+    const year = now.getFullYear().toString().substring(2);
+    const month = (now.getMonth() + 1).toString().padStart(2, "0");
+    const day = now.getDate().toString().padStart(2, "0");
+    const hours = now.getHours().toString().padStart(2, "0");
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    const seconds = now.getSeconds().toString().padStart(2, "0");
+    const randomStr = Math.random().toString(36).substring(2, 9);
+    const hash = Math.abs(
+      `${timestamp}-${randomStr}`.split("").reduce((acc, char) => {
+        return (acc << 5) - acc + char.charCodeAt(0);
+      }, 0),
+    );
+    const code = hash.toString(36).toUpperCase().substring(0, 4).padStart(4, "0");
+    const orderCode = `#TV-${year}${month}${day}-${hours}${minutes}${seconds}-${code}`;
+
+    // All money math, the offer re-resolution, the orders INSERT, offer-usage
+    // recording and stock decrement happen server-side in the
+    // `create_buyer_cod_order` SECURITY DEFINER RPC. It runs as the function
+    // owner, so it bypasses RLS on `orders` entirely (a raw client INSERT is
+    // blocked by RLS, and the buyer also can't SELECT the row back). Price is
+    // re-read from `products` and the offer re-validated inside the function,
+    // so neither can be tampered with from the client.
+    const { data: rpcRows, error: rpcError } = await supabase.rpc(
+      "create_buyer_cod_order",
+      {
+        p_product_id: params.productId,
+        p_seller_id: params.sellerId,
+        p_quantity: params.quantity,
+        p_buyer_name: params.buyerName,
+        p_buyer_email: params.buyerEmail,
+        p_buyer_phone: params.buyerPhone,
+        p_street: params.street,
+        p_city: params.city,
+        p_district: params.district,
+        p_shipping_option: params.shippingOption,
+        p_shipping_fee: params.shippingFee,
+        p_order_code: orderCode,
+        p_buyer_notes: params.buyerNotes ?? null,
+        p_offer_code: params.offer?.code ?? null,
+      },
+    );
+
+    // RETURNS TABLE(...) comes back as an array of rows.
+    const order = Array.isArray(rpcRows) ? rpcRows[0] : rpcRows;
+
+    if (rpcError || !order) {
+      // Full diagnostic dump — code/details/hint reveal RLS vs column vs FK.
+      console.error("🛑 createBuyerCodOrder RPC failed", {
+        supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
+        message: rpcError?.message,
+        code: (rpcError as any)?.code,
+        details: (rpcError as any)?.details,
+        hint: (rpcError as any)?.hint,
+        raw: JSON.stringify(rpcError),
+      });
+      return {
+        success: false,
+        error:
+          rpcError?.message ??
+          "Failed to create order (no row returned from RPC)",
+      };
+    }
+
+    return { success: true, orderId: order.id, orderCode: order.order_code };
+  } catch (error: any) {
+    console.error("💥 Error in createBuyerCodOrder:", error);
+    return { success: false, error: error?.message ?? "Unexpected error" };
   }
 };
